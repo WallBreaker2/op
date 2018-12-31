@@ -32,7 +32,7 @@ interface IComponentRegistrar : IDispatch
 ]
 interface IOpInterface : IDispatch
 {
-	[id(1)] HRESULT GetVersion([out, retval] LONG* ret);
+	[id(1)] HRESULT Ver([out, retval] LONG* ret);
 	[id(58), helpstring("EnumWindow")] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59), helpstring("EnumWindowByProcess")] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
 	[id(60), helpstring("EnumProcess")] HRESULT EnumProcess([in] BSTR name, [out, retval] BSTR* retstring);
@@ -43,28 +43,31 @@ interface IOpInterface : IDispatch
 	[id(65), helpstring("FindWindowEx")] HRESULT FindWindowEx([in] LONG parent, [in] BSTR class_name, [in] BSTR title, [out, retval] LONG* rethwnd);
 	[id(66), helpstring("GetClientRect")] HRESULT GetClientRect([in] LONG hwnd, [out] VARIANT* x1, [out] VARIANT* y1, [out] VARIANT* x2, [out] VARIANT* y2, [out, retval] LONG* nret);
 	[id(67), helpstring("GetClientSize")] HRESULT GetClientSize([in] LONG hwnd, [out] VARIANT* width, [out] VARIANT* height, [out, retval] LONG* nret);
-	[id(68), helpstring("方法GetForegroundFocus")] HRESULT GetForegroundFocus([out, retval] LONG* rethwnd);
-	[id(69), helpstring("方法GetForegroundWindow")] HRESULT GetForegroundWindow([out, retval] LONG* rethwnd);
-	[id(70), helpstring("方法GetMousePointWindow")] HRESULT GetMousePointWindow([out, retval] LONG* rethwnd);
-	[id(71), helpstring("方法GetPointWindow")] HRESULT GetPointWindow([in] LONG x, [in] LONG y, [out, retval] LONG* rethwnd);
-	[id(72), helpstring("方法GetProcessInfo")] HRESULT GetProcessInfo([in] LONG pid, [out, retval] BSTR* retstring);
-	[id(73), helpstring("方法GetSpecialWindow")] HRESULT GetSpecialWindow([in] LONG flag, [out, retval] LONG* rethwnd);
-	[id(74), helpstring("方法GetWindow")] HRESULT GetWindow([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
-	[id(75), helpstring("方法GetWindowClass")] HRESULT GetWindowClass([in] LONG hwnd, [out, retval] BSTR* retstring);
-	[id(76), helpstring("方法GetWindowProcessId")] HRESULT GetWindowProcessId([in] LONG hwnd, [out, retval] LONG* nretpid);
-	[id(77), helpstring("方法GetWindowProcessPath")] HRESULT GetWindowProcessPath([in] LONG hwnd, [out, retval] BSTR* retstring);
-	[id(78), helpstring("方法GetWindowRect")] HRESULT GetWindowRect([in] LONG hwnd, [out] VARIANT* x1, [out] VARIANT* y1, [out] VARIANT* x2, [out] VARIANT* y2, [out, retval] LONG* nret);
-	[id(79), helpstring("方法GetWindowState")] HRESULT GetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* rethwnd);
-	[id(80), helpstring("方法GetWindowTitle")] HRESULT GetWindowTitle([in] LONG hwnd, [out, retval] BSTR* rettitle);
-	[id(81), helpstring("方法MoveWindow")] HRESULT MoveWindow([in] LONG hwnd, [in] LONG x, [in] LONG y, [out, retval] LONG* nret);
-	[id(82), helpstring("方法ScreenToClient")] HRESULT ScreenToClient([in] LONG hwnd, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* nret);
-	[id(83), helpstring("方法SendPaste")] HRESULT SendPaste([in] LONG hwnd, [out, retval] LONG* nret);
-	[id(84), helpstring("方法SetClientSize")] HRESULT SetClientSize([in] LONG hwnd, [in] LONG width, [in] LONG hight, [out, retval] LONG* nret);
-	[id(85), helpstring("方法SetWindowState")] HRESULT SetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
-	[id(86), helpstring("方法SetWindowSize")] HRESULT SetWindowSize([in] LONG hwnd, [in] LONG width, [in] LONG height, [out, retval] LONG* nret);
-	[id(87), helpstring("方法SetWindowText")] HRESULT SetWindowText([in] LONG hwnd, [in] BSTR title, [out, retval] LONG* nret);
-	[id(88), helpstring("方法SetWindowTransparent")] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
+	[id(68), helpstring("GetForegroundFocus")] HRESULT GetForegroundFocus([out, retval] LONG* rethwnd);
+	[id(69), helpstring("GetForegroundWindow")] HRESULT GetForegroundWindow([out, retval] LONG* rethwnd);
+	[id(70), helpstring("GetMousePointWindow")] HRESULT GetMousePointWindow([out, retval] LONG* rethwnd);
+	[id(71), helpstring("GetPointWindow")] HRESULT GetPointWindow([in] LONG x, [in] LONG y, [out, retval] LONG* rethwnd);
+	[id(72), helpstring("GetProcessInfo")] HRESULT GetProcessInfo([in] LONG pid, [out, retval] BSTR* retstring);
+	[id(73), helpstring("GetSpecialWindow")] HRESULT GetSpecialWindow([in] LONG flag, [out, retval] LONG* rethwnd);
+	[id(74), helpstring("GetWindow")] HRESULT GetWindow([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
+	[id(75), helpstring("GetWindowClass")] HRESULT GetWindowClass([in] LONG hwnd, [out, retval] BSTR* retstring);
+	[id(76), helpstring("GetWindowProcessId")] HRESULT GetWindowProcessId([in] LONG hwnd, [out, retval] LONG* nretpid);
+	[id(77), helpstring("GetWindowProcessPath")] HRESULT GetWindowProcessPath([in] LONG hwnd, [out, retval] BSTR* retstring);
+	[id(78), helpstring("GetWindowRect")] HRESULT GetWindowRect([in] LONG hwnd, [out] VARIANT* x1, [out] VARIANT* y1, [out] VARIANT* x2, [out] VARIANT* y2, [out, retval] LONG* nret);
+	[id(79), helpstring("GetWindowState")] HRESULT GetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* rethwnd);
+	[id(80), helpstring("GetWindowTitle")] HRESULT GetWindowTitle([in] LONG hwnd, [out, retval] BSTR* rettitle);
+	[id(81), helpstring("MoveWindow")] HRESULT MoveWindow([in] LONG hwnd, [in] LONG x, [in] LONG y, [out, retval] LONG* nret);
+	[id(82), helpstring("ScreenToClient")] HRESULT ScreenToClient([in] LONG hwnd, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* nret);
+	[id(83), helpstring("SendPaste")] HRESULT SendPaste([in] LONG hwnd, [out, retval] LONG* nret);
+	[id(84), helpstring("SetClientSize")] HRESULT SetClientSize([in] LONG hwnd, [in] LONG width, [in] LONG hight, [out, retval] LONG* nret);
+	[id(85), helpstring("SetWindowState")] HRESULT SetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
+	[id(86), helpstring("SetWindowSize")] HRESULT SetWindowSize([in] LONG hwnd, [in] LONG width, [in] LONG height, [out, retval] LONG* nret);
+	[id(87), helpstring("SetWindowText")] HRESULT SetWindowText([in] LONG hwnd, [in] BSTR title, [out, retval] LONG* nret);
+	[id(88), helpstring("SetWindowTransparent")] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
 	[id(89), helpstring("exc")] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
+	[id(90), helpstring("MoveTo")] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
+	[id(91), helpstring("MoveTo")] HRESULT LeftClick([out, retval] LONG* ret);
+
 };
 [
 	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),

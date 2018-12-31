@@ -35,6 +35,9 @@
     <Filter Include="Cmd">
       <UniqueIdentifier>{bce34cc4-c9d5-4a8e-906b-81183d7009de}</UniqueIdentifier>
     </Filter>
+    <Filter Include="BackGround">
+      <UniqueIdentifier>{a0da737d-06e0-4b05-a9e6-318ff3203902}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -60,6 +63,9 @@
     </ClCompile>
     <ClCompile Include="Pipe.cpp">
       <Filter>tools\Pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="BackGround.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="Cmder.h">
       <Filter>Cmd</Filter>
+    </ClInclude>
+    <ClInclude Include="BackGround.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

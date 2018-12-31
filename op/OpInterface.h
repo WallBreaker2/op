@@ -8,7 +8,7 @@
 #include "op_i.h"
 #include "Type.h"
 #include "WinApi.h"
-
+#include "BackGround.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Windows CE 平台(如不提供完全 DCOM 支持的 Windows Mobile 平台)上无法正确支持单线程 COM 对象。定义 _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA 可强制 ATL 支持创建单线程 COM 对象实现并允许使用其单线程 COM 对象实现。rgs 文件中的线程模型已被设置为“Free”，原因是该模型是非 DCOM Windows CE 平台支持的唯一线程模型。"
@@ -54,12 +54,14 @@ private:
 
 	//1. Windows API
 	WinApi _winapi;
+	//
+	Background _background;
 
 public:
 	//---------------方法-------------------
 
 	//1.版本号Version
-	STDMETHOD(GetVersion)(long* ret);
+	STDMETHOD(Ver)(long* ret);
 
 	//WIN API
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);
@@ -96,6 +98,10 @@ public:
 
 	//cmd
 	STDMETHOD(ExcuteCmd)(BSTR cmd,LONG millseconds, BSTR* retstr);
+
+	//Background 
+	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
+	STDMETHOD(LeftClick)(LONG* ret);
 
 
 };

@@ -7,7 +7,7 @@
 #include "Cmder.h"
 // OpInterface
 
-HRESULT OpInterface::GetVersion(long* ret) {
+HRESULT OpInterface::Ver(long* ret) {
 	*ret = MAKE_VERSION(0, 1, 0, 1);
 	return S_OK;
 }
@@ -313,5 +313,15 @@ STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd,LONG millseconds, BSTR* retstr) {
 	auto str = cd.ExcuteCmd(strcmd, millseconds <= 0 ? 5 : millseconds);
 	bstr.Append(str.c_str());
 	bstr.CopyTo(retstr);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
+	*ret=_background.MoveTo(x, y);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
+	*ret = _background.LeftClick();
 	return S_OK;
 }
