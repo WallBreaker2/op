@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "op", "op\op.vcxproj", "{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opPS", "opPS\opPS.vcxproj", "{E5FC54F2-4EE1-41E4-8E8B-95D2B22E246D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA} = {EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Debug|x64.ActiveCfg = Debug|x64
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Debug|x64.Build.0 = Debug|x64
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Debug|x86.ActiveCfg = Debug|Win32
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Debug|x86.Build.0 = Debug|Win32
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Release|x64.ActiveCfg = Release|x64
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Release|x64.Build.0 = Release|x64
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Release|x86.ActiveCfg = Release|Win32
+		{EA90DCB4-3591-4FA3-9C10-08FEE47A4BFA}.Release|x86.Build.0 = Release|Win32
+		{E5FC54F2-4EE1-41E4-8E8B-95D2B22E246D}.Debug|x64.ActiveCfg = Debug|x64
+		{E5FC54F2-4EE1-41E4-8E8B-95D2B22E246D}.Debug|x86.ActiveCfg = Debug|Win32
+		{E5FC54F2-4EE1-41E4-8E8B-95D2B22E246D}.Release|x64.ActiveCfg = Release|x64
+		{E5FC54F2-4EE1-41E4-8E8B-95D2B22E246D}.Release|x86.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F3B8F6F7-84E9-421E-A7A2-5E753FD2ADB3}
+	EndGlobalSection
+EndGlobal

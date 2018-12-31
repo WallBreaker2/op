@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="生成的文件">
+      <UniqueIdentifier>{6f00b8f4-4c01-4755-a598-aa5f21843403}</UniqueIdentifier>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Interface">
+      <UniqueIdentifier>{dac40974-a04d-4dc6-a80d-0f3b9c3d3ccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Type">
+      <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WinApi">
+      <UniqueIdentifier>{ae19fd78-cb4a-4611-ac40-f1676abfec78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools">
+      <UniqueIdentifier>{3166043b-12be-4f67-8084-67f6bccb7c33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tools\Pipe">
+      <UniqueIdentifier>{e73fe18a-063a-4a50-b6a7-81c1d435404a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Cmd">
+      <UniqueIdentifier>{bce34cc4-c9d5-4a8e-906b-81183d7009de}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="op.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="compreg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="op_i.c">
+      <Filter>生成的文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OpInterface.cpp">
+      <Filter>Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="WinApi.cpp">
+      <Filter>WinApi</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipe.cpp">
+      <Filter>tools\Pipe</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dllmain.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="compreg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="op_i.h">
+      <Filter>生成的文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OpInterface.h">
+      <Filter>Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Type.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="WinApi.h">
+      <Filter>WinApi</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipe.h">
+      <Filter>tools\Pipe</Filter>
+    </ClInclude>
+    <ClInclude Include="Cmder.h">
+      <Filter>Cmd</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="op.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="op.rgs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="op.def">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="OpInterface.rgs">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="op.idl">
+      <Filter>源文件</Filter>
+    </Midl>
+  </ItemGroup>
+</Project>
