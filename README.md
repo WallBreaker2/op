@@ -16,9 +16,11 @@ OP
 
 ### Windows消息模拟
 ---
-
+支持全局模式（normal)和Windows模式(windows)
 
 ### 应用程序截图
-
-
+---
+empty
 ### 简单图像识别
+---
+empty
