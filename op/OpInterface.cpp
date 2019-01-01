@@ -8,7 +8,7 @@
 // OpInterface
 
 HRESULT OpInterface::Ver(long* ret) {
-	*ret = MAKE_VERSION(0, 1, 0, 1);
+	*ret = MAKE_VERSION(0, 1, 0, 2);
 	return S_OK;
 }
 
@@ -323,5 +323,10 @@ STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
 
 STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
 	*ret = _background.LeftClick();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::BindWindow(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode, LONG *ret) {
+	*ret = _background.Bind(hwnd, display, mouse, keypad, mode);
 	return S_OK;
 }

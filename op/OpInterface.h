@@ -102,6 +102,7 @@ public:
 	//Background 
 	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
 	STDMETHOD(LeftClick)(LONG* ret);
+	STDMETHOD(BindWindow)(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode,LONG *ret);
 
 
 };

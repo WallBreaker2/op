@@ -1,9 +1,11 @@
 #pragma once
 #ifndef __BACKGROUND_H_
 #define __BACKGROUND_H_
+#include "Bkmouse.h"
 class Background
 {
 public:
+	
 	Background();
 	~Background();
 public:
@@ -19,8 +21,12 @@ public:
 	virtual long RightClick();
 	virtual long MoveTo(long x, long y);
 private:
-	int _hwnd;
+	HWND _hwnd;
 	int _is_bind;
+	int _display;
+	int _keypad;
+	int _mode;
+	Bkmouse _bkmouse;
 };
 #endif
 

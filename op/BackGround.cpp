@@ -4,6 +4,7 @@
 
 Background::Background() :_hwnd(0),_is_bind(0)
 {
+	_display = _keypad = _mode = 0;
 }
 
 
@@ -12,21 +13,34 @@ Background::~Background()
 }
 
 long Background::Bind(int hwnd, int display, int mouse, int keypad, int mode) {
-	_hwnd = hwnd;
-	return 0;
+	_hwnd = (HWND)hwnd;
+	long ret;
+	if (!::IsWindow(_hwnd)) {
+		ret = 0; _hwnd = 0;
+	}
+	else {
+		ret = 1;
+		_display = display;
+		_keypad = keypad; _mode = mode;
+		_bkmouse.Bind(_hwnd,mouse);
+	}
+	return ret;
+
 }
 
 long Background::UnBind() {
-	_is_bind = _hwnd = 0;
+	_hwnd = NULL;
+	_is_bind = 0;
+	_display = _keypad = _mode = 0;
 	return 1;
 }
 
 long Background::GetBindWindow() {
-	return _hwnd;
+	return (long)_hwnd;
 }
 
 long Background::IsBind() {
-	return _is_bind==1;
+	return _is_bind==1?1:0;
 }
 
 long Background::GetCursorPos(int&x, int&y) {
@@ -49,47 +63,19 @@ long Background::KeyUp(int vk_code) {
 }
 
 long Background::LeftClick() {
-	INPUT Input = { 0 };
-	// left down 
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-	::SendInput(1, &Input, sizeof(INPUT));
-
-	// left up
-	::ZeroMemory(&Input, sizeof(INPUT));
-	Input.type =INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-	::SendInput(1, &Input, sizeof(INPUT));
-	return 1;
+	long ret = 0;
+	ret = _bkmouse.LeftClick();
+	return ret;
 }
 
 long Background::RightClick() {
-	INPUT Input = { 0 };
-	// left down 
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-	::SendInput(1, &Input, sizeof(INPUT));
-
-	// left up
-	::ZeroMemory(&Input, sizeof(INPUT));
-	Input.type = INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-	::SendInput(1, &Input, sizeof(INPUT));
-	return 1;
+	
+	return _bkmouse.RightClick();
 }
 
 long Background::MoveTo(long x, long y) {
-	double fScreenWidth = ::GetSystemMetrics(SM_CXSCREEN) - 1;
-	double fScreenHeight = ::GetSystemMetrics(SM_CYSCREEN) - 1;
-	double fx = x * (65535.0f / fScreenWidth);
-	double fy = y * (65535.0f / fScreenHeight);
-	INPUT Input = { 0 };
-	Input.type=INPUT_MOUSE;
-	Input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-	Input.mi.dx = static_cast<LONG>(fx);
-	Input.mi.dy = static_cast<LONG>(fy);
-	::SendInput(1, &Input, sizeof(INPUT));
-	return 0;
+	
+	return _bkmouse.MoveTo(x,y);
 }
 
 
