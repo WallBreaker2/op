@@ -2,27 +2,7 @@
 =======
 OP
 ===========
-该文件用于Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...,可编译为32/64位dll.即可为32位和64位应用程序调用.
-此外，本工程仅为学习交流使用，请勿用于商业或非法用途.
->>>>>>> a77bed8 (Update README.md)
-
-# OP 自动化插件
-
-[![GitHub Release](https://img.shields.io/github/v/release/WallBreaker2/op?style=flat-square)](https://github.com/WallBreaker2/op/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-## 📖 项目概述
-
-**OP**（Operator & Open）是一款开源自动化工具，专为Windows平台设计。核心功能包括：
-
-- 🔍 **窗口自动化**：键鼠消息模拟/后台截图
-- 🖼️ **图像处理**：智能找图/色值识别
-- ✨ **OCR引擎**：传统算法+AI引擎双模式
-- 🛠️ **平台支持**：原生32/64位双版本
-
-![架构图](doc/class_struct.svg)
-
-## 🚀 核心特性
+OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费使用.主要特点:Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...在c++11 语言的基础上，提供高效稳定的算法实现.源代码可编译为32/64位dll.即可为32位和64位应用程序调用.
 
 ### 自动化控制
 - Windows消息级键鼠模拟
