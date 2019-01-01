@@ -29,23 +29,23 @@
     <Filter Include="Cmd">
       <UniqueIdentifier>{bce34cc4-c9d5-4a8e-906b-81183d7009de}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BackGround">
-      <UniqueIdentifier>{a0da737d-06e0-4b05-a9e6-318ff3203902}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="BackGround\Mouse">
-      <UniqueIdentifier>{42956553-2852-44e7-8d6a-a85628b0c3b9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="BackGround\Display">
-      <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="BackGround\Keypad">
-      <UniqueIdentifier>{05013c1a-094a-4c58-9bba-16cb454da5c0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Tools">
       <UniqueIdentifier>{3166043b-12be-4f67-8084-67f6bccb7c33}</UniqueIdentifier>
     </Filter>
     <Filter Include="Tools\Pipe">
       <UniqueIdentifier>{e73fe18a-063a-4a50-b6a7-81c1d435404a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background">
+      <UniqueIdentifier>{a0da737d-06e0-4b05-a9e6-318ff3203902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Mouse">
+      <UniqueIdentifier>{42956553-2852-44e7-8d6a-a85628b0c3b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Display">
+      <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Keypad">
+      <UniqueIdentifier>{05013c1a-094a-4c58-9bba-16cb454da5c0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -74,7 +74,7 @@
       <Filter>Tools\Pipe</Filter>
     </ClCompile>
     <ClCompile Include="BackGround.cpp">
-      <Filter>BackGround</Filter>
+      <Filter>Background</Filter>
     </ClCompile>
     <ClCompile Include="Bkmouse.cpp">
       <Filter>源文件</Filter>
@@ -115,7 +115,7 @@
       <Filter>Cmd</Filter>
     </ClInclude>
     <ClInclude Include="BackGround.h">
-      <Filter>BackGround</Filter>
+      <Filter>Background</Filter>
     </ClInclude>
     <ClInclude Include="Bkmouse.h">
       <Filter>头文件</Filter>
