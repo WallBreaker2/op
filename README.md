@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 OP
 ===========
 OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费使用.主要特点:Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...在c++11 语言的基础上，提供高效稳定的算法实现.源代码可编译为32/64位dll.即可为32位和64位应用程序调用.
@@ -55,6 +53,12 @@ found, x, y = op.FindPic(
 | Visual Studio     | 2022 (MSVC 143)  |
 | CMake             | ≥3.24            |
 | Windows SDK       | 10.0.19041.0     |
+***
+## 目录
+* [Windows消息模拟](#Windows消息模拟)
+* [应用程序截图](#应用程序截图)
+* [简单图像识别](#简单图像识别)
+* [Reference](#Reference)
 
 ### 依赖管理
 ```bash
@@ -78,3 +82,14 @@ set BLACKBONE_ROOT="D:\libs\Blackbone"
 - [TSPLUG](https://github.com/tcplugins/tsplug) - Windows部分函数参考实现
 - [Kiero](https://github.com/Rebzzel/kiero) - DirectX注入方案
 ``` 
+### 应用程序截图
+---
+empty
+### 简单图像识别
+---
+empty
+
+
+
+### Reference
+[1] TSPLUG源码,TC company
