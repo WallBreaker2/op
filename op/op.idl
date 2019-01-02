@@ -32,7 +32,10 @@ interface IComponentRegistrar : IDispatch
 ]
 interface IOpInterface : IDispatch
 {
-	[id(1)] HRESULT Ver([out, retval] LONG* ret);
+	[id(1)] HRESULT Ver([out, retval] BSTR* ret);
+	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
+	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
+	[id(4)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
 	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
 	[id(60)] HRESULT EnumProcess([in] BSTR name, [out, retval] BSTR* retstring);
@@ -68,6 +71,9 @@ interface IOpInterface : IDispatch
 	[id(90)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
 	[id(91)] HRESULT LeftClick([out, retval] LONG* ret);
 	[id(92)] HRESULT BindWindow([in] LONG hwnd, [in] LONG display, [in] LONG mouse, [in] LONG keypad, [in] LONG mode, [out, retval] LONG *ret);
+	[id(93)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
+	[id(94)] HRESULT UnBind([out, retval] LONG* ret);
+	[id(95)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 
 };
 [

@@ -6,7 +6,7 @@
 
 
 #include "op_i.h"
-#include "Type.h"
+#include "Common.h"
 #include "WinApi.h"
 #include "BackGround.h"
 
@@ -54,15 +54,21 @@ private:
 
 	//1. Windows API
 	WinApi _winapi;
-	//
+	// background module
 	Background _background;
-
+	// work path
+	std::wstring _curr_path;
 public:
 	//---------------方法-------------------
 
 	//1.版本号Version
-	STDMETHOD(Ver)(long* ret);
-
+	STDMETHOD(Ver)(BSTR* ret);
+	//set curr path
+	STDMETHOD(SetPath)(BSTR path, LONG* ret);
+	//get curr path
+	STDMETHOD(GetPath)(BSTR*path);
+	//sleep
+	STDMETHOD(Sleep)(LONG millseconds, LONG* ret);
 	//WIN API
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);
 	STDMETHOD(EnumWindowByProcess)(BSTR process_name, BSTR title, BSTR class_name, LONG filter, BSTR* retstring);
@@ -103,6 +109,10 @@ public:
 	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
 	STDMETHOD(LeftClick)(LONG* ret);
 	STDMETHOD(BindWindow)(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode,LONG *ret);
+	STDMETHOD(Capture)(BSTR file_name, LONG* ret);
+	STDMETHOD(UnBind)(LONG* ret);
+
+	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files,DOUBLE sim,VARIANT* x,VARIANT* y,LONG* ret);
 
 
 };

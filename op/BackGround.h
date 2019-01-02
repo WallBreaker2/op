@@ -2,6 +2,7 @@
 #ifndef __BACKGROUND_H_
 #define __BACKGROUND_H_
 #include "Bkmouse.h"
+#include "Bkdisplay.h"
 class Background
 {
 public:
@@ -20,13 +21,17 @@ public:
 	virtual long LeftClick();
 	virtual long RightClick();
 	virtual long MoveTo(long x, long y);
+	virtual long Capture(const std::wstring& file_name);
 private:
 	HWND _hwnd;
 	int _is_bind;
 	int _display;
 	int _keypad;
 	int _mode;
+public:
+	Bkdisplay _bkdisplay;
 	Bkmouse _bkmouse;
+	
 };
 #endif
 

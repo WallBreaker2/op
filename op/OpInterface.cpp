@@ -2,13 +2,54 @@
 
 #include "stdafx.h"
 #include "OpInterface.h"
-#include <comutil.h>
-#pragma comment(lib, "comsuppw.lib")
+
 #include "Cmder.h"
 // OpInterface
 
-HRESULT OpInterface::Ver(long* ret) {
-	*ret = MAKE_VERSION(0, 1, 0, 2);
+HRESULT OpInterface::Ver(BSTR* ret) {
+#ifndef _WIN64
+	static const wchar_t* ver = L"0.1.1.2";
+#else
+	static const wchar_t* ver = L"0.1.1.2x";
+	
+#endif;
+	setlog(L"ver=%s",ver);
+	CComBSTR bstr;
+	bstr.Append(ver);
+	bstr.CopyTo(ret);
+	
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
+	if (!::PathFileExists(path)) {
+		wchar_t buff[256];
+		::GetModuleFileName(NULL, buff, 256);
+		std::wstring str = buff;
+		str = str.substr(0, str.rfind(L'\\'));
+		_curr_path = str + path;
+	}
+	else
+		_curr_path = path; 
+	if (_curr_path.back() == L'\\')
+		_curr_path.pop_back();
+	*ret = ::PathFileExists(_curr_path.c_str());
+	setlog(L"%s", _curr_path.c_str());
+	if (!*ret)
+		_curr_path.clear();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetPath(BSTR* path) {
+	CComBSTR bstr;
+	bstr.Append(_curr_path.c_str());
+	bstr.CopyTo(path);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::Sleep(LONG millseconds,LONG* ret) {
+	::Sleep(millseconds);
+	*ret = 1;
 	return S_OK;
 }
 
@@ -328,5 +369,23 @@ STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode, LONG *ret) {
 	*ret = _background.Bind(hwnd, display, mouse, keypad, mode);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::Capture(BSTR file_name, LONG* ret) {
+	*ret = _background.Capture(file_name);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::UnBind(LONG* ret) {
+	*ret = _background.UnBind();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
+	long lx, ly;
+	*ret = _background._bkdisplay.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+	x->vt = y->vt = VT_I4;
+	x->lVal = lx; y->lVal = ly;
 	return S_OK;
 }
