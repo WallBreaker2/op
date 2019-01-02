@@ -18,6 +18,11 @@ long Bkmouse::Bind(HWND h,int mode) {
 	return 1;
 }
 
+long Bkmouse::UnBind() {
+	_hwnd = 0; _mode = 0;
+	return 1;
+}
+
 long Bkmouse::MoveTo(int x, int y) {
 	
 	long ret = 0;
@@ -28,7 +33,7 @@ long Bkmouse::MoveTo(int x, int y) {
 		pt.x = x, pt.y = y;
 		::ClientToScreen(_hwnd, &pt);
 		x = pt.x, y = pt.y;
-		show_error(L"hwnd:%d,pt:%d,%d",_hwnd, 0, y);
+		setlog(L"hwnd:%d,pt:%d,%d",_hwnd, 0, y);
 		static double fScreenWidth = ::GetSystemMetrics(SM_CXSCREEN) - 1;
 		static double fScreenHeight = ::GetSystemMetrics(SM_CYSCREEN) - 1;
 		double fx = x * (65535.0f / fScreenWidth);

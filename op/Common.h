@@ -1,8 +1,9 @@
 #pragma once
-#ifndef __TYPE_H_
-#define __TYPE_H_
-//version 主 副 修订 发布
-#define MAKE_VERSION(a,b,c,d) (a<<24)|(b<<16)|(c<<8)|d
+#ifndef __COMMON_H_
+#define __COMMON_H_
+#include <fstream>
+
+
 
 #define SAFE_CLOSE(h)if(h) CloseHandle(h);h=NULL;
 
@@ -12,17 +13,17 @@
 
 #include <string>
 #include <boost/locale.hpp>
+#include <boost/algorithm/string.hpp>
 #define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 #define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
+
 enum BACKTYPE { NORMAL,WINDOWS, GDI, DX, OPENGL };
 
-long inline show_error(wchar_t* format,...) {
-	va_list args;
-	wchar_t buf[256];
-	va_start(args, format);
-	vswprintf(buf, format, args);
-	va_end(args);
-	return ::MessageBox(NULL, buf, L"op error", 0);
-}
+const size_t MAX_IMAGE_WIDTH = 1<<11;
+
+
+long setlog(const wchar_t* format, ...);
+
+void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c);
 #endif

@@ -22,7 +22,12 @@ long Background::Bind(int hwnd, int display, int mouse, int keypad, int mode) {
 		ret = 1;
 		_display = display;
 		_keypad = keypad; _mode = mode;
-		_bkmouse.Bind(_hwnd,mouse);
+		if (!_bkdisplay.Bind(_hwnd, mode))
+			return 0;
+		if (!_bkmouse.Bind(_hwnd, mouse))
+			return 0;
+		Sleep(20);
+		
 	}
 	return ret;
 
@@ -32,6 +37,8 @@ long Background::UnBind() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_display = _keypad = _mode = 0;
+	_bkdisplay.UnBind();
+	_bkmouse.UnBind();
 	return 1;
 }
 
@@ -76,6 +83,10 @@ long Background::RightClick() {
 long Background::MoveTo(long x, long y) {
 	
 	return _bkmouse.MoveTo(x,y);
+}
+
+long Background::Capture(const std::wstring& file_name) {
+	return _bkdisplay.capture(file_name);
 }
 
 

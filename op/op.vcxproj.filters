@@ -20,9 +20,6 @@
     <Filter Include="Interface">
       <UniqueIdentifier>{dac40974-a04d-4dc6-a80d-0f3b9c3d3ccb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Type">
-      <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
-    </Filter>
     <Filter Include="WinApi">
       <UniqueIdentifier>{ae19fd78-cb4a-4611-ac40-f1676abfec78}</UniqueIdentifier>
     </Filter>
@@ -46,6 +43,12 @@
     </Filter>
     <Filter Include="Background\Keypad">
       <UniqueIdentifier>{05013c1a-094a-4c58-9bba-16cb454da5c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Algorithm">
+      <UniqueIdentifier>{2e27773d-b0be-4940-b18d-70ce0cc221c1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -77,7 +80,16 @@
       <Filter>Background</Filter>
     </ClCompile>
     <ClCompile Include="Bkmouse.cpp">
-      <Filter>源文件</Filter>
+      <Filter>Background\Mouse</Filter>
+    </ClCompile>
+    <ClCompile Include="Bkdisplay.cpp">
+      <Filter>Background\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageLoc.cpp">
+      <Filter>Algorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,9 +114,6 @@
     <ClInclude Include="OpInterface.h">
       <Filter>Interface</Filter>
     </ClInclude>
-    <ClInclude Include="Type.h">
-      <Filter>Type</Filter>
-    </ClInclude>
     <ClInclude Include="WinApi.h">
       <Filter>WinApi</Filter>
     </ClInclude>
@@ -117,8 +126,17 @@
     <ClInclude Include="BackGround.h">
       <Filter>Background</Filter>
     </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
     <ClInclude Include="Bkmouse.h">
-      <Filter>头文件</Filter>
+      <Filter>Background\Mouse</Filter>
+    </ClInclude>
+    <ClInclude Include="Bkdisplay.h">
+      <Filter>Background\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoc.h">
+      <Filter>Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

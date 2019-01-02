@@ -1,11 +1,12 @@
 #pragma once
-#include "Type.h"
+#include "Common.h"
 class Bkmouse
 {
 public:
 	Bkmouse();
 	~Bkmouse();
 	long Bind(HWND h,int mode);
+	long UnBind();
 	long MoveTo(int x, int y);
 	long LeftClick();
 	long RightClick();
