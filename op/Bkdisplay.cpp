@@ -5,10 +5,11 @@
 Bkdisplay::Bkdisplay():_is_cap(0)
 {
 	_hwnd = NULL; _mode = 0;
+	_hdc = _hmdc = NULL;
+	_hbmpscreen = _holdbmp = NULL;
 	//4*2^22=16*2^20=16MB
 	_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH*4];
 }
-
 
 Bkdisplay::~Bkdisplay()
 {
@@ -105,13 +106,14 @@ long Bkdisplay::cap_init() {
 }
 
 long Bkdisplay::cap_release() {
-	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
+	if (_holdbmp&&_hmdc)
+		_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
 	//delete[dwLen_2]hDib;
-	DeleteDC(_hdc);
-	DeleteDC(_hmdc);
+	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
+	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
 	
-	DeleteObject(_hbmpscreen);
-	DeleteObject(_holdbmp);
+	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
+	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
 	setlog(L"cap_release");
 	return 0;
 }
