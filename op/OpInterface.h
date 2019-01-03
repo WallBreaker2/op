@@ -108,7 +108,8 @@ public:
 	//Background 
 	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
 	STDMETHOD(LeftClick)(LONG* ret);
-	STDMETHOD(BindWindow)(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode,LONG *ret);
+	//bind window and beign capture screen
+	STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode,LONG *ret);
 	STDMETHOD(Capture)(BSTR file_name, LONG* ret);
 	STDMETHOD(UnBind)(LONG* ret);
 

@@ -35,7 +35,7 @@ long ImageLoc::input_image(byte* image_data, int width, int height, int pixel) {
 long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
-	cv::imwrite("input.png", _src);
+	//cv::imwrite("input.png", _src);
 	for (auto&it : images) {
 		_target=cv::imread(_wsto_string(it));
 		if (_target.empty()) {
@@ -51,14 +51,14 @@ long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
 		//cv::normalize(_result, _result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
 		
 		
-		double minval, maxval;
+		double minval, maxval,bestval;
 		cv::Point pt1, pt2;
 		cv::minMaxLoc(_result, &minval, &maxval, &pt1, &pt2);
 		minval /= 255.*255.*_target.rows*_target.cols;
-		minval = 1. - minval;
-		setlog(L"[ImageLoc::imageloc]file=%s, minval=%lf,[%d,%d]",it.c_str(), minval, pt1.x, pt1.y);
+		bestval = 1. - minval;
+		setlog(L"ImageLoc::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
 		
-		if (minval>=sim) {
+		if (bestval>=sim) {
 			x = pt1.x; y = pt1.y;
 			return 1;
 		}
