@@ -70,7 +70,7 @@ interface IOpInterface : IDispatch
 	[id(89)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
 	[id(90)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
 	[id(91)] HRESULT LeftClick([out, retval] LONG* ret);
-	[id(92)] HRESULT BindWindow([in] LONG hwnd, [in] LONG display, [in] LONG mouse, [in] LONG keypad, [in] LONG mode, [out, retval] LONG *ret);
+	[id(92)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
 	[id(93)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
 	[id(94)] HRESULT UnBind([out, retval] LONG* ret);
 	[id(95)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
