@@ -3,6 +3,7 @@
 #define __BACKGROUND_H_
 #include "Bkmouse.h"
 #include "Bkdisplay.h"
+using std::wstring;
 class Background
 {
 public:
@@ -10,7 +11,7 @@ public:
 	Background();
 	~Background();
 public:
-	virtual long Bind(int hwnd, int display, int mouse, int keypad, int mode);
+	virtual long Bind(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode);
 	virtual long UnBind();
 	virtual long GetBindWindow();
 	virtual long IsBind();
@@ -25,8 +26,6 @@ public:
 private:
 	HWND _hwnd;
 	int _is_bind;
-	int _display;
-	int _keypad;
 	int _mode;
 public:
 	Bkdisplay _bkdisplay;

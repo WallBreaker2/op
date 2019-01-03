@@ -68,13 +68,10 @@ int Bkdisplay::cap_thread() {
 
 long Bkdisplay::cap_init() {
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
-	setlog(L"cap_init,h=%d",_hwnd);
 	_hdc = ::GetWindowDC(_hwnd);
-	setlog(L" BITSPIXEL:%d", ::GetDeviceCaps(_hdc, BITSPIXEL));
 	//_width = GetDeviceCaps(_hdc, HORZRES);    //屏幕宽度
 	//_height = GetDeviceCaps(_hdc, VERTRES);   //屏幕高度		
 	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境		
-	setlog(L"wd[%d,%d]", _width, _height);
 	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
 	
 	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
@@ -100,8 +97,8 @@ long Bkdisplay::cap_init() {
 
 	//buf = hDib + dwLen_1;
 	//buf_len = bi.biSizeImage;
-	setlog(L"check bih:biBitCount=%d,biCompression=%d,biHeight=%d,biWidth=%d",
-		_bih.biBitCount, _bih.biCompression, _bih.biHeight, _bih.biWidth);
+	//setlog(L"check bih:biBitCount=%d,biCompression=%d,biHeight=%d,biWidth=%d",
+	//	_bih.biBitCount, _bih.biCompression, _bih.biHeight, _bih.biWidth);
 	return 1;
 }
 
@@ -121,9 +118,9 @@ long Bkdisplay::cap_release() {
 long Bkdisplay::cap_image() {
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
-	if (_mode == 0)
+	if (_mode == BACKTYPE::NORMAL)
 		BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
-	else if (_mode == 1)
+	else if (_mode == BACKTYPE::WINDOWS)
 		::PrintWindow(_hwnd, _hmdc, 0);
 
 	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
@@ -133,7 +130,7 @@ long Bkdisplay::cap_image() {
 }
 
 long Bkdisplay::capture(const std::wstring& file_name) {
-	setlog(L"capture");
+	//setlog(L"capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out|std::ios::binary);
 	if (!file.is_open())return 0;
@@ -148,7 +145,7 @@ long Bkdisplay::capture(const std::wstring& file_name) {
 
 long Bkdisplay::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y) {
 	long ret = 0;
-	setlog(L"Bkdisplay::FindPic,files=%s", files.c_str());
+	//setlog(L"Bkdisplay::FindPic,files=%s", files.c_str());
 	if (!_is_cap) {
 		return 0;
 

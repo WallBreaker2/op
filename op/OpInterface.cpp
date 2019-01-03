@@ -367,7 +367,7 @@ STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::BindWindow(LONG hwnd, LONG display, LONG mouse, LONG keypad, LONG mode, LONG *ret) {
+STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
 	*ret = _background.Bind(hwnd, display, mouse, keypad, mode);
 	return S_OK;
 }

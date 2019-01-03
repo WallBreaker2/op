@@ -5,7 +5,7 @@
 
 long setlog(const wchar_t* format, ...) {
 	va_list args;
-	wchar_t buf[256];
+	wchar_t buf[512];
 	va_start(args, format);
 	vswprintf(buf, format, args);
 	va_end(args);
