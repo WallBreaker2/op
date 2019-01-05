@@ -5,11 +5,11 @@ op=Dispatch("op.opsoft");
 
 print("op ver:",op.Ver());
 
-hwnd=op.FindWindow("Qt5QWindowIcon","QWidgetClassWindow");
+hwnd=op.FindWindow("","HDRLighting");
 
 if hwnd:
 	print(hwnd);
-	ret=op.BindWindow(hwnd,1,1,0,0);
+	ret=op.BindWindow(hwnd,"gdi","windows","windows",0);
 	if ret:
 		print("bind ok.");
 		op.Sleep(1000);

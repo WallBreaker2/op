@@ -32,11 +32,11 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 	//check mouse
 	if (smouse == L"normal")
 		mouse = BACKTYPE::NORMAL;
-	else if (sdisplay == L"windows")
+	else if (smouse == L"windows")
 		mouse = BACKTYPE::WINDOWS;
-	else if (sdisplay == L"DX")
+	else if (smouse == L"DX")
 		mouse = BACKTYPE::DX;
-	else if (sdisplay == L"opengl")
+	else if (smouse == L"opengl")
 		mouse = BACKTYPE::OPENGL;
 	else {
 		setlog(L"error smouse=%s", smouse.c_str());
@@ -45,11 +45,11 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 	//check keypad
 	if (skeypad == L"normal")
 		keypad = BACKTYPE::NORMAL;
-	else if (sdisplay == L"windows")
+	else if (skeypad == L"windows")
 		keypad = BACKTYPE::WINDOWS;
-	else if (sdisplay == L"DX")
+	else if (skeypad == L"DX")
 		keypad = BACKTYPE::DX;
-	else if (sdisplay == L"opengl")
+	else if (skeypad == L"opengl")
 		keypad = BACKTYPE::OPENGL;
 	else {
 		setlog(L"error sdisplay=%s", sdisplay.c_str());
