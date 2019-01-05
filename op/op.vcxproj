@@ -219,6 +219,7 @@
   <ItemGroup>
     <ClCompile Include="BackGround.cpp" />
     <ClCompile Include="Bkdisplay.cpp" />
+    <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="compreg.cpp" />
@@ -265,6 +266,7 @@
   <ItemGroup>
     <ClInclude Include="BackGround.h" />
     <ClInclude Include="Bkdisplay.h" />
+    <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />

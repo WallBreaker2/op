@@ -8,9 +8,9 @@
 
 HRESULT OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	static const wchar_t* ver = L"0.1.1.2";
+	static const wchar_t* ver = L"0.112.x86";
 #else
-	static const wchar_t* ver = L"0.1.1.2x";
+	static const wchar_t* ver = L"0.112.x64";
 	
 #endif;
 	setlog(L"ver=%s",ver);
