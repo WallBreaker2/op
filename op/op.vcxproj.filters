@@ -50,6 +50,9 @@
     <Filter Include="Algorithm">
       <UniqueIdentifier>{2e27773d-b0be-4940-b18d-70ce0cc221c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Background\NewFilter1">
+      <UniqueIdentifier>{d0eef555-4268-4f6f-9846-1df4c35492e4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -90,6 +93,9 @@
     </ClCompile>
     <ClCompile Include="ImageLoc.cpp">
       <Filter>Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="Bkkeypad.cpp">
+      <Filter>Background\Keypad</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +143,9 @@
     </ClInclude>
     <ClInclude Include="ImageLoc.h">
       <Filter>Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="Bkkeypad.h">
+      <Filter>Background\Keypad</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
