@@ -263,3 +263,5 @@ __pycache__/
 *.exe
 *.bmp
 *.png
+/dll_test
+/ConsoleTest

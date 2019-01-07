@@ -4,6 +4,7 @@
 #include "OpInterface.h"
 
 #include "Cmder.h"
+#include "Injecter.h"
 // OpInterface
 
 HRESULT OpInterface::Ver(BSTR* ret) {
@@ -13,7 +14,6 @@ HRESULT OpInterface::Ver(BSTR* ret) {
 	static const wchar_t* ver = L"0.112.x64";
 	
 #endif;
-	setlog(L"ver=%s",ver);
 	CComBSTR bstr;
 	bstr.Append(ver);
 	bstr.CopyTo(ret);
@@ -50,6 +50,15 @@ STDMETHODIMP OpInterface::GetPath(BSTR* path) {
 STDMETHODIMP OpInterface::Sleep(LONG millseconds,LONG* ret) {
 	::Sleep(millseconds);
 	*ret = 1;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::InjectDll(BSTR process_name, BSTR dll_name, LONG* ret) {
+	//auto proc = _wsto_string(process_name);
+	//auto dll = _wsto_string(dll_name);
+	Injecter::EnablePrivilege(TRUE);
+	auto h=Injecter::InjectDll(process_name,dll_name);
+	*ret = (h ? 1 : 0);
 	return S_OK;
 }
 

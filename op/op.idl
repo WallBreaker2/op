@@ -36,6 +36,9 @@ interface IOpInterface : IDispatch
 	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
 	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
 	[id(4)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
+
+	[id(31)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
+
 	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
 	[id(60)] HRESULT EnumProcess([in] BSTR name, [out, retval] BSTR* retstring);

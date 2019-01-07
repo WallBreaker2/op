@@ -4,7 +4,11 @@ from win32com.client import Dispatch
 op=Dispatch("op.opsoft");
 
 print("op ver:",op.Ver());
-
+r=op.InjectDll("HDRLighting","dll_test.dll");
+if r:
+    print("inject ok.");
+else:
+    print("end false.");
 hwnd=op.FindWindow("","HDRLighting");
 
 if hwnd:
