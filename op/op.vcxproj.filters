@@ -53,6 +53,12 @@
     <Filter Include="Background\NewFilter1">
       <UniqueIdentifier>{d0eef555-4268-4f6f-9846-1df4c35492e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Process">
+      <UniqueIdentifier>{1a017bf0-4f0a-4204-b494-0a9286be8cfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Process\Inject">
+      <UniqueIdentifier>{a28a6d92-5262-4cb6-8d90-39de3b59d079}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +102,9 @@
     </ClCompile>
     <ClCompile Include="Bkkeypad.cpp">
       <Filter>Background\Keypad</Filter>
+    </ClCompile>
+    <ClCompile Include="Injecter.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +155,9 @@
     </ClInclude>
     <ClInclude Include="Bkkeypad.h">
       <Filter>Background\Keypad</Filter>
+    </ClInclude>
+    <ClInclude Include="Injecter.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
