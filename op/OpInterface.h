@@ -69,6 +69,9 @@ public:
 	STDMETHOD(GetPath)(BSTR*path);
 	//sleep
 	STDMETHOD(Sleep)(LONG millseconds, LONG* ret);
+	//Process
+	//inject dll
+	STDMETHOD(InjectDll)(BSTR process_name,BSTR dll_name, LONG* ret);
 	//WIN API
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);
 	STDMETHOD(EnumWindowByProcess)(BSTR process_name, BSTR title, BSTR class_name, LONG filter, BSTR* retstring);
