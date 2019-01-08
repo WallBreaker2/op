@@ -50,14 +50,20 @@
     <Filter Include="Algorithm">
       <UniqueIdentifier>{2e27773d-b0be-4940-b18d-70ce0cc221c1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Background\NewFilter1">
-      <UniqueIdentifier>{d0eef555-4268-4f6f-9846-1df4c35492e4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Process">
       <UniqueIdentifier>{1a017bf0-4f0a-4204-b494-0a9286be8cfb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Process\Inject">
       <UniqueIdentifier>{a28a6d92-5262-4cb6-8d90-39de3b59d079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Normal&amp;Windows">
+      <UniqueIdentifier>{58c27408-9d43-4b18-883e-0189d9499499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\DX">
+      <UniqueIdentifier>{00fc6957-34c4-499b-b4b0-f66ed59ebec5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Opengl">
+      <UniqueIdentifier>{d90dcf60-8f13-4aac-8dc0-c7c1ebe92950}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -85,14 +91,8 @@
     <ClCompile Include="Pipe.cpp">
       <Filter>Tools\Pipe</Filter>
     </ClCompile>
-    <ClCompile Include="BackGround.cpp">
-      <Filter>Background</Filter>
-    </ClCompile>
     <ClCompile Include="Bkmouse.cpp">
       <Filter>Background\Mouse</Filter>
-    </ClCompile>
-    <ClCompile Include="Bkdisplay.cpp">
-      <Filter>Background\Display</Filter>
     </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>Common</Filter>
@@ -104,7 +104,16 @@
       <Filter>Background\Keypad</Filter>
     </ClCompile>
     <ClCompile Include="Injecter.cpp">
-      <Filter>源文件</Filter>
+      <Filter>Process\Inject</Filter>
+    </ClCompile>
+    <ClCompile Include="Bkbase.cpp">
+      <Filter>Background</Filter>
+    </ClCompile>
+    <ClCompile Include="Bkwindows.cpp">
+      <Filter>Background\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="DXBackground.cpp">
+      <Filter>Background\DX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -138,17 +147,11 @@
     <ClInclude Include="Cmder.h">
       <Filter>Cmd</Filter>
     </ClInclude>
-    <ClInclude Include="BackGround.h">
-      <Filter>Background</Filter>
-    </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Bkmouse.h">
       <Filter>Background\Mouse</Filter>
-    </ClInclude>
-    <ClInclude Include="Bkdisplay.h">
-      <Filter>Background\Display</Filter>
     </ClInclude>
     <ClInclude Include="ImageLoc.h">
       <Filter>Algorithm</Filter>
@@ -157,7 +160,16 @@
       <Filter>Background\Keypad</Filter>
     </ClInclude>
     <ClInclude Include="Injecter.h">
-      <Filter>头文件</Filter>
+      <Filter>Process\Inject</Filter>
+    </ClInclude>
+    <ClInclude Include="Bkbase.h">
+      <Filter>Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Bkwindows.h">
+      <Filter>Background\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="DXBackground.h">
+      <Filter>Background\DX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

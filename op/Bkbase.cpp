@@ -1,18 +1,18 @@
 #include "stdafx.h"
-#include "BackGround.h"
+#include "Bkbase.h"
 
 
-Background::Background() :_hwnd(0),_is_bind(0)
+Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
 {
 	_mode = 0;
 }
 
 
-Background::~Background()
+Bkbase::~Bkbase()
 {
 }
 
-long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
+long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
 	_hwnd = (HWND)hwnd;
 	long ret;
 	int display, mouse, keypad;
@@ -21,7 +21,7 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 		display = BACKTYPE::NORMAL;
 	else if (sdisplay == L"gdi")
 		display = BACKTYPE::GDI;
-	else if (sdisplay == L"DX")
+	else if (sdisplay == L"dx")
 		display = BACKTYPE::DX;
 	else if (sdisplay == L"opengl")
 		display = BACKTYPE::OPENGL;
@@ -34,7 +34,7 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 		mouse = BACKTYPE::NORMAL;
 	else if (smouse == L"windows")
 		mouse = BACKTYPE::WINDOWS;
-	else if (smouse == L"DX")
+	else if (smouse == L"dx")
 		mouse = BACKTYPE::DX;
 	else if (smouse == L"opengl")
 		mouse = BACKTYPE::OPENGL;
@@ -47,7 +47,7 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 		keypad = BACKTYPE::NORMAL;
 	else if (skeypad == L"windows")
 		keypad = BACKTYPE::WINDOWS;
-	else if (skeypad == L"DX")
+	else if (skeypad == L"dx")
 		keypad = BACKTYPE::DX;
 	else if (skeypad == L"opengl")
 		keypad = BACKTYPE::OPENGL;
@@ -63,7 +63,16 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 	else {
 		ret = 1;
 		_mode = mode;
-		if (!_bkdisplay.Bind(_hwnd, mode))
+		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
+			ret = _bkwindows.Bind(_hwnd, display);
+		}
+		else if (display == BACKTYPE::DX) {
+			ret = _bkdx9.Bind(_hwnd);
+		}
+		else {
+			ret = 0;
+		}
+		if (!ret)
 			return 0;
 		if (!_bkmouse.Bind(_hwnd, mouse))
 			return 0;
@@ -74,60 +83,64 @@ long Background::Bind(long hwnd, const wstring& sdisplay, const wstring& smouse,
 
 }
 
-long Background::UnBind() {
+long Bkbase::UnBindWindow() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
-	_bkdisplay.UnBind();
+	_bkwindows.UnBind();
+	_bkdx9.UnBind();
 	_bkmouse.UnBind();
 	return 1;
 }
 
-long Background::GetBindWindow() {
+long Bkbase::GetBindWindow() {
 	return (long)_hwnd;
 }
 
-long Background::IsBind() {
+long Bkbase::IsBind() {
 	return _is_bind==1?1:0;
 }
 
-long Background::GetCursorPos(int&x, int&y) {
+long Bkbase::GetCursorPos(int&x, int&y) {
 	POINT pt;
 	auto r=::GetCursorPos(&pt);
 	x = pt.x; y = pt.y;
 	return r;
 }
 
-long Background::GetKeyState(int vk_code) {
+long Bkbase::GetKeyState(int vk_code) {
 	return ::GetAsyncKeyState(vk_code);
 }
 
-long Background::KeyDown(int vk_code) {
+long Bkbase::KeyDown(int vk_code) {
 	return 0;
 }
 
-long Background::KeyUp(int vk_code) {
+long Bkbase::KeyUp(int vk_code) {
 	return 0;
 }
 
-long Background::LeftClick() {
+long Bkbase::LeftClick() {
 	long ret = 0;
 	ret = _bkmouse.LeftClick();
 	return ret;
 }
 
-long Background::RightClick() {
+long Bkbase::RightClick() {
 	
 	return _bkmouse.RightClick();
 }
 
-long Background::MoveTo(long x, long y) {
+long Bkbase::MoveTo(long x, long y) {
 	
 	return _bkmouse.MoveTo(x,y);
 }
 
-long Background::Capture(const std::wstring& file_name) {
-	return _bkdisplay.capture(file_name);
+long Bkbase::Capture(const std::wstring& file_name) {
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI)
+		return _bkwindows.capture(file_name);
+	else
+		return _bkdx9.capture(file_name);
 }
 
 

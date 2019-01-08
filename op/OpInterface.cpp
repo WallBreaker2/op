@@ -377,7 +377,7 @@ STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
-	*ret = _background.Bind(hwnd, display, mouse, keypad, mode);
+	*ret = _background.BindWindow(hwnd, display, mouse, keypad, mode);
 	return S_OK;
 }
 
@@ -387,13 +387,13 @@ STDMETHODIMP OpInterface::Capture(BSTR file_name, LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::UnBind(LONG* ret) {
-	*ret = _background.UnBind();
+	*ret = _background.UnBindWindow();
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
 	long lx, ly;
-	*ret = _background._bkdisplay.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+	*ret = _background._bkwindows.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
 	x->vt = y->vt = VT_I4;
 	x->lVal = lx; y->lVal = ly;
 	return S_OK;

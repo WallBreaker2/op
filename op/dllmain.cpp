@@ -5,12 +5,12 @@
 #include "op_i.h"
 #include "dllmain.h"
 #include "compreg.h"
-
+#include "Common.h"
 CopModule _AtlModule;
 
 // DLL 入口点
 extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	hInstance;
+	gInstance= hInstance;
 	return _AtlModule.DllMain(dwReason, lpReserved);
 }
