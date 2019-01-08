@@ -1,18 +1,19 @@
 #pragma once
-#ifndef __BACKGROUND_H_
-#define __BACKGROUND_H_
+#ifndef __BACKBASE_H_
+#define __BACKBASE_H_
 #include "Bkmouse.h"
-#include "Bkdisplay.h"
+#include "Bkwindows.h"
+#include "DXBackground.h"
 using std::wstring;
-class Background
+class Bkbase
 {
 public:
 	
-	Background();
-	~Background();
+	Bkbase();
+	~Bkbase();
 public:
-	virtual long Bind(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode);
-	virtual long UnBind();
+	virtual long BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode);
+	virtual long UnBindWindow();
 	virtual long GetBindWindow();
 	virtual long IsBind();
 	virtual long GetCursorPos(int& x, int& y);
@@ -26,9 +27,11 @@ public:
 private:
 	HWND _hwnd;
 	int _is_bind;
+	int _display;
 	int _mode;
 public:
-	Bkdisplay _bkdisplay;
+	Bkwindows _bkwindows;
+	DXBackground _bkdx9;
 	Bkmouse _bkmouse;
 	
 };
