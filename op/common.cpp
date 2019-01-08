@@ -1,11 +1,19 @@
 #include "stdafx.h"
 #include "Common.h"
+#include <time.h>
 
-
+HINSTANCE gInstance;
 
 long setlog(const wchar_t* format, ...) {
 	va_list args;
 	wchar_t buf[512];
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+	wchar_t tm[128];
+	wsprintf(tm, L"[%4d/%02d/%02d %02d:%02d:%02d.%03d]",
+		sys.wYear, sys.wMonth, sys.wDay,
+		sys.wHour, sys.wMinute, sys.wSecond,
+		sys.wMilliseconds);
 	va_start(args, format);
 	vswprintf(buf, format, args);
 	va_end(args);
@@ -13,7 +21,29 @@ long setlog(const wchar_t* format, ...) {
 	file.open(L"op.log", std::ios::app | std::ios::out);
 	if (!file.is_open())
 		return 0;
-	file << buf << std::endl;
+	file << tm << buf << std::endl;
+	file.close();
+	return 1;
+}
+
+long setlog(const char* format, ...) {
+	va_list args;
+	char buf[512];
+	SYSTEMTIME sys;
+	GetLocalTime(&sys);
+	char tm[128];
+	sprintf(tm, "[%4d/%02d/%02d %02d:%02d:%02d.%03d]",
+		sys.wYear, sys.wMonth, sys.wDay,
+		sys.wHour, sys.wMinute, sys.wSecond,
+		sys.wMilliseconds);
+	va_start(args, format);
+	vsprintf(buf, format, args);
+	va_end(args);
+	std::fstream file;
+	file.open("op.log", std::ios::app | std::ios::out);
+	if (!file.is_open())
+		return 0;
+	file << tm << buf << std::endl;
 	file.close();
 	return 1;
 }

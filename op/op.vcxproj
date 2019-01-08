@@ -212,15 +212,15 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;d3d9.lib;d3dx9.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BackGround.cpp" />
-    <ClCompile Include="Bkdisplay.cpp" />
+    <ClCompile Include="Bkbase.cpp" />
+    <ClCompile Include="Bkwindows.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
     <ClCompile Include="common.cpp" />
@@ -239,6 +239,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DXBackground.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="Injecter.cpp" />
     <ClCompile Include="op.cpp" />
@@ -267,13 +268,14 @@
     <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BackGround.h" />
-    <ClInclude Include="Bkdisplay.h" />
+    <ClInclude Include="Bkbase.h" />
+    <ClInclude Include="Bkwindows.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="DXBackground.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="Injecter.h" />
     <ClInclude Include="OpInterface.h" />
