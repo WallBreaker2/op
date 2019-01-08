@@ -12,10 +12,10 @@ ImageLoc::~ImageLoc()
 }
 
 
-long ImageLoc::input_image(byte* image_data, int width, int height, int pixel) {
+long ImageLoc::input_image(byte* image_data, int width, int height,int type) {
 	int i, j, k; 
 	
-	if (pixel == 4) {
+	if (type==-1) {//µ¹¹ýÀ´¶Á
 		_src.create(height, width, CV_8UC3);
 		uchar *p, *p2;
 		for (i = 0; i < height; ++i) {
@@ -27,15 +27,25 @@ long ImageLoc::input_image(byte* image_data, int width, int height, int pixel) {
 			}
 		}
 	}
-	else
-		return 0;
+	else {
+		_src.create(height, width, CV_8UC3);
+		uchar *p, *p2;
+		for (i = 0; i < height; ++i) {
+			p = _src.ptr<uchar>(i);
+			p2 = image_data + i * width * 4;
+			for (j = 0; j < width; ++j) {
+				*p++ = *p2++; *p++ = *p2++;
+				*p++ = *p2++; ++p2;
+			}
+		}
+	}
 	return 1;
 }
 
 long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
-	//cv::imwrite("input.png", _src);
+	cv::imwrite("input.png", _src);
 	for (auto&it : images) {
 		_target=cv::imread(_wsto_string(it));
 		if (_target.empty()) {
