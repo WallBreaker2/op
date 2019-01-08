@@ -2,8 +2,8 @@
 #ifndef __BACKBASE_H_
 #define __BACKBASE_H_
 #include "Bkmouse.h"
-#include "Bkwindows.h"
-#include "DXBackground.h"
+#include "Bkgdi.h"
+#include "Bkdx.h"
 using std::wstring;
 class Bkbase
 {
@@ -24,14 +24,15 @@ public:
 	virtual long RightClick();
 	virtual long MoveTo(long x, long y);
 	virtual long Capture(const std::wstring& file_name);
+	long GetDisplay();
 private:
 	HWND _hwnd;
 	int _is_bind;
 	int _display;
 	int _mode;
 public:
-	Bkwindows _bkwindows;
-	DXBackground _bkdx9;
+	Bkgdi _bkgdi;
+	Bkdx _bkdx9;
 	Bkmouse _bkmouse;
 	
 };

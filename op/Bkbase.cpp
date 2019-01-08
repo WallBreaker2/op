@@ -64,7 +64,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		ret = 1;
 		_mode = mode;
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
-			ret = _bkwindows.Bind(_hwnd, display);
+			ret = _bkgdi.Bind(_hwnd, display);
 		}
 		else if (display == BACKTYPE::DX) {
 			ret = _bkdx9.Bind(_hwnd);
@@ -79,6 +79,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		Sleep(20);
 		
 	}
+	_display = display;
 	return ret;
 
 }
@@ -87,7 +88,7 @@ long Bkbase::UnBindWindow() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
-	_bkwindows.UnBind();
+	_bkgdi.UnBind();
 	_bkdx9.UnBind();
 	_bkmouse.UnBind();
 	return 1;
@@ -138,9 +139,13 @@ long Bkbase::MoveTo(long x, long y) {
 
 long Bkbase::Capture(const std::wstring& file_name) {
 	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI)
-		return _bkwindows.capture(file_name);
+		return _bkgdi.capture(file_name);
 	else
 		return _bkdx9.capture(file_name);
+}
+
+long Bkbase::GetDisplay() {
+	return _display;
 }
 
 

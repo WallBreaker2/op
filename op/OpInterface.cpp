@@ -12,12 +12,12 @@ HRESULT OpInterface::Ver(BSTR* ret) {
 	static const wchar_t* ver = L"0.112.x86";
 #else
 	static const wchar_t* ver = L"0.112.x64";
-	
+
 #endif;
 	CComBSTR bstr;
 	bstr.Append(ver);
 	bstr.CopyTo(ret);
-	
+
 	return S_OK;
 }
 
@@ -30,7 +30,7 @@ STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 		_curr_path = str + path;
 	}
 	else
-		_curr_path = path; 
+		_curr_path = path;
 	if (_curr_path.back() == L'\\')
 		_curr_path.pop_back();
 	*ret = ::PathFileExists(_curr_path.c_str());
@@ -47,7 +47,7 @@ STDMETHODIMP OpInterface::GetPath(BSTR* path) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::Sleep(LONG millseconds,LONG* ret) {
+STDMETHODIMP OpInterface::Sleep(LONG millseconds, LONG* ret) {
 	::Sleep(millseconds);
 	*ret = 1;
 	return S_OK;
@@ -57,7 +57,7 @@ STDMETHODIMP OpInterface::InjectDll(BSTR process_name, BSTR dll_name, LONG* ret)
 	//auto proc = _wsto_string(process_name);
 	//auto dll = _wsto_string(dll_name);
 	Injecter::EnablePrivilege(TRUE);
-	auto h=Injecter::InjectDll(process_name,dll_name);
+	auto h = Injecter::InjectDll(process_name, dll_name);
 	*ret = (h ? 1 : 0);
 	return S_OK;
 }
@@ -356,7 +356,7 @@ STDMETHODIMP OpInterface::SetWindowTransparent(LONG hwnd, LONG trans, LONG* nret
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd,LONG millseconds, BSTR* retstr) {
+STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd, LONG millseconds, BSTR* retstr) {
 	CComBSTR bstr;
 	auto strcmd = _wsto_string(cmd);
 	Cmder cd;
@@ -367,7 +367,7 @@ STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd,LONG millseconds, BSTR* retstr) {
 }
 
 STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
-	*ret=_background.MoveTo(x, y);
+	*ret = _background.MoveTo(x, y);
 	return S_OK;
 }
 
@@ -393,7 +393,10 @@ STDMETHODIMP OpInterface::UnBind(LONG* ret) {
 
 STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
 	long lx, ly;
-	*ret = _background._bkwindows.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+	if (_background.GetDisplay() == BACKTYPE::DX)
+		*ret = _background._bkdx9.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+	else
+		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
 	x->vt = y->vt = VT_I4;
 	x->lVal = lx; y->lVal = ly;
 	return S_OK;
