@@ -12,6 +12,7 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 * [Windows消息模拟](#Windows消息模拟)
 * [应用程序截图](#应用程序截图)
 * [简单图像识别](#简单图像识别)
+* [3rdpart-Lib](#3rdpart-Lib)
 * [Reference](#Reference)
 
 
@@ -21,12 +22,15 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 
 ### 应用程序截图
 ---
-empty
+前台,gdi后台,dx后台
 ### 简单图像识别
 ---
 empty
-
-
+---
+####3rdpart-Lib
+[1].c++ boost1.6
+[2].opencv3.2
+[3].blackbone
 
 ### Reference
 [1] TSPLUG源码,TC company
