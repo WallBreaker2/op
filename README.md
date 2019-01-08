@@ -26,11 +26,11 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 ### 简单图像识别
 ---
 empty
+### 3rdpart-Lib  
 ---
-#### 3rdpart-Lib
-[1].c++ boost1.6
-[2].opencv3.2 
-[3].blackbone 
-
+[1].c++ boost1.6  
+[2].opencv3.2  
+[3].blackbone  
 ### Reference
+---
 [1] TSPLUG源码,TC company
