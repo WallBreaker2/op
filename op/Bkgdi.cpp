@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "Bkwindows.h"
+#include "Bkgdi.h"
 #include "Common.h"
 #include <fstream>
-Bkwindows::Bkwindows():_is_cap(0),_pthread(nullptr)
+Bkgdi::Bkgdi():_is_cap(0),_pthread(nullptr)
 {
 	_hwnd = NULL; _mode = 0;
 	_hdc = _hmdc = NULL;
@@ -11,12 +11,12 @@ Bkwindows::Bkwindows():_is_cap(0),_pthread(nullptr)
 	_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH*4];
 }
 
-Bkwindows::~Bkwindows()
+Bkgdi::~Bkgdi()
 {
 	SAFE_DELETE_ARRAY(_image_data);
 }
 
-long Bkwindows::Bind(HWND hwnd, int mode) {
+long Bkgdi::Bind(HWND hwnd, int mode) {
 	if (!::IsWindow(hwnd))
 		return 0;
 	_hwnd = hwnd; _mode = mode;
@@ -26,11 +26,11 @@ long Bkwindows::Bind(HWND hwnd, int mode) {
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	if (_mode == BACKTYPE::NORMAL) {
-		_pthread = new std::thread(&Bkwindows::cap_thread, this);
+		_pthread = new std::thread(&Bkgdi::cap_thread, this);
 		ret = 1;
 	}
 	else if (_mode == BACKTYPE::GDI || _mode == BACKTYPE::WINDOWS) {
-		_pthread = new std::thread(&Bkwindows::cap_thread, this);
+		_pthread = new std::thread(&Bkgdi::cap_thread, this);
 		ret = 1;
 	}
 	else if (_mode == BACKTYPE::DX) {
@@ -42,7 +42,7 @@ long Bkwindows::Bind(HWND hwnd, int mode) {
 	return ret;
 }
 
-long Bkwindows::UnBind() {
+long Bkgdi::UnBind() {
 	_is_cap = 0;
 	if (_pthread) {
 		_pthread->join();
@@ -51,7 +51,7 @@ long Bkwindows::UnBind() {
 	return 1;
 }
 
-int Bkwindows::cap_thread() {
+int Bkgdi::cap_thread() {
 	_is_cap = 1;
 	cap_init();
 	while (_is_cap) {
@@ -66,7 +66,7 @@ int Bkwindows::cap_thread() {
 	return 0;
 }
 
-long Bkwindows::cap_init() {
+long Bkgdi::cap_init() {
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	_hdc = ::GetWindowDC(_hwnd);
 	//_width = GetDeviceCaps(_hdc, HORZRES);    //屏幕宽度
@@ -102,7 +102,7 @@ long Bkwindows::cap_init() {
 	return 1;
 }
 
-long Bkwindows::cap_release() {
+long Bkgdi::cap_release() {
 	if (_holdbmp&&_hmdc)
 		_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
 	//delete[dwLen_2]hDib;
@@ -115,7 +115,7 @@ long Bkwindows::cap_release() {
 	return 0;
 }
 
-long Bkwindows::cap_image() {
+long Bkgdi::cap_image() {
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 	if (_mode == BACKTYPE::NORMAL)
@@ -129,7 +129,7 @@ long Bkwindows::cap_image() {
 	
 }
 
-long Bkwindows::capture(const std::wstring& file_name) {
+long Bkgdi::capture(const std::wstring& file_name) {
 	//setlog(L"capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out|std::ios::binary);
@@ -143,7 +143,7 @@ long Bkwindows::capture(const std::wstring& file_name) {
 	return 1;
 }
 
-long Bkwindows::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y) {
+long Bkgdi::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y) {
 	long ret = 0;
 	//setlog(L"Bkdisplay::FindPic,files=%s", files.c_str());
 	if (!_is_cap) {
@@ -152,7 +152,7 @@ long Bkwindows::FindPic(long x1, long y1, long x2, long y2, const std::wstring& 
 	}
 	else {
 		_mutex.lock();
-		_imageloc.input_image(_image_data, _width, _height, _bih.biBitCount>>3);
+		_imageloc.input_image(_image_data, _width, _height, -1);
 		_mutex.unlock();
 		std::vector<std::wstring> images;
 		split(files, images, L"|");

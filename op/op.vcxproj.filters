@@ -109,10 +109,10 @@
     <ClCompile Include="Bkbase.cpp">
       <Filter>Background</Filter>
     </ClCompile>
-    <ClCompile Include="Bkwindows.cpp">
+    <ClCompile Include="Bkgdi.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
-    <ClCompile Include="DXBackground.cpp">
+    <ClCompile Include="Bkdx.cpp">
       <Filter>Background\DX</Filter>
     </ClCompile>
   </ItemGroup>
@@ -165,10 +165,10 @@
     <ClInclude Include="Bkbase.h">
       <Filter>Background</Filter>
     </ClInclude>
-    <ClInclude Include="Bkwindows.h">
+    <ClInclude Include="Bkgdi.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
-    <ClInclude Include="DXBackground.h">
+    <ClInclude Include="Bkdx.h">
       <Filter>Background\DX</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,7 +11,18 @@ public:
 	
 	ImageLoc();
 	~ImageLoc();
-	long input_image(byte* image_data, int width, int height, int pixel);
+	//
+	
+	//brief:输入图像，建立图形矩阵,在图像操作前调用
+	//image_data:	4子节对齐的像素指针
+	//widht:		图像宽度
+	//height:		图像高度
+	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
+	long input_image(byte* image_data, int width, int height,int type=0);
+	//brief:图像定位
+	//images:图像文件名，可以为多个
+	//sim:精度
+	//x,y:目标坐标
 	long imageloc(images_t& images, double sim, long&x, long&y);
 private:
 	cv::Mat _src;

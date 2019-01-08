@@ -13,6 +13,10 @@ if r:
 	r=op.Sleep(2000);
 	print("try screencap");
 	r=op.capture("dx_screen.bmp");
+	r,x,y=op.FindPic(0,0,800,600,"test.bmp",0.9);
+	print(r,x,y);
+	if r:
+		op.MoveTo(x,y);
 else:
 	print("inject false.");
 op.UnBind();

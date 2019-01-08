@@ -4,11 +4,11 @@
 #include <thread>
 #include <mutex>
 #include "ImageLoc.h"
-class Bkwindows
+class Bkgdi
 {
 public:
-	Bkwindows();
-	~Bkwindows();
+	Bkgdi();
+	~Bkgdi();
 	//°ó¶¨
 	long Bind(HWND _hwnd, int mode);
 	//½â°ó

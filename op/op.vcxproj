@@ -220,7 +220,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Bkbase.cpp" />
-    <ClCompile Include="Bkwindows.cpp" />
+    <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
     <ClCompile Include="common.cpp" />
@@ -239,7 +239,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="DXBackground.cpp" />
+    <ClCompile Include="Bkdx.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="Injecter.cpp" />
     <ClCompile Include="op.cpp" />
@@ -269,13 +269,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bkbase.h" />
-    <ClInclude Include="Bkwindows.h" />
+    <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="DXBackground.h" />
+    <ClInclude Include="Bkdx.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="Injecter.h" />
     <ClInclude Include="OpInterface.h" />
