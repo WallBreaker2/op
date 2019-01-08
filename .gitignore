@@ -260,8 +260,11 @@ paket-files/
 __pycache__/
 *.pyc
 *.ini
-*.exe
-*.bmp
-*.png
+
 /dll_test
 /ConsoleTest
+*.bmp
+*.png
+*.exe
+
+
