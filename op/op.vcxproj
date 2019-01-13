@@ -79,12 +79,15 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
+    <IncludePath>F:\Opencv\3.4\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x64</TargetName>
-    <IncludePath>D:\BlackBone\src\3rd_party;$(IncludePath)</IncludePath>
+    <IncludePath>D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,7 +159,7 @@
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -178,7 +181,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;libMinHook.x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
@@ -212,13 +215,17 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;blackbone.lib;d3d9.lib;d3dx9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;d3d9.lib;d3dx9.lib;libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="3rd_party\kiero\kiero.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
@@ -240,6 +247,7 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkdx.cpp" />
+    <ClCompile Include="DX9hook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="Injecter.cpp" />
     <ClCompile Include="op.cpp" />
@@ -268,6 +276,7 @@
     <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rd_party\kiero\kiero.h" />
     <ClInclude Include="Bkbase.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
@@ -276,6 +285,7 @@
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="Bkdx.h" />
+    <ClInclude Include="DX9hook.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="Injecter.h" />
     <ClInclude Include="OpInterface.h" />
