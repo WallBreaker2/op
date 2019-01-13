@@ -25,12 +25,12 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 empty
 ### 3rdpart-Lib  
 ---
-[1].c++ boost1.6  
-[2].opencv3.4  
-[3].blackbone  
-[4].minhook
+[1].[c++ boost1.6](https://www.boost.org/)  
+[2].[opencv3.4](https://opencv.org/)
+[3].[blackbone](https://github.com/DarthTon/Blackbone.git)  
+[4].[minhook](https://github.com/TsudaKageyu/minhook.git)  
 
 ### Reference
 ---
-[1] TSPLUG源码,TC company
-[2] Kiero
+[1] TSPLUG源码,TC company  
+[2] [Kiero](https://github.com/Rebzzel/kiero.git)  
