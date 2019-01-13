@@ -38,9 +38,6 @@
     <Filter Include="Background\Mouse">
       <UniqueIdentifier>{42956553-2852-44e7-8d6a-a85628b0c3b9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Background\Display">
-      <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Background\Keypad">
       <UniqueIdentifier>{05013c1a-094a-4c58-9bba-16cb454da5c0}</UniqueIdentifier>
     </Filter>
@@ -56,14 +53,20 @@
     <Filter Include="Process\Inject">
       <UniqueIdentifier>{a28a6d92-5262-4cb6-8d90-39de3b59d079}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Background\Normal&amp;Windows">
-      <UniqueIdentifier>{58c27408-9d43-4b18-883e-0189d9499499}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Background\DX">
       <UniqueIdentifier>{00fc6957-34c4-499b-b4b0-f66ed59ebec5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Background\Opengl">
       <UniqueIdentifier>{d90dcf60-8f13-4aac-8dc0-c7c1ebe92950}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Gdi">
+      <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_party">
+      <UniqueIdentifier>{ceeb115d-59ed-4194-a639-a4c6733c4cc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_party\kiero">
+      <UniqueIdentifier>{3089a37b-83e9-478a-bee1-0dba8b6c0afd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,10 +113,16 @@
       <Filter>Background</Filter>
     </ClCompile>
     <ClCompile Include="Bkgdi.cpp">
-      <Filter>Background\Display</Filter>
+      <Filter>Background\Gdi</Filter>
     </ClCompile>
     <ClCompile Include="Bkdx.cpp">
       <Filter>Background\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="DX9hook.cpp">
+      <Filter>Background\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="3rd_party\kiero\kiero.cpp">
+      <Filter>3rd_party\kiero</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -166,10 +175,16 @@
       <Filter>Background</Filter>
     </ClInclude>
     <ClInclude Include="Bkgdi.h">
-      <Filter>Background\Display</Filter>
+      <Filter>Background\Gdi</Filter>
     </ClInclude>
     <ClInclude Include="Bkdx.h">
       <Filter>Background\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="DX9hook.h">
+      <Filter>Background\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="3rd_party\kiero\kiero.h">
+      <Filter>3rd_party\kiero</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
