@@ -9,7 +9,7 @@ r=op.AddDict(0,"dm_soft.txt");
 print("AddDict:",r);
 r=0;
 if hwnd:
-	r=op.BindWindow(hwnd,"gdi","normal","windows",0);
+	r=op.BindWindow(hwnd,"gdi","windows","windows",0);
 	if r:
 		print("bind ok.");
 		r=op.Sleep(1000);
@@ -19,11 +19,12 @@ if hwnd:
 		print("ocr:",s);
 		r,x,y=op.FindColor(0,0,600,800,"2D2E2C");
 		print(r,x,y);
-		op.MoveTo(x,y);
+		if r:
+			op.MoveTo(x,y);
+			op.LeftClick();
 		print(op.GetColor(165,164));
-		op.MoveTo(0,0);
 	else:
-		print("inject false.");
+		print("bind false.");
 else:
     print("invalid window.");
 

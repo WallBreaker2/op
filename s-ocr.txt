@@ -1,0 +1,12 @@
+大概思路如下：
+1.二值化
+for each pixel
+	if pixel-color<=df then
+		pixel=0;
+	else
+		pixel=1;
+2.加载字库，对每个字,如果大小合适，进行匹配，否则进行下一个字，如果有x字匹配成功，s+=x,移动较大
+距离否则仅向右移动一像素,直到完成所有像素
+
+3.匹配
+对原图像每列 line[j]|=ps[0-height]<<15-i;然后与wordline==line[j]否则失败break;

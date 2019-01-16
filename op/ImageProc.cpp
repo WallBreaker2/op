@@ -44,17 +44,16 @@ long ImageProc::AddDict(int idx, const wstring& file_name) {
 				
 				for (auto c : vstr[0]) {
 					val = HEX2INT(c);
-					std::bitset<16> bt1(val), bt2(line);
+					
 					for (int j = 3; j >= 0; --j) {
 						//set bit
-						if (bt1.test(j))
-							bt2.set(15-offset,1);
+						if (GET_BIT(val, j))
+							SET_BIT(line, 15 - offset);
+		
 						//if (_this_dict.empty())
 						//	setlog("%X", line);
 						if (offset >=10){//a line full,next line
 							offset = 0;
-	
-								
 							words.binlines.push_back(line);
 							line = 0;
 						}
@@ -70,6 +69,7 @@ long ImageProc::AddDict(int idx, const wstring& file_name) {
 				//put a word
 				words.word = vstr[1];
 				words.bit_ct = _wtoi(vstr[2].substr(vstr[2].rfind(L'.') + 1).c_str());
+				words.height = _wtoi(vstr[3].c_str());
 				_this_dict.push_back(words);
 			}//end if
 			else
@@ -113,14 +113,11 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 	if (sim<0. || sim>1.)
 		sim = 1.;
 	
-	long x, y, s;
+	long s;
 	ImageExtend::bgr2binary(cr, df);
-	for (auto&it : *_curr_dict) {
-		s=ImageExtend::Ocr(it, sim, x, y);
-		if (s)
-			out_str += it.word;
-	}
-	return 1;
+	
+	s=ImageExtend::Ocr(*_curr_dict, sim, out_str);
+	return s;
 
 }
 
