@@ -17,6 +17,9 @@
 #define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 #define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
+using std::wstring;
+using std::string;
+
 #define DLL_API extern "C" _declspec(dllexport)
 //0x0-0xf:normal windows,gdi;0x10-0xf0,dx;0x100-0xf00,opengl;
 enum BACKTYPE {
@@ -46,4 +49,6 @@ long setlog(const wchar_t* format, ...);
 long setlog(const char* format, ...);
 
 void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c);
+void split(const std::string& s, std::vector<std::string>& v, const std::string& c);
+
 #endif

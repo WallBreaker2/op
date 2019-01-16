@@ -3,7 +3,6 @@
 #define __BKDISPLAY_H_
 #include <thread>
 #include <mutex>
-#include "ImageLoc.h"
 class Bkgdi
 {
 public:
@@ -21,8 +20,20 @@ public:
 	long cap_image();
 	//截图至文件
 	long capture(const std::wstring& file_name);
-	//图形定位
-	long FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y);
+	byte* get_data() {
+		return _image_data;
+	}
+	std::mutex& get_mutex() {
+		return _mutex;
+	}
+	long get_widht() {
+		return _width;
+	}
+	long get_height() {
+		return _height;
+	}
+	//客户区偏移
+	int _client_x, _client_y;
 private:
 	//截图窗口句柄
 	HWND _hwnd;
@@ -49,8 +60,7 @@ private:
 	std::mutex _mutex;
 	//截图标识
 	int _is_cap;
-	//图形匹配
-	ImageLoc _imageloc;
+	
 	//截图线程函数
 	int cap_thread();
 };

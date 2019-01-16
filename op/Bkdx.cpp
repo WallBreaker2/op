@@ -13,7 +13,7 @@
 
 Bkdx::Bkdx() :_hwnd(NULL), _pmutex(nullptr), _is_bind(0)
 {
-
+	_region = nullptr;
 }
 
 
@@ -25,26 +25,30 @@ Bkdx::~Bkdx()
 
 
 long Bkdx::Bind(HWND hwnd) {
+	if (_is_bind)// 如果已经绑定，先解绑
+		UnBind();
 	DWORD id;
-	if (!::IsWindow(hwnd))
-		return 0;
 	::GetWindowThreadProcessId(hwnd, &id);
 	RECT rc;
+	//获取客户区大小
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	//setlog(L"Bkdx::Bind,width=%d,height=%d", _width, _height);
 	_hwnd = hwnd;
+	//attach 进程
 	auto hr = _process.Attach(id);
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
+		//获取当前模块文件名
 		wchar_t buff[256];
 		::GetModuleFileName(gInstance, buff, 256);
 		_dllname = buff;
 		_dllname = _dllname.substr(_dllname.rfind(L"\\") + 1);
 		_process.Resume();
 		blackbone::call_result_t<blackbone::ModuleDataPtr> reg_ret;
-		auto _dllptr=_process.modules().GetModule(_dllname);
+		//判断是否已经注入
+		auto _dllptr = _process.modules().GetModule(_dllname);
 		if (!_dllptr) {
 			//setlog(L"inject..");
 			reg_ret = _process.modules().Inject(buff);
@@ -54,17 +58,17 @@ long Bkdx::Bind(HWND hwnd) {
 			//setlog("alreadly inject.");
 			reg_ret.status = 0;
 		}
+		//恢复进程
 		_process.Resume();
 		if (NT_SUCCESS(reg_ret.status)) {
 			//wait some time 
 			::Sleep(200);
 			using my_func_t = long(__stdcall*)(HWND);
-			
-			setlog(_dllname.c_str());
+
+			//setlog(_dllname.c_str());
 			auto SetDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetDX9Hook");
 			if (SetDX9HookPtr) {
 				bind_init();
-				
 				SetDX9HookPtr(hwnd);
 				bind_ret = 1;
 			}
@@ -84,7 +88,7 @@ long Bkdx::Bind(HWND hwnd) {
 	if (bind_ret) {
 		_is_bind = 1;
 		//setlog("shared_res_name=%s mutex_name=%s",_shared_res_name,_mutex_name);
-		
+
 	}
 
 	return bind_ret;
@@ -133,12 +137,14 @@ long Bkdx::bind_init() {
 			_shared_res_name,
 			boost::interprocess::read_write);
 		shm.truncate(SHARED_MEMORY_SIZE);
+		_region = new boost::interprocess::mapped_region(shm, boost::interprocess::read_only);
+		_image_data = (byte*)_region->get_address();
 		_pmutex = new boost::interprocess::named_mutex(boost::interprocess::create_only, _mutex_name);
 	}
 	catch (std::exception&e) {
-		setlog("Bkdx::bind_init %s exception:%s",_shared_res_name, e.what());
+		setlog("Bkdx::bind_init %s exception:%s", _shared_res_name, e.what());
 	}
-	
+
 	return 0;
 }
 
@@ -147,13 +153,14 @@ long Bkdx::bind_release() {
 		using namespace boost::interprocess;
 		shared_memory_object::remove(_shared_res_name);
 		named_mutex::remove(_mutex_name);
+		SAFE_DELETE(_region);
 		SAFE_DELETE(_pmutex);
 
 	}
 	catch (std::exception&e) {
 		setlog("Bkdx::bind_release std::exception:%s", e.what());
 	}
-	
+
 	_image_data = nullptr;
 	return 0;
 }
@@ -183,12 +190,13 @@ long Bkdx::capture(const std::wstring& file_name) {
 	file.write((char*)&bih, sizeof(BITMAPINFOHEADER));
 	//setlog("file.write((char*)_image_data=%p", _image_data);
 	try {
-		boost::interprocess::shared_memory_object shm(
+		/*boost::interprocess::shared_memory_object shm(
 			boost::interprocess::open_only,
 			_shared_res_name,
 			boost::interprocess::read_only);
 		boost::interprocess::mapped_region region(shm, boost::interprocess::read_only);
 		_image_data = (byte*)region.get_address();
+		*/
 		_pmutex->lock();
 		file.write((char*)_image_data, bih.biSizeImage);
 		_pmutex->unlock();
@@ -196,44 +204,23 @@ long Bkdx::capture(const std::wstring& file_name) {
 	catch (std::exception&e) {
 		setlog("cap exception:%s", e.what());
 	}
-	
+
 	file.close();
 	return 1;
 }
 
-long Bkdx::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y) {
-	long ret = 0;
-	x = y = -1;
-	//setlog("Bkdx::FindPic");
-	if (!_is_bind) {
+byte* Bkdx::get_data() {
 
+	/*try {
+		boost::interprocess::shared_memory_object shm(
+			boost::interprocess::open_only,
+			_shared_res_name,
+			boost::interprocess::read_only);
+		boost::interprocess::mapped_region region(shm, boost::interprocess::read_only);
+		_image_data = (byte*)region.get_address();
 	}
-	else {
-
-		
-		try {
-			boost::interprocess::shared_memory_object shm(
-				boost::interprocess::open_only,
-				_shared_res_name,
-				boost::interprocess::read_only);
-			boost::interprocess::mapped_region region(shm, boost::interprocess::read_only);
-			_image_data = (byte*)region.get_address();
-			//setlog("_pmutex->lock()");
-			_pmutex->lock();
-			_imageloc.input_image(_image_data, _width, _height, 0);
-			_pmutex->unlock();
-			//setlog("_pmutex->unlock()");
-			std::vector<std::wstring> images;
-			split(files, images, L"|");
-			ret = _imageloc.imageloc(images, sim, x, y);
-		}
-		catch(std::exception&e){
-			setlog(" Bkdx::FindPic exception:%s", e.what());
-		}
-		
-		
-
-
-	}
-	return ret;
+	catch (std::exception&e) {
+		setlog(" Bkdx::FindPic exception:%s", e.what());
+	}*/
+	return _image_data;
 }

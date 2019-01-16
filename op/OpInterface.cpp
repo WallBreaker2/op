@@ -392,12 +392,60 @@ STDMETHODIMP OpInterface::UnBind(LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
-	long lx, ly;
-	if (_background.GetDisplay() == BACKTYPE::DX)
+	long lx=-1, ly=-1;
+	/*if (_background.GetDisplay() == BACKTYPE::DX)
 		*ret = _background._bkdx9.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
 	else
-		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);*/
 	x->vt = y->vt = VT_I4;
 	x->lVal = lx; y->lVal = ly;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::AddDict(LONG idx, BSTR file_name, LONG* ret) {
+	*ret = _image_proc.AddDict(idx, file_name);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
+	wstring str;
+	_background.lock_data();
+	_image_proc.input_image(_background.GetScreenData(), _background.get_widht(), _background.get_height(), -1);
+	_background.unlock_data();
+	_image_proc.OCR(color, sim, str);
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(ret_str);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret) {
+	LONG rx, ry;
+	*ret = _image_proc.FindColor(color, rx, ry);
+	if (*ret) {
+		rx -= _background._bkgdi._client_x;
+		ry -= _background._bkgdi._client_y;
+	}
+	x->vt = y->vt = VT_I4;
+	x->lVal = rx; y->lVal = ry;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
+	static DWORD recent_call = 0;
+	DWORD t = GetTickCount();
+	if (t - recent_call > 20) {
+		//刷新
+		recent_call = t;
+		_background.lock_data();
+		_image_proc.input_image(_background.GetScreenData(), _background.get_widht(), _background.get_height(), -1);
+		_background.unlock_data();
+	}
+	x += _background._bkgdi._client_x;
+	y += _background._bkgdi._client_y;
+	auto str=_image_proc.GetColor(x, y);
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(ret);
 	return S_OK;
 }
