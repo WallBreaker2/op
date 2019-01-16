@@ -249,6 +249,7 @@
     <ClCompile Include="Bkdx.cpp" />
     <ClCompile Include="DX9hook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
+    <ClCompile Include="ImageProc.cpp" />
     <ClCompile Include="Injecter.cpp" />
     <ClCompile Include="op.cpp" />
     <ClCompile Include="OpInterface.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="Bkdx.h" />
     <ClInclude Include="DX9hook.h" />
     <ClInclude Include="ImageLoc.h" />
+    <ClInclude Include="ImageProc.h" />
     <ClInclude Include="Injecter.h" />
     <ClInclude Include="OpInterface.h" />
     <ClInclude Include="op_i.h" />

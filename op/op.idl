@@ -77,7 +77,10 @@ interface IOpInterface : IDispatch
 	[id(93)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
 	[id(94)] HRESULT UnBind([out, retval] LONG* ret);
 	[id(95)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
-
+	[id(96)] HRESULT AddDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(97)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(98)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(99)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
 };
 [
 	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DX9hook.h"
 #include <d3d9.h>
+#include <d3d10.h>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -10,7 +11,6 @@
 
 char g_shared_res_name[256];
 char g_mutex_name[256];
-int g_need_hook = 0;
 boost::interprocess::named_mutex *g_pmutex = nullptr;
 
 typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
@@ -91,21 +91,32 @@ HRESULT STDMETHODCALLTYPE hkEndScene(IDirect3DDevice9* thiz)
 	return ret;
 }
 
-//export function
-long SetDX9Hook(HWND hwnd) {
+void  STDMETHODCALLTYPE hkDraw(ID3D10Device* thiz, unsigned int VertexCount, unsigned int StartVertexLocation) {
+	thiz->Draw(VertexCount, StartVertexLocation);
+	//thiz.
+}
 
-	//setlog(L"step 1. init hook.");
-	g_need_hook = 1;
-	//initHook(hwnd);
+void hook_init(HWND hwnd) {
 	sprintf(g_shared_res_name, SHARED_RES_NAME_FORMAT, hwnd);
 	sprintf(g_mutex_name, MUTEX_NAME_FORMAT, hwnd);
-	//step 1. open a mutex.
 	try {
 		g_pmutex = new boost::interprocess::named_mutex(boost::interprocess::open_only, g_mutex_name);
 	}
 	catch (std::exception&e) {
-		setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s",g_mutex_name, e.what());
+		setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
 	}
+}
+
+void hook_release() {
+	SAFE_DELETE(g_pmutex);
+}
+
+//export function
+long SetDX9Hook(HWND hwnd) {
+
+	//setlog(L"step 1. init hook.");
+	//initHook(hwnd);
+	hook_init(hwnd);
 	//step 2. init hook
 	auto ret = kiero::init(kiero::RenderType::D3D9);
 	//step 3. bind function
@@ -122,11 +133,29 @@ long SetDX9Hook(HWND hwnd) {
 }
 
 long UnDX9Hook() {
-	g_need_hook = 0;
 	if (g_oEndScene) {
 		kiero::unbind(42);
 	}
-	SAFE_DELETE(g_pmutex);
-	setlog("un hook");
+	hook_release();
+	return 0;
+}
+
+long SetDX10Hook(HWND hwnd) {
+	hook_init(hwnd);
+	//step 2. init hook
+	auto ret = kiero::init(kiero::RenderType::D3D10);
+	//step 3. bind function
+	if (ret == kiero::Status::Success) {
+		kiero::bind(42, (void**)&g_oEndScene, hkEndScene);
+		return 1;
+	}
+	else {
+		setlog("kiero::init false");
+		return 0;
+	}
+
+}
+
+long UnDX10Hook() {
 	return 0;
 }
