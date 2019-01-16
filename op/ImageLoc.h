@@ -5,6 +5,8 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <vector>
+#include "Common.h"
+
 
 
 inline int HEX2INT(wchar_t c) {
@@ -16,6 +18,10 @@ inline int HEX2INT(wchar_t c) {
 		return c - L'a' + 10;
 	return 0;
 }
+
+#define SET_BIT(x, idx) x |= 1u << (idx)
+
+#define GET_BIT(x, idx) (x >> (idx)) & 1u
 using images_t = std::vector<std::wstring>;
 //颜色结构
 struct color_t {
@@ -45,12 +51,20 @@ struct color_t {
 		return buff;
 	}
 };
+
 //ocr 列,占16位，即最大的字高为16
 using ocrline_t = unsigned __int16;
+
+
 struct one_words_t {
+	//字名
 	std::wstring word;
+	//字形
 	std::vector<ocrline_t> binlines;
+	//1数量
 	int bit_ct;
+	//字高
+	int height;
 };
 using dict_t = std::vector<one_words_t>;
 /*
@@ -86,7 +100,7 @@ public:
 	long GetPixel(long x, long y, color_t&cr);
 
 	long FindColor(color_t cr,color_t df, long&x, long&y);
-	long Ocr(one_words_t& words, double sim, long&x, long&y);
+	long Ocr(dict_t& dict, double sim, std::wstring& ret_str);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
 	else pixel=0;
@@ -109,20 +123,27 @@ private:
 	---------------(x2,y2)
 	*/
 	long full_match(int width, uchar* ps,ocrline_t*lines, int line_ct,int n) {
-		ocrline_t line = 0;
+		ocrline_t line;
 		long s = 0;
+		int tp;
+		static int rec = 5;
 		for (int j = 0; j < line_ct; ++j) {
 			auto p = ps + j;
-			for (int i = 0; i < 11; ++i) {
-				line |= *(p + i * width);
-				line <<= (15 - i);
+			line = 0;
+			for (int i = 0; i < n; ++i) {
+				tp = *(p + i * width);
+				tp <<= (15 - i);
+				line |= tp;
 			}
 			if (line != lines[j])
-				s += get_bit_count(line&lines[j]);
-			else
-				s += get_bit_count(line);
+				return 0;
 		}
-		return s;
+		if (rec >= 0) {
+			setlog("line0:%X", lines[0]);
+			--rec;
+		}
+			
+		return 1;
 	}
 };
 
