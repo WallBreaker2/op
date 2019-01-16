@@ -134,24 +134,42 @@ void ImageExtend::bgr2binary(color_t cr, color_t df) {
 	}
 }
 
-long ImageExtend::Ocr(one_words_t& words, double sim, long&x, long&y) {
-	x = y = -1;
+long ImageExtend::Ocr(dict_t& dict, double sim,wstring& ret_str) {
+	ret_str.clear();
 	long ret_val = 0;
 	int nrows = _src_gray.rows, ncols = _src_gray.cols;
-	//step 1. ±ﬂΩÁºÏ≤‚
-	if (words.binlines.size() > ncols || 11 > nrows)
-		return ret_val;
 	//step 2.∆•≈‰
-	for (int i = 0; i < nrows - 11 + 1; ++i) {
+	for (int i = 0; i < nrows; ++i) {
 		auto ps = _src_gray.ptr<uchar>(i);
-		for (int j = 0; j < ncols - words.binlines.size() + 1; ++j) {
+		for (int j = 0; j < ncols;) {
 			//
-			auto s=full_match(ncols, ps + j, words.binlines.data(), words.binlines.size(), 11);
-			if (s >= sim * words.bit_ct) {
-				x = j; y = i;
-				return 1;
+			ret_val = 0;
+			int k;
+			for (k = 0; k < dict.size();++k) {
+				//step 1. ±ﬂΩÁºÏ≤‚
+				if (i + dict[k].height <= nrows && j + dict[k].binlines.size() <= ncols) {
+					
+					if (full_match(ncols, ps + j, &dict[k].binlines[0], dict[k].binlines.size(), dict[k].height)) {
+						ret_str += dict[k].word;
+						ret_val = 1;
+						if (ret_str.length() <= 4) {
+							setlog(dict[k].word.c_str());
+							setlog(L"line:h=%d,w=%d", dict[k].height, dict[k].binlines.size());
+						}
+						break;
+					}
+				}
 			}
+			if (ret_val) {
+				j += dict[k].binlines.size();
+			}
+			else {
+				j += 1;
+			}
+				
+
+			
 		}
 	}
-	return ret_val;
+	return 1;
 }
