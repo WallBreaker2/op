@@ -68,6 +68,9 @@
     <Filter Include="3rd_party\kiero">
       <UniqueIdentifier>{3089a37b-83e9-478a-bee1-0dba8b6c0afd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImageProc">
+      <UniqueIdentifier>{497097eb-2fb2-43a1-b0ba-398c038b4314}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -123,6 +126,9 @@
     </ClCompile>
     <ClCompile Include="3rd_party\kiero\kiero.cpp">
       <Filter>3rd_party\kiero</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageProc.cpp">
+      <Filter>ImageProc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +191,9 @@
     </ClInclude>
     <ClInclude Include="3rd_party\kiero\kiero.h">
       <Filter>3rd_party\kiero</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageProc.h">
+      <Filter>ImageProc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

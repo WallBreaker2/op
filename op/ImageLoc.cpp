@@ -1,18 +1,29 @@
 #include "stdafx.h"
 #include "ImageLoc.h"
 #include "Common.h"
+template<typename T>
+int ImageExtend::get_bit_count(T x) {
+	int s = 0;
+	while (x) {
+		s += x & 1;
+		s >>= 1;
+	}
+	return s;
+}
 
-ImageLoc::ImageLoc()
+
+
+ImageExtend::ImageExtend()
 {
 }
 
 
-ImageLoc::~ImageLoc()
+ImageExtend::~ImageExtend()
 {
 }
 
 
-long ImageLoc::input_image(byte* image_data, int width, int height,int type) {
+long ImageExtend::input_image(byte* image_data, int width, int height,int type) {
 	int i, j, k; 
 	
 	if (type==-1) {//µππ˝¿¥∂¡
@@ -42,14 +53,14 @@ long ImageLoc::input_image(byte* image_data, int width, int height,int type) {
 	return 1;
 }
 
-long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
+long ImageExtend::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
 	cv::imwrite("input.png", _src);
 	for (auto&it : images) {
 		_target=cv::imread(_wsto_string(it));
 		if (_target.empty()) {
-			setlog(L"ImageLoc::imageloc,file:%s read false.", it.c_str());
+			setlog(L"ImageExtend::imageloc,file:%s read false.", it.c_str());
 			continue;
 		}
 		//cv::cvtColor(_src, _src_gray, CV_BGR2GRAY);
@@ -66,7 +77,7 @@ long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
 		cv::minMaxLoc(_result, &minval, &maxval, &pt1, &pt2);
 		minval /= 255.*255.*_target.rows*_target.cols;
 		bestval = 1. - minval;
-		setlog(L"ImageLoc::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
+		setlog(L"ImageExtend::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
 		
 		if (bestval>=sim) {
 			x = pt1.x; y = pt1.y;
@@ -79,4 +90,68 @@ long ImageLoc::imageloc(images_t& images,double sim, long&x, long&y) {
 	return 0;
 
 
+}
+
+long ImageExtend::GetPixel(long x, long y,color_t&cr) {
+	if (!is_valid(x, y))
+		return 0;
+	auto p = _src.ptr<uchar>(y) + 3 * x;
+	static_assert(sizeof(color_t) == 4);
+	cr.b = p[0]; cr.g = p[1]; cr.r = p[2];
+	return 1;
+}
+
+long ImageExtend::FindColor(color_t cr,color_t df, long&x, long&y) {
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			if ((*(color_t*)(p+j*3)-cr)<=df) {
+				x = j; y = i;
+				return 1;
+			}
+		}
+	}
+	x = y = -1;
+	return 0;
+}
+
+void ImageExtend::bgr2binary(color_t cr, color_t df) {
+	if (_src.empty())
+		return;
+	int ncols = _src.cols, nrows = _src.rows;
+	_src_gray.create(nrows, ncols, CV_8UC1);
+	for (int i = 0; i < nrows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		uchar* p2 = _src_gray.ptr<uchar>(i);
+		for (int j = 0; j < ncols; ++j) {
+			if ((*(color_t*)p - cr) <= df)
+				*p2 = 1;
+			else
+				*p2 = 0;
+			++p2;
+			p += 3;
+		}
+	}
+}
+
+long ImageExtend::Ocr(one_words_t& words, double sim, long&x, long&y) {
+	x = y = -1;
+	long ret_val = 0;
+	int nrows = _src_gray.rows, ncols = _src_gray.cols;
+	//step 1. ±ﬂΩÁºÏ≤‚
+	if (words.binlines.size() > ncols || 11 > nrows)
+		return ret_val;
+	//step 2.∆•≈‰
+	for (int i = 0; i < nrows - 11 + 1; ++i) {
+		auto ps = _src_gray.ptr<uchar>(i);
+		for (int j = 0; j < ncols - words.binlines.size() + 1; ++j) {
+			//
+			auto s=full_match(ncols, ps + j, words.binlines.data(), words.binlines.size(), 11);
+			if (s >= sim * words.bit_ct) {
+				x = j; y = i;
+				return 1;
+			}
+		}
+	}
+	return ret_val;
 }

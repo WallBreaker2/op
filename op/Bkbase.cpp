@@ -61,8 +61,10 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		ret = 0; _hwnd = 0;
 	}
 	else {
-		ret = 1;
 		_mode = mode;
+		_display = display;
+		setlog("bind info:%d,%d", _display, mouse);
+		
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
 			ret = _bkgdi.Bind(_hwnd, display);
 		}
@@ -88,8 +90,10 @@ long Bkbase::UnBindWindow() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
-	_bkgdi.UnBind();
-	_bkdx9.UnBind();
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI)
+		_bkgdi.UnBind();
+	else
+		_bkdx9.UnBind();
 	_bkmouse.UnBind();
 	return 1;
 }
@@ -146,6 +150,33 @@ long Bkbase::Capture(const std::wstring& file_name) {
 
 long Bkbase::GetDisplay() {
 	return _display;
+}
+
+byte* Bkbase::GetScreenData() {
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
+		return _bkgdi.get_data();
+	}
+	return nullptr;
+}
+
+void Bkbase::lock_data() {
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
+		_bkgdi.get_mutex().lock();
+	}
+}
+
+void Bkbase::unlock_data() {
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
+		_bkgdi.get_mutex().unlock();
+	}
+}
+
+long Bkbase::get_height() {
+	return _bkgdi.get_height();
+}
+
+long Bkbase::get_widht() {
+	return _bkgdi.get_widht();
 }
 
 

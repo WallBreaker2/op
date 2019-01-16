@@ -9,6 +9,7 @@
 #include "Common.h"
 #include "WinApi.h"
 #include "BKbase.h"
+#include "ImageProc.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Windows CE 平台(如不提供完全 DCOM 支持的 Windows Mobile 平台)上无法正确支持单线程 COM 对象。定义 _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA 可强制 ATL 支持创建单线程 COM 对象实现并允许使用其单线程 COM 对象实现。rgs 文件中的线程模型已被设置为“Free”，原因是该模型是非 DCOM Windows CE 平台支持的唯一线程模型。"
@@ -58,6 +59,8 @@ private:
 	Bkbase _background;
 	// work path
 	std::wstring _curr_path;
+	//image process
+	ImageProc _image_proc;
 public:
 	//---------------方法-------------------
 
@@ -118,6 +121,11 @@ public:
 
 	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files,DOUBLE sim,VARIANT* x,VARIANT* y,LONG* ret);
 
+	STDMETHOD(AddDict)(LONG idx, BSTR file_name, LONG* ret);
+
+	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
+	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret);
+	STDMETHOD(GetColor)(LONG x, LONG y, BSTR* ret);
 
 };
 

@@ -5,6 +5,12 @@
 #include "Bkgdi.h"
 #include "Bkdx.h"
 using std::wstring;
+/*
+后台处理类，包含以下功能:
+1.窗口绑定
+2.后台截图
+3.鼠标键盘操作
+*/
 class Bkbase
 {
 public:
@@ -25,6 +31,11 @@ public:
 	virtual long MoveTo(long x, long y);
 	virtual long Capture(const std::wstring& file_name);
 	long GetDisplay();
+	byte* GetScreenData();
+	void lock_data();
+	void unlock_data();
+	long get_height();
+	long get_widht();
 private:
 	HWND _hwnd;
 	int _is_bind;

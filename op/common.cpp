@@ -54,7 +54,26 @@ void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstri
 	size_t len = s.length();
 	pos2 = s.find(c);
 	pos1 = 0;
+	v.clear();
 	while (std::wstring::npos != pos2)
+	{
+		v.emplace_back(s.substr(pos1, pos2 - pos1));
+
+		pos1 = pos2 + c.size();
+		pos2 = s.find(c, pos1);
+	}
+	if (pos1 != len)
+		v.emplace_back(s.substr(pos1));
+}
+
+void split(const std::string& s, std::vector<std::string>& v, const std::string& c)
+{
+	std::string::size_type pos1, pos2;
+	size_t len = s.length();
+	pos2 = s.find(c);
+	pos1 = 0;
+	v.clear();
+	while (std::string::npos != pos2)
 	{
 		v.emplace_back(s.substr(pos1, pos2 - pos1));
 
