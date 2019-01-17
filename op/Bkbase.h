@@ -36,6 +36,10 @@ public:
 	void unlock_data();
 	long get_height();
 	long get_widht();
+	long RectConvert(long&x1, long&y1, long&x2, long&y2);
+	long get_image_type() {
+		return _display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI ? -1 : 0;
+	}
 private:
 	HWND _hwnd;
 	int _is_bind;

@@ -23,28 +23,28 @@ ImageExtend::~ImageExtend()
 }
 
 
-long ImageExtend::input_image(byte* image_data, int width, int height,int type) {
+long ImageExtend::input_image(byte* image_data, int width,int height, long x1, long y1, long x2, long y2, int type) {
 	int i, j, k; 
-	
+	int cw = x2 - x1 + 1, ch = y2 - y1 + 1;
 	if (type==-1) {//倒过来读
-		_src.create(height, width, CV_8UC3);
+		_src.create(ch, cw, CV_8UC3);
 		uchar *p, *p2;
-		for (i = 0; i < height; ++i) {
+		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
-			p2 = image_data + (height - i - 1) * width * 4;
-			for (j = 0; j < width; ++j) {
+			p2 = image_data + (height- i - 1-y1) * width*4+x1*4;//偏移
+			for (j = 0; j < cw; ++j) {
 				*p++ = *p2++; *p++ = *p2++;
 				*p++ = *p2++; ++p2;
 			}
 		}
 	}
 	else {
-		_src.create(height, width, CV_8UC3);
+		_src.create(ch, cw, CV_8UC3);
 		uchar *p, *p2;
-		for (i = 0; i < height; ++i) {
+		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
-			p2 = image_data + i * width * 4;
-			for (j = 0; j < width; ++j) {
+			p2 = image_data + (i + y1) * width * 4 + x1 * 4;
+			for (j = 0; j < cw; ++j) {
 				*p++ = *p2++; *p++ = *p2++;
 				*p++ = *p2++; ++p2;
 			}
@@ -56,11 +56,11 @@ long ImageExtend::input_image(byte* image_data, int width, int height,int type) 
 long ImageExtend::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
-	cv::imwrite("input.png", _src);
+	//cv::imwrite("input.png", _src);
 	for (auto&it : images) {
 		_target=cv::imread(_wsto_string(it));
 		if (_target.empty()) {
-			setlog(L"ImageExtend::imageloc,file:%s read false.", it.c_str());
+			//setlog(L"ImageExtend::imageloc,file:%s read false.", it.c_str());
 			continue;
 		}
 		//cv::cvtColor(_src, _src_gray, CV_BGR2GRAY);
@@ -77,7 +77,7 @@ long ImageExtend::imageloc(images_t& images,double sim, long&x, long&y) {
 		cv::minMaxLoc(_result, &minval, &maxval, &pt1, &pt2);
 		minval /= 255.*255.*_target.rows*_target.cols;
 		bestval = 1. - minval;
-		setlog(L"ImageExtend::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
+		//setlog(L"ImageExtend::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
 		
 		if (bestval>=sim) {
 			x = pt1.x; y = pt1.y;
@@ -101,13 +101,15 @@ long ImageExtend::GetPixel(long x, long y,color_t&cr) {
 	return 1;
 }
 
-long ImageExtend::FindColor(color_t cr,color_t df, long&x, long&y) {
+long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
-			if ((*(color_t*)(p+j*3)-cr)<=df) {
-				x = j; y = i;
-				return 1;
+			for (auto&it : colors) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					x = j; y = i;
+					return 1;
+				}
 			}
 		}
 	}
@@ -115,7 +117,7 @@ long ImageExtend::FindColor(color_t cr,color_t df, long&x, long&y) {
 	return 0;
 }
 
-void ImageExtend::bgr2binary(color_t cr, color_t df) {
+void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
 	if (_src.empty())
 		return;
 	int ncols = _src.cols, nrows = _src.rows;
@@ -124,14 +126,20 @@ void ImageExtend::bgr2binary(color_t cr, color_t df) {
 		uchar* p = _src.ptr<uchar>(i);
 		uchar* p2 = _src_gray.ptr<uchar>(i);
 		for (int j = 0; j < ncols; ++j) {
-			if ((*(color_t*)p - cr) <= df)
-				*p2 = 1;
-			else
-				*p2 = 0;
+			*p2 = 0;
+			for (auto&it : colors) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					*p2 = 0xff;
+					break;
+				}	
+			}
 			++p2;
 			p += 3;
 		}
 	}
+	//test
+	cv::imwrite("src.bmp", _src);
+	cv::imwrite("binary.bmp", _src_gray);
 }
 
 long ImageExtend::Ocr(dict_t& dict, double sim,wstring& ret_str) {
@@ -152,10 +160,6 @@ long ImageExtend::Ocr(dict_t& dict, double sim,wstring& ret_str) {
 					if (full_match(ncols, ps + j, &dict[k].binlines[0], dict[k].binlines.size(), dict[k].height)) {
 						ret_str += dict[k].word;
 						ret_val = 1;
-						if (ret_str.length() <= 4) {
-							setlog(dict[k].word.c_str());
-							setlog(L"line:h=%d,w=%d", dict[k].height, dict[k].binlines.size());
-						}
 						break;
 					}
 				}

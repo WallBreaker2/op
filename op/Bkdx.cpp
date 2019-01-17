@@ -6,7 +6,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <exception>
-
+#include "Tool.h"
 
 //以下函数用于 user call
 
@@ -73,15 +73,15 @@ long Bkdx::Bind(HWND hwnd) {
 				bind_ret = 1;
 			}
 			else {
-				setlog(L"remote function not found.");
+				Tool::setlog(L"remote function not found.");
 			}
 		}
 		else {
-			setlog(L"Inject false.");
+			Tool::setlog(L"Inject false.");
 		}
 	}
 	else {
-		setlog(L"attach false.");
+		Tool::setlog(L"attach false.");
 	}
 	_process.Detach();
 	_hwnd = bind_ret ? hwnd : NULL;
@@ -111,7 +111,7 @@ long Bkdx::UnBind() {
 			bind_ret = 1;
 		}
 		else {
-			setlog(L"get unhook ptr false.");
+			Tool::setlog(L"get unhook ptr false.");
 		}
 #ifndef _WIN64
 		_process.modules().RemoveManualModule(_dllname, blackbone::eModType::mt_mod32);
@@ -120,7 +120,7 @@ long Bkdx::UnBind() {
 #endif
 	}
 	else {
-		setlog("attach false.");
+		Tool::setlog("attach false.");
 	}
 	_process.Detach();
 	_hwnd = NULL;
@@ -142,7 +142,7 @@ long Bkdx::bind_init() {
 		_pmutex = new boost::interprocess::named_mutex(boost::interprocess::create_only, _mutex_name);
 	}
 	catch (std::exception&e) {
-		setlog("Bkdx::bind_init %s exception:%s", _shared_res_name, e.what());
+		Tool::setlog("Bkdx::bind_init %s exception:%s", _shared_res_name, e.what());
 	}
 
 	return 0;
@@ -158,7 +158,7 @@ long Bkdx::bind_release() {
 
 	}
 	catch (std::exception&e) {
-		setlog("Bkdx::bind_release std::exception:%s", e.what());
+		Tool::setlog("Bkdx::bind_release std::exception:%s", e.what());
 	}
 
 	_image_data = nullptr;
@@ -202,7 +202,7 @@ long Bkdx::capture(const std::wstring& file_name) {
 		_pmutex->unlock();
 	}
 	catch (std::exception&e) {
-		setlog("cap exception:%s", e.what());
+		Tool::setlog("cap exception:%s", e.what());
 	}
 
 	file.close();

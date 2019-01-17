@@ -9,9 +9,9 @@
 
 HRESULT OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	static const wchar_t* ver = L"0.112.x86";
+	static const wchar_t* ver = L"0.2110.x86";
 #else
-	static const wchar_t* ver = L"0.112.x64";
+	static const wchar_t* ver = L"0.2110.x64";
 
 #endif;
 	CComBSTR bstr;
@@ -34,7 +34,7 @@ STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 	if (_curr_path.back() == L'\\')
 		_curr_path.pop_back();
 	*ret = ::PathFileExists(_curr_path.c_str());
-	setlog(L"%s", _curr_path.c_str());
+	//setlog(L"%s", _curr_path.c_str());
 	if (!*ret)
 		_curr_path.clear();
 	return S_OK;
@@ -367,27 +367,27 @@ STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd, LONG millseconds, BSTR* retstr) {
 }
 
 STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
-	*ret = _background.MoveTo(x, y);
+	*ret = _bkproc.MoveTo(x, y);
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
-	*ret = _background.LeftClick();
+	*ret = _bkproc.LeftClick();
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
-	*ret = _background.BindWindow(hwnd, display, mouse, keypad, mode);
+	*ret = _bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::Capture(BSTR file_name, LONG* ret) {
-	*ret = _background.Capture(file_name);
+	*ret = _bkproc.Capture(file_name);
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::UnBind(LONG* ret) {
-	*ret = _background.UnBindWindow();
+	*ret = _bkproc.UnBindWindow();
 	return S_OK;
 }
 
@@ -402,17 +402,21 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::AddDict(LONG idx, BSTR file_name, LONG* ret) {
-	*ret = _image_proc.AddDict(idx, file_name);
+STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
+	*ret = _image_proc.SetDict(idx, file_name);
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
 	wstring str;
-	_background.lock_data();
-	_image_proc.input_image(_background.GetScreenData(), _background.get_widht(), _background.get_height(), -1);
-	_background.unlock_data();
-	_image_proc.OCR(color, sim, str);
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		_image_proc.OCR(color, sim, str);
+	}
+	
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
 	newstr.CopyTo(ret_str);
@@ -421,11 +425,20 @@ STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DO
 
 STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret) {
 	LONG rx, ry;
-	*ret = _image_proc.FindColor(color, rx, ry);
-	if (*ret) {
-		rx -= _background._bkgdi._client_x;
-		ry -= _background._bkgdi._client_y;
+	*ret = 0;
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.FindColor(color, rx, ry);
+		if (*ret) {
+			rx += x1; ry += y1;
+			rx -= _bkproc._bkgdi._client_x;
+			ry -= _bkproc._bkgdi._client_y;
+		}
 	}
+	
 	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
 	return S_OK;
@@ -434,15 +447,15 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	static DWORD recent_call = 0;
 	DWORD t = GetTickCount();
-	if (t - recent_call > 20) {
+	/*if (t - recent_call > 20) {
 		//刷新
 		recent_call = t;
-		_background.lock_data();
-		_image_proc.input_image(_background.GetScreenData(), _background.get_widht(), _background.get_height(), -1);
-		_background.unlock_data();
-	}
-	x += _background._bkgdi._client_x;
-	y += _background._bkgdi._client_y;
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(), -1);
+		_bkproc.unlock_data();
+	}*/
+	x += _bkproc._bkgdi._client_x;
+	y += _bkproc._bkgdi._client_y;
 	auto str=_image_proc.GetColor(x, y);
 	CComBSTR newstr;
 	newstr.Append(str.c_str());

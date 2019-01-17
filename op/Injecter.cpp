@@ -50,7 +50,6 @@ HMODULE Injecter::InjectDll(LPCTSTR commandLine, LPCTSTR dllPath/*, DWORD* pid, 
 	PROCESS_INFORMATION processInfo = {};
 	if (!CreateProcess(NULL, commandLineCopy, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, cd, &startInfo, &processInfo))
 	{
-		setlog(L"CreateProcess %s False,code=%d",commandLineCopy, GetLastError());
 		delete commandLineCopy;
 		delete cd;
 		return 0;
@@ -67,14 +66,14 @@ HMODULE Injecter::InjectDll(LPCTSTR commandLine, LPCTSTR dllPath/*, DWORD* pid, 
 	void* remoteMemory = VirtualAllocEx(processInfo.hProcess, NULL, dllPathSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (remoteMemory == NULL)
 	{
-		setlog(L"申请内存失败，错误代码：%u\n", GetLastError());
+		//setlog(L"申请内存失败，错误代码：%u\n", GetLastError());
 		return 0;
 	}
 
 	// 写入DLL路径
 	if (!WriteProcessMemory(processInfo.hProcess, remoteMemory, dllPath, dllPathSize, NULL))
 	{
-		setlog(L"写入内存失败，错误代码：%u\n", GetLastError());
+		//setlog(L"写入内存失败，错误代码：%u\n", GetLastError());
 		return 0;
 	}
 
@@ -82,7 +81,7 @@ HMODULE Injecter::InjectDll(LPCTSTR commandLine, LPCTSTR dllPath/*, DWORD* pid, 
 	HANDLE remoteThread = CreateRemoteThread(processInfo.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibrary, remoteMemory, 0, NULL);
 	if (remoteThread == NULL)
 	{
-		setlog(L"创建远线程失败，错误代码：%u\n", GetLastError());
+		//setlog(L"创建远线程失败，错误代码：%u\n", GetLastError());
 		return NULL;
 	}
 	// 等待远线程结束

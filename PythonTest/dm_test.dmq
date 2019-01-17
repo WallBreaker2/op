@@ -1,0 +1,33 @@
+Set dm = CreateObject("dm.dmsoft")
+
+// 打印版本和路径信息
+TracePrint dm.ver()
+
+TracePrint dm.GetBasePath()  
+
+MessageBox "脚本系统为完全的vbs语法系统(注意vbs不支持中文函数和变量)"
+MessageBox "另外加了一些附加命令,如下:"
+MessageBox "MessageBox 同按键的MessageBox"
+MessageBox "TracePrint 同按键的TracePrint"
+MessageBox "Delay 同按键的Delay"
+MessageBox "EndScript 同按键的EndScript"
+MessageBox "另外还支持脚本退出时执行函数. 同按键的OnScriptExit"
+
+
+Do
+	if dm.WaitKey(36,1000) = 1 then
+		MessageBox "按下了HOME键,结束脚本"
+		EndScript
+	end if
+	
+	For 5
+		delay 100
+	Next
+	TracePrint "按HOME键结束循环"
+Loop
+
+
+Sub OnScriptExit()
+	TracePrint "执行退出函数"
+End Sub
+

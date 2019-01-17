@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ImageProc.h"
-#include "Common.h"
+#include "Tool.h"
 #include <fstream>
 #include <bitset>
 #include <algorithm>
@@ -18,7 +18,7 @@ long ImageProc::FindPic(long x1, long y1, long x2, long y2, const std::wstring& 
 	return 0;
 }
 
-long ImageProc::AddDict(int idx, const wstring& file_name) {
+long ImageProc::SetDict(int idx, const wstring& file_name) {
 	if (idx < 0 || idx >= _max_dicts)
 		return 0;
 	_dicts[idx].clear();
@@ -33,7 +33,7 @@ long ImageProc::AddDict(int idx, const wstring& file_name) {
 		while (!file.eof()) {
 			//line
 			std::getline(file,str);
-			split(str, vstr, L"$");
+			Tool::split(str, vstr, L"$");
 			
 			if (vstr.size() == 4) {
 				//words
@@ -85,7 +85,7 @@ long ImageProc::AddDict(int idx, const wstring& file_name) {
 	
 }
 
-long ImageProc::SetDict(int idx) {
+long ImageProc::UseDict(int idx) {
 	if (idx < 0 || idx >= _max_dicts)
 		return 0;
 	_curr_dict = &_dicts[idx];
@@ -94,27 +94,13 @@ long ImageProc::SetDict(int idx) {
 
 long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 	out_str.clear();
-	std::vector<wstring>vstr;
-	split(color,vstr, L"-");
-	color_t cr, df;
-	if (vstr.size() == 2) {
-		if (vstr[0].length() != 6 || vstr[1].length() != 6)
-			return 0;
-		cr.str2color(vstr[0]);
-		df.str2color(vstr[1]);
-	}
-	else {
-		if (vstr[0].length() != 6)
-			return 0;
-		cr.str2color(vstr[0]);
-		df.b = df.g = df.r = 0;
-	}
-		
+	vector<color_df_t> colors;
+	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
 	
 	long s;
-	ImageExtend::bgr2binary(cr, df);
+	ImageExtend::bgr2binary(colors);
 	
 	s=ImageExtend::Ocr(*_curr_dict, sim, out_str);
 	return s;
@@ -122,15 +108,9 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 }
 
 long ImageProc::FindColor(const wstring& color, long&x, long&y) {
-	std::vector<wstring>vstr;
-	split(color, vstr, L"-");
-	color_t cr, df;
-	cr.str2color(vstr[0]);
-	if (vstr.size() == 2) {
-		
-		df.str2color(vstr[1]);
-	}
-	return ImageExtend::FindColor(cr, df, x, y);
+	std::vector<color_df_t>colors;
+	str2colordfs(color, colors);
+	return ImageExtend::FindColor(colors, x, y);
 }
 
 wstring ImageProc::GetColor(long x, long y) {
@@ -140,5 +120,19 @@ wstring ImageProc::GetColor(long x, long y) {
 	}
 	else {
 		return L"";
+	}
+}
+
+
+void ImageProc::str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors) {
+	std::vector<wstring>vstr, vstr2;
+	color_df_t cr;
+	colors.clear();
+	Tool::split(color_str, vstr, L"|");
+	for (auto&it : vstr) {
+		Tool::split(it, vstr2, L"-");
+		cr.color.str2color(vstr2[0]);
+		cr.df.str2color(vstr2.size() == 2 ? vstr2[1] : L"000000");
+		colors.push_back(cr);
 	}
 }

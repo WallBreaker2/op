@@ -130,6 +130,9 @@
     <ClCompile Include="ImageProc.cpp">
       <Filter>ImageProc</Filter>
     </ClCompile>
+    <ClCompile Include="Tool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -194,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="ImageProc.h">
       <Filter>ImageProc</Filter>
+    </ClInclude>
+    <ClInclude Include="Tool.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

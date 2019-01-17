@@ -52,6 +52,14 @@ struct color_t {
 	}
 };
 
+//颜色-偏色结构
+struct color_df_t {
+	//颜色
+	color_t color;
+	//偏色
+	color_t df;
+};
+
 //ocr 列,占16位，即最大的字高为16
 using ocrline_t = unsigned __int16;
 
@@ -84,9 +92,10 @@ public:
 	//brief:输入图像，建立图形矩阵,在图像操作前调用
 	//image_data:	4子节对齐的像素指针
 	//widht:		图像宽度
-	//height:		图像高度
+	//hegith:		h
+	//x1,y1,x2,y2 拷贝区域
 	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
-	long input_image(byte* image_data, int width, int height,int type=0);
+	long input_image(byte* image_data, int width, int height,long x1,long y1,long x2,long y2, int type = 0);
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.
@@ -99,13 +108,13 @@ public:
 
 	long GetPixel(long x, long y, color_t&cr);
 
-	long FindColor(color_t cr,color_t df, long&x, long&y);
+	long FindColor(std::vector<color_df_t>&colors, long&x, long&y);
 	long Ocr(dict_t& dict, double sim, std::wstring& ret_str);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
 	else pixel=0;
 	*/
-	void bgr2binary(color_t cr, color_t df);
+	void bgr2binary(vector<color_df_t>& colors);
 	
 private:
 	cv::Mat _src;
@@ -126,23 +135,17 @@ private:
 		ocrline_t line;
 		long s = 0;
 		int tp;
-		static int rec = 5;
 		for (int j = 0; j < line_ct; ++j) {
 			auto p = ps + j;
 			line = 0;
 			for (int i = 0; i < n; ++i) {
-				tp = *(p + i * width);
+				tp = *(p + i * width) & 1;
 				tp <<= (15 - i);
 				line |= tp;
 			}
 			if (line != lines[j])
 				return 0;
 		}
-		if (rec >= 0) {
-			setlog("line0:%X", lines[0]);
-			--rec;
-		}
-			
 		return 1;
 	}
 };

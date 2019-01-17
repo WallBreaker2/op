@@ -24,7 +24,6 @@ long Bkgdi::Bind(HWND hwnd, int mode) {
 	
 	_pthread = new std::thread(&Bkgdi::cap_thread, this);
 	ret = 1;
-	setlog("Bkgdi::Bind");
 	return ret;
 }
 
@@ -63,13 +62,13 @@ long Bkgdi::cap_init() {
 	POINT pt;
 	pt.x = rc.left; pt.y = rc.top;
 	::ScreenToClient(_hwnd, &pt);
-	setlog("WindowRect:%d,%d", pt.x,pt.y);
-	setlog("Window:%d,%d", _width, _height);
+	//setlog("WindowRect:%d,%d", pt.x,pt.y);
+	//setlog("Window:%d,%d", _width, _height);
 	//设置偏移
 	::GetClientRect(_hwnd, &rc);
 	_client_x = -pt.x;
 	_client_y = -pt.y;
-	setlog("ClientRect:%d,%d,%d,%d", rc.left,rc.top,rc.right,rc.bottom);
+	//setlog("ClientRect:%d,%d,%d,%d", rc.left,rc.top,rc.right,rc.bottom);
 
 	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境		
 	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
@@ -97,8 +96,8 @@ long Bkgdi::cap_init() {
 
 	//buf = hDib + dwLen_1;
 	//buf_len = bi.biSizeImage;
-	setlog(L"check bih:biBitCount=%d,biCompression=%d,biHeight=%d,biWidth=%d",
-		_bih.biBitCount, _bih.biCompression, _bih.biHeight, _bih.biWidth);
+	//setlog(L"check bih:biBitCount=%d,biCompression=%d,biHeight=%d,biWidth=%d",
+	//	_bih.biBitCount, _bih.biCompression, _bih.biHeight, _bih.biWidth);
 	return 1;
 }
 
@@ -111,7 +110,7 @@ long Bkgdi::cap_release() {
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
-	setlog(L"cap_release");
+	//setlog(L"cap_release");
 	return 0;
 }
 
@@ -130,7 +129,7 @@ long Bkgdi::cap_image() {
 }
 
 long Bkgdi::capture(const std::wstring& file_name) {
-	setlog(L"Bkgdi::capture");
+	//setlog(L"Bkgdi::capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
 	if (!file.is_open())return 0;
