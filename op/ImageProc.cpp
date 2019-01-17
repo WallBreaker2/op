@@ -63,7 +63,7 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 						
 					
 				}//end for c
-				if (offset!=0) {//left a line
+				if (offset!=0&&line) {//left a line
 					words.binlines.push_back(line);
 				}
 				//put a word
@@ -79,6 +79,7 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 		//
 		//for (auto it : _this_dict[0])
 		//	setlog("dict:%X", it);
+		Tool::setlog("DICT info:words=%d", _this_dict.size());
 		return 1;
 	}
 	return 0;

@@ -135,6 +135,8 @@ private:
 		ocrline_t line;
 		long s = 0;
 		int tp;
+		//最大为11像素高
+		n = n > 11 ? 11 : n;
 		for (int j = 0; j < line_ct; ++j) {
 			auto p = ps + j;
 			line = 0;

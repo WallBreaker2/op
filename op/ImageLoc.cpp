@@ -111,6 +111,7 @@ long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 					return 1;
 				}
 			}
+			p += 3;
 		}
 	}
 	x = y = -1;
@@ -147,7 +148,7 @@ long ImageExtend::Ocr(dict_t& dict, double sim,wstring& ret_str) {
 	long ret_val = 0;
 	int nrows = _src_gray.rows, ncols = _src_gray.cols;
 	//step 2.∆•≈‰
-	for (int i = 0; i < nrows; ++i) {
+	for (int i = 0; i <nrows; ++i) {//
 		auto ps = _src_gray.ptr<uchar>(i);
 		for (int j = 0; j < ncols;) {
 			//
