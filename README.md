@@ -1,6 +1,6 @@
 OP
 ===========
-OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费使用.主要特点:Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...在c++11 语言的基础上，提供高效稳定的算法实现.源代码可编译为32/64位dll.即可为32位和64位应用程序调用.
+OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费使用.主要特点:Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll(com插件).可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)
 
 
 
@@ -27,10 +27,11 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 ### 演示Demo  
 ---
 ```Python
+
 from win32com.client import Dispatch
 op=Dispatch("op.opsoft");
 print("op ver:",op.Ver());
-hwnd=op.FindWindow("","五子棋(Piskvork)");
+hwnd=op.FindWindow("","新建文本文档.txt - 记事本");
 r=op.SetDict(0,"dm_soft.txt");
 print("SetDict:",r);
 r=0;
@@ -41,9 +42,9 @@ if hwnd:
 		r=op.Sleep(1000);
 		print("try screencap");
 		r=op.capture("screen.bmp");
-		s = op.Ocr(26,28,367,45,"2d2e2c-050505",1.0);
+		s = op.Ocr(0,0,106,50,"000000-0f0f0f",1.0);
 		print("ocr:",s);
-		r,x,y=op.FindColor(113,151,121,159,"d1a244-050505");
+		r,x,y=op.FindColor(0,0,121,159,"000000-050505");
 		print(r,x,y);
 		if r:
 			op.MoveTo(x,y);
@@ -56,6 +57,9 @@ else:
 	print("invalid window.");
 
 print("test end");
+
+
+
 ```
 ### 3rdpart-Lib  
 ---
