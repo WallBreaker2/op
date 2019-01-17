@@ -8,7 +8,7 @@
 #include <boost/interprocess/sync/named_mutex.hpp> 
 #include <exception>
 #include "3rd_party/kiero/kiero.h"
-
+#include "Tool.h"
 char g_shared_res_name[256];
 char g_mutex_name[256];
 boost::interprocess::named_mutex *g_pmutex = nullptr;
@@ -65,7 +65,7 @@ HRESULT ScreenShot(LPDIRECT3DDEVICE9 pDevice) {
 		g_pmutex->unlock();
 	}
 	catch (std::exception& e) {
-		setlog("catch exception:%s", e.what());
+		Tool::setlog("catch exception:%s", e.what());
 
 	}
 
@@ -103,7 +103,7 @@ void hook_init(HWND hwnd) {
 		g_pmutex = new boost::interprocess::named_mutex(boost::interprocess::open_only, g_mutex_name);
 	}
 	catch (std::exception&e) {
-		setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
+		Tool::setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
 	}
 }
 
@@ -125,7 +125,7 @@ long SetDX9Hook(HWND hwnd) {
 		//setlog("bind ok.");
 	}
 	else {
-		setlog("kiero::init false");
+		Tool::setlog("kiero::init false");
 	}
 
 
@@ -150,7 +150,7 @@ long SetDX10Hook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		setlog("kiero::init false");
+		Tool::setlog("kiero::init false");
 		return 0;
 	}
 

@@ -56,7 +56,7 @@ private:
 	//1. Windows API
 	WinApi _winapi;
 	// background module
-	Bkbase _background;
+	Bkbase _bkproc;
 	// work path
 	std::wstring _curr_path;
 	//image process
@@ -121,7 +121,7 @@ public:
 
 	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files,DOUBLE sim,VARIANT* x,VARIANT* y,LONG* ret);
 
-	STDMETHOD(AddDict)(LONG idx, BSTR file_name, LONG* ret);
+	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
 
 	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
 	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret);

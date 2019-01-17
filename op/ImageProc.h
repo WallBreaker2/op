@@ -19,13 +19,15 @@ public:
 	//Í¼ÐÎ¶¨Î»
 	long FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y);
 	//
-	long AddDict(int idx,const wstring& file);
-	long SetDict(int idx);
+	long SetDict(int idx,const wstring& file);
+	long UseDict(int idx);
 	long OCR(const wstring& color, double sim, std::wstring& out_str);
 	long FindColor(const wstring& color, long&x, long&y);
 	std::wstring GetColor(long x, long y);
 private:
 	dict_t _dicts[_max_dicts];
 	dict_t* _curr_dict;
+private:
+	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
 };
 

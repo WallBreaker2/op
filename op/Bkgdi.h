@@ -26,7 +26,7 @@ public:
 	std::mutex& get_mutex() {
 		return _mutex;
 	}
-	long get_widht() {
+	long get_width() {
 		return _width;
 	}
 	long get_height() {
