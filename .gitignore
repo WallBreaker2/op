@@ -267,4 +267,4 @@ __pycache__/
 
 
 /MFCApp
-!/PythonTest/*.py
+/PythonTest
