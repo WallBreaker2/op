@@ -263,10 +263,8 @@ __pycache__/
 
 /dll_test
 /ConsoleTest
-*.bmp
-*.png
-*.exe
+
 
 
 /MFCApp
-/PythonTest
+PythonTest/:
