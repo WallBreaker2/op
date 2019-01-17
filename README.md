@@ -22,7 +22,7 @@ OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费
 前台,gdi后台,dx后台
 ### 简单图像识别
 ---
-empty
+图像定位,OCR,支持多色  
 ### 3rdpart-Lib  
 ---
 [1].[c++ boost1.6](https://www.boost.org/)  
