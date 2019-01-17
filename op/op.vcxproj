@@ -81,6 +81,7 @@
     <TargetName>op_x86</TargetName>
     <IncludePath>F:\Opencv\3.4\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -88,6 +89,7 @@
     <TargetName>op_x64</TargetName>
     <IncludePath>D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
