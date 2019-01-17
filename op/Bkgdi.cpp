@@ -59,7 +59,9 @@ long Bkgdi::cap_init() {
 	::GetWindowRect(_hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
+	::MoveWindow(_hwnd, 0, 0, _width, _height, 1);
 	POINT pt;
+	::GetWindowRect(_hwnd, &rc);
 	pt.x = rc.left; pt.y = rc.top;
 	::ScreenToClient(_hwnd, &pt);
 	//setlog("WindowRect:%d,%d", pt.x,pt.y);

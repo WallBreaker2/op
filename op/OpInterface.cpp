@@ -456,7 +456,10 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	}*/
 	x += _bkproc._bkgdi._client_x;
 	y += _bkproc._bkgdi._client_y;
-	auto str=_image_proc.GetColor(x, y);
+	color_t cr;
+	auto p = _bkproc.GetScreenData();
+	cr = *(color_t*)(p + y * 4 + x);
+	auto str = cr.tostr();
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
 	newstr.CopyTo(ret);
