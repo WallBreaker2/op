@@ -23,12 +23,13 @@ if hwnd:
 			op.MoveTo(x,y);
 			op.LeftClick();
 		print(op.GetColor(165,164));
+		op.UnBind();
 	else:
 		print("bind false.");
 else:
-    print("invalid window.");
+	print("invalid window.");
 
-op.UnBind();
+
 print("test end");
 
 
