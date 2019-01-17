@@ -1,8 +1,11 @@
 #pragma once
 #ifndef __COMMON_H_
 #define __COMMON_H_
+#include <string>
+#include <boost/locale.hpp>
+#include <boost/algorithm/string.hpp>
 #include <fstream>
-
+#include <vector>
 
 
 #define SAFE_CLOSE(h)if(h) CloseHandle(h);h=NULL;
@@ -11,14 +14,13 @@
 
 #define SAFE_DELETE_ARRAY(ptr) if(ptr)delete[] ptr;ptr=nullptr
 
-#include <string>
-#include <boost/locale.hpp>
-#include <boost/algorithm/string.hpp>
+
 #define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 #define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
 using std::wstring;
 using std::string;
+using std::vector;
 
 #define DLL_API extern "C" _declspec(dllexport)
 //0x0-0xf:normal windows,gdi;0x10-0xf0,dx;0x100-0xf00,opengl;
@@ -43,12 +45,6 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 #endif
 
 extern HINSTANCE gInstance;
-//for debug
-long setlog(const wchar_t* format, ...);
-//
-long setlog(const char* format, ...);
 
-void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c);
-void split(const std::string& s, std::vector<std::string>& v, const std::string& c);
 
 #endif

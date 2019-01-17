@@ -25,7 +25,15 @@ public:
 	long capture(const std::wstring& file_name);
 	
 	byte* get_data();
-
+	boost::interprocess::named_mutex* get_mutex() {
+		return _pmutex;
+	}
+	long get_height() {
+		return _height;
+	}
+	long get_width() {
+		return _width;
+	}
 private:
 	int _is_bind;
 	HWND _hwnd;

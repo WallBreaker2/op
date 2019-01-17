@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Bkbase.h"
-
+#include "Tool.h"
 
 Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
 {
@@ -26,7 +26,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (sdisplay == L"opengl")
 		display = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error sdisplay=%s", sdisplay.c_str());
+		Tool::setlog(L"error sdisplay=%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
@@ -39,7 +39,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (smouse == L"opengl")
 		mouse = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error smouse=%s", smouse.c_str());
+		Tool::setlog(L"error smouse=%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
@@ -52,18 +52,18 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (skeypad == L"opengl")
 		keypad = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error sdisplay=%s", sdisplay.c_str());
+		Tool::setlog(L"error sdisplay=%s", sdisplay.c_str());
 		return 0;
 	}
 	//check hwnd
 	if (!::IsWindow(_hwnd)) {
-		setlog(L"invalid window hwnd.");
+		Tool::setlog(L"invalid window hwnd.");
 		ret = 0; _hwnd = 0;
 	}
 	else {
 		_mode = mode;
 		_display = display;
-		setlog("bind info:%d,%d", _display, mouse);
+		//setlog("bind info:%d,%d", _display, mouse);
 		
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
 			ret = _bkgdi.Bind(_hwnd, display);
@@ -156,12 +156,17 @@ byte* Bkbase::GetScreenData() {
 	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
 		return _bkgdi.get_data();
 	}
-	return nullptr;
+	else {
+		return _bkdx9.get_data();
+	}
 }
 
 void Bkbase::lock_data() {
 	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
 		_bkgdi.get_mutex().lock();
+	}
+	else {
+		_bkdx9.get_mutex()->lock();
 	}
 }
 
@@ -169,14 +174,37 @@ void Bkbase::unlock_data() {
 	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
 		_bkgdi.get_mutex().unlock();
 	}
+	else {
+		_bkdx9.get_mutex()->unlock();
+	}
 }
 
 long Bkbase::get_height() {
-	return _bkgdi.get_height();
+	return _display == BACKTYPE::DX ? _bkdx9.get_height() : _bkgdi.get_height();
 }
 
 long Bkbase::get_widht() {
-	return _bkgdi.get_widht();
+	return _display == BACKTYPE::DX ? _bkdx9.get_width() : _bkgdi.get_width();
+}
+
+long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
+	if (x1 > x2 || y1 > y2) {
+		Tool::setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		return 0;
+	}
+		
+	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
+		x1 += _bkgdi._client_x; y1 += _bkgdi._client_y;
+		x2 += _bkgdi._client_x; y2 += _bkgdi._client_y;
+	}
+	else {
+		//to do...
+	}
+	if (x1<0 || x2>get_widht() || y1<0 || y2>get_height()) {
+		Tool::setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		return 0;
+	}
+	return 1;
 }
 
 
