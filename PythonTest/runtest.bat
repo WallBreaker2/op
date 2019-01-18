@@ -1,2 +1,2 @@
-python pythontest.py
+python imagetest.py
 pause
