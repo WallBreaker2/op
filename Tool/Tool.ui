@@ -69,10 +69,10 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>260</x>
       <y>10</y>
-      <width>211</width>
-      <height>221</height>
+      <width>241</width>
+      <height>251</height>
      </rect>
     </property>
     <property name="title">
@@ -95,18 +95,18 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>10</y>
+       <y>50</y>
        <width>171</width>
-       <height>251</height>
+       <height>221</height>
       </rect>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_2">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>10</x>
        <y>310</y>
-       <width>101</width>
+       <width>81</width>
        <height>23</height>
       </rect>
      </property>
@@ -119,7 +119,7 @@
       <rect>
        <x>90</x>
        <y>280</y>
-       <width>41</width>
+       <width>71</width>
        <height>20</height>
       </rect>
      </property>
@@ -135,6 +135,45 @@
      </property>
      <property name="text">
       <string>定义文字：</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_7">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>加载字库</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_8">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>310</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>保存字库</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_9">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>20</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>编辑字库</string>
      </property>
     </widget>
    </widget>
@@ -161,46 +200,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>分割/直方图</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton_6">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>230</y>
-      <width>101</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>下一个点阵</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_3">
-    <property name="geometry">
-     <rect>
-      <x>240</x>
-      <y>10</y>
-      <width>81</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>水平投影</string>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>250</y>
-      <width>311</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>垂直投影</string>
+     <string>提取点阵</string>
     </property>
    </widget>
   </widget>

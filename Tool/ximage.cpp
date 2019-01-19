@@ -1,6 +1,6 @@
 #include "ximage.h"
 
-
+#include <qdebug.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 using cv::Mat;
@@ -77,19 +77,21 @@ void thresholdIntegral(const Mat& inputMat, Mat& outputMat)
 	}
 }
 //垂直方向投影
-void picshadowx(const Mat& binary, std::vector<Mat>& out_put,std::vector<int>&ys)
+void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_put)
 {
+	//qDebug("in x rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
 	//ys.clear();
 	//Mat paintx(binary.size(), CV_8UC1, cv::Scalar(255)); //创建一个全白图片，用作显示
 
 	//int* blackcout = new int[binary.cols];
+	std::vector<int> ys;
 	ys.resize(binary.cols);
 	memset(&ys[0], 0, binary.cols * 4);
 
-	for (int i = 0; i < binary.rows; i++)
+	for (int i = rc.y1; i < rc.y2; i++)
 	{
-		for (int j = 0; j < binary.cols; j++)
+		for (int j = rc.x1; j < rc.x2; j++)
 		{
 			if (binary.at<uchar>(i, j) == 0)
 			{
@@ -102,7 +104,7 @@ void picshadowx(const Mat& binary, std::vector<Mat>& out_put,std::vector<int>&ys
 	int endindex = 0;
 	bool inblock = false; //是否遍历到字符位置
 
-	for (int j = 0; j < binary.cols; j++)
+	for (int j = rc.x1; j <rc.x2; j++)
 	{
 
 		if (!inblock&&ys[j] != 0) //进入有字符区域
@@ -115,27 +117,32 @@ void picshadowx(const Mat& binary, std::vector<Mat>& out_put,std::vector<int>&ys
 		{
 			endindex = j;
 			inblock = false;
-			Mat roi = binary.colRange(startindex, endindex + 1);
-			//Mat roi = binary.rowRange(startindex, endindex + 1); //从而记录从开始到结束行的位置，即可进行行切分
+			//Mat roi = binary.colRange(startindex, endindex + 1);
+			rect_t roi;
+			roi.x1 = startindex; roi.y1 = rc.y1;
+			roi.x2 = endindex; roi.y2 = rc.y2;
+			//qDebug("out xrc:%d,%d,%d,%d", roi.x1, roi.y1, roi.x2, roi.y2);
 			out_put.push_back(roi);
 		}
 	}
 
 }
 //水平方向投影并行分割
-void picshadowy(const Mat& binary, std::vector<Mat>&out_put,std::vector<int>&xs)
+void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put)
 {
+	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
 	//是否为白色或者黑色根据二值图像的处理得来
 	//Mat painty(binary.size(), CV_8UC1, cv::Scalar(255)); //初始化为全白
 	//水平投影
 	//int* pointcount = new int[binary.rows]; //在二值图片中记录行中特征点的个数
+	std::vector<int> xs;
 	xs.resize(binary.rows);
 	memset(&xs[0], 0, binary.rows * 4);//注意这里需要进行初始化
 
-	for (int i = 0; i < binary.rows; i++)
+	for (int i = rc.y1; i < rc.y2; i++)
 	{
-		for (int j = 0; j < binary.cols; j++)
+		for (int j = rc.x1; j < rc.x2; j++)
 		{
 			if (binary.at<uchar>(i, j) == 0)
 			{
@@ -150,7 +157,7 @@ void picshadowy(const Mat& binary, std::vector<Mat>&out_put,std::vector<int>&xs)
 	int endindex = 0;
 	bool inblock = false; //是否遍历到字符位置
 
-	for (int i = 0; i < binary.rows; i++)
+	for (int i = rc.y1; i < rc.y2; i++)
 	{
 
 		if (!inblock&&xs[i] != 0) //进入有字符区域
@@ -163,7 +170,11 @@ void picshadowy(const Mat& binary, std::vector<Mat>&out_put,std::vector<int>&xs)
 		{
 			endindex = i;
 			inblock = false;
-			Mat roi = binary.rowRange(startindex, endindex + 1); //从而记录从开始到结束行的位置，即可进行行切分
+			//Mat roi = binary.rowRange(startindex, endindex + 1); //从而记录从开始到结束行的位置，即可进行行切分
+			rect_t roi;
+			roi.x1 = rc.x1; roi.y1 = startindex;
+			roi.x2 = rc.x2; roi.y2 = endindex ;
+			//qDebug("out yrc:%d,%d,%d,%d", roi.x1, roi.y1, roi.x2, roi.y2);
 			out_put.push_back(roi);
 		}
 	}
