@@ -6,19 +6,25 @@
 #include <qdebug.h>
 #include <qdir.h>
 #include <QFileDialog>
-#include "ximage.h"
+
 Tool::Tool(QWidget *parent)
 	: QMainWindow(parent)
 {
-	_char_idx =0;
+	_is_edit =0;
 	ui.setupUi(this);
 	cv::namedWindow("SRC_IMAGE");
 	cv::namedWindow("BIN_IMAGE");
-	
+	_itemmodel = new QStandardItemModel(this);
+	_model = nullptr;
 	QObject::connect(ui.pushButton, &QPushButton::clicked, this, &Tool::load_image);
 	QObject::connect(ui.pushButton_4, &QPushButton::clicked, this, &Tool::to_binary);
 	QObject::connect(ui.pushButton_5, &QPushButton::clicked, this, &Tool::hist);
-	QObject::connect(ui.pushButton_6, &QPushButton::clicked, this, &Tool::show_next_char);
+	//QObject::connect(ui.pushButton_6, &QPushButton::clicked, this, &Tool::show_next_char);
+	QObject::connect(ui.pushButton_2, &QPushButton::clicked, this, &Tool::add_word);
+	QObject::connect(ui.listView, &QListView::clicked, this, &Tool::show_char);
+	QObject::connect(ui.pushButton_7, &QPushButton::clicked, this, &Tool::load_dict);
+	QObject::connect(ui.pushButton_8, &QPushButton::clicked, this, &Tool::save_dict);
+	QObject::connect(ui.pushButton_9, &QPushButton::clicked, this, &Tool::edit_dict);
 
 }
 void Tool::paintEvent(QPaintEvent* event) {
@@ -27,33 +33,37 @@ void Tool::paintEvent(QPaintEvent* event) {
 	QPen pen;
 	pen.setColor(Qt::gray);
 	paint.setPen(pen);
-	const int pixel_w = 6;
-	const int offset = 25;
+	const int pixel_w = 7;
+	const int offset = 30;
+	const int offsetx = 10;
 	const int max_height = 32;
 	auto p = ui.groupBox_4->pos();
 	for (int i = 0; i <=max_height; ++i) {
-		paint.drawLine(p.x(), p.y() + i * pixel_w+offset, p.x() + pixel_w*max_height, p.y() + i * pixel_w+offset);
+		paint.drawLine(p.x()+offsetx, p.y() + i * pixel_w+offset,
+			p.x() + pixel_w*max_height+offsetx, p.y() + i * pixel_w+offset);
 	}
 	for (int j = 0; j <= max_height; ++j) {
-		paint.drawLine(p.x() + j * pixel_w, p.y() + offset, p.x() + j * pixel_w, p.y() + max_height * pixel_w + offset);
+		paint.drawLine(p.x() + j * pixel_w + offsetx, p.y() + offset,
+			p.x() + j * pixel_w + offsetx, p.y() + max_height * pixel_w + offset);
 	}
-	if (!_chars.empty()) {
-		int rows = std::min(max_height, _chars[_char_idx].rows);
-		int cols = std::min(max_height, _chars[_char_idx].cols);
-		for (int i = 0; i < rows; ++i) {
-			auto pline = _chars[_char_idx].ptr<uchar>(i);
-			for (int j = 0; j < cols; ++j) {
-				if (*(pline + j) == 0)
+	//qDebug("word:%d,%d", _curr_word.info.height, _curr_word.info.width);
+	if (_curr_word.info.width) {
+		//qDebug("word:%d,%d", _curr_word.info.height, _curr_word.info.width);
+		int rows = _curr_word.info.height;
+		int cols = _curr_word.info.width;
+		for (int j = 0; j < cols; ++j) {
+			for (int i = 0; i < rows; ++i) {
+				if (GET_BIT(_curr_word.clines[j],31-i))
 					br.setColor(Qt::black);
 				else
 					br.setColor(Qt::white);
-				paint.fillRect(p.x() + j * pixel_w+1, p.y() + i * pixel_w+1 + offset,
+				paint.fillRect(p.x() + j * pixel_w+1+offsetx, p.y() + i * pixel_w+1 + offset,
 					pixel_w-1,pixel_w-1, br);
 			}
 		}
 	}
-	draw_line(_ys, paint,0, ui.groupBox_3);
-	draw_line(_xs, paint,1, ui.groupBox_6);
+	//draw_line(_ys, paint,0, ui.groupBox_3);
+	//draw_line(_xs, paint,1, ui.groupBox_6);
 	//qDebug("pos=%d,%d", p.x(), p.y());
 	//QString ss = QString::asprintf("pos=%d,%d", p.x(), p.y());
 	//QMessageBox::about(nullptr, ss, "dd");
@@ -84,6 +94,7 @@ void Tool::to_binary() {
 	_binary = cv::Mat::zeros(_gray.size(), CV_8UC1);
 	thresholdIntegral(_gray, _binary);
 	cv::imshow("BIN_IMAGE", _binary);
+	cv::imwrite("binary.png", _binary);
 
 }
 
@@ -91,31 +102,50 @@ void Tool::hist() {
 	if (_binary.empty()) {
 		return;
 	}
-	_chars.clear();
+	_is_edit = 0;
+	_dict_tmp.clear();
 	std::string pic_name;
-	std::vector<cv::Mat> out_y, out_x;
-	
-	picshadowy(_binary, out_y,_ys);
-	for (int i = 0; i < out_y.size(); ++i) {
-		picshadowx(out_y[i], out_x,_xs);
-		for (int j = 0; j < out_x.size(); ++j) {
-			_chars.push_back(out_x[j]);
+	std::vector<rect_t> out_y, out_x;
+	rect_t rc;
+	rc.x1 = rc.y1 = 0;
+	rc.x2 = _binary.cols; rc.y2 = _binary.rows;
+	//qDebug("rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
+	//step1. 水平分割
+	binshadowy(_binary,rc, out_y);
+	for (auto&ity:out_y) {
+		//step 2. 垂直分割
+		binshadowx(_binary,ity, out_x);
+		for (auto&itx:out_x) {
+			//pic_name = std::to_string((i << 16) | j);
+			//cv::imshow(pic_name, out_x[j]);
+			_dict_tmp.add_word(_binary, itx, L"");
+			//_chars.push_back(out_x[j]);
 		}
 	}
-	show_next_char();
-}
+	//
+	QStringList strlist;
+	QString tp, t;
+	for (auto&it : _dict_tmp.words) {
+		tp = QString::asprintf("|%d,%d,%d|", it.info.width, it.info.height, it.info.bit_count);
+		tp = QString::fromWCharArray(it.info._char, 3) + tp;
+		int n = it.info.height;
+		for (int j = 0; j <= it.info.width; ++j) {
 
-void Tool::show_next_char() {
-	//QMessageBox::warning(this, "show", "d");
-	//qDebug("%d", _chars.size());
-	if (!_chars.empty()) {
-		_char_idx = (_char_idx + 1) % _chars.size();
-		//QMessageBox::warning(this, "show", "d");
-		//qDebug("idx=%d", _char_idx);
+			t = QString::asprintf("%08X", it.clines[j]);
+			tp += t;
+		}
+		strlist.append(tp);
+	}
+	if (_model)
+		delete _model;
+	_model = new QStringListModel(strlist);
+	ui.listView->setModel(_model);
+	if (!_dict_tmp.words.empty()) {
+		_curr_word = _dict_tmp.words[0];
 		update();
 	}
-	
 }
+
 
 void Tool::draw_line(const std::vector<int>&lines, QPainter& paint,int isy, QGroupBox* gp, Qt::GlobalColor cr) {
 	if (lines.empty())
@@ -150,4 +180,75 @@ void Tool::draw_line(const std::vector<int>&lines, QPainter& paint,int isy, QGro
 		}
 	}
 	
+}
+
+void Tool::show_char(const QModelIndex& idx) {
+	int id = idx.row();
+	if (_is_edit) {
+		if (id >= 0 && id < _dict.words.size()) {
+			_curr_word = _dict.words[id];
+			update();
+		}
+	}
+	else {
+		if (id >= 0 && id < _dict_tmp.words.size()) {
+			_curr_word = _dict_tmp.words[id];
+			update();
+		}
+	}
+}
+void Tool::load_dict() {
+	auto dir = QFileDialog::getOpenFileName(this, "dict path", "", tr("Images(*.dict)"));
+	if (!dir.isEmpty()) {
+		_dict.read_dict(dir.toStdString());
+	}
+}
+
+void Tool::save_dict() {
+	auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("Images(*.dict)"));
+	if (!dir.isEmpty()) {
+		_dict.write_dict(dir.toStdString());
+	}
+}
+
+void Tool::add_word() {
+	auto str = ui.lineEdit->text();
+	if (str.isEmpty())
+		return;
+	int idx=ui.listView->currentIndex().row();
+	Dict* cd = _is_edit ? &_dict : &_dict_tmp;
+	if (idx >= 0 && idx < cd->words.size()) {
+		auto midx = ui.listView->currentIndex();
+		QString text = _model->data(midx, Qt::DisplayRole).toString();
+		int idx=text.indexOf("|");
+		if (idx >= 0)
+			text = text.replace(0, idx, str);
+		_model->setData(midx, text, Qt::EditRole);
+		_curr_word.set_chars(str.toStdWString());
+		_dict.add_word(_curr_word);
+	}
+}
+
+void Tool::edit_dict() {
+	QStringList strlist;
+	QString tp, t;
+	_is_edit = 1;
+	for (auto&it : _dict.words) {
+		tp = QString::asprintf("|%d,%d,%d|", it.info.width, it.info.height, it.info.bit_count);
+		tp = QString::fromWCharArray(it.info._char) + tp;
+		int n = it.info.height;
+		for (int j = 0; j <= it.info.width; ++j) {
+			
+			t = QString::asprintf("%08X", it.clines[j]);
+			tp += t;
+		}
+		strlist.append(tp);
+	}
+
+	if (_model)
+		delete _model;
+	_model = new QStringListModel(strlist);
+	ui.listView->setModel(_model);
+	
+	//ui.listView->setModel(_model);
 }
