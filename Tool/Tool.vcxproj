@@ -127,6 +127,7 @@
     <QtRcc Include="Tool.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Dict.h" />
     <ClInclude Include="ximage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

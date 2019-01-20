@@ -26,6 +26,7 @@ public:
 	void save_dict();
 	void add_word();
 	void edit_dict();
+	void edit_enter();
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;
