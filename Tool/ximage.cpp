@@ -186,3 +186,43 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 	}*/
 
 }
+
+void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
+	//Ë®Æ½²Ã¼ô
+	std::vector<int>v;
+	
+	int i, j;
+	v.resize(binary.rows);
+	for (auto&it : v)it = 0;
+	for (i = inrc.y1; i < inrc.y2; ++i) {
+		for (j = inrc.x1; j < inrc.x2; ++j)
+			v[i] += (binary.at<uchar>(i, j) == 0 ? 1 : 0);
+	}
+	for(i = inrc.y1+1; i < inrc.y2; ++i)
+		if (v[i-1] == 0 && v[i] != 0) {
+			outrc.y1 = i;
+			break;
+		}
+	for (i = inrc.y2 - 2; i >= inrc.y1; --i)
+		if (v[i + 1] == 0 && v[i] != 0) {
+			outrc.y2 = i;
+			break;
+		}
+	//´¹Ö±²Ã¼ô
+	v.resize(binary.cols);
+	for (auto&it : v)it = 0;
+	for (i = inrc.y1; i < inrc.y2; ++i) {
+		for (j = inrc.x1; j < inrc.x2; ++j)
+			v[j] += binary.at<uchar>(i, j) == 0 ? 1 : 0;
+	}
+	for (j = inrc.x1 + 1; i < inrc.x2; ++i)
+		if (v[j - 1] == 0 && v[j] != 0) {
+			outrc.x1 = j;
+			break;
+		}
+	for (j = inrc.x2 - 2; j >= inrc.x1; --j)
+		if (v[j + 1] == 0 && v[j] != 0) {
+			outrc.x2 = j;
+			break;
+		}
+}

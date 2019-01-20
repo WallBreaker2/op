@@ -19,32 +19,58 @@
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>141</width>
+      <width>231</width>
       <height>111</height>
      </rect>
     </property>
     <property name="title">
      <string>原图像</string>
     </property>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>211</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>src rect...</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>120</y>
-      <width>141</width>
+      <y>150</y>
+      <width>231</width>
       <height>111</height>
      </rect>
     </property>
     <property name="title">
      <string>二值化</string>
     </property>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>211</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>binary rect...</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>30</y>
+      <x>20</x>
+      <y>120</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -56,8 +82,8 @@
    <widget class="QPushButton" name="pushButton_3">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>80</y>
+      <x>140</x>
+      <y>120</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -70,9 +96,9 @@
     <property name="geometry">
      <rect>
       <x>260</x>
-      <y>10</y>
+      <y>0</y>
       <width>241</width>
-      <height>251</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="title">
@@ -95,9 +121,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>80</y>
        <width>171</width>
-       <height>221</height>
+       <height>191</height>
       </rect>
      </property>
     </widget>
@@ -122,6 +148,9 @@
        <width>71</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="maxLength">
+      <number>3</number>
      </property>
     </widget>
     <widget class="QLabel" name="label">
@@ -176,12 +205,38 @@
       <string>编辑字库</string>
      </property>
     </widget>
+    <widget class="QLineEdit" name="lineEdit_2">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>50</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>31</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>路径:</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="pushButton_4">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>150</y>
+      <x>10</x>
+      <y>270</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -193,8 +248,8 @@
    <widget class="QPushButton" name="pushButton_5">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>190</y>
+      <x>140</x>
+      <y>270</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -203,16 +258,6 @@
      <string>提取点阵</string>
     </property>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>753</width>
-     <height>23</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">

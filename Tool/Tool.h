@@ -37,4 +37,5 @@ private:
 	Dict _dict;
 	Dict _dict_tmp;
 	word_t _curr_word;
+	QImage _qimage, _qbinary;
 };
