@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>231</width>
-      <height>111</height>
+      <height>81</height>
      </rect>
     </property>
     <property name="title">
@@ -32,7 +32,7 @@
        <x>10</x>
        <y>20</y>
        <width>211</width>
-       <height>81</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="text">
@@ -44,9 +44,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>150</y>
+      <y>130</y>
       <width>231</width>
-      <height>111</height>
+      <height>91</height>
      </rect>
     </property>
     <property name="title">
@@ -58,7 +58,7 @@
        <x>10</x>
        <y>20</y>
        <width>211</width>
-       <height>81</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="text">
@@ -70,7 +70,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>120</y>
+      <y>90</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -83,7 +83,7 @@
     <property name="geometry">
      <rect>
       <x>140</x>
-      <y>120</y>
+      <y>90</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -236,7 +236,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>270</y>
+      <y>240</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -249,7 +249,7 @@
     <property name="geometry">
      <rect>
       <x>140</x>
-      <y>270</y>
+      <y>240</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -257,6 +257,32 @@
     <property name="text">
      <string>提取点阵</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>269</y>
+      <width>491</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Ocr测试</string>
+    </property>
+    <widget class="QTextEdit" name="textEdit">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>461</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QToolBar" name="mainToolBar">

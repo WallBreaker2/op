@@ -25,6 +25,7 @@ Tool::Tool(QWidget *parent)
 	QObject::connect(ui.pushButton_7, &QPushButton::clicked, this, &Tool::load_dict);
 	QObject::connect(ui.pushButton_8, &QPushButton::clicked, this, &Tool::save_dict);
 	QObject::connect(ui.pushButton_9, &QPushButton::clicked, this, &Tool::edit_dict);
+	QObject::connect(ui.lineEdit, &QLineEdit::editingFinished, this, &Tool::edit_enter);
 
 }
 void Tool::paintEvent(QPaintEvent* event) {
@@ -98,7 +99,10 @@ void Tool::to_binary() {
 	//cv::imshow("BIN_IMAGE", _binary);
 	cv::imwrite("binary.png", _binary);
 	_qbinary.load("binary.png");
-	ui.label_4->setPixmap(QPixmap::fromImage(_qimage));
+	ui.label_4->setPixmap(QPixmap::fromImage(_qbinary));
+	std::wstring ss;
+	bin_ocr(_binary, _dict, ss);
+	ui.textEdit->setText(QString::fromStdWString(ss));
 
 }
 
@@ -233,7 +237,14 @@ void Tool::add_word() {
 		_model->setData(midx, text, Qt::EditRole);
 		_curr_word.set_chars(str.toStdWString());
 		_dict.add_word(_curr_word);
+		ui.lineEdit->clear();
+		idx = ui.listView->currentIndex().row();
+		idx = (idx + 1) % _model->rowCount();
+		QModelIndex next = _model->index(idx);
+		ui.listView->setCurrentIndex(next);
+		show_char(next);
 	}
+	
 }
 
 void Tool::edit_dict() {
@@ -258,4 +269,8 @@ void Tool::edit_dict() {
 	ui.listView->setModel(_model);
 	
 	//ui.listView->setModel(_model);
+}
+
+void Tool::edit_enter() {
+	add_word();
 }
