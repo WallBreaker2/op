@@ -12,8 +12,8 @@ Tool::Tool(QWidget *parent)
 {
 	_is_edit =0;
 	ui.setupUi(this);
-	cv::namedWindow("SRC_IMAGE");
-	cv::namedWindow("BIN_IMAGE");
+	//cv::namedWindow("SRC_IMAGE");
+	//cv::namedWindow("BIN_IMAGE");
 	_itemmodel = new QStandardItemModel(this);
 	_model = nullptr;
 	QObject::connect(ui.pushButton, &QPushButton::clicked, this, &Tool::load_image);
@@ -79,7 +79,9 @@ void Tool::load_image() {
 			//QImage img = QImage(_src.data, _src.cols, _src.rows, QImage::Format_RGB888);
 		
 			//QMessageBox::about(this, "info", "load ok");
-			cv::imshow("SRC_IMAGE", _src);
+			//cv::imshow("SRC_IMAGE", _src);
+			_qimage.load(dir);
+			ui.label_3->setPixmap(QPixmap::fromImage(_qimage));
 		}
 		else {
 			QMessageBox::about(this, "info", "load false");
@@ -93,8 +95,10 @@ void Tool::to_binary() {
 	cv::cvtColor(_src, _gray, CV_BGR2GRAY);
 	_binary = cv::Mat::zeros(_gray.size(), CV_8UC1);
 	thresholdIntegral(_gray, _binary);
-	cv::imshow("BIN_IMAGE", _binary);
+	//cv::imshow("BIN_IMAGE", _binary);
 	cv::imwrite("binary.png", _binary);
+	_qbinary.load("binary.png");
+	ui.label_4->setPixmap(QPixmap::fromImage(_qimage));
 
 }
 
@@ -118,6 +122,8 @@ void Tool::hist() {
 		for (auto&itx:out_x) {
 			//pic_name = std::to_string((i << 16) | j);
 			//cv::imshow(pic_name, out_x[j]);
+			//²Ã¼ô
+			bin_image_cut(_binary, itx, itx);
 			_dict_tmp.add_word(_binary, itx, L"");
 			//_chars.push_back(out_x[j]);
 		}
@@ -198,14 +204,15 @@ void Tool::show_char(const QModelIndex& idx) {
 	}
 }
 void Tool::load_dict() {
-	auto dir = QFileDialog::getOpenFileName(this, "dict path", "", tr("Images(*.dict)"));
+	auto dir = QFileDialog::getOpenFileName(this, "dict path", "", tr("dict(*.dict)"));
 	if (!dir.isEmpty()) {
 		_dict.read_dict(dir.toStdString());
+		ui.lineEdit_2->setText(dir);
 	}
 }
 
 void Tool::save_dict() {
-	auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("Images(*.dict)"));
+	auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("dict(*.dict)"));
 	if (!dir.isEmpty()) {
 		_dict.write_dict(dir.toStdString());
 	}
