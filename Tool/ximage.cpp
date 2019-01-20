@@ -125,6 +125,10 @@ void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_pu
 			out_put.push_back(roi);
 		}
 	}
+	//special case
+	if (inblock) {
+		out_put.push_back(rc);
+	}
 
 }
 //水平方向投影并行分割
@@ -179,11 +183,9 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 		}
 	}
 
-	/*for (int i = 0; i < result.size(); i++)
-	{
-		Mat tmp = result[i];
-		imshow("test" + std::to_string(i), tmp);
-	}*/
+	if (inblock) {
+		out_put.push_back(rc);
+	}
 
 }
 
@@ -225,4 +227,67 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 			outrc.x2 = j;
 			break;
 		}
+}
+
+void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstring& outstr) {
+	int i, j;
+	outstr.clear();
+	//遍历行
+	for (i = rc.y1; i < rc.y2; ++i) {
+		//遍历列
+		for (j = rc.x1; j < rc.x2; ++j) {
+			//遍历字库
+			for (auto&it : dict.words) {
+				//边界检查
+				if (i + it.info.height > rc.y2 || j + it.info.width > rc.x2)
+					continue;
+				//匹配
+				int x;
+				for (x = j; x < j+it.info.width; ++x) {
+					unsigned __int32 val=0;
+					for (int y = i, id = 0; y<i+it.info.height; ++y, ++id) {
+						if (binary.at<uchar>(y, x) == 0)
+							SET_BIT(val, 31 - id);
+					}
+					if (it.clines[x - j] != val)
+						break;
+					//t = QString::asprintf("%08X", x);
+					//tp += t;
+
+				}
+				if (x == j + it.info.width) {
+					outstr.append(it.info._char);
+					return;
+				}
+				else {
+
+				}
+					
+			}
+		}
+	}
+}
+
+void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
+	std::vector<rect_t> out_y, out_x;
+	rect_t rc;
+	rc.x1 = rc.y1 = 0;
+	rc.x2 = binary.cols; rc.y2 = binary.rows;
+	//qDebug("rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
+	std::wstring s;
+	//step1. 水平分割
+	binshadowy(binary, rc, out_y);
+	for (auto&ity : out_y) {
+		//step 2. 垂直分割
+		binshadowx(binary, ity, out_x);
+		for (auto&itx : out_x) {
+			//pic_name = std::to_string((i << 16) | j);
+			//cv::imshow(pic_name, out_x[j]);
+			//裁剪
+			bin_image_cut(binary, itx, itx);
+			bin_ocr(binary, itx, dict, s);
+			outstr.append(s);
+			//_chars.push_back(out_x[j]);
+		}
+	}
 }
