@@ -83,11 +83,13 @@ void Tool::load_image() {
 			//cv::imshow("SRC_IMAGE", _src);
 			_qimage.load(dir);
 			ui.label_3->setPixmap(QPixmap::fromImage(_qimage));
+			to_binary();
 		}
 		else {
 			QMessageBox::about(this, "info", "load false");
 		}
 	}
+	
 }
 
 void Tool::to_binary() {
@@ -212,6 +214,9 @@ void Tool::load_dict() {
 	if (!dir.isEmpty()) {
 		_dict.read_dict(dir.toStdString());
 		ui.lineEdit_2->setText(dir);
+		std::wstring ss;
+		bin_ocr(_binary, _dict, ss);
+		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 }
 
@@ -243,6 +248,9 @@ void Tool::add_word() {
 		QModelIndex next = _model->index(idx);
 		ui.listView->setCurrentIndex(next);
 		show_char(next);
+		std::wstring ss;
+		bin_ocr(_binary, _dict, ss);
+		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 	
 }
