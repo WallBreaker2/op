@@ -18,6 +18,9 @@ void thresholdIntegral(const cv::Mat& inputMat, cv::Mat& outputMat);
 void binshadowx(const cv::Mat& binary,const rect_t& rc, std::vector<rect_t>& out_put);
 //水平方向投影(y)轴
 void binshadowy(const cv::Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put);
+//图像裁剪
+void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc);
+
 struct word_t {
 	
 	struct word_info_t {
