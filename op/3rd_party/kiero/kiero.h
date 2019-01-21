@@ -71,7 +71,7 @@ namespace kiero
 
 	void bind(uint16_t index, void** original, void* function);
 
-	void unbind(uint16_t index);
+	void unbind();
 }
 
 #endif // __KIERO_H__

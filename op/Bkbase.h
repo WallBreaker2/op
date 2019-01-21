@@ -2,8 +2,7 @@
 #ifndef __BACKBASE_H_
 #define __BACKBASE_H_
 #include "Bkmouse.h"
-#include "Bkgdi.h"
-#include "Bkdx.h"
+#include "bkdisplay.h"
 using std::wstring;
 /*
 后台处理类，包含以下功能:
@@ -46,8 +45,7 @@ private:
 	int _display;
 	int _mode;
 public:
-	Bkgdi _bkgdi;
-	Bkdx _bkdx9;
+	bkdisplay* _pbkdisplay;
 	Bkmouse _bkmouse;
 	
 };

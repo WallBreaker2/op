@@ -4,19 +4,19 @@
 #include <fstream>
 Bkgdi::Bkgdi() :_is_cap(0), _pthread(nullptr)
 {
-	_hwnd = NULL; _mode = 0;
+	_mode = 0;
 	_hdc = _hmdc = NULL;
 	_hbmpscreen = _holdbmp = NULL;
 	//4*2^22=16*2^20=16MB
-	_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH * 4];
+	//_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH * 4];
 }
 
 Bkgdi::~Bkgdi()
 {
-	SAFE_DELETE_ARRAY(_image_data);
+	//SAFE_DELETE_ARRAY(_image_data);
 }
 
-long Bkgdi::Bind(HWND hwnd, int mode) {
+long Bkgdi::Bind(HWND hwnd, long mode) {
 	if (!::IsWindow(hwnd))
 		return 0;
 	_hwnd = hwnd; _mode = mode;
@@ -40,10 +40,10 @@ int Bkgdi::cap_thread() {
 	_is_cap = 1;
 	cap_init();
 	while (_is_cap) {
-		_mutex.lock();
+		_pmutex->lock();
 		//do cap
 		cap_image();
-		_mutex.unlock();
+		_pmutex->unlock();
 		//sleep some time to free cpu
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
@@ -91,15 +91,7 @@ long Bkgdi::cap_init() {
 	_bih.biSize = sizeof(BITMAPINFOHEADER);
 	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
 	_bih.biWidth = _bm.bmWidth;//宽度
-	//dwLen_1 = bi.biSize + ncolors * sizeof(RGBQUAD);
-	//dwLen_2 = dwLen_1 + bi.biSizeImage;
-	//hDib = new char[dwLen_2];
-	//memcpy(hDib, &bi, sizeof(bi));
-
-	//buf = hDib + dwLen_1;
-	//buf_len = bi.biSizeImage;
-	//setlog(L"check bih:biBitCount=%d,biCompression=%d,biHeight=%d,biWidth=%d",
-	//	_bih.biBitCount, _bih.biCompression, _bih.biHeight, _bih.biWidth);
+	bind_init();
 	return 1;
 }
 
@@ -113,6 +105,7 @@ long Bkgdi::cap_release() {
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
 	//setlog(L"cap_release");
+	bind_release();
 	return 0;
 }
 
@@ -125,7 +118,7 @@ long Bkgdi::cap_image() {
 		::PrintWindow(_hwnd, _hmdc, 0);
 
 	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
-	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_image_data, (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_region->get_address(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 	return 1;
 
 }
@@ -135,11 +128,11 @@ long Bkgdi::capture(const std::wstring& file_name) {
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
 	if (!file.is_open())return 0;
-	_mutex.lock();
+	_pmutex->lock();
 	file.write((char*)&_bfh, sizeof(BITMAPFILEHEADER));
 	file.write((char*)&_bih, sizeof(BITMAPINFOHEADER));
-	file.write((char*)_image_data, _bih.biSizeImage);
-	_mutex.unlock();
+	file.write((char*)_region->get_address(), _bih.biSizeImage);
+	_pmutex->unlock();
 	file.close();
 	return 1;
 }
