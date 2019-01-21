@@ -14,7 +14,7 @@ void binshadowx(const cv::Mat& binary,const rect_t& rc, std::vector<rect_t>& out
 void binshadowy(const cv::Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put);
 //Í¼Ïñ²Ã¼ô
 void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc);
-//ocr in rc only a word
+//ocr in rc only a line
 void bin_ocr(const cv::Mat& binary, const rect_t&rc,const Dict& dict, std::wstring& outstr);
 void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr);
 

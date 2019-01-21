@@ -6,48 +6,31 @@
 #include <BlackBone/Process/RPC/RemoteFunction.hpp>
 //#include <BlackBone/Syscalls/Syscall.h>
 #include "Common.h"
-#include "ImageLoc.h"
-#include <boost/interprocess/sync/named_mutex.hpp> 
+
+#include "bkdisplay.h"
 
 using std::wstring;
-class Bkdx
+class Bkdx:public bkdisplay
 {
 public:
 	Bkdx();
 	~Bkdx();
 	//1
-	long Bind(HWND hwnd);
+	long Bind(HWND hwnd,long flag);
+
 	long UnBind();
 
-	long bind_init();
-	long bind_release();
+	
 	//截图至文件
 	long capture(const std::wstring& file_name);
-	
-	byte* get_data();
-	boost::interprocess::named_mutex* get_mutex() {
-		return _pmutex;
-	}
-	long get_height() {
-		return _height;
-	}
-	long get_width() {
-		return _width;
-	}
 private:
-	int _is_bind;
-	HWND _hwnd;
-	wstring _dllname;
-	long _width, _height;
 	blackbone::Process _process;
-	ImageExtend _imageloc;
-	//地址映射
-	boost::interprocess::mapped_region* _region;
-	//进程互斥
-	boost::interprocess::named_mutex* _pmutex;
-	char _shared_res_name[256];
-	char _mutex_name[256];
-	byte* _image_data;
+
+	
+
+	std::wstring _dllname;
+	
+	DWORD _process_id;
 };
 
 #endif

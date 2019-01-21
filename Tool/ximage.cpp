@@ -257,10 +257,10 @@ void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstr
 				}
 				if (x == j + it.info.width) {
 					outstr.append(it.info._char);
-					return;
+					j = x;
 				}
 				else {
-
+					//del
 				}
 					
 			}

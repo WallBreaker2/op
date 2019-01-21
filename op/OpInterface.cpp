@@ -409,7 +409,7 @@ STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
 
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
 	wstring str;
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.IsBind()&&_bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -424,8 +424,12 @@ STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DO
 }
 
 STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret) {
-	LONG rx, ry;
+	LONG rx=-1, ry=-1;
 	*ret = 0;
+	x->vt = y->vt = VT_I4;
+	x->lVal = rx; y->lVal = ry;
+	if (!_bkproc.IsBind())
+		return S_OK;
 	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
@@ -434,13 +438,12 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 		*ret = _image_proc.FindColor(color, rx, ry);
 		if (*ret) {
 			rx += x1; ry += y1;
-			rx -= _bkproc._bkgdi._client_x;
-			ry -= _bkproc._bkgdi._client_y;
+			rx -= _bkproc._pbkdisplay->_client_x;
+			ry -= _bkproc._pbkdisplay->_client_y;
 		}
 	}
-	
-	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
+	
 	return S_OK;
 }
 
@@ -454,8 +457,10 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(), -1);
 		_bkproc.unlock_data();
 	}*/
-	x += _bkproc._bkgdi._client_x;
-	y += _bkproc._bkgdi._client_y;
+	if (!_bkproc.IsBind())
+		return S_OK;
+	x += _bkproc._pbkdisplay->_client_x;
+	y += _bkproc._pbkdisplay->_client_y;
 	color_t cr;
 	auto p = _bkproc.GetScreenData();
 	cr = *(color_t*)(p + y * 4 + x);

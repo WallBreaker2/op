@@ -80,7 +80,7 @@
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
     <IncludePath>F:\Opencv\3.4\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>D:\minhook\lib;D:\Opengl\glutdlls37beta;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -229,9 +229,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
+    <ClCompile Include="bkdisplay.cpp" />
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
+    <ClCompile Include="bkopengl.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="compreg.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -282,9 +284,11 @@
   <ItemGroup>
     <ClInclude Include="3rd_party\kiero\kiero.h" />
     <ClInclude Include="Bkbase.h" />
+    <ClInclude Include="bkdisplay.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
+    <ClInclude Include="bkopengl.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
