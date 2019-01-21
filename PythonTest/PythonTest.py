@@ -2,12 +2,12 @@
 from win32com.client import Dispatch
 op=Dispatch("op.opsoft");
 print("op ver:",op.Ver());
-hwnd=op.FindWindow("","新建文本文档.txt - 记事本");
+hwnd=op.FindWindow("","Fire");
 r=op.SetDict(0,"dm_soft.txt");
 print("SetDict:",r);
 r=0;
 if hwnd:
-	r=op.BindWindow(hwnd,"gdi","normal","windows",0);
+	r=op.BindWindow(hwnd,"opengl","normal","windows",0);
 	if r:
 		print("bind ok.");
 		r=op.Sleep(1000);

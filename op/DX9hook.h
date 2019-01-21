@@ -19,6 +19,8 @@ DLL_API long UnDX10Hook();
 //dx11
 DLL_API long SetDX11Hook(HWND hwnd);
 DLL_API long UnDX11Hook();
-
+//opengl
+DLL_API long SetOpenglHook(HWND hwnd);
+DLL_API long UnOpenglHook();
 
 #endif // !__DX9HOOK_H_

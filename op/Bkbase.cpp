@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "Bkbase.h"
 #include "Tool.h"
-
+#include "Bkgdi.h"
+#include "Bkdx.h"
+#include "bkopengl.h"
 Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
 {
 	_mode = 0;
@@ -13,6 +15,8 @@ Bkbase::~Bkbase()
 }
 
 long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
+	Tool::setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
+		hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
 	_hwnd = (HWND)hwnd;
 	long ret;
 	int display, mouse, keypad;
@@ -66,14 +70,15 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		//setlog("bind info:%d,%d", _display, mouse);
 		
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
-			ret = _bkgdi.Bind(_hwnd, display);
+			_pbkdisplay = new Bkgdi();
 		}
 		else if (display == BACKTYPE::DX) {
-			ret = _bkdx9.Bind(_hwnd);
+			_pbkdisplay = new Bkdx;
 		}
-		else {
-			ret = 0;
-		}
+		else if(display==BACKTYPE::OPENGL)
+			_pbkdisplay = new bkopengl;
+		
+		ret = _pbkdisplay->Bind((HWND)hwnd, display);
 		if (!ret)
 			return 0;
 		if (!_bkmouse.Bind(_hwnd, mouse))
@@ -81,6 +86,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		Sleep(20);
 		
 	}
+	_is_bind = 1;
 	_display = display;
 	return ret;
 
@@ -90,11 +96,14 @@ long Bkbase::UnBindWindow() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI)
-		_bkgdi.UnBind();
-	else
-		_bkdx9.UnBind();
+	
 	_bkmouse.UnBind();
+	if (_pbkdisplay) {
+		_pbkdisplay->UnBind();
+		delete _pbkdisplay;
+		_pbkdisplay = nullptr;
+	}
+	
 	return 1;
 }
 
@@ -142,10 +151,10 @@ long Bkbase::MoveTo(long x, long y) {
 }
 
 long Bkbase::Capture(const std::wstring& file_name) {
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI)
-		return _bkgdi.capture(file_name);
+	if (_is_bind)
+		return _pbkdisplay->capture(file_name);
 	else
-		return _bkdx9.capture(file_name);
+		return 0;
 }
 
 long Bkbase::GetDisplay() {
@@ -153,38 +162,23 @@ long Bkbase::GetDisplay() {
 }
 
 byte* Bkbase::GetScreenData() {
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
-		return _bkgdi.get_data();
-	}
-	else {
-		return _bkdx9.get_data();
-	}
+	return _pbkdisplay->get_data();
 }
 
 void Bkbase::lock_data() {
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
-		_bkgdi.get_mutex().lock();
-	}
-	else {
-		_bkdx9.get_mutex()->lock();
-	}
+	_pbkdisplay->get_mutex()->lock();
 }
 
 void Bkbase::unlock_data() {
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
-		_bkgdi.get_mutex().unlock();
-	}
-	else {
-		_bkdx9.get_mutex()->unlock();
-	}
+	_pbkdisplay->get_mutex()->unlock();
 }
 
 long Bkbase::get_height() {
-	return _display == BACKTYPE::DX ? _bkdx9.get_height() : _bkgdi.get_height();
+	return _pbkdisplay->get_height();
 }
 
 long Bkbase::get_widht() {
-	return _display == BACKTYPE::DX ? _bkdx9.get_width() : _bkgdi.get_width();
+	return _pbkdisplay->get_width();
 }
 
 long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
@@ -194,8 +188,8 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	}
 		
 	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
-		x1 += _bkgdi._client_x; y1 += _bkgdi._client_y;
-		x2 += _bkgdi._client_x; y2 += _bkgdi._client_y;
+		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
+		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
 	}
 	else {
 		//to do...

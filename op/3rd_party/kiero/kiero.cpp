@@ -14,7 +14,7 @@
 #define KIERO_D3D10_USAGE  // This need because d3d11.h includes d3d10.h
 #include <d3d11.h>         // D3D11
 //#include <d3d12.h>         // D3D12
-//#include <gl/GL.h>         // OpenGL
+#include <gl/GL.h>         // OpenGL
 //#include <vulkan/vulkan.h> // Vulkan
 
 #if defined(KIERO_D3D10_USAGE) && !defined(__d3d10_h__)
@@ -705,10 +705,10 @@ void kiero::bind(uint16_t _index, void** _original, void* _function)
 #endif
 }
 
-void kiero::unbind(uint16_t _index) {
+void kiero::unbind() {
 	if (g_renderType > 0)
 	{
-		MH_Uninitialize();
+		kiero::shutdown();
 		//MH_DisableHook((void*)g_methodsTable[_index]);
 		//MH_RemoveHook((void*)g_methodsTable[_index]);
 		//MH_CreateHook((void*)g_methodsTable[_index], _function, &_original);

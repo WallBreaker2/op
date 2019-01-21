@@ -1,24 +1,20 @@
 #include "stdafx.h"
-#include "Bkdx.h"
+
+#include "bkopengl.h"
 #include "Tool.h"
-#include <exception>
-//以下函数用于 user call
 
-
-Bkdx::Bkdx() 
+bkopengl::bkopengl()
 {
 	_process_id = 0;
 }
 
 
-Bkdx::~Bkdx()
+bkopengl::~bkopengl()
 {
-	
 }
 
-
-long Bkdx::Bind(HWND hwnd,long flag) {
-	
+long bkopengl::Bind(HWND hwnd, long flag) {
+	Tool::setlog("bkopengl::Bind");
 	DWORD id;
 	::GetWindowThreadProcessId(hwnd, &id);
 	RECT rc;
@@ -42,12 +38,12 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 		//判断是否已经注入
 		auto _dllptr = _process.modules().GetModule(_dllname);
 		if (!_dllptr) {
-			//setlog(L"inject..");
+			Tool::setlog(L"inject..");
 			reg_ret = _process.modules().Inject(buff);
-			//setlog(L"inject finish...");
+			Tool::setlog(L"inject finish...");
 		}
 		else {
-			//setlog("alreadly inject.");
+			Tool::setlog("alreadly inject.");
 			reg_ret.status = 0;
 		}
 		//恢复进程
@@ -56,10 +52,10 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 			//wait some time 
 			::Sleep(200);
 			using my_func_t = long(__stdcall*)(HWND);
-			auto SetDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetDX9Hook");
-			if (SetDX9HookPtr) {
+			auto HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetOpenglHook");
+			if (HookPtr) {
 				bind_init();
-				SetDX9HookPtr(hwnd);
+				HookPtr(hwnd);
 				bind_ret = 1;
 			}
 			else {
@@ -80,19 +76,18 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 		//setlog("shared_res_name=%s mutex_name=%s",_shared_res_name,_mutex_name);
 
 	}
-
+	Tool::setlog("bkopengl::Bind finish");
 	return bind_ret;
 }
 
-long Bkdx::UnBind() {
+long bkopengl::UnBind() {
 	auto hr = _process.Attach(_process_id);
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
 		//wait some time 
 		::Sleep(200);
 		using my_func_t = long(__stdcall*)(void);
-		auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "UnDX9Hook");
-		//auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, L"dll_test.dll", "UnDX9Hook");
+		auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "UnOpenglHook");
 		if (UnDX9HookPtr) {
 			UnDX9HookPtr();
 			bind_ret = 1;
@@ -111,7 +106,7 @@ long Bkdx::UnBind() {
 }
 
 
-long Bkdx::capture(const std::wstring& file_name) {
+long bkopengl::capture(const std::wstring& file_name) {
 	//setlog(L"Bkdx::capture")
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
@@ -132,12 +127,23 @@ long Bkdx::capture(const std::wstring& file_name) {
 	bih.biWidth = _width;//宽度
 	file.write((char*)&bfh, sizeof(BITMAPFILEHEADER));
 	file.write((char*)&bih, sizeof(BITMAPINFOHEADER));
+	//setlog("file.write((char*)_image_data=%p", _image_data);
+	try {
+		/*boost::interprocess::shared_memory_object shm(
+			boost::interprocess::open_only,
+			_shared_res_name,
+			boost::interprocess::read_only);
+		boost::interprocess::mapped_region region(shm, boost::interprocess::read_only);
+		_image_data = (byte*)region.get_address();
+		*/
+		_pmutex->lock();
+		file.write((char*)_region->get_address(), bih.biSizeImage);
+		_pmutex->unlock();
+	}
+	catch (std::exception&e) {
+		Tool::setlog("cap exception:%s", e.what());
+	}
 
-	_pmutex->lock();
-	file.write((char*)_region->get_address(), bih.biSizeImage);
-	_pmutex->unlock();
-	
 	file.close();
 	return 1;
 }
-
