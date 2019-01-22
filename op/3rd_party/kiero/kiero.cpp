@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #ifdef KIERO_USE_MINHOOK
-# include <MinHook.h>
+#include <MinHook.h>
 #endif
 
 // Uncomment a needed graphical library (you can include all)
@@ -708,6 +708,7 @@ void kiero::bind(uint16_t _index, void** _original, void* _function)
 void kiero::unbind() {
 	if (g_renderType > 0)
 	{
+		MH_RemoveHook(MH_ALL_HOOKS);
 		kiero::shutdown();
 		//MH_DisableHook((void*)g_methodsTable[_index]);
 		//MH_RemoveHook((void*)g_methodsTable[_index]);
