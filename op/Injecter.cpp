@@ -28,7 +28,7 @@ BOOL Injecter::EnablePrivilege(BOOL enable)
 	tp.PrivilegeCount = 1;
 	tp.Privileges[0].Luid = luid;
 	tp.Privileges[0].Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
-	if (!AdjustTokenPrivileges(hToken, FALSE, &tp, 0, NULL, NULL))
+	if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL))
 		return FALSE;
 
 	// 关闭令牌句柄
@@ -38,51 +38,47 @@ BOOL Injecter::EnablePrivilege(BOOL enable)
 }
 
 
-HMODULE Injecter::InjectDll(LPCTSTR commandLine, LPCTSTR dllPath/*, DWORD* pid, HANDLE* process*/)
+long Injecter::InjectDll(DWORD pid, LPCTSTR dllPath,long& error_code)
 {
-	TCHAR* commandLineCopy = new TCHAR[32768]; // CreateProcess可能修改这个
-	_tcscpy_s(commandLineCopy, 32768, commandLine);
-	int cdSize = _tcsrchr(commandLine, _T('\\')) - commandLine + 1;
-	TCHAR* cd = new TCHAR[cdSize];
-	_tcsnccpy_s(cd, cdSize, commandLine, cdSize - 1);
-	// 创建进程并暂停
-	STARTUPINFO startInfo = {};
-	PROCESS_INFORMATION processInfo = {};
-	if (!CreateProcess(NULL, commandLineCopy, NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, cd, &startInfo, &processInfo))
-	{
-		delete commandLineCopy;
-		delete cd;
-		return 0;
-	}
-	delete commandLineCopy;
-	delete cd;
-
+	
+	auto jhandle=::OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 	/**pid = processInfo.dwProcessId;
 	*process = processInfo.hProcess;*/
-
+	if (!jhandle) {
+		error_code = ::GetLastError();
+		return -1;
+	}
 	DWORD dllPathSize = ((DWORD)_tcslen(dllPath) + 1) * sizeof(TCHAR);
 
 	// 申请内存用来存放DLL路径
-	void* remoteMemory = VirtualAllocEx(processInfo.hProcess, NULL, dllPathSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	void* remoteMemory = VirtualAllocEx(jhandle, NULL, dllPathSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (remoteMemory == NULL)
 	{
 		//setlog(L"申请内存失败，错误代码：%u\n", GetLastError());
-		return 0;
+		error_code = ::GetLastError();
+		return -2;
 	}
 
 	// 写入DLL路径
-	if (!WriteProcessMemory(processInfo.hProcess, remoteMemory, dllPath, dllPathSize, NULL))
+	if (!WriteProcessMemory(jhandle, remoteMemory, dllPath, dllPathSize, NULL))
 	{
 		//setlog(L"写入内存失败，错误代码：%u\n", GetLastError());
-		return 0;
+		error_code = ::GetLastError();
+		return -3;
 	}
 
 	// 创建远线程调用LoadLibrary
-	HANDLE remoteThread = CreateRemoteThread(processInfo.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibrary, remoteMemory, 0, NULL);
+	auto lpfn=GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "LoadLibraryW");
+	if (!lpfn) {
+		error_code = ::GetLastError();
+		return -4;
+	}
+	HANDLE remoteThread = CreateRemoteThread(jhandle, NULL, 0, (LPTHREAD_START_ROUTINE)lpfn, remoteMemory, 0, NULL);
 	if (remoteThread == NULL)
 	{
 		//setlog(L"创建远线程失败，错误代码：%u\n", GetLastError());
-		return NULL;
+		error_code = ::GetLastError();
+		return -5;
 	}
 	// 等待远线程结束
 	WaitForSingleObject(remoteThread, INFINITE);
@@ -91,11 +87,12 @@ HMODULE Injecter::InjectDll(LPCTSTR commandLine, LPCTSTR dllPath/*, DWORD* pid, 
 	GetExitCodeThread(remoteThread, &remoteModule);
 
 	// 恢复线程
-	ResumeThread(processInfo.hThread);
+	//ResumeThread(processInfo.hThread);
 
 	// 释放
 	CloseHandle(remoteThread);
-	VirtualFreeEx(processInfo.hProcess, remoteMemory, dllPathSize, MEM_DECOMMIT);
-
-	return (HMODULE)remoteModule;
+	VirtualFreeEx(jhandle, remoteMemory, dllPathSize, MEM_DECOMMIT);
+	CloseHandle(jhandle);
+	error_code = 0;
+	return 1;
 }

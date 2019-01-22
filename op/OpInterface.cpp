@@ -5,18 +5,20 @@
 
 #include "Cmder.h"
 #include "Injecter.h"
+#include "Tool.h"
 // OpInterface
 
 HRESULT OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	static const wchar_t* ver = L"0.2110.x86";
+	const char* ver = "0.2110.x86";
 #else
 	static const wchar_t* ver = L"0.2110.x64";
 
 #endif;
-	CComBSTR bstr;
-	bstr.Append(ver);
-	bstr.CopyTo(ret);
+	Tool::setlog("address=%d,str=%s",ver,ver);
+	CComBSTR newstr;
+	newstr.Append(ver);
+	newstr.CopyTo(ret);
 
 	return S_OK;
 }
@@ -56,9 +58,9 @@ STDMETHODIMP OpInterface::Sleep(LONG millseconds, LONG* ret) {
 STDMETHODIMP OpInterface::InjectDll(BSTR process_name, BSTR dll_name, LONG* ret) {
 	//auto proc = _wsto_string(process_name);
 	//auto dll = _wsto_string(dll_name);
-	Injecter::EnablePrivilege(TRUE);
-	auto h = Injecter::InjectDll(process_name, dll_name);
-	*ret = (h ? 1 : 0);
+	//Injecter::EnablePrivilege(TRUE);
+	//auto h = Injecter::InjectDll(process_name, dll_name);
+	*ret = 0;
 	return S_OK;
 }
 

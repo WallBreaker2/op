@@ -2596,49 +2596,11 @@ bool WinApi::ClientToScreen(LONG hwnd, LONG &x, LONG &y)
 }
 bool WinApi::FindWindow(wchar_t *class_name, wchar_t*title, LONG &rethwnd, DWORD parent)
 {
-	bool bret = false;
-	rethwnd = 0;
-	HWND p = NULL;
-	if (parent == 0)
-		p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //获取桌面窗口的子窗口
-	else
-		p = ::GetWindow((HWND)parent, GW_CHILD); //获取桌面窗口的子窗口
-	if (p == NULL)
-		return bret;
-	p = ::GetWindow(p, GW_HWNDFIRST);
-	while (p != NULL)
-	{
-		if (::IsWindowVisible(p) && ::GetWindow(p, GW_OWNER) == 0)
-		{
-			if (wcslen(class_name) < 1 && wcslen(title) < 1)
-			{
-				rethwnd = (LONG)p;
-				bret = true;
-				break;
-			}
-			else
-			{
-				wchar_t WindowClassName[MAX_PATH] = { 0 };
-				::GetClassName(p, WindowClassName, MAX_PATH);
-				wchar_t WindowTitle[MAX_PATH] = { 0 };
-				::GetWindowText(p, WindowTitle, MAX_PATH);
-				if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
-				{
-					wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //模糊匹配
-					wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //模糊匹配
-					if ((wcslen(class_name) >= 1 && strfindclass) || (wcslen(title) >= 1 && strfindtitle))
-					{
-						rethwnd = (LONG)p;
-						bret = true;
-						break;
-					}
-				}
-			}
-		}
-		p = ::GetWindow(p, GW_HWNDNEXT);   //获取下一个窗口
-	}
+	if (class_name[0] == '\0')
+		class_name = nullptr;
+	rethwnd=(LONG)::FindWindowW(class_name, title);
 
-	return bret;
+	return 1;
 }
 
 bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &rethwnd, wchar_t *process_name, DWORD Pid)

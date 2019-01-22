@@ -37,7 +37,20 @@ public:
 	long get_widht();
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
 	long get_image_type() {
-		return _display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI ? -1 : 0;
+		switch (_display)
+		{
+		case BACKTYPE::NORMAL:
+			return 0;
+		case BACKTYPE::GDI:
+			return -1;
+		case BACKTYPE::DX:
+			return 0;
+		case BACKTYPE::OPENGL:
+			return -1;
+		default:
+			return 0;
+		}
+		
 	}
 private:
 	HWND _hwnd;

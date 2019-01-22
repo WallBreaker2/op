@@ -2,7 +2,7 @@
 
 #include "bkopengl.h"
 #include "Tool.h"
-
+#include "Injecter.h"
 bkopengl::bkopengl()
 {
 	_process_id = 0;
@@ -39,7 +39,16 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 		auto _dllptr = _process.modules().GetModule(_dllname);
 		if (!_dllptr) {
 			Tool::setlog(L"inject..");
-			reg_ret = _process.modules().Inject(buff);
+			//reg_ret = _process.modules().Inject(buff);
+			/*long error_code = 0;
+			if (!Injecter::EnablePrivilege(true))
+				Tool::setlog("Injecter::EnablePrivilege False.");
+			reg_ret.status = Injecter::InjectDll(id, buff, error_code);
+			Tool::setlog("inject ret=%d,error_code=%d", reg_ret.status, error_code);
+			*/
+			Tool::setlog(buff);
+			auto& modules = _process.modules();
+			reg_ret = modules.Inject(buff);
 			Tool::setlog(L"inject finish...");
 		}
 		else {
@@ -120,7 +129,7 @@ long bkopengl::capture(const std::wstring& file_name) {
 
 	bih.biBitCount = 32;//每个像素字节大小
 	bih.biCompression = BI_RGB;
-	bih.biHeight = -_height;//高度
+	bih.biHeight = _height;//高度
 	bih.biPlanes = 1;
 	bih.biSize = sizeof(BITMAPINFOHEADER);
 	bih.biSizeImage = _width * _height * 4;//图像数据大小

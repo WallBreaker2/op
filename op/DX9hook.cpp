@@ -113,7 +113,6 @@ long opengl_screen_capture() {
 			g_shared_res_name,
 			boost::interprocess::read_write);
 		//Map the whole shared memory in this process
-
 		boost::interprocess::mapped_region region(shm, boost::interprocess::read_write);
 		auto *p = static_cast<char*>(region.get_address());
 		
@@ -139,6 +138,7 @@ void __stdcall hkglEnd(void) {
 		opengl_screen_capture();
 }
 void hook_init(HWND hwnd) {
+	g_hwnd = hwnd;
 	sprintf(g_shared_res_name, SHARED_RES_NAME_FORMAT, hwnd);
 	sprintf(g_mutex_name, MUTEX_NAME_FORMAT, hwnd);
 	try {
