@@ -27,6 +27,7 @@ public:
 	void add_word();
 	void edit_dict();
 	void edit_enter();
+	void del_word();
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;
@@ -36,7 +37,6 @@ private:
 	QStringListModel* _model;
 	QStandardItemModel* _itemmodel;
 	Dict _dict;
-	Dict _dict_tmp;
 	word_t _curr_word;
 	QImage _qimage, _qbinary;
 };

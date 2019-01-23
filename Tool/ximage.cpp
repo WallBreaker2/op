@@ -207,7 +207,7 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		}
 	for (i = inrc.y2 - 2; i >= inrc.y1; --i)
 		if (v[i + 1] == 0 && v[i] != 0) {
-			outrc.y2 = i;
+			outrc.y2 = i+1;
 			break;
 		}
 	//垂直裁剪
@@ -224,14 +224,15 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		}
 	for (j = inrc.x2 - 2; j >= inrc.x1; --j)
 		if (v[j + 1] == 0 && v[j] != 0) {
-			outrc.x2 = j;
+			outrc.x2 = j+1;
 			break;
 		}
 }
 
 void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstring& outstr) {
-	int i, j;
+	int i, j, x, y, id;
 	outstr.clear();
+	
 	//遍历行
 	for (i = rc.y1; i < rc.y2; ++i) {
 		//遍历列
@@ -242,10 +243,10 @@ void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstr
 				if (i + it.info.height > rc.y2 || j + it.info.width > rc.x2)
 					continue;
 				//匹配
-				int x;
+				unsigned __int32 val;
 				for (x = j; x < j+it.info.width; ++x) {
-					unsigned __int32 val=0;
-					for (int y = i, id = 0; y<i+it.info.height; ++y, ++id) {
+					val = 0;
+					for (y = i, id = 0; y<i+it.info.height; ++y, ++id) {
 						if (binary.at<uchar>(y, x) == 0)
 							SET_BIT(val, 31 - id);
 					}
@@ -256,20 +257,39 @@ void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstr
 
 				}
 				if (x == j + it.info.width) {
-					outstr.append(it.info._char);
-					j = x;
+					if (x < rc.x2)//还有剩余部分，检查右边是否空白
+					{
+						for(y = i; y < i + it.info.height; ++y)
+							if (binary.at<uchar>(y, x) == 0) 
+								break;
+						if (y == i + it.info.height) {
+							outstr.append(it.info._char);
+							j = x;
+							break;
+						}
+						
+					}
+					else {
+						outstr.append(it.info._char);
+						j = x;
+						break;//跳出字循环
+					}
+					
 				}
 				else {
 					//del
 				}
 					
-			}
-		}
-	}
+			}//end for words
+		}//end for j
+	}//end for i
 }
 
 void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
 	std::vector<rect_t> out_y, out_x;
+	outstr.clear();
+	if (binary.cols == 0 || binary.rows == 0)
+		return;
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
 	rc.x2 = binary.cols; rc.y2 = binary.rows;
@@ -289,5 +309,7 @@ void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
 			outstr.append(s);
 			//_chars.push_back(out_x[j]);
 		}
+		if (!outstr.empty())
+			outstr.append(L"\n");
 	}
 }
