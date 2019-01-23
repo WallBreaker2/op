@@ -79,7 +79,7 @@ struct Dict {
 		file.write((char*)&words[0], sizeof(word_t)*info._word_count);
 		file.close();
 	}
-	void add_word(const cv::Mat& binary, const rect_t& rc, const std::wstring&c) {
+	void add_word(const cv::Mat& binary, const rect_t& rc) {
 		int x2 = std::min(rc.x1 + 32, rc.x2);
 		int y2 = std::min(rc.y1 + 32, rc.y2);
 		word_t word;
@@ -102,34 +102,34 @@ struct Dict {
 			}
 
 		if (idx == words.size()) {
-			word.set_chars(c);
+			word.set_chars(L"");
 			word.info.height = y2 - rc.y1;
 			words.push_back(word);
 			info._word_count = words.size();
 		}
 		else {//only change char
-			word.set_chars(c);
+			//word.set_chars(c);
 		}
 
 	}
 	void add_word(const word_t&word) {
-		int idx = 0;
-		for (idx = 0; idx < words.size(); ++idx)
-			if (words[idx] == word) {
-				break;
-			}
-
-		if (idx == words.size()) {
+		auto it = find(word);
+		if (words.empty()||it==words.end()) {
 			words.push_back(word);
 		}
 		else {
-			words[idx].set_chars(word.info._char);
+			it->set_chars(word.info._char);
 		}
 		info._word_count = words.size();
 	}
 	void clear() {
 		info._word_count = 0;
 		words.clear();
+	}
+	std::vector<word_t>::iterator find(const word_t&word) {
+		for (auto it = words.begin(); it != words.end(); ++it)
+			if (*it == word)return it;
+		return words.end();
 	}
 };
 
