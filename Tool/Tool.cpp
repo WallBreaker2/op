@@ -281,9 +281,7 @@ void Tool::del_word() {
 	int idx = ui.listView->currentIndex().row();
 	if (idx >= 0 && idx < _dict.words.size()) {
 		_model->removeRow(idx);
-		auto it = _dict.find(_curr_word);
-		if (!_dict.words.empty()&&it != _dict.words.end())
-			_dict.words.erase(it);
+		_dict.erase(_dict.words[idx]);
 		auto midx = ui.listView->currentIndex();
 		show_char(midx);
 		std::wstring ss;

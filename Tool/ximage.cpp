@@ -3,6 +3,7 @@
 #include <qdebug.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <list>
 using cv::Mat;
 //积分二值化
 void thresholdIntegral(const Mat& inputMat, Mat& outputMat)
@@ -99,12 +100,12 @@ void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_pu
 			}
 		}
 	}
-	
+
 	int startindex = 0;
 	int endindex = 0;
 	bool inblock = false; //是否遍历到字符位置
 
-	for (int j = rc.x1; j <rc.x2; j++)
+	for (int j = rc.x1; j < rc.x2; j++)
 	{
 
 		if (!inblock&&ys[j] != 0) //进入有字符区域
@@ -155,7 +156,7 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 		}
 	}
 
-	
+
 	//std::vector<Mat> result;
 	int startindex = 0;
 	int endindex = 0;
@@ -177,7 +178,7 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 			//Mat roi = binary.rowRange(startindex, endindex + 1); //从而记录从开始到结束行的位置，即可进行行切分
 			rect_t roi;
 			roi.x1 = rc.x1; roi.y1 = startindex;
-			roi.x2 = rc.x2; roi.y2 = endindex ;
+			roi.x2 = rc.x2; roi.y2 = endindex;
 			//qDebug("out yrc:%d,%d,%d,%d", roi.x1, roi.y1, roi.x2, roi.y2);
 			out_put.push_back(roi);
 		}
@@ -192,7 +193,7 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 	//水平裁剪
 	std::vector<int>v;
-	
+
 	int i, j;
 	v.resize(binary.rows);
 	for (auto&it : v)it = 0;
@@ -200,14 +201,14 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
 			v[i] += (binary.at<uchar>(i, j) == 0 ? 1 : 0);
 	}
-	for(i = inrc.y1+1; i < inrc.y2; ++i)
-		if (v[i-1] == 0 && v[i] != 0) {
+	for (i = inrc.y1 + 1; i < inrc.y2; ++i)
+		if (v[i - 1] == 0 && v[i] != 0) {
 			outrc.y1 = i;
 			break;
 		}
 	for (i = inrc.y2 - 2; i >= inrc.y1; --i)
 		if (v[i + 1] == 0 && v[i] != 0) {
-			outrc.y2 = i+1;
+			outrc.y2 = i + 1;
 			break;
 		}
 	//垂直裁剪
@@ -224,31 +225,40 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		}
 	for (j = inrc.x2 - 2; j >= inrc.x1; --j)
 		if (v[j + 1] == 0 && v[j] != 0) {
-			outrc.x2 = j+1;
+			outrc.x2 = j + 1;
 			break;
 		}
 }
 
 void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstring& outstr) {
 	int i, j, x, y, id;
-	outstr.clear();
-	
+	//outstr.clear();
+	//给定下一个区
+	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
+	if (rc.width() <= 0 || rc.height() <= 0)
+		return;
 	//遍历行
-	for (i = rc.y1; i < rc.y2; ++i) {
+	for (i = rc.y2-1; ;) {
+	__next_y:
+		if (i < rc.y1)
+			break;
 		//遍历列
 		for (j = rc.x1; j < rc.x2; ++j) {
 			//遍历字库
+			//assert(i != 4 || j != 3);
 			for (auto&it : dict.words) {
+				if (it.info._char[0] == L'\0')
+					continue;
 				//边界检查
-				if (i + it.info.height > rc.y2 || j + it.info.width > rc.x2)
+				if (i - it.info.height+1 < rc.y1 || j + it.info.width > rc.x2)
 					continue;
 				//匹配
 				unsigned __int32 val;
-				for (x = j; x < j+it.info.width; ++x) {
+				for (x = j; x < j + it.info.width; ++x) {
 					val = 0;
-					for (y = i, id = 0; y<i+it.info.height; ++y, ++id) {
+					for (y = i, id = 0; y > i - it.info.height; --y, ++id) {
 						if (binary.at<uchar>(y, x) == 0)
-							SET_BIT(val, 31 - id);
+							SET_BIT(val, id+32-it.info.height);
 					}
 					if (it.clines[x - j] != val)
 						break;
@@ -259,35 +269,42 @@ void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstr
 				if (x == j + it.info.width) {
 					if (x < rc.x2)//还有剩余部分，检查右边是否空白
 					{
-						for(y = i; y < i + it.info.height; ++y)
-							if (binary.at<uchar>(y, x) == 0) 
+						for (y = i; y > i - it.info.height; --y)
+							if (binary.at<uchar>(y, x) == 0)
 								break;
-						if (y == i + it.info.height) {
+						if (y == i - it.info.height) {
 							outstr.append(it.info._char);
-							j = x;
-							break;
+							//设置下一个查找区域 分别为右边和下方
+							//右边最先查找，下方最后
+							//rect_t temp;
+							//右
+							j = j + it.info.width;
+							//goto __next_y;
+							break;//words
 						}
-						
+
 					}
 					else {
 						outstr.append(it.info._char);
-						j = x;
-						break;//跳出字循环
+						//j = x;
+						//设置下一个查找区域 只有上方
+						i = i - it.info.height;
+						goto __next_y;
 					}
-					
+
 				}
-				else {
-					//del
-				}
-					
 			}//end for words
 		}//end for j
+		--i;
 	}//end for i
+
+
 }
 
 void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
 	std::vector<rect_t> out_y, out_x;
 	outstr.clear();
+	if (dict.words.empty())return;
 	if (binary.cols == 0 || binary.rows == 0)
 		return;
 	rect_t rc;
@@ -298,17 +315,12 @@ void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
 	//step1. 水平分割
 	binshadowy(binary, rc, out_y);
 	for (auto&ity : out_y) {
-		//step 2. 垂直分割
-		binshadowx(binary, ity, out_x);
-		for (auto&itx : out_x) {
-			//pic_name = std::to_string((i << 16) | j);
-			//cv::imshow(pic_name, out_x[j]);
-			//裁剪
-			bin_image_cut(binary, itx, itx);
-			bin_ocr(binary, itx, dict, s);
-			outstr.append(s);
-			//_chars.push_back(out_x[j]);
-		}
+
+		bin_image_cut(binary, ity, ity);
+		bin_ocr(binary, ity, dict, s);
+		outstr.append(s);
+		s.clear();
+		//_chars.push_back(out_x[j]);
 		if (!outstr.empty())
 			outstr.append(L"\n");
 	}
