@@ -26,6 +26,9 @@ struct word_t {
 		bool operator==(const word_info_t& rhs) {
 			return width == rhs.width&&height == rhs.height;
 		}
+		bool operator!=(const word_info_t& rhs) {
+			return width != rhs.width&&height == rhs.height;
+		}
 
 	};
 	//32 bit a col
@@ -34,7 +37,12 @@ struct word_t {
 	//char col line
 	cline_t clines[32];
 	bool operator==(const word_t& rhs) {
-		return info == rhs.info&&::memcmp(clines, rhs.clines, sizeof(cline_t)*info.width) == 0;
+		if (info != rhs.info)
+			return false;
+		for (int i = 0; i < info.width; ++i)
+			if (clines[i] != rhs.clines[i])
+				return false;
+		return true;
 	}
 	void set_chars(const std::wstring&s) {
 		memcpy(info._char, s.c_str(), std::min(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
@@ -95,15 +103,11 @@ struct Dict {
 			//tp += t;
 
 		}
-		int idx = 0;
-		for (idx = 0; idx < words.size(); ++idx)
-			if (words[idx] == word) {
-				break;
-			}
-
-		if (idx == words.size()) {
+		word.info.height = y2 - rc.y1;
+		auto it = find(word);
+		if (words.empty()||it==words.end()) {
 			word.set_chars(L"");
-			word.info.height = y2 - rc.y1;
+			
 			words.push_back(word);
 			info._word_count = words.size();
 		}
@@ -130,6 +134,13 @@ struct Dict {
 		for (auto it = words.begin(); it != words.end(); ++it)
 			if (*it == word)return it;
 		return words.end();
+	}
+
+	void erase(const word_t&word) {
+		auto it = find(word);
+		if (!words.empty() && it !=words.end())
+			words.erase(it);
+		info._word_count = words.size();
 	}
 };
 
