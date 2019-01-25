@@ -70,7 +70,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		//setlog("bind info:%d,%d", _display, mouse);
 		
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
-			_pbkdisplay = new Bkgdi();
+			_pbkdisplay = new bkgdi();
 		}
 		else if (display == BACKTYPE::DX) {
 			_pbkdisplay = new Bkdx;
