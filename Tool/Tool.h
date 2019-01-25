@@ -33,6 +33,7 @@ private:
 	cv::Mat _src;
 	cv::Mat _gray;
 	cv::Mat _binary;
+	cv::Mat _record;
 	int _is_edit;
 	QStringListModel* _model;
 	QStandardItemModel* _itemmodel;

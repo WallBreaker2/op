@@ -104,7 +104,7 @@ void Tool::to_binary() {
 	_qbinary.load("binary.png");
 	ui.label_4->setPixmap(QPixmap::fromImage(_qbinary));
 	std::wstring ss;
-	bin_ocr(_binary, _dict, ss);
+	bin_ocr(_binary,_record ,_dict, ss);
 	ui.textEdit->setText(QString::fromStdWString(ss));
 
 }
@@ -209,7 +209,7 @@ void Tool::load_dict() {
 		_dict.read_dict(dir.toStdString());
 		ui.lineEdit_2->setText(dir);
 		std::wstring ss;
-		bin_ocr(_binary, _dict, ss);
+		bin_ocr(_binary,_record, _dict, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 		edit_dict();
 	}
@@ -243,7 +243,7 @@ void Tool::add_word() {
 		ui.listView->setCurrentIndex(next);
 		show_char(next);
 		std::wstring ss;
-		bin_ocr(_binary, _dict, ss);
+		bin_ocr(_binary,_record, _dict, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 
@@ -285,7 +285,7 @@ void Tool::del_word() {
 		auto midx = ui.listView->currentIndex();
 		show_char(midx);
 		std::wstring ss;
-		bin_ocr(_binary, _dict, ss);
+		bin_ocr(_binary,_record, _dict, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 }
