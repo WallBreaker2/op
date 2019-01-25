@@ -9,71 +9,12 @@ using cv::Mat;
 void thresholdIntegral(const Mat& inputMat, Mat& outputMat)
 {
 
-	int nRows = inputMat.rows;
-	int nCols = inputMat.cols;
-
-	// create the integral image
-	Mat sumMat;
-	integral(inputMat, sumMat);
-
-	int S = MAX(nRows, nCols) / 8;
-	double T = 0.15;
-
-	// perform thresholding
-	int s2 = S / 2;
-	int x1, y1, x2, y2, count, sum;
-
-	int* p_y1, *p_y2;
-	const uchar* p_inputMat;
-	uchar*p_outputMat;
-
-	for (int i = 0; i < nRows; ++i)
-	{
-		y1 = i - s2;
-		y2 = i + s2;
-
-		if (y1 < 0)
-		{
-			y1 = 0;
-		}
-		if (y2 >= nRows)
-		{
-			y2 = nRows - 1;
-		}
-
-		p_y1 = sumMat.ptr<int>(y1);
-		p_y2 = sumMat.ptr<int>(y2);
-		p_inputMat = inputMat.ptr<uchar>(i);
-		p_outputMat = outputMat.ptr<uchar>(i);
-
-		for (int j = 0; j < nCols; ++j)
-		{
-			// set the SxS region
-			x1 = j - s2;
-			x2 = j + s2;
-
-			if (x1 < 0)
-			{
-				x1 = 0;
-			}
-			if (x2 >= nCols)
-			{
-				x2 = nCols - 1;
-			}
-
-			count = (x2 - x1)* (y2 - y1);
-
-			// I(x,y)=s(x2,y2)-s(x1,y2)-s(x2,y1)+s(x1,x1)
-			sum = p_y2[x2] - p_y1[x2] - p_y2[x1] + p_y1[x1];
-
-			if ((int)(p_inputMat[j] * count) < (int)(sum* (1.0 - T)))
-			{
-				p_outputMat[j] = 0;
-			}
-			else
-			{
-				p_outputMat[j] = 255;
-			}
+	outputMat.create(inputMat.size(), CV_8UC1);
+	for (int i = 0; i < inputMat.rows; ++i) {
+		auto p1 = inputMat.ptr<uchar>(i);
+		auto p2 = outputMat.ptr<uchar>(i);
+		for (int j = 0; j < inputMat.cols; ++j) {
+			p2[j] = (p1[j] < 128 ? 0 : 255);
 		}
 	}
 }
@@ -230,7 +171,36 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		}
 }
 
-void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstring& outstr) {
+inline int full_match(const cv::Mat& binary, rect_t& rc, const word_t::cline_t* lines) {
+	//匹配
+	unsigned __int32 val;
+	for (int x = rc.x1; x < rc.x2; ++x) {
+		val = 0;
+		for (int y = rc.y1, id = 31; y <rc.y2; ++y, --id) {
+			if (binary.at<uchar>(y, x) == 0)
+				SET_BIT(val, id);
+		}
+		if (lines[x - rc.x1] != val)
+			return 0;
+		//t = QString::asprintf("%08X", x);
+		//tp += t;
+
+	}
+	return 1;
+}
+
+inline void fill_rect(cv::Mat& record, const rect_t& rc) {
+	//匹配
+	unsigned __int32 val;
+	int w = rc.width();
+	for (int y = rc.y1; y < rc.y2; ++y) {
+		uchar* p =record.ptr<uchar>(y)+ rc.x1;
+		memset(p, 1, sizeof(uchar)*w);
+	}
+	
+}
+
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&outstr) {
 	int i, j, x, y, id;
 	//outstr.clear();
 	//给定下一个区
@@ -238,90 +208,84 @@ void bin_ocr(const cv::Mat& binary, const rect_t&rc, const Dict& dict, std::wstr
 	if (rc.width() <= 0 || rc.height() <= 0)
 		return;
 	//遍历行
-	for (i = rc.y2-1; ;) {
-	__next_y:
-		if (i < rc.y1)
-			break;
+	for (i = rc.y1; i<rc.y2;++i) {
 		//遍历列
 		for (j = rc.x1; j < rc.x2; ++j) {
+			if (record.at<uchar>(i, j))
+				continue;
+			point_t pt;
+			pt.x = j; pt.y = i;
 			//遍历字库
 			//assert(i != 4 || j != 3);
 			for (auto&it : dict.words) {
 				if (it.info._char[0] == L'\0')
 					continue;
+				rect_t crc;
+				crc.x1 = j; crc.y1 = i;
+				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
 				//边界检查
-				if (i - it.info.height+1 < rc.y1 || j + it.info.width > rc.x2)
+				if (crc.y2 > rc.y2 || crc.x2 > rc.x2)
 					continue;
-				//匹配
-				unsigned __int32 val;
-				for (x = j; x < j + it.info.width; ++x) {
-					val = 0;
-					for (y = i, id = 0; y > i - it.info.height; --y, ++id) {
-						if (binary.at<uchar>(y, x) == 0)
-							SET_BIT(val, id+32-it.info.height);
-					}
-					if (it.clines[x - j] != val)
-						break;
-					//t = QString::asprintf("%08X", x);
-					//tp += t;
-
-				}
-				if (x == j + it.info.width) {
-					if (x < rc.x2)//还有剩余部分，检查右边是否空白
+				//match
+				
+				int matched = full_match(binary, crc, it.clines);
+				if (matched) {
+					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
 					{
-						for (y = i; y > i - it.info.height; --y)
-							if (binary.at<uchar>(y, x) == 0)
+						for (y = crc.y1; y < crc.y2; ++y)
+							if (binary.at<uchar>(y, crc.x2) == 0)
 								break;
-						if (y == i - it.info.height) {
-							outstr.append(it.info._char);
+						if (y == crc.y2) {
+							//outstr.append(it.info._char);
+							outstr[pt] = it.info._char;
 							//设置下一个查找区域 分别为右边和下方
 							//右边最先查找，下方最后
-							//rect_t temp;
 							//右
-							j = j + it.info.width;
+							fill_rect(record, crc);
 							//goto __next_y;
 							break;//words
 						}
 
 					}
 					else {
-						outstr.append(it.info._char);
-						//j = x;
+						outstr[pt] = it.info._char;
+						//
+					
+						fill_rect(record, crc);
 						//设置下一个查找区域 只有上方
-						i = i - it.info.height;
-						goto __next_y;
+						//i = i - it.info.height;
+						break;
 					}
 
 				}
 			}//end for words
 		}//end for j
-		--i;
 	}//end for i
 
 
 }
 
-void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr) {
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, std::wstring& outstr) {
 	std::vector<rect_t> out_y, out_x;
 	outstr.clear();
 	if (dict.words.empty())return;
 	if (binary.cols == 0 || binary.rows == 0)
 		return;
+	record.create(binary.size(), CV_8UC1);
+	memset(record.data, 0, sizeof(uchar)*record.rows*record.cols);
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
 	rc.x2 = binary.cols; rc.y2 = binary.rows;
 	//qDebug("rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
-	std::wstring s;
+	
 	//step1. 水平分割
-	binshadowy(binary, rc, out_y);
-	for (auto&ity : out_y) {
-
-		bin_image_cut(binary, ity, ity);
-		bin_ocr(binary, ity, dict, s);
-		outstr.append(s);
-		s.clear();
-		//_chars.push_back(out_x[j]);
-		if (!outstr.empty())
-			outstr.append(L"\n");
+	//binshadowy(binary, rc, out_y);
+	bin_image_cut(binary, rc, rc);
+	std::map<point_t, std::wstring> ms;
+	bin_ocr(binary,record, rc, dict, ms);
+	for (auto&it : ms) {
+		outstr.append(it.second);
 	}
+	
+	
 }
