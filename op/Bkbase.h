@@ -40,7 +40,7 @@ public:
 		switch (_display)
 		{
 		case BACKTYPE::NORMAL:
-			return 0;
+			return -1;
 		case BACKTYPE::GDI:
 			return -1;
 		case BACKTYPE::DX:

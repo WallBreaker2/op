@@ -3,11 +3,11 @@
 #define __BKDISPLAY_H_
 #include <thread>
 #include "bkdisplay.h"
-class Bkgdi:public bkdisplay
+class bkgdi:public bkdisplay
 {
 public:
-	Bkgdi();
-	~Bkgdi();
+	bkgdi();
+	~bkgdi();
 	//°ó¶¨
 	long Bind(HWND _hwnd, long flag);
 	//½â°ó

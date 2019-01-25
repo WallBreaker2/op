@@ -2,7 +2,8 @@
 #include "Bkgdi.h"
 #include "Common.h"
 #include <fstream>
-Bkgdi::Bkgdi() :_is_cap(0), _pthread(nullptr)
+#include "Tool.h"
+bkgdi::bkgdi() :_is_cap(0), _pthread(nullptr)
 {
 	_mode = 0;
 	_hdc = _hmdc = NULL;
@@ -11,32 +12,33 @@ Bkgdi::Bkgdi() :_is_cap(0), _pthread(nullptr)
 	//_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH * 4];
 }
 
-Bkgdi::~Bkgdi()
+bkgdi::~bkgdi()
 {
 	//SAFE_DELETE_ARRAY(_image_data);
 }
 
-long Bkgdi::Bind(HWND hwnd, long mode) {
+long bkgdi::Bind(HWND hwnd, long mode) {
 	if (!::IsWindow(hwnd))
 		return 0;
 	_hwnd = hwnd; _mode = mode;
 	long ret = 0;
 	
-	_pthread = new std::thread(&Bkgdi::cap_thread, this);
+	_pthread = new std::thread(&bkgdi::cap_thread, this);
 	ret = 1;
 	return ret;
 }
 
-long Bkgdi::UnBind() {
+long bkgdi::UnBind() {
 	_is_cap = 0;
 	if (_pthread) {
 		_pthread->join();
 		SAFE_DELETE(_pthread);
 	}
+	Tool::setlog(" bkgdi::UnBind()");
 	return 1;
 }
 
-int Bkgdi::cap_thread() {
+int bkgdi::cap_thread() {
 	_is_cap = 1;
 	cap_init();
 	while (_is_cap) {
@@ -51,7 +53,7 @@ int Bkgdi::cap_thread() {
 	return 0;
 }
 
-long Bkgdi::cap_init() {
+long bkgdi::cap_init() {
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	_hdc = ::GetWindowDC(_hwnd);
 	RECT rc;
@@ -72,7 +74,11 @@ long Bkgdi::cap_init() {
 	_client_y = -pt.y;
 	//setlog("ClientRect:%d,%d,%d,%d", rc.left,rc.top,rc.right,rc.bottom);
 
-	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境		
+	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
+	if (_hmdc == NULL) {
+		Tool::setlog("CreateCompatibleDC false");
+		return -2;
+	}
 	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
 
 	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
@@ -95,7 +101,7 @@ long Bkgdi::cap_init() {
 	return 1;
 }
 
-long Bkgdi::cap_release() {
+long bkgdi::cap_release() {
 	if (_holdbmp&&_hmdc)
 		_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
 	//delete[dwLen_2]hDib;
@@ -104,12 +110,13 @@ long Bkgdi::cap_release() {
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
-	//setlog(L"cap_release");
+	Tool::setlog(L"cap_release");
 	bind_release();
 	return 0;
 }
 
-long Bkgdi::cap_image() {
+long bkgdi::cap_image() {
+	Tool::setlog("bkgdi::cap_image()");
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 	if (_mode == BACKTYPE::NORMAL)
@@ -123,8 +130,8 @@ long Bkgdi::cap_image() {
 
 }
 
-long Bkgdi::capture(const std::wstring& file_name) {
-	//setlog(L"Bkgdi::capture");
+long bkgdi::capture(const std::wstring& file_name) {
+	Tool::setlog(L"bkgdi::capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
 	if (!file.is_open())return 0;

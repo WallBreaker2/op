@@ -25,8 +25,8 @@ public:
 	long FindColor(const wstring& color, long&x, long&y);
 	std::wstring GetColor(long x, long y);
 private:
-	dict_t _dicts[_max_dicts];
-	dict_t* _curr_dict;
+	Dict _dicts[_max_dicts];
+	Dict* _curr_dict;
 private:
 	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
 };

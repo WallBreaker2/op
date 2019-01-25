@@ -6,7 +6,8 @@
 #include <opencv2/highgui.hpp>
 #include <vector>
 #include "Common.h"
-
+#include <string>
+#include "Dict.h"
 
 
 inline int HEX2INT(wchar_t c) {
@@ -18,6 +19,7 @@ inline int HEX2INT(wchar_t c) {
 		return c - L'a' + 10;
 	return 0;
 }
+
 
 #define SET_BIT(x, idx) x |= 1u << (idx)
 
@@ -60,21 +62,7 @@ struct color_df_t {
 	color_t df;
 };
 
-//ocr 列,占16位，即最大的字高为16
-using ocrline_t = unsigned __int16;
 
-
-struct one_words_t {
-	//字名
-	std::wstring word;
-	//字形
-	std::vector<ocrline_t> binlines;
-	//1数量
-	int bit_ct;
-	//字高
-	int height;
-};
-using dict_t = std::vector<one_words_t>;
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -109,7 +97,7 @@ public:
 	long GetPixel(long x, long y, color_t&cr);
 
 	long FindColor(std::vector<color_df_t>&colors, long&x, long&y);
-	long Ocr(dict_t& dict, double sim, std::wstring& ret_str);
+	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
 	else pixel=0;
@@ -118,38 +106,12 @@ public:
 	
 private:
 	cv::Mat _src;
-	cv::Mat _src_gray;
 	cv::Mat _target;
-	cv::Mat _target_gray;
+	cv::Mat _binary;
 	cv::Mat _result;
 private:
 	
-	/*
-	match like this:
-	(x1,y1)--------
-	|				|
-	|				|
-	---------------(x2,y2)
-	*/
-	long full_match(int width, uchar* ps,ocrline_t*lines, int line_ct,int n) {
-		ocrline_t line;
-		long s = 0;
-		int tp;
-		//最大为11像素高
-		n = n > 11 ? 11 : n;
-		for (int j = 0; j < line_ct; ++j) {
-			auto p = ps + j;
-			line = 0;
-			for (int i = 0; i < n; ++i) {
-				tp = *(p + i * width) & 1;
-				tp <<= (15 - i);
-				line |= tp;
-			}
-			if (line != lines[j])
-				return 0;
-		}
-		return 1;
-	}
+	
 };
 
 #endif

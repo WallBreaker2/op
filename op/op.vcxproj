@@ -258,6 +258,7 @@
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="ImageProc.cpp" />
     <ClCompile Include="Injecter.cpp" />
+    <ClCompile Include="ocr.cpp" />
     <ClCompile Include="op.cpp" />
     <ClCompile Include="OpInterface.cpp" />
     <ClCompile Include="op_i.c">
@@ -294,12 +295,14 @@
     <ClInclude Include="bkopengl.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
+    <ClInclude Include="Dict.h" />
     <ClInclude Include="dllmain.h" />
     <ClInclude Include="Bkdx.h" />
     <ClInclude Include="DX9hook.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="ImageProc.h" />
     <ClInclude Include="Injecter.h" />
+    <ClInclude Include="ocr.h" />
     <ClInclude Include="OpInterface.h" />
     <ClInclude Include="op_i.h" />
     <ClInclude Include="Pipe.h" />

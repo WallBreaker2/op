@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ImageLoc.h"
 #include "Common.h"
+#include "ocr.h"
 template<typename T>
 int ImageExtend::get_bit_count(T x) {
 	int s = 0;
@@ -122,15 +123,15 @@ void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
 	if (_src.empty())
 		return;
 	int ncols = _src.cols, nrows = _src.rows;
-	_src_gray.create(nrows, ncols, CV_8UC1);
+	_binary.create(nrows, ncols, CV_8UC1);
 	for (int i = 0; i < nrows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
-		uchar* p2 = _src_gray.ptr<uchar>(i);
+		uchar* p2 = _binary.ptr<uchar>(i);
 		for (int j = 0; j < ncols; ++j) {
-			*p2 = 0;
+			*p2 = WORD_BKCOLOR;
 			for (auto&it : colors) {//∂‘√ø∏ˆ—’…´√Ë ˆ
 				if ((*(color_t*)p - it.color) <= it.df) {
-					*p2 = 0xff;
+					*p2 = WORD_COLOR;
 					break;
 				}	
 			}
@@ -139,42 +140,13 @@ void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
 		}
 	}
 	//test
-	cv::imwrite("src.bmp", _src);
-	cv::imwrite("binary.bmp", _src_gray);
+	cv::imwrite("src.png", _src);
+	cv::imwrite("binary.png", _binary);
 }
 
-long ImageExtend::Ocr(dict_t& dict, double sim,wstring& ret_str) {
+long ImageExtend::Ocr(Dict& dict, double sim,wstring& ret_str) {
 	ret_str.clear();
 	long ret_val = 0;
-	int nrows = _src_gray.rows, ncols = _src_gray.cols;
-	//step 2.∆•≈‰
-	for (int i = 0; i <nrows; ++i) {//
-		auto ps = _src_gray.ptr<uchar>(i);
-		for (int j = 0; j < ncols;) {
-			//
-			ret_val = 0;
-			int k;
-			for (k = 0; k < dict.size();++k) {
-				//step 1. ±ﬂΩÁºÏ≤‚
-				if (i + dict[k].height <= nrows && j + dict[k].binlines.size() <= ncols) {
-					
-					if (full_match(ncols, ps + j, &dict[k].binlines[0], dict[k].binlines.size(), dict[k].height)) {
-						ret_str += dict[k].word;
-						ret_val = 1;
-						break;
-					}
-				}
-			}
-			if (ret_val) {
-				j += dict[k].binlines.size();
-			}
-			else {
-				j += 1;
-			}
-				
-
-			
-		}
-	}
+	bin_ocr(_binary, _target, dict, ret_str);
 	return 1;
 }
