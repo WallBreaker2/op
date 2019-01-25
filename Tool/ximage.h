@@ -4,7 +4,19 @@
 #include <opencv2/core.hpp>
 #include <fstream>
 #include "Dict.h"
-
+#include<map>
+struct point_t {
+	int x, y;
+	bool operator<(const point_t&rhs) const {
+		if (std::abs(y - rhs.y) < 9)
+			return x < rhs.x;
+		else
+			return y < rhs.y;
+	}
+	bool operator==(const point_t&rhs) const {
+		return x == rhs.x&&y == rhs.y;
+	}
+};
 
 //积分二值化
 void thresholdIntegral(const cv::Mat& inputMat, cv::Mat& outputMat);
@@ -15,8 +27,8 @@ void binshadowy(const cv::Mat& binary, const rect_t& rc, std::vector<rect_t>&out
 //图像裁剪
 void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc);
 //ocr in rc only a line
-void bin_ocr(const cv::Mat& binary, const rect_t&rc,const Dict& dict, std::wstring& outstr);
-void bin_ocr(const cv::Mat& binary, const Dict& dict, std::wstring& outstr);
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc,const Dict& dict, std::map<point_t,std::wstring>&outstr);
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, std::wstring& outstr);
 
 
 #endif
