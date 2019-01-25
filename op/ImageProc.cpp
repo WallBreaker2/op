@@ -22,68 +22,12 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 	if (idx < 0 || idx >= _max_dicts)
 		return 0;
 	_dicts[idx].clear();
-	std::wfstream file;
-	file.open(file_name, std::ios::in);
-	std::wstring str;
-	std::vector<std::wstring> vstr;
-	auto& _this_dict = _dicts[idx];
-	one_words_t words;
-	if (file.is_open()) {
-		//getline
-		while (!file.eof()) {
-			//line
-			std::getline(file,str);
-			Tool::split(str, vstr, L"$");
-			
-			if (vstr.size() == 4) {
-				//words
-				words.binlines.clear();
-				ocrline_t line=0;
-				int offset = 0;
-				int val = 0;
-				
-				for (auto c : vstr[0]) {
-					val = HEX2INT(c);
-					
-					for (int j = 3; j >= 0; --j) {
-						//set bit
-						if (GET_BIT(val, j))
-							SET_BIT(line, 15 - offset);
-		
-						//if (_this_dict.empty())
-						//	setlog("%X", line);
-						if (offset >=10){//a line full,next line
-							offset = 0;
-							words.binlines.push_back(line);
-							line = 0;
-						}
-						else
-							++offset;
-					}//end for j
-						
-					
-				}//end for c
-				if (offset!=0&&line) {//left a line
-					words.binlines.push_back(line);
-				}
-				//put a word
-				words.word = vstr[1];
-				words.bit_ct = _wtoi(vstr[2].substr(vstr[2].rfind(L'.') + 1).c_str());
-				words.height = _wtoi(vstr[3].c_str());
-				_this_dict.push_back(words);
-			}//end if
-			else
-				break;
-		}//end while
-		file.close();
-		//
-		//for (auto it : _this_dict[0])
-		//	setlog("dict:%X", it);
-		Tool::setlog("DICT info:words=%d", _this_dict.size());
+	_dicts[idx].read_dict(file_name);
+	if (_dicts->info._word_count)
 		return 1;
-	}
-	return 0;
-	
+	else
+		return 0;
+
 }
 
 long ImageProc::UseDict(int idx) {
@@ -99,11 +43,11 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	
+
 	long s;
 	ImageExtend::bgr2binary(colors);
-	
-	s=ImageExtend::Ocr(*_curr_dict, sim, out_str);
+
+	s = ImageExtend::Ocr(*_curr_dict, sim, out_str);
 	return s;
 
 }

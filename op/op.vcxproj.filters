@@ -142,6 +142,9 @@
     <ClCompile Include="DX9hook.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
+    <ClCompile Include="ocr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -215,6 +218,12 @@
     </ClInclude>
     <ClInclude Include="DX9hook.h">
       <Filter>Background\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="ocr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dict.h">
+      <Filter>Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
