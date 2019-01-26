@@ -52,6 +52,9 @@ public:
     QPushButton *pushButton_5;
     QGroupBox *groupBox_3;
     QTextEdit *textEdit;
+    QGroupBox *groupBox_6;
+    QLabel *label_5;
+    QLineEdit *lineEdit_3;
     QToolBar *mainToolBar;
 
     void setupUi(QMainWindow *ToolClass)
@@ -63,25 +66,25 @@ public:
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         groupBox = new QGroupBox(centralWidget);
         groupBox->setObjectName(QStringLiteral("groupBox"));
-        groupBox->setGeometry(QRect(10, 0, 231, 81));
+        groupBox->setGeometry(QRect(120, 0, 171, 81));
         label_3 = new QLabel(groupBox);
         label_3->setObjectName(QStringLiteral("label_3"));
-        label_3->setGeometry(QRect(10, 20, 211, 51));
+        label_3->setGeometry(QRect(10, 20, 151, 51));
         groupBox_2 = new QGroupBox(centralWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        groupBox_2->setGeometry(QRect(10, 130, 231, 91));
+        groupBox_2->setGeometry(QRect(120, 120, 171, 91));
         label_4 = new QLabel(groupBox_2);
         label_4->setObjectName(QStringLiteral("label_4"));
-        label_4->setGeometry(QRect(10, 20, 211, 61));
+        label_4->setGeometry(QRect(10, 20, 151, 61));
         pushButton = new QPushButton(centralWidget);
         pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(20, 90, 75, 23));
+        pushButton->setGeometry(QRect(130, 90, 75, 23));
         pushButton_3 = new QPushButton(centralWidget);
         pushButton_3->setObjectName(QStringLiteral("pushButton_3"));
-        pushButton_3->setGeometry(QRect(140, 90, 75, 23));
+        pushButton_3->setGeometry(QRect(210, 90, 75, 23));
         groupBox_4 = new QGroupBox(centralWidget);
         groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
-        groupBox_4->setGeometry(QRect(260, 0, 241, 261));
+        groupBox_4->setGeometry(QRect(300, 0, 241, 261));
         groupBox_5 = new QGroupBox(centralWidget);
         groupBox_5->setObjectName(QStringLiteral("groupBox_5"));
         groupBox_5->setGeometry(QRect(550, 0, 191, 361));
@@ -119,17 +122,26 @@ public:
         pushButton_6->setGeometry(QRect(10, 330, 81, 23));
         pushButton_4 = new QPushButton(centralWidget);
         pushButton_4->setObjectName(QStringLiteral("pushButton_4"));
-        pushButton_4->setGeometry(QRect(10, 240, 75, 23));
+        pushButton_4->setGeometry(QRect(120, 240, 75, 23));
         pushButton_5 = new QPushButton(centralWidget);
         pushButton_5->setObjectName(QStringLiteral("pushButton_5"));
-        pushButton_5->setGeometry(QRect(140, 240, 75, 23));
+        pushButton_5->setGeometry(QRect(200, 240, 75, 23));
         groupBox_3 = new QGroupBox(centralWidget);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
-        groupBox_3->setGeometry(QRect(10, 269, 491, 91));
+        groupBox_3->setGeometry(QRect(120, 270, 421, 91));
         textEdit = new QTextEdit(groupBox_3);
         textEdit->setObjectName(QStringLiteral("textEdit"));
-        textEdit->setGeometry(QRect(10, 20, 461, 61));
+        textEdit->setGeometry(QRect(10, 20, 391, 61));
         textEdit->setReadOnly(true);
+        groupBox_6 = new QGroupBox(centralWidget);
+        groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
+        groupBox_6->setGeometry(QRect(10, 0, 101, 361));
+        label_5 = new QLabel(groupBox_6);
+        label_5->setObjectName(QStringLiteral("label_5"));
+        label_5->setGeometry(QRect(13, 40, 81, 301));
+        lineEdit_3 = new QLineEdit(centralWidget);
+        lineEdit_3->setObjectName(QStringLiteral("lineEdit_3"));
+        lineEdit_3->setGeometry(QRect(120, 220, 171, 20));
         ToolClass->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(ToolClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -161,6 +173,8 @@ public:
         pushButton_4->setText(QApplication::translate("ToolClass", "\344\272\214\345\200\274\345\214\226", Q_NULLPTR));
         pushButton_5->setText(QApplication::translate("ToolClass", "\346\217\220\345\217\226\347\202\271\351\230\265", Q_NULLPTR));
         groupBox_3->setTitle(QApplication::translate("ToolClass", "Ocr\346\265\213\350\257\225", Q_NULLPTR));
+        groupBox_6->setTitle(QApplication::translate("ToolClass", "\351\242\234\350\211\262\346\217\217\350\277\260", Q_NULLPTR));
+        label_5->setText(QApplication::translate("ToolClass", "Color", Q_NULLPTR));
     } // retranslateUi
 
 };

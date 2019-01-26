@@ -6,11 +6,12 @@
 #include <qdebug.h>
 #include <qdir.h>
 #include <QFileDialog>
-
+#include <Windows.h>
 Tool::Tool(QWidget *parent)
 	: QMainWindow(parent)
 {
 	_is_edit = 0;
+	_is_press = 0;
 	ui.setupUi(this);
 	//cv::namedWindow("SRC_IMAGE");
 	//cv::namedWindow("BIN_IMAGE");
@@ -63,6 +64,15 @@ void Tool::paintEvent(QPaintEvent* event) {
 					pixel_w - 1, pixel_w - 1, br);
 			}
 		}
+	}
+	p = ui.label_5->pos();
+	const int chigh = 20, cwidth = 80;
+	for (int i = 0; i < 10; ++i) {
+		//Qt::BGR
+		auto cr = _color_info[i].color;
+		br.setColor(QColor(cr.r, cr.g, cr.b));
+		paint.fillRect(p.x(), p.y() + i * chigh,
+			cwidth - 1, chigh - 1, br);
 	}
 	//draw_line(_ys, paint,0, ui.groupBox_3);
 	//draw_line(_xs, paint,1, ui.groupBox_6);
@@ -287,5 +297,46 @@ void Tool::del_word() {
 		std::wstring ss;
 		bin_ocr(_binary,_record, _dict, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
+	}
+}
+
+void Tool::mousePressEvent(QMouseEvent* event) {
+
+	if (event->button() == Qt::LeftButton) {
+		//
+		auto p = ui.label_5->pos();
+		const int chigh = 20, cwidth = 80;
+		if (event->x() < p.x() || event->x() > p.x() + cwidth || event->y() < p.y() || event->y() > p.y() + chigh * 10)
+			return;
+		_is_press = 1;
+		_color_idx = (event->y() - p.y()) / chigh;
+	}
+}
+
+void Tool::mouseReleaseEvent(QMouseEvent* event) {
+	if (event->button() == Qt::LeftButton&&_is_press) {
+		
+		auto global = mapToGlobal(event->pos());
+		_is_press = 0;
+		HDC hdc = ::GetDC(NULL);
+		if (hdc) {
+			auto cr = ::GetPixel(hdc, global.x(), global.y());
+			auto& ptr = _color_info[_color_idx].color;
+			ptr.b = (cr & 0xff0000) >> 16;
+			ptr.g = (cr & 0x00ff00) >> 8;
+			ptr.r = (cr & 0x0000ff);
+			::ReleaseDC(NULL, hdc);
+			std::wstring ss;
+			for (int i = 0; i < 2; ++i) {
+				ss += _color_info[i].color.tostr();
+				ss += L"-";
+				ss += _color_info[i].df.tostr();
+				ss += L"|";
+			}
+			ui.lineEdit_3->setText(QString::fromStdWString(ss));
+			update();
+		}
+		
+		//qDebug() << "move" << event->x() << ":" << event->y();
 	}
 }
