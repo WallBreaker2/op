@@ -10,6 +10,7 @@
 #include <QStandardItemModel>
 #include <QModelIndex>
 #include "ximage.h"
+#include "../op/Color/color.h"
 class Tool : public QMainWindow
 {
 	Q_OBJECT
@@ -28,6 +29,8 @@ public:
 	void edit_dict();
 	void edit_enter();
 	void del_word();
+	void mousePressEvent(QMouseEvent* event);
+	void mouseReleaseEvent(QMouseEvent* event);
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;
@@ -40,4 +43,6 @@ private:
 	Dict _dict;
 	word_t _curr_word;
 	QImage _qimage, _qbinary;
+	color_df_t _color_info[10];
+	int _color_idx, _is_press;
 };

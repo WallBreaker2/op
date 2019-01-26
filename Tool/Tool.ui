@@ -17,9 +17,9 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>120</x>
       <y>0</y>
-      <width>231</width>
+      <width>171</width>
       <height>81</height>
      </rect>
     </property>
@@ -31,7 +31,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>211</width>
+       <width>151</width>
        <height>51</height>
       </rect>
      </property>
@@ -43,9 +43,9 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>130</y>
-      <width>231</width>
+      <x>120</x>
+      <y>120</y>
+      <width>171</width>
       <height>91</height>
      </rect>
     </property>
@@ -57,7 +57,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>211</width>
+       <width>151</width>
        <height>61</height>
       </rect>
      </property>
@@ -69,7 +69,7 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>130</x>
       <y>90</y>
       <width>75</width>
       <height>23</height>
@@ -82,7 +82,7 @@
    <widget class="QPushButton" name="pushButton_3">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>210</x>
       <y>90</y>
       <width>75</width>
       <height>23</height>
@@ -95,7 +95,7 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>300</x>
       <y>0</y>
       <width>241</width>
       <height>261</height>
@@ -248,7 +248,7 @@
    <widget class="QPushButton" name="pushButton_4">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>120</x>
       <y>240</y>
       <width>75</width>
       <height>23</height>
@@ -261,7 +261,7 @@
    <widget class="QPushButton" name="pushButton_5">
     <property name="geometry">
      <rect>
-      <x>140</x>
+      <x>200</x>
       <y>240</y>
       <width>75</width>
       <height>23</height>
@@ -274,9 +274,9 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>269</y>
-      <width>491</width>
+      <x>120</x>
+      <y>270</y>
+      <width>421</width>
       <height>91</height>
      </rect>
     </property>
@@ -288,7 +288,7 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>461</width>
+       <width>391</width>
        <height>61</height>
       </rect>
      </property>
@@ -296,6 +296,42 @@
       <bool>true</bool>
      </property>
     </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_6">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>101</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>颜色描述</string>
+    </property>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>13</x>
+       <y>40</y>
+       <width>81</width>
+       <height>301</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Color</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_3">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>220</y>
+      <width>171</width>
+      <height>20</height>
+     </rect>
+    </property>
    </widget>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
