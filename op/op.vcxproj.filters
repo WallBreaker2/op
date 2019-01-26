@@ -225,6 +225,9 @@
     <ClInclude Include="Dict.h">
       <Filter>Algorithm</Filter>
     </ClInclude>
+    <ClInclude Include="Color\color.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="op.rc">

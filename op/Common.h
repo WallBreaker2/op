@@ -3,7 +3,6 @@
 #define __COMMON_H_
 #include <string>
 #include <boost/locale.hpp>
-#include <boost/algorithm/string.hpp>
 #include <fstream>
 #include <vector>
 

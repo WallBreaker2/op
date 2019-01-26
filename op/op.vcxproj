@@ -294,6 +294,7 @@
     <ClInclude Include="Bkmouse.h" />
     <ClInclude Include="bkopengl.h" />
     <ClInclude Include="Cmder.h" />
+    <ClInclude Include="Color\color.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="Dict.h" />
     <ClInclude Include="dllmain.h" />
