@@ -13,6 +13,7 @@ Tool::Tool(QWidget *parent)
 {
 	_is_edit = 0;
 	_is_press = 0;
+	_ocr_sim = 1.0;
 	ui.setupUi(this);
 	const int chigh = 20, cwidth = 80;
 	int w = ui.lineEdit->height();
@@ -22,8 +23,14 @@ Tool::Tool(QWidget *parent)
 		_checkbox[i]->move(ui.label_5->pos().x() + cwidth + 5,
 			ui.label_5->pos().y() + i * chigh);
 		QObject::connect(_checkbox[i], &QCheckBox::stateChanged, this, &Tool::on_state_changed);
+		
+		_df_edit[i] = new QLineEdit(this);
+		_df_edit[i]->resize(50, w);
+		_df_edit[i]->move(ui.label_5->pos().x() + cwidth / 4 + 5,
+			ui.label_5->pos().y() + i * chigh);
+		_df_edit[i]->setText("000000");
 	}
-	
+	_checkbox[0]->setChecked(true);
 	_motive.hide();
 	//_motive.move(0, 0);
 	_timer.setInterval(300);
@@ -32,7 +39,7 @@ Tool::Tool(QWidget *parent)
 	//cv::namedWindow("BIN_IMAGE");
 	_itemmodel = new QStandardItemModel(this);
 	_model = nullptr;
-	_pimagedata = nullptr;
+	//_pimagedata = nullptr;
 	QObject::connect(ui.pushButton, &QPushButton::clicked, this, &Tool::load_image);
 	QObject::connect(ui.pushButton_4, &QPushButton::clicked, this, &Tool::to_binary);
 	QObject::connect(ui.pushButton_5, &QPushButton::clicked, this, &Tool::hist);
@@ -44,6 +51,7 @@ Tool::Tool(QWidget *parent)
 	QObject::connect(ui.pushButton_9, &QPushButton::clicked, this, &Tool::edit_dict);
 	QObject::connect(ui.lineEdit, &QLineEdit::editingFinished, this, &Tool::edit_enter);
 	QObject::connect(ui.pushButton_6, &QPushButton::clicked, this, &Tool::del_word);
+	QObject::connect(ui.horizontalSlider, &QSlider::sliderReleased, this, &Tool::on_slider);
 
 }
 void Tool::paintEvent(QPaintEvent* event) {
@@ -88,7 +96,7 @@ void Tool::paintEvent(QPaintEvent* event) {
 		auto cr = _color_info[i].color;
 		br.setColor(QColor(cr.r, cr.g, cr.b));
 		paint.fillRect(p.x(), p.y() + i * chigh,
-			cwidth - 1, chigh - 1, br);
+			cwidth/4 - 1, chigh - 1, br);
 	}
 	//draw_line(_ys, paint,0, ui.groupBox_3);
 	//draw_line(_xs, paint,1, ui.groupBox_6);
@@ -148,7 +156,7 @@ void Tool::to_binary() {
 	_qbinary.load("binary.png");
 	ui.label_4->setPixmap(QPixmap::fromImage(_qbinary));
 	std::wstring ss;
-	bin_ocr(_binary, _record, _dict, ss);
+	bin_ocr(_binary, _record, _dict,0.95, ss);
 	ui.textEdit->setText(QString::fromStdWString(ss));
 }
 
@@ -252,7 +260,7 @@ void Tool::load_dict() {
 		_dict.read_dict(dir.toStdString());
 		ui.lineEdit_2->setText(dir);
 		std::wstring ss;
-		bin_ocr(_binary,_record, _dict, ss);
+		bin_ocr(_binary,_record, _dict,_ocr_sim, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 		edit_dict();
 	}
@@ -286,7 +294,7 @@ void Tool::add_word() {
 		ui.listView->setCurrentIndex(next);
 		show_char(next);
 		std::wstring ss;
-		bin_ocr(_binary,_record, _dict, ss);
+		bin_ocr(_binary,_record, _dict,_ocr_sim, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 
@@ -328,7 +336,7 @@ void Tool::del_word() {
 		auto midx = ui.listView->currentIndex();
 		show_char(midx);
 		std::wstring ss;
-		bin_ocr(_binary,_record, _dict, ss);
+		bin_ocr(_binary,_record, _dict,_ocr_sim, ss);
 		ui.textEdit->setText(QString::fromStdWString(ss));
 	}
 }
@@ -343,6 +351,8 @@ void Tool::mousePressEvent(QMouseEvent* event) {
 			return;
 		_is_press = 1;
 		_color_idx = (event->y() - p.y()) / chigh;
+		auto global = mapToGlobal(event->pos());
+		_motive.move(global.x() + 20, global.y());
 		_motive.show();
 		_hdc = ::GetDC(NULL);
 		RECT rc;
@@ -350,7 +360,7 @@ void Tool::mousePressEvent(QMouseEvent* event) {
 		::GetWindowRect(GetDesktopWindow(), &rc);
 		_width = rc.right - rc.left;
 		_height = rc.bottom - rc.top;
-		qDebug() << _width << "," << _height;
+		//qDebug() << _width << "," << _height;
 		_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
 		if (_hmdc == NULL) {
 			//Tool::setlog("CreateCompatibleDC false");
@@ -371,11 +381,12 @@ void Tool::mousePressEvent(QMouseEvent* event) {
 		_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
 		_bih.biWidth = _bm.bmWidth;//宽度
 		BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
-		if (_pimagedata)
-			delete[] _pimagedata;
-		_pimagedata = new byte[_width*_height * 4];
+		//if (_pimagedata)
+		//	delete[] _pimagedata;
+		//_pimagedata = new byte[_width*_height * 4];
+		_imagedata.reserve(_width*_height * 4);
 		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
-		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_pimagedata, (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_imagedata.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 		
 	}
 }
@@ -387,11 +398,12 @@ void Tool::mouseReleaseEvent(QMouseEvent* event) {
 		_is_press = 0;
 		//HDC hdc = ::GetDC(NULL);
 		if (_hdc&&global.x()<_width&&global.y()<_height) {
-			auto pcr = _pimagedata + (_width *(_height - global.y()) + global.x()) * 4;
-			auto& ptr = _color_info[_color_idx].color;
-			ptr.b = pcr[0];
-			ptr.g = pcr[1];
-			ptr.r = pcr[2];
+			auto pcr = _imagedata.data() + (_width *(_height - global.y()) + global.x()) * 4;
+			auto& color = _color_info[_color_idx].color;
+			color.b = pcr[0];
+			color.g = pcr[1];
+			color.r = pcr[2];
+			
 			//::ReleaseDC(NULL, hdc);
 			std::wstring ss;
 			for (int i = 0; i < 10; ++i) {
@@ -426,6 +438,7 @@ void Tool::on_state_changed(int st) {
 	std::wstring ss;
 	for (int i = 0; i < 10; ++i) {
 		if (_checkbox[i]->isChecked()) {
+			_color_info[i].df.str2color(_df_edit[i]->text().toStdWString());
 			ss += _color_info[i].color.tostr();
 			ss += L"-";
 			ss += _color_info[i].df.tostr();
@@ -444,7 +457,7 @@ void Tool::mouseMoveEvent(QMouseEvent* event) {
 	if (_is_press&&clock()>rt+100) {
 		rt = clock();
 		//HDC hdc = ::GetDC(NULL);
-		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_pimagedata, (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_imagedata.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 		auto global = mapToGlobal(event->pos());
 		int x, y;
 		for (int i = 0; i < my_dialog::crows; ++i) {
@@ -452,17 +465,26 @@ void Tool::mouseMoveEvent(QMouseEvent* event) {
 				x = global.x() + j - my_dialog::ccols/2;
 				y = global.y() + i - my_dialog::ccols/2;
 				if (x >= 0 && y >= 0&&x<_width&&y<_height) {
-					auto ptr = _pimagedata + (_width * (_height-y) + x)*4;
+					auto ptr = _imagedata.data()+ (_width * (_height-y) + x)*4;
 					_motive._color[i*my_dialog::ccols + j] = QColor(ptr[2],ptr[1],ptr[0]);
 				}
 				
 			}
 		}
 		//::ReleaseDC(NULL, hdc);
-		auto ptr = _pimagedata + (_width * (_height - global.y()) + global.x()) * 4;
-		_motive._label.setText(QString::asprintf("POS=%d,%d\r\nBGR=%02X%02X%02X",global.x(),global.y(), ptr[2], ptr[1], ptr[0]));
+		auto ptr = _imagedata.data() + (_width * (_height - global.y()) + global.x()) * 4;
+		_motive._label.setText(QString::asprintf("POS=%d,%d\r\nRGB=%02X%02X%02X",global.x(),global.y(), ptr[2], ptr[1], ptr[0]));
 		_motive.move(global.x() + 20, global.y());
 		_motive.update();
 		//_motive.s
 	}
+}
+
+void Tool::on_slider() {
+	//qDebug() << ui.horizontalSlider->value();
+	_ocr_sim = ui.horizontalSlider->value() / 100.;
+	ui.label_6->setText(QString::asprintf("sim:%lf", _ocr_sim));
+	std::wstring ss;
+	bin_ocr(_binary, _record, _dict, _ocr_sim, ss);
+	ui.textEdit->setText(QString::fromStdWString(ss));
 }

@@ -6,7 +6,7 @@
 #include <math.h>
 #define SET_BIT(x, idx) x |= 1u << (idx)
 
-#define GET_BIT(x, idx) (x >> (idx)) & 1u
+#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
 struct rect_t {
 	int x1, y1;
 	int x2, y2;

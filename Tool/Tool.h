@@ -15,6 +15,7 @@
 #include <qdialog.h>
 #include <qtimer.h>
 #include <windows.h>
+#include <vector>
 class my_dialog : public QDialog {
 public:
 	my_dialog(QWidget* parent) :QDialog(parent,Qt::WindowFlags::enum_type::FramelessWindowHint)
@@ -78,6 +79,7 @@ public:
 	void mouseReleaseEvent(QMouseEvent* event);
 	void on_state_changed(int st);
 	void mouseMoveEvent(QMouseEvent* event);
+	void on_slider();
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;
@@ -93,6 +95,7 @@ private:
 	color_df_t _color_info[10];
 	int _color_idx, _is_press;
 	QCheckBox* _checkbox[10];
+	QLineEdit* _df_edit[10];
 	my_dialog _motive;
 	QTimer _timer;
 	//Éè±¸¾ä±ú
@@ -105,7 +108,8 @@ private:
 	BITMAP _bm;
 	BITMAPINFOHEADER _bih;
 	int _width, _height;
-	unsigned char* _pimagedata;
+	std::vector<unsigned char> _imagedata;
+	double _ocr_sim;
 };
 
 
