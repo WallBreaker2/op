@@ -61,7 +61,7 @@ public:
     {
         if (ToolClass->objectName().isEmpty())
             ToolClass->setObjectName(QStringLiteral("ToolClass"));
-        ToolClass->resize(753, 386);
+        ToolClass->resize(753, 392);
         centralWidget = new QWidget(ToolClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         groupBox = new QGroupBox(centralWidget);
@@ -72,7 +72,7 @@ public:
         label_3->setGeometry(QRect(10, 20, 151, 51));
         groupBox_2 = new QGroupBox(centralWidget);
         groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        groupBox_2->setGeometry(QRect(120, 120, 171, 91));
+        groupBox_2->setGeometry(QRect(120, 120, 171, 101));
         label_4 = new QLabel(groupBox_2);
         label_4->setObjectName(QStringLiteral("label_4"));
         label_4->setGeometry(QRect(10, 20, 151, 61));
@@ -122,26 +122,26 @@ public:
         pushButton_6->setGeometry(QRect(10, 330, 81, 23));
         pushButton_4 = new QPushButton(centralWidget);
         pushButton_4->setObjectName(QStringLiteral("pushButton_4"));
-        pushButton_4->setGeometry(QRect(120, 240, 75, 23));
+        pushButton_4->setGeometry(QRect(20, 250, 75, 23));
         pushButton_5 = new QPushButton(centralWidget);
         pushButton_5->setObjectName(QStringLiteral("pushButton_5"));
-        pushButton_5->setGeometry(QRect(200, 240, 75, 23));
+        pushButton_5->setGeometry(QRect(150, 250, 75, 23));
         groupBox_3 = new QGroupBox(centralWidget);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
-        groupBox_3->setGeometry(QRect(120, 270, 421, 91));
+        groupBox_3->setGeometry(QRect(10, 280, 531, 91));
         textEdit = new QTextEdit(groupBox_3);
         textEdit->setObjectName(QStringLiteral("textEdit"));
-        textEdit->setGeometry(QRect(10, 20, 391, 61));
+        textEdit->setGeometry(QRect(20, 20, 411, 61));
         textEdit->setReadOnly(true);
         groupBox_6 = new QGroupBox(centralWidget);
         groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
-        groupBox_6->setGeometry(QRect(10, 0, 101, 361));
+        groupBox_6->setGeometry(QRect(10, 0, 101, 221));
         label_5 = new QLabel(groupBox_6);
         label_5->setObjectName(QStringLiteral("label_5"));
-        label_5->setGeometry(QRect(13, 40, 81, 301));
+        label_5->setGeometry(QRect(10, 30, 81, 181));
         lineEdit_3 = new QLineEdit(centralWidget);
         lineEdit_3->setObjectName(QStringLiteral("lineEdit_3"));
-        lineEdit_3->setGeometry(QRect(120, 220, 171, 20));
+        lineEdit_3->setGeometry(QRect(10, 230, 281, 20));
         ToolClass->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(ToolClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
