@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>753</width>
-    <height>386</height>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
       <x>120</x>
       <y>120</y>
       <width>171</width>
-      <height>91</height>
+      <height>101</height>
      </rect>
     </property>
     <property name="title">
@@ -248,8 +248,8 @@
    <widget class="QPushButton" name="pushButton_4">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>240</y>
+      <x>20</x>
+      <y>250</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -261,8 +261,8 @@
    <widget class="QPushButton" name="pushButton_5">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>240</y>
+      <x>150</x>
+      <y>250</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -274,9 +274,9 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>270</y>
-      <width>421</width>
+      <x>10</x>
+      <y>280</y>
+      <width>531</width>
       <height>91</height>
      </rect>
     </property>
@@ -286,9 +286,9 @@
     <widget class="QTextEdit" name="textEdit">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>20</y>
-       <width>391</width>
+       <width>411</width>
        <height>61</height>
       </rect>
      </property>
@@ -303,7 +303,7 @@
       <x>10</x>
       <y>0</y>
       <width>101</width>
-      <height>361</height>
+      <height>221</height>
      </rect>
     </property>
     <property name="title">
@@ -312,10 +312,10 @@
     <widget class="QLabel" name="label_5">
      <property name="geometry">
       <rect>
-       <x>13</x>
-       <y>40</y>
+       <x>10</x>
+       <y>30</y>
        <width>81</width>
-       <height>301</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="text">
@@ -326,9 +326,9 @@
    <widget class="QLineEdit" name="lineEdit_3">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>220</y>
-      <width>171</width>
+      <x>10</x>
+      <y>230</y>
+      <width>281</width>
       <height>20</height>
      </rect>
     </property>
