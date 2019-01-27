@@ -20,6 +20,7 @@
 #include <QtWidgets/QListView>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSlider>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
@@ -52,6 +53,8 @@ public:
     QPushButton *pushButton_5;
     QGroupBox *groupBox_3;
     QTextEdit *textEdit;
+    QSlider *horizontalSlider;
+    QLabel *label_6;
     QGroupBox *groupBox_6;
     QLabel *label_5;
     QLineEdit *lineEdit_3;
@@ -131,8 +134,19 @@ public:
         groupBox_3->setGeometry(QRect(10, 280, 531, 91));
         textEdit = new QTextEdit(groupBox_3);
         textEdit->setObjectName(QStringLiteral("textEdit"));
-        textEdit->setGeometry(QRect(20, 20, 411, 61));
+        textEdit->setGeometry(QRect(10, 20, 371, 61));
         textEdit->setReadOnly(true);
+        horizontalSlider = new QSlider(groupBox_3);
+        horizontalSlider->setObjectName(QStringLiteral("horizontalSlider"));
+        horizontalSlider->setGeometry(QRect(400, 40, 111, 22));
+        horizontalSlider->setMaximum(100);
+        horizontalSlider->setValue(100);
+        horizontalSlider->setOrientation(Qt::Horizontal);
+        horizontalSlider->setTickPosition(QSlider::TicksBothSides);
+        horizontalSlider->setTickInterval(1);
+        label_6 = new QLabel(groupBox_3);
+        label_6->setObjectName(QStringLiteral("label_6"));
+        label_6->setGeometry(QRect(400, 10, 101, 16));
         groupBox_6 = new QGroupBox(centralWidget);
         groupBox_6->setObjectName(QStringLiteral("groupBox_6"));
         groupBox_6->setGeometry(QRect(10, 0, 101, 221));
@@ -173,8 +187,9 @@ public:
         pushButton_4->setText(QApplication::translate("ToolClass", "\344\272\214\345\200\274\345\214\226", Q_NULLPTR));
         pushButton_5->setText(QApplication::translate("ToolClass", "\346\217\220\345\217\226\347\202\271\351\230\265", Q_NULLPTR));
         groupBox_3->setTitle(QApplication::translate("ToolClass", "Ocr\346\265\213\350\257\225", Q_NULLPTR));
-        groupBox_6->setTitle(QApplication::translate("ToolClass", "\351\242\234\350\211\262\346\217\217\350\277\260", Q_NULLPTR));
-        label_5->setText(QApplication::translate("ToolClass", "Color", Q_NULLPTR));
+        label_6->setText(QApplication::translate("ToolClass", "sim:1.0", Q_NULLPTR));
+        groupBox_6->setTitle(QApplication::translate("ToolClass", "\351\242\234\350\211\262-\345\201\217\350\211\262", Q_NULLPTR));
+        label_5->setText(QString());
     } // retranslateUi
 
 };
