@@ -67,7 +67,10 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else {
 		_mode = mode;
 		_display = display;
-		//setlog("bind info:%d,%d", _display, mouse);
+		if (!_bkmouse.Bind(_hwnd, mouse))
+			return 0;
+		if (!_keypad.Bind(_hwnd, keypad))
+			return 0;
 		
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
 			_pbkdisplay = new bkgdi();
@@ -79,10 +82,12 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 			_pbkdisplay = new bkopengl;
 		
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
-		if (!ret)
+		if (!ret) {
+			SAFE_DELETE(_pbkdisplay);
 			return 0;
-		if (!_bkmouse.Bind(_hwnd, mouse))
-			return 0;
+		}
+			
+		
 		Sleep(20);
 		
 	}

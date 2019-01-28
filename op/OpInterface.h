@@ -111,14 +111,60 @@ public:
 	//cmd
 	STDMETHOD(ExcuteCmd)(BSTR cmd,LONG millseconds, BSTR* retstr);
 
-	//Background 
-	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
-	STDMETHOD(LeftClick)(LONG* ret);
+	//--------------------Background -----------------------
 	//bind window and beign capture screen
 	STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode,LONG *ret);
-	STDMETHOD(Capture)(BSTR file_name, LONG* ret);
+	//
 	STDMETHOD(UnBind)(LONG* ret);
+	//--------------------mouse & keyboard------------------
+	//获取鼠标位置.
+	STDMETHOD(GetCursorPos)(VARIANT* x, VARIANT* y, LONG* ret);
+	//鼠标相对于上次的位置移动rx,ry.
+	STDMETHOD(MoveR)(LONG x, LONG y, LONG* ret);
+	//把鼠标移动到目的点(x,y)
+	STDMETHOD(MoveTo)(LONG x, LONG y, LONG* ret);
+	//把鼠标移动到目的范围内的任意一点
+	STDMETHOD(MoveToEx)(LONG x, LONG y,LONG w,LONG h, LONG* ret);
+	//按下鼠标左键
+	STDMETHOD(LeftClick)(LONG* ret);
+	//双击鼠标左键
+	STDMETHOD(LeftDoubleClick)(LONG* ret);
+	//按住鼠标左键
+	STDMETHOD(LeftDown)(LONG* ret);
+	//弹起鼠标左键
+	STDMETHOD(LeftUp)(LONG* ret);
+	//按下鼠标中键
+	STDMETHOD(MiddleClick)(LONG* ret);
+	//按住鼠标中键
+	STDMETHOD(MiddleDown)(LONG* ret);
+	//弹起鼠标中键
+	STDMETHOD(MiddleUp)(LONG* ret);
+	//按下鼠标右键
+	STDMETHOD(RightClick)(LONG* ret);
+	//按住鼠标右键
+	STDMETHOD(RightDown)(LONG* ret);
+	//弹起鼠标右键
+	STDMETHOD(RightUp)(LONG* ret);
+	//滚轮向下滚
+	STDMETHOD(WheelDown)(LONG* ret);
+	//滚轮向上滚
+	STDMETHOD(WheelUp)(LONG* ret);
+	//获取指定的按键状态.(前台信息,不是后台)
+	STDMETHOD(GetKeyState)(LONG vk_code, LONG* ret);
+	//按住指定的虚拟键码
+	STDMETHOD(KeyDown)(LONG vk_code, LONG* ret);
+	//按住指定的虚拟键码
+	STDMETHOD(KeyDownChar)(BSTR vk_code, LONG* ret);
+	//弹起来虚拟键vk_code
+	STDMETHOD(KeyUp)(LONG vk_code, LONG* ret);
+	//弹起来虚拟键vk_code
+	STDMETHOD(KeyUpChar)(BSTR vk_code, LONG* ret);
+	//等待指定的按键按下 (前台,不是后台)
+	STDMETHOD(WaitKey)(LONG vk_code,LONG time_out, LONG* ret);
 
+	//--------------------image and color-----------------------
+	STDMETHOD(Capture)(BSTR file_name, LONG* ret);
+	//
 	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files,DOUBLE sim,VARIANT* x,VARIANT* y,LONG* ret);
 
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);

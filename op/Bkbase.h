@@ -3,6 +3,7 @@
 #define __BACKBASE_H_
 #include "Bkmouse.h"
 #include "bkdisplay.h"
+#include "Bkkeypad.h"
 using std::wstring;
 /*
 后台处理类，包含以下功能:
@@ -59,7 +60,8 @@ private:
 	int _mode;
 public:
 	bkdisplay* _pbkdisplay;
-	Bkmouse _bkmouse;
+	bkmouse _bkmouse;
+	bkkeypad _keypad;
 	
 };
 #endif
