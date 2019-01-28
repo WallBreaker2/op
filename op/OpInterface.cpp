@@ -368,18 +368,15 @@ STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd, LONG millseconds, BSTR* retstr) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
-	*ret = _bkproc.MoveTo(x, y);
-	return S_OK;
-}
 
-STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
-	*ret = _bkproc.LeftClick();
-	return S_OK;
-}
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
 	*ret = _bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::UnBind(LONG* ret) {
+	*ret = _bkproc.UnBindWindow();
 	return S_OK;
 }
 
@@ -388,10 +385,124 @@ STDMETHODIMP OpInterface::Capture(BSTR file_name, LONG* ret) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::UnBind(LONG* ret) {
-	*ret = _bkproc.UnBindWindow();
+STDMETHODIMP OpInterface::GetCursorPos(VARIANT* x, VARIANT* y, LONG* ret) {
 	return S_OK;
 }
+
+STDMETHODIMP OpInterface::MoveR(LONG x, LONG y, LONG* ret) {
+	*ret = _bkproc._bkmouse.MoveR(x, y);
+	return S_OK;
+}
+//把鼠标移动到目的点(x,y)
+STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
+	*ret = _bkproc.MoveTo(x, y);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::MoveToEx(LONG x, LONG y, LONG w, LONG h, LONG* ret) {
+	*ret = _bkproc._bkmouse.MoveToEx(x, y, w, h);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
+	*ret = _bkproc.LeftClick();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::LeftDoubleClick(LONG* ret) {
+	*ret = _bkproc._bkmouse.LeftDoubleClick();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::LeftDown(LONG* ret) {
+	*ret = _bkproc._bkmouse.LeftDown();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::LeftUp(LONG* ret) {
+	*ret = _bkproc._bkmouse.LeftUp();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::MiddleClick(LONG* ret) {
+	*ret = _bkproc._bkmouse.MiddleClick();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::MiddleDown(LONG* ret) {
+	*ret = _bkproc._bkmouse.MiddleDown();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::MiddleUp(LONG* ret) {
+	*ret = _bkproc._bkmouse.MiddleUp();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::RightClick(LONG* ret) {
+	*ret = _bkproc._bkmouse.RightClick();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::RightDown(LONG* ret) {
+	*ret = _bkproc._bkmouse.RightDown();
+	return S_OK;
+}
+
+
+STDMETHODIMP OpInterface::RightUp(LONG* ret) {
+	*ret = _bkproc._bkmouse.RightUp();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WheelDown(LONG* ret) {
+	*ret = _bkproc._bkmouse.WheelDown();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WheelUp(LONG* ret) {
+	*ret = _bkproc._bkmouse.WheelUp();
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetKeyState(LONG vk_code, LONG* ret) {
+	*ret = _bkproc._keypad.GetKeyState(vk_code);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyDown(LONG vk_code, LONG* ret) {
+	*ret = _bkproc._keypad.KeyDown(vk_code);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyDownChar(BSTR vk_code, LONG* ret) {
+	auto nlen = ::SysStringLen(vk_code);
+	*ret = nlen > 0 ? _bkproc._keypad.KeyDown(vk_code[0]) : 0;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyUp(LONG vk_code, LONG* ret) {
+	*ret = _bkproc._keypad.KeyUp(vk_code);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyUpChar(BSTR vk_code, LONG* ret) {
+	auto nlen = ::SysStringLen(vk_code);
+	*ret = nlen > 0 ? _bkproc._keypad.KeyUp(vk_code[0]) : 0;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WaitKey(LONG vk_code, LONG time_out, LONG* ret) {
+	if (time_out < 0)time_out = 0;
+	*ret = _bkproc._keypad.WaitKey(vk_code, time_out);
+	return S_OK;
+}
+
+
+
+
+
+
 
 STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
 	long lx=-1, ly=-1;

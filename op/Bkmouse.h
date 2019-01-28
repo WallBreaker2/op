@@ -1,15 +1,46 @@
 #pragma once
 #include "Common.h"
-class Bkmouse
+class bkmouse
 {
 public:
-	Bkmouse();
-	~Bkmouse();
-	long Bind(HWND h,int mode);
-	long UnBind();
-	long MoveTo(int x, int y);
-	long LeftClick();
-	long RightClick();
+	bkmouse();
+	virtual ~bkmouse();
+
+	virtual long Bind(HWND h,int mode);
+
+	virtual long UnBind();
+
+	virtual long GetCursorPos(long&x, long& y);
+
+	virtual long MoveR(int rx, int ry);
+
+	virtual long MoveTo(int x, int y);
+
+	virtual long MoveToEx(int x, int y,int w,int h);
+
+	virtual long LeftClick();
+
+	virtual long LeftDoubleClick();
+
+	virtual long LeftDown();
+
+	virtual long LeftUp();
+
+	virtual long MiddleClick();
+
+	virtual long MiddleDown();
+
+	virtual long MiddleUp();
+
+	virtual long RightClick();
+
+	virtual long RightDown();
+
+	virtual long RightUp();
+
+	virtual long WheelDown();
+
+	virtual long WheelUp();
 private:
 	HWND _hwnd;
 	int _mode;

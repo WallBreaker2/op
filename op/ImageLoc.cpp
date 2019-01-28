@@ -147,6 +147,6 @@ void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
 long ImageExtend::Ocr(Dict& dict, double sim,wstring& ret_str) {
 	ret_str.clear();
 	long ret_val = 0;
-	bin_ocr(_binary, _target, dict, ret_str);
+	bin_ocr(_binary, _target, dict,sim, ret_str);
 	return 1;
 }
