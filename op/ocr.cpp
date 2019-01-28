@@ -188,6 +188,23 @@ inline int full_match(const cv::Mat& binary, rect_t& rc, const word_t::cline_t* 
 	return 1;
 }
 
+inline int part_match(const cv::Mat& binary, rect_t& rc, int max_error, const word_t::cline_t* lines) {
+	//匹配
+	unsigned __int32 sval, wval;
+	int error_ct = 0;
+	for (int x = rc.x1; x < rc.x2; ++x) {
+		wval = lines[x - rc.x1];
+		for (int y = rc.y1, id = 31; y < rc.y2; ++y, --id) {
+			sval = binary.at<uchar>(y, x);
+			if ((sval & 1) == GET_BIT(wval, id))
+				++error_ct;
+			if (error_ct > max_error)
+				return 0;
+		}
+	}
+	return 1;
+}
+
 inline void fill_rect(cv::Mat& record, const rect_t& rc) {
 	//匹配
 	unsigned __int32 val;
@@ -199,7 +216,7 @@ inline void fill_rect(cv::Mat& record, const rect_t& rc) {
 
 }
 
-void bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&outstr) {
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&outstr) {
 	int i, j, x, y, id;
 	//outstr.clear();
 	//给定下一个区
@@ -264,7 +281,69 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict
 
 }
 
-void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, std::wstring& outstr) {
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>&outstr) {
+	int i, j, x, y, id;
+	if (rc.width() <= 0 || rc.height() <= 0)
+		return;
+	//遍历行
+	for (i = rc.y1; i < rc.y2; ++i) {
+		//遍历列
+		for (j = rc.x1; j < rc.x2; ++j) {
+			if (record.at<uchar>(i, j))
+				continue;
+			point_t pt;
+			pt.x = j; pt.y = i;
+			//遍历字库
+			//assert(i != 4 || j != 3);
+			for (auto&it : dict.words) {
+				if (it.info._char[0] == L'\0')
+					continue;
+				rect_t crc;
+				crc.x1 = j; crc.y1 = i;
+				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
+				//边界检查
+				if (crc.y2 > rc.y2 || crc.x2 > rc.x2)
+					continue;
+				//match
+				int max_error = it.info.width*it.info.height*sim;
+				int matched = part_match(binary, crc, max_error, it.clines);
+				if (matched) {
+					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
+					{
+						for (y = crc.y1; y < crc.y2; ++y)
+							if (binary.at<uchar>(y, crc.x2) == 0)
+								break;
+						if (y == crc.y2) {
+							//outstr.append(it.info._char);
+							outstr[pt] = it.info._char;
+							//设置下一个查找区域 分别为右边和下方
+							//右边最先查找，下方最后
+							//右
+							fill_rect(record, crc);
+							//goto __next_y;
+							break;//words
+						}
+
+					}
+					else {
+						outstr[pt] = it.info._char;
+						//
+
+						fill_rect(record, crc);
+						//设置下一个查找区域 只有上方
+						//i = i - it.info.height;
+						break;
+					}
+
+				}
+			}//end for words
+		}//end for j
+	}//end for i
+
+
+}
+
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::wstring& outstr) {
 	std::vector<rect_t> out_y, out_x;
 	outstr.clear();
 	if (dict.words.empty())return;
@@ -275,16 +354,29 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, std::wstr
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
 	rc.x2 = binary.cols; rc.y2 = binary.rows;
-	//qDebug("rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
-
-	//step1. 水平分割
-	//binshadowy(binary, rc, out_y);
-	bin_image_cut(binary, rc, rc);
+	std::vector<rect_t> vrcx, vrcy;
 	std::map<point_t, std::wstring> ms;
-	bin_ocr(binary, record, rc, dict, ms);
-	for (auto&it : ms) {
-		outstr.append(it.second);
+	binshadowy(binary, rc, vrcy);
+	sim = 0.5 + sim / 2;
+	for (auto&ity : vrcy) {
+		binshadowx(binary, ity, vrcx);
+		for (auto&itx : vrcx) {
+			bin_image_cut(binary, itx, itx);
+			ms.clear();
+			if (sim > 1.0 - 1e-5) {
+				_bin_ocr(binary, record, itx, dict, ms);
+			}
+			else {
+				_bin_ocr(binary, record, itx, dict, sim, ms);
+			}
+
+			for (auto&it : ms) {
+				outstr.append(it.second);
+			}
+		}
+
 	}
+
 
 
 }

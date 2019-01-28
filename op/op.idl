@@ -38,7 +38,7 @@ interface IOpInterface : IDispatch
 	[id(4)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
 
 	[id(31)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
-
+	//windows api 50-99
 	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
 	[id(60)] HRESULT EnumProcess([in] BSTR name, [out, retval] BSTR* retstring);
@@ -71,16 +71,46 @@ interface IOpInterface : IDispatch
 	[id(87)] HRESULT SetWindowText([in] LONG hwnd, [in] BSTR title, [out, retval] LONG* nret);
 	[id(88)] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
 	[id(89)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
-	[id(90)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
-	[id(91)] HRESULT LeftClick([out, retval] LONG* ret);
-	[id(92)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
-	[id(93)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
-	[id(94)] HRESULT UnBind([out, retval] LONG* ret);
-	[id(95)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
-	[id(96)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
-	[id(97)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
-	[id(98)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
-	[id(99)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
+	//background 100-119
+	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
+	[id(101)] HRESULT UnBind([out, retval] LONG* ret);
+	//mouse & ketboard 120-149
+	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
+	[id(122)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
+	[id(123)] HRESULT MoveToEx([in] LONG x, [in] LONG y, [in] LONG w, [in] long h, [out, retval] LONG* ret);
+
+	[id(124)] HRESULT LeftClick([out, retval] LONG* ret);
+	[id(125)] HRESULT LeftDoubleClick([out, retval] LONG* ret);
+	[id(126)] HRESULT LeftDown([out, retval] LONG* ret);
+	[id(127)] HRESULT LeftUp([out, retval] LONG* ret);
+
+	[id(128)] HRESULT MiddleClick([out, retval] LONG* ret);
+	[id(129)] HRESULT MiddleDown([out, retval] LONG* ret);
+	[id(130)] HRESULT MiddleUp([out, retval] LONG* ret);
+
+	[id(131)] HRESULT RightClick([out, retval] LONG* ret);
+	[id(132)] HRESULT RightDown([out, retval] LONG* ret);
+	[id(133)] HRESULT RightUp([out, retval] LONG* ret);
+
+	[id(134)] HRESULT WheelDown([out, retval] LONG* ret);
+	[id(135)] HRESULT WheelUp([out, retval] LONG* ret);
+
+	[id(136)] HRESULT GetKeyState([in] LONG vk_code, [out, retval] LONG* ret);
+
+	[id(137)] HRESULT KeyDown([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(138)] HRESULT KeyDownChar([in] BSTR vk_code, [out, retval] LONG* ret);
+	[id(139)] HRESULT KeyUp([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(140)] HRESULT KeyUpChar([in] BSTR vk_code, [out, retval] LONG* ret);
+	[id(141)] HRESULT WaitKey([in] LONG vk_code, [in] LONG time_out, [out, retval] LONG* ret);
+	//image & color 150-199
+	[id(150)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
+	
+	[id(151)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(152)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(153)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(154)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(155)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
 };
 [
 	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),

@@ -143,7 +143,7 @@
       <Filter>Background\Display</Filter>
     </ClCompile>
     <ClCompile Include="ocr.cpp">
-      <Filter>源文件</Filter>
+      <Filter>Algorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -219,14 +219,14 @@
     <ClInclude Include="DX9hook.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
-    <ClInclude Include="ocr.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Dict.h">
       <Filter>Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="Color\color.h">
-      <Filter>头文件</Filter>
+      <Filter>Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="ocr.h">
+      <Filter>Algorithm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
