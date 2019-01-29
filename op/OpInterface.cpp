@@ -15,7 +15,7 @@ HRESULT OpInterface::Ver(BSTR* ret) {
 	static const wchar_t* ver = L"0.2110.x64";
 
 #endif;
-	Tool::setlog("address=%d,str=%s",ver,ver);
+	Tool::setlog("address=%d,str=%s", ver, ver);
 	CComBSTR newstr;
 	newstr.Append(ver);
 	newstr.CopyTo(ret);
@@ -380,10 +380,6 @@ STDMETHODIMP OpInterface::UnBind(LONG* ret) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::Capture(BSTR file_name, LONG* ret) {
-	*ret = _bkproc.Capture(file_name);
-	return S_OK;
-}
 
 STDMETHODIMP OpInterface::GetCursorPos(VARIANT* x, VARIANT* y, LONG* ret) {
 	return S_OK;
@@ -500,44 +496,29 @@ STDMETHODIMP OpInterface::WaitKey(LONG vk_code, LONG time_out, LONG* ret) {
 
 
 
-
-
-
-
-STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, DOUBLE sim, VARIANT* x, VARIANT* y, LONG* ret) {
-	long lx=-1, ly=-1;
-	/*if (_background.GetDisplay() == BACKTYPE::DX)
-		*ret = _background._bkdx9.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
-	else
-		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);*/
-	x->vt = y->vt = VT_I4;
-	x->lVal = lx; y->lVal = ly;
+//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
+STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret) {
+	*ret = _bkproc.Capture(file_name);
 	return S_OK;
 }
+//比较指定坐标点(x,y)的颜色
+STDMETHODIMP OpInterface::CmpColor(LONG x, LONG y, BSTR color, DOUBLE sim, LONG* ret) {
+	//LONG rx = -1, ry = -1;
+	*ret = 0;
+	if (!_bkproc.IsBind())
+		return S_OK;
 
-STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
-	*ret = _image_proc.SetDict(idx, file_name);
+	_bkproc.lock_data();
+	_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		0, 0, _bkproc.get_widht(), _bkproc.get_height(), _bkproc.get_image_type());
+	_bkproc.unlock_data();
+	*ret = _image_proc.CmpColor(x, y, color, sim);
+
 	return S_OK;
 }
-
-STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
-	wstring str;
-	if (_bkproc.IsBind()&&_bkproc.RectConvert(x1, y1, x2, y2)) {
-		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
-			x1, y1, x2, y2, _bkproc.get_image_type());
-		_bkproc.unlock_data();
-		_image_proc.OCR(color, sim, str);
-	}
-	
-	CComBSTR newstr;
-	newstr.Append(str.c_str());
-	newstr.CopyTo(ret_str);
-	return S_OK;
-}
-
-STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret) {
-	LONG rx=-1, ry=-1;
+//查找指定区域内的颜色
+STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret) {
+	LONG rx = -1, ry = -1;
 	*ret = 0;
 	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
@@ -548,7 +529,7 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
-		*ret = _image_proc.FindColor(color, rx, ry);
+		*ret = _image_proc.FindColor(color, sim, dir, rx, ry);
 		if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc._pbkdisplay->_client_x;
@@ -556,20 +537,84 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 		}
 	}
 	x->lVal = rx; y->lVal = ry;
-	
+
 	return S_OK;
 }
+//查找指定区域内的所有颜色
+STDMETHODIMP OpInterface::FindColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG dir, BSTR* retstr) {
+	CComBSTR newstr;
+	if (_bkproc.IsBind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		std::wstring str;
+		_image_proc.FindColoEx(color, sim, dir, str);
+		newstr.Append(str.c_str());
+	}
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+//根据指定的多点查找颜色坐标
+STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret) {
+	LONG rx = -1, ry = -1;
+	*ret = 0;
+	x->vt = y->vt = VT_I4;
+	x->lVal = rx; y->lVal = ry;
+	if (!_bkproc.IsBind())
+		return S_OK;
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.FindMultiColor(first_color, offset_color, sim, dir, rx, ry);
+		if (*ret) {
+			rx += x1; ry += y1;
+			rx -= _bkproc._pbkdisplay->_client_x;
+			ry -= _bkproc._pbkdisplay->_client_y;
+		}
+	}
+	x->lVal = rx; y->lVal = ry;
 
+	return S_OK;
+}
+//根据指定的多点查找所有颜色坐标
+STDMETHODIMP OpInterface::FindMultiColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, BSTR* retstr) {
+	CComBSTR newstr;
+	if (!_bkproc.IsBind())
+		return S_OK;
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		std::wstring str;
+		_image_proc.FindMultiColorEx(first_color, offset_color, sim, dir, str);
+		newstr.Append(str.c_str());
+	}
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+//查找指定区域内的图片
+STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret) {
+	long lx = -1, ly = -1;
+	/*if (_background.GetDisplay() == BACKTYPE::DX)
+		*ret = _background._bkdx9.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
+	else
+		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);*/
+	x->vt = y->vt = VT_I4;
+	x->lVal = lx; y->lVal = ly;
+	return S_OK;
+}
+//查找多个图片
+STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, BSTR* retstr) {
+	return S_OK;
+}
+//获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	static DWORD recent_call = 0;
 	DWORD t = GetTickCount();
-	/*if (t - recent_call > 20) {
-		//刷新
-		recent_call = t;
-		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(), -1);
-		_bkproc.unlock_data();
-	}*/
 	if (!_bkproc.IsBind())
 		return S_OK;
 	x += _bkproc._pbkdisplay->_client_x;
@@ -581,5 +626,28 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
 	newstr.CopyTo(ret);
+	return S_OK;
+}
+
+//----------------------ocr-------------------------
+//
+STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
+	*ret = _image_proc.SetDict(idx, file_name);
+	return S_OK;
+}
+//
+STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
+	wstring str;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		_image_proc.OCR(color, sim, str);
+	}
+
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(ret_str);
 	return S_OK;
 }

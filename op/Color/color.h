@@ -41,5 +41,10 @@ struct color_df_t {
 	//偏色
 	color_t df;
 };
+//坐标-颜色-偏色结构
+struct pt_cr_df_t {
+	int x, y;
+	std::vector<color_df_t> crdfs;
+};
 
 #endif

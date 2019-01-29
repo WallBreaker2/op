@@ -10,6 +10,9 @@ namespace Tool {
 
 	void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c);
 	void split(const std::string& s, std::vector<std::string>& v, const std::string& c);
+
+	void wstring2upper(std::wstring& s);
+	void string2upper(std::string& s);
 };
 #endif // !__TOOL_H_
 

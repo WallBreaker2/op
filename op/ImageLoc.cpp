@@ -102,6 +102,17 @@ long ImageExtend::GetPixel(long x, long y,color_t&cr) {
 	return 1;
 }
 
+long ImageExtend::CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim) {
+	color_t cr;
+	if (GetPixel(x, y, cr)) {
+		for (auto&it : colors) {
+			if (it.color - cr <= it.df)
+				return 1;
+		}
+	}
+	return 0;
+}
+
 long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
@@ -117,6 +128,101 @@ long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	}
 	x = y = -1;
 	return 0;
+}
+
+long ImageExtend::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
+	retstr.clear();
+	int find_ct = 0;
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			for (auto&it : colors) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					retstr += std::to_wstring(j) +L","+std::to_wstring(i);
+					retstr += L"|";
+					++find_ct;
+					//return 1;
+					if (find_ct > _max_return_obj_ct)
+						goto _quick_break;
+					break;
+				}
+			}
+			p += 3;
+		}
+	}
+	_quick_break:
+	if (!retstr.empty() && retstr.back() == L'|')
+		retstr.pop_back();
+	return find_ct;
+}
+
+long ImageExtend::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, long&x, long&y) {
+	int max_err_ct = offset_color.size()*(1. - sim);
+	int err_ct;
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			//step 1. find first color
+			for (auto&it : first_color) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					//匹配其他坐标
+					err_ct = 0;
+					for (auto&off_cr : offset_color) {
+						if (!CmpColor(j + off_cr.x, i + off_cr.y, off_cr.crdfs, sim))
+							++err_ct;
+						if (err_ct > max_err_ct)
+							goto _quick_break;
+					}
+					//ok
+					x = j, y = i;
+					return 1;
+				}
+			}
+			_quick_break:
+			p += 3;
+		}
+	}
+	x = y = -1;
+	return 0;
+}
+
+long ImageExtend::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr) {
+	int max_err_ct = offset_color.size()*(1. - sim);
+	int err_ct;
+	int find_ct = 0;
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			//step 1. find first color
+			for (auto&it : first_color) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					//匹配其他坐标
+					err_ct = 0;
+					for (auto&off_cr : offset_color) {
+						if (!CmpColor(j + off_cr.x, i + off_cr.y, off_cr.crdfs, sim))
+							++err_ct;
+						if (err_ct > max_err_ct)
+							goto _quick_break;
+					}
+					//ok
+					retstr += std::to_wstring(j) + L"," + std::to_wstring(i);
+					retstr += L"|";
+					++find_ct;
+					if (find_ct > _max_return_obj_ct)
+						goto _quick_return;
+					else
+						goto _quick_break;
+				}
+			}
+		_quick_break:
+			p += 3;
+		}
+	}
+_quick_return:
+	if (!retstr.empty() && retstr.back() == L'|')
+		retstr.pop_back();
+	return find_ct;
+	//x = y = -1;
 }
 
 void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
@@ -140,8 +246,8 @@ void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
 		}
 	}
 	//test
-	cv::imwrite("src.png", _src);
-	cv::imwrite("binary.png", _binary);
+	//cv::imwrite("src.png", _src);
+	//cv::imwrite("binary.png", _binary);
 }
 
 long ImageExtend::Ocr(Dict& dict, double sim,wstring& ret_str) {

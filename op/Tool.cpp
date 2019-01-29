@@ -80,3 +80,11 @@ void Tool::split(const std::string& s, std::vector<std::string>& v, const std::s
 	if (pos1 != len)
 		v.emplace_back(s.substr(pos1));
 }
+
+void Tool::wstring2upper(std::wstring& s) {
+	std::transform(s.begin(), s.end(),s.begin(), towupper);
+}
+
+void Tool::string2upper(std::string& s) {
+	std::transform(s.begin(), s.end(), s.begin(), toupper);
+}

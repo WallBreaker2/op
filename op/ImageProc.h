@@ -13,19 +13,38 @@ using std::wstring;
 class ImageProc:public ImageExtend
 {
 public:
-	enum { _max_dicts = 10 };
+	const static int _max_dict = 10;
+	
 	ImageProc();
 	~ImageProc();
-	//图形定位
-	long FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, double sim, long& x, long &y);
 	//
-	long SetDict(int idx,const wstring& file);
-	long UseDict(int idx);
-	long OCR(const wstring& color, double sim, std::wstring& out_str);
-	long FindColor(const wstring& color, long&x, long&y);
+	long Capture(const std::wstring& file);
+
+	long CmpColor(long x, long y, const std::wstring& scolor, double sim);
+
+	long FindColor(const wstring& color,double sim,long dir, long&x, long&y);
+
+	long FindColoEx(const wstring& color, double sim, long dir, wstring& retstr);
+
+	long FindMultiColor(const wstring& first_color,const wstring& offset_color, double sim, long dir, long&x, long&y);
+
+	long FindMultiColorEx(const wstring& first_color, const wstring& offset_color, double sim, long dir, wstring& retstr);
+	//图形定位
+	long FindPic(long x1, long y1, long x2, long y2, const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
+	//
+	long FindPicEx(long x1, long y1, long x2, long y2, const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr);
+
 	std::wstring GetColor(long x, long y);
+
+	long SetDict(int idx,const wstring& file);
+
+	long UseDict(int idx);
+
+	long OCR(const wstring& color, double sim, std::wstring& out_str);
+	
+	
 private:
-	Dict _dicts[_max_dicts];
+	Dict _dicts[_max_dict];
 	Dict* _curr_dict;
 private:
 	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
