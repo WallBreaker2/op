@@ -104,13 +104,22 @@ interface IOpInterface : IDispatch
 	[id(140)] HRESULT KeyUpChar([in] BSTR vk_code, [out, retval] LONG* ret);
 	[id(141)] HRESULT WaitKey([in] LONG vk_code, [in] LONG time_out, [out, retval] LONG* ret);
 	//image & color 150-199
-	[id(150)] HRESULT Capture([in] BSTR file_name, [out, retval] LONG* ret);
+	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);
+	[id(152)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim,[in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(153)] HRESULT FindColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	[id(154)] HRESULT FindMultiColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color,[in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(155)] HRESULT FindMultiColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* ret);
+	[id(156)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(157)] HRESULT FindPicEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	[id(158)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
+
+
+	//ocr 200-230
+	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(201)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
 	
-	[id(151)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] DOUBLE sim, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
-	[id(152)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
-	[id(153)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
-	[id(154)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
-	[id(155)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
+	
 };
 [
 	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),

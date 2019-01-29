@@ -163,15 +163,32 @@ public:
 	STDMETHOD(WaitKey)(LONG vk_code,LONG time_out, LONG* ret);
 
 	//--------------------image and color-----------------------
-	STDMETHOD(Capture)(BSTR file_name, LONG* ret);
-	//
-	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files,DOUBLE sim,VARIANT* x,VARIANT* y,LONG* ret);
-
-	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
-
-	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
-	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, VARIANT* x, VARIANT* y, LONG* ret);
+	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
+	STDMETHOD(Capture)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret);
+	//比较指定坐标点(x,y)的颜色
+	STDMETHOD(CmpColor)(LONG x, LONG y,BSTR color,DOUBLE sim, LONG* ret);
+	//查找指定区域内的颜色
+	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color,DOUBLE sim,LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
+	//查找指定区域内的所有颜色
+	STDMETHOD(FindColorEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,LONG dir, BSTR* retstr);
+	//根据指定的多点查找颜色坐标
+	STDMETHOD(FindMultiColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
+	//根据指定的多点查找所有颜色坐标
+	STDMETHOD(FindMultiColorEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir,BSTR* retstr);
+	//查找指定区域内的图片
+	STDMETHOD(FindPic)(LONG x1,LONG y1,LONG x2,LONG y2,BSTR files, BSTR delta_color,DOUBLE sim,LONG dir,VARIANT* x,VARIANT* y,LONG* ret);
+	//查找多个图片
+	STDMETHOD(FindPicEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir,BSTR* retstr);
+	//获取(x,y)的颜色
 	STDMETHOD(GetColor)(LONG x, LONG y, BSTR* ret);
+
+	//----------------------ocr-------------------------
+	//
+	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
+	//
+	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
+	//
+	
 
 };
 
