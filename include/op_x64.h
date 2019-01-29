@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for C:\Users\wall\AppData\Local\Temp\IDLE17F.tmp:
+/* Compiler settings for C:\Users\wall\AppData\Local\Temp\IDL1259.tmp:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -568,8 +568,65 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ long *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE Capture( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
             /* [in] */ BSTR file_name,
             /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CmpColor( 
+            /* [in] */ long x,
+            /* [in] */ long y,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindColor( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [out] */ VARIANT *x,
+            /* [out] */ VARIANT *y,
+            /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindColorEx( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindMultiColor( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR first_color,
+            /* [in] */ BSTR offset_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [out] */ VARIANT *x,
+            /* [out] */ VARIANT *y,
+            /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindMultiColorEx( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR first_color,
+            /* [in] */ BSTR offset_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindPic( 
             /* [in] */ long x1,
@@ -577,10 +634,28 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ long x2,
             /* [in] */ long y2,
             /* [in] */ BSTR files,
+            /* [in] */ BSTR delta_color,
             /* [in] */ double sim,
+            /* [in] */ long dir,
             /* [out] */ VARIANT *x,
             /* [out] */ VARIANT *y,
             /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindPicEx( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR files,
+            /* [in] */ BSTR delta_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetColor( 
+            /* [in] */ long x,
+            /* [in] */ long y,
+            /* [retval][out] */ BSTR *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDict( 
             /* [in] */ long idx,
@@ -595,21 +670,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR color,
             /* [in] */ double sim,
             /* [retval][out] */ BSTR *ret_str) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindColor( 
-            /* [in] */ long x1,
-            /* [in] */ long y1,
-            /* [in] */ long x2,
-            /* [in] */ long y2,
-            /* [in] */ BSTR color,
-            /* [out] */ VARIANT *x,
-            /* [out] */ VARIANT *y,
-            /* [retval][out] */ long *ret) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetColor( 
-            /* [in] */ long x,
-            /* [in] */ long y,
-            /* [retval][out] */ BSTR *ret) = 0;
         
     };
     
@@ -1010,8 +1070,70 @@ EXTERN_C const IID IID_IOpInterface;
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *Capture )( 
             IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
             /* [in] */ BSTR file_name,
             /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CmpColor )( 
+            IOpInterface * This,
+            /* [in] */ long x,
+            /* [in] */ long y,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindColor )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [out] */ VARIANT *x,
+            /* [out] */ VARIANT *y,
+            /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindColorEx )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *retstr);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindMultiColor )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR first_color,
+            /* [in] */ BSTR offset_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [out] */ VARIANT *x,
+            /* [out] */ VARIANT *y,
+            /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindMultiColorEx )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR first_color,
+            /* [in] */ BSTR offset_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *ret);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindPic )( 
             IOpInterface * This,
@@ -1020,10 +1142,30 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ long x2,
             /* [in] */ long y2,
             /* [in] */ BSTR files,
+            /* [in] */ BSTR delta_color,
             /* [in] */ double sim,
+            /* [in] */ long dir,
             /* [out] */ VARIANT *x,
             /* [out] */ VARIANT *y,
             /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindPicEx )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR files,
+            /* [in] */ BSTR delta_color,
+            /* [in] */ double sim,
+            /* [in] */ long dir,
+            /* [retval][out] */ BSTR *retstr);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetColor )( 
+            IOpInterface * This,
+            /* [in] */ long x,
+            /* [in] */ long y,
+            /* [retval][out] */ BSTR *ret);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetDict )( 
             IOpInterface * This,
@@ -1040,23 +1182,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR color,
             /* [in] */ double sim,
             /* [retval][out] */ BSTR *ret_str);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindColor )( 
-            IOpInterface * This,
-            /* [in] */ long x1,
-            /* [in] */ long y1,
-            /* [in] */ long x2,
-            /* [in] */ long y2,
-            /* [in] */ BSTR color,
-            /* [out] */ VARIANT *x,
-            /* [out] */ VARIANT *y,
-            /* [retval][out] */ long *ret);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetColor )( 
-            IOpInterface * This,
-            /* [in] */ long x,
-            /* [in] */ long y,
-            /* [retval][out] */ BSTR *ret);
         
         END_INTERFACE
     } IOpInterfaceVtbl;
@@ -1277,23 +1402,38 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_WaitKey(This,vk_code,time_out,ret)	\
     ( (This)->lpVtbl -> WaitKey(This,vk_code,time_out,ret) ) 
 
-#define IOpInterface_Capture(This,file_name,ret)	\
-    ( (This)->lpVtbl -> Capture(This,file_name,ret) ) 
+#define IOpInterface_Capture(This,x1,y1,x2,y2,file_name,ret)	\
+    ( (This)->lpVtbl -> Capture(This,x1,y1,x2,y2,file_name,ret) ) 
 
-#define IOpInterface_FindPic(This,x1,y1,x2,y2,files,sim,x,y,ret)	\
-    ( (This)->lpVtbl -> FindPic(This,x1,y1,x2,y2,files,sim,x,y,ret) ) 
+#define IOpInterface_CmpColor(This,x,y,color,sim,ret)	\
+    ( (This)->lpVtbl -> CmpColor(This,x,y,color,sim,ret) ) 
+
+#define IOpInterface_FindColor(This,x1,y1,x2,y2,color,sim,dir,x,y,ret)	\
+    ( (This)->lpVtbl -> FindColor(This,x1,y1,x2,y2,color,sim,dir,x,y,ret) ) 
+
+#define IOpInterface_FindColorEx(This,x1,y1,x2,y2,color,sim,dir,retstr)	\
+    ( (This)->lpVtbl -> FindColorEx(This,x1,y1,x2,y2,color,sim,dir,retstr) ) 
+
+#define IOpInterface_FindMultiColor(This,x1,y1,x2,y2,first_color,offset_color,sim,dir,x,y,ret)	\
+    ( (This)->lpVtbl -> FindMultiColor(This,x1,y1,x2,y2,first_color,offset_color,sim,dir,x,y,ret) ) 
+
+#define IOpInterface_FindMultiColorEx(This,x1,y1,x2,y2,first_color,offset_color,sim,dir,ret)	\
+    ( (This)->lpVtbl -> FindMultiColorEx(This,x1,y1,x2,y2,first_color,offset_color,sim,dir,ret) ) 
+
+#define IOpInterface_FindPic(This,x1,y1,x2,y2,files,delta_color,sim,dir,x,y,ret)	\
+    ( (This)->lpVtbl -> FindPic(This,x1,y1,x2,y2,files,delta_color,sim,dir,x,y,ret) ) 
+
+#define IOpInterface_FindPicEx(This,x1,y1,x2,y2,files,delta_color,sim,dir,retstr)	\
+    ( (This)->lpVtbl -> FindPicEx(This,x1,y1,x2,y2,files,delta_color,sim,dir,retstr) ) 
+
+#define IOpInterface_GetColor(This,x,y,ret)	\
+    ( (This)->lpVtbl -> GetColor(This,x,y,ret) ) 
 
 #define IOpInterface_SetDict(This,idx,file_name,ret)	\
     ( (This)->lpVtbl -> SetDict(This,idx,file_name,ret) ) 
 
 #define IOpInterface_Ocr(This,x1,y1,x2,y2,color,sim,ret_str)	\
     ( (This)->lpVtbl -> Ocr(This,x1,y1,x2,y2,color,sim,ret_str) ) 
-
-#define IOpInterface_FindColor(This,x1,y1,x2,y2,color,x,y,ret)	\
-    ( (This)->lpVtbl -> FindColor(This,x1,y1,x2,y2,color,x,y,ret) ) 
-
-#define IOpInterface_GetColor(This,x,y,ret)	\
-    ( (This)->lpVtbl -> GetColor(This,x,y,ret) ) 
 
 #endif /* COBJMACROS */
 

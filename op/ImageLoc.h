@@ -36,7 +36,7 @@ class ImageExtend
 public:
 	template<typename T>
 	static int get_bit_count(T x);
-
+	const static int _max_return_obj_ct = 1800;
 
 	ImageExtend();
 
@@ -61,7 +61,17 @@ public:
 
 	long GetPixel(long x, long y, color_t&cr);
 
+	long CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim);
+
 	long FindColor(std::vector<color_df_t>&colors, long&x, long&y);
+
+	long FindColorEx(std::vector<color_df_t>&colors, std::wstring& retstr);
+
+	long FindMultiColor(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, long&x, long&y);
+
+	long FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr);
+
+
 	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
@@ -69,11 +79,12 @@ public:
 	*/
 	void bgr2binary(vector<color_df_t>& colors);
 	
-private:
+public:
 	cv::Mat _src;
 	cv::Mat _target;
 	cv::Mat _binary;
 	cv::Mat _result;
+	
 private:
 	
 	
