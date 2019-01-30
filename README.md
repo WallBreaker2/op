@@ -1,30 +1,38 @@
 OP
 ===========
-OP(operator & open)项目基于BSD开源协议,任何个人和商业均可免费使用.主要特点:Windows消息模拟,应用程序截图，简单图像识别(S-IM),简单字符识别(S-OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll(com插件).可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)
+OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Windows消息模拟,后台截图，图像识别,字符识别(OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll.可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)
 
 
 
 ***
-## 目录
+## Overview
 * [Windows消息模拟](#Windows消息模拟)
-* [应用程序截图](#应用程序截图)
+* [后台截图](#后台截图)
 * [简单图像识别](#简单图像识别)
-* [演示Demo](#演示Demo)
+* [演示Demo(Python)](#演示Demo)
 * [3rdpart-Lib](#3rdpart-Lib)
 * [Reference](#Reference)
 
+## Download
+包含32位和64位插件，tool工具以及必要的第三方库等文件  
+下载地址：[https://github.com/WallBreaker2/op/releases](https://github.com/WallBreaker2/op/releases)
 
-### Windows消息模拟
+## Usage(用法)  
+所有函数说明以及Demo可在以下链接中获得  
+[op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)
+
+
+#### Windows消息模拟
 ---
 支持全局模式（normal)和Windows模式(windows)
 
-### 应用程序截图
+#### 后台截图
 ---
-前台,gdi后台,dx后台
-### 简单图像识别
+前台,gdi后台,dx后台，opengl后台
+#### 简单图像识别
 ---
-图像定位,OCR,支持多色  
-### 演示Demo  
+图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别
+#### 演示Demo  
 ---
 ```Python
 
