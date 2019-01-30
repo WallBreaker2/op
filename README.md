@@ -13,7 +13,13 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 * [3rdpart-Lib](#3rdpart-Lib)
 * [Reference](#Reference)
 
-## [Download](https://github.com/WallBreaker2/op/releases)
+## Download
+包含32位和64位插件，tool工具以及必要的第三方库等文件  
+下载地址：[https://github.com/WallBreaker2/op/releases](https://github.com/WallBreaker2/op/releases)
+
+## Usage(用法)  
+所有函数说明以及Demo可在以下链接中获得
+链接
 
 
 #### Windows消息模拟
