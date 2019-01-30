@@ -248,7 +248,7 @@
    <widget class="QPushButton" name="pushButton_4">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>130</x>
       <y>250</y>
       <width>75</width>
       <height>23</height>
@@ -261,7 +261,7 @@
    <widget class="QPushButton" name="pushButton_5">
     <property name="geometry">
      <rect>
-      <x>150</x>
+      <x>220</x>
       <y>250</y>
       <width>75</width>
       <height>23</height>
@@ -369,6 +369,19 @@
       <width>281</width>
       <height>20</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>250</y>
+      <width>81</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>自动(无色)</string>
     </property>
    </widget>
   </widget>

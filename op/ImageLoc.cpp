@@ -80,6 +80,25 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 	//cv::imwrite("binary.png", _binary);
 }
 
+//¶þÖµ»¯
+void ImageBase::graytobinary()
+{
+	cv::cvtColor(_src, _target, CV_BGR2GRAY);
+	auto mval = cv::mean(_target);
+	int c1 = WORD_COLOR, c2 = WORD_BKCOLOR;
+	// black bk
+	if (mval[0] < 128) std::swap(c1, c2);
+
+	_binary.create(_target.size(), CV_8UC1);
+	for (int i = 0; i < _target.rows; ++i) {
+		auto p1 = _target.ptr<uchar>(i);
+		auto p2 = _binary.ptr<uchar>(i);
+		for (int j = 0; j < _target.cols; ++j) {
+			p2[j] = (p1[j] < 128 ? c1 : c2);
+		}
+	}
+}
+
 long ImageBase::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;

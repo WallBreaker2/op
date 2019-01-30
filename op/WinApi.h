@@ -1,5 +1,7 @@
 #pragma once
-
+#ifndef __WINAPI_H_
+#define __WINAPI_JH_
+#include "Common.h"
 class WinApi
 {
 public:
@@ -31,6 +33,8 @@ public:
 	bool SetWindowTransparent(LONG hwnd, LONG trans);
 	bool SetClipboard(wchar_t *values);
 	bool GetClipboard(wchar_t *retstr);
+	//2019.1
+	long SendString(HWND hwnd, const wstring& str);
 private:
 	DWORD  FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);
@@ -42,3 +46,6 @@ private:
 
 
 };
+
+
+#endif

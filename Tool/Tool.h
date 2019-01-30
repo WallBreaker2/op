@@ -80,6 +80,7 @@ public:
 	void on_state_changed(int st);
 	void mouseMoveEvent(QMouseEvent* event);
 	void on_slider();
+	void on_auto(bool checked = false);
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;

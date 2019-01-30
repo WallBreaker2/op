@@ -73,7 +73,7 @@ interface IOpInterface : IDispatch
 	[id(89)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
 	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
-	[id(101)] HRESULT UnBind([out, retval] LONG* ret);
+	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
 	//mouse & ketboard 120-149
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
@@ -122,6 +122,7 @@ interface IOpInterface : IDispatch
 	[id(203)] HRESULT OcrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
 	[id(204)] HRESULT FindStr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out] VARIANT* retx, [out] VARIANT* rety, [out, retval]LONG* ret);
 	[id(205)] HRESULT FindStrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(206)] HRESULT OcrAuto([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	
 	
 };

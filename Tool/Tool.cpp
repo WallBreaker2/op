@@ -52,6 +52,7 @@ Tool::Tool(QWidget *parent)
 	QObject::connect(ui.lineEdit, &QLineEdit::editingFinished, this, &Tool::edit_enter);
 	QObject::connect(ui.pushButton_6, &QPushButton::clicked, this, &Tool::del_word);
 	QObject::connect(ui.horizontalSlider, &QSlider::sliderReleased, this, &Tool::on_slider);
+	QObject::connect(ui.checkBox, &QCheckBox::clicked, this, &Tool::on_auto);
 
 }
 void Tool::paintEvent(QPaintEvent* event) {
@@ -131,32 +132,38 @@ void Tool::to_binary() {
 	if (_src.empty())
 		return;
 	int ncols = _src.cols, nrows = _src.rows;
-	_binary.create(nrows, ncols, CV_8UC1);
-	std::vector<color_df_t> colors;
-	for (int i = 0; i < 10; ++i) {
-		if (_checkbox[i]->isChecked())
-			colors.push_back(_color_info[i]);
-	}
-	for (int i = 0; i < nrows; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
-		uchar* p2 = _binary.ptr<uchar>(i);
-		for (int j = 0; j < ncols; ++j) {
-			*p2 = 0xff;
-			for (auto&it : colors) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
-					*p2 = 0;
-					break;
+	cv::cvtColor(_src, _gray, CV_BGR2GRAY);
+	if (ui.checkBox->isChecked())
+		graytobinary(_gray, _binary);
+	else {
+		_binary.create(nrows, ncols, CV_8UC1);
+		std::vector<color_df_t> colors;
+		for (int i = 0; i < 10; ++i) {
+			if (_checkbox[i]->isChecked())
+				colors.push_back(_color_info[i]);
+		}
+		for (int i = 0; i < nrows; ++i) {
+			uchar* p = _src.ptr<uchar>(i);
+			uchar* p2 = _binary.ptr<uchar>(i);
+			for (int j = 0; j < ncols; ++j) {
+				*p2 = 0xff;
+				for (auto&it : colors) {//对每个颜色描述
+					if ((*(color_t*)p - it.color) <= it.df) {
+						*p2 = 0;
+						break;
+					}
 				}
+				++p2;
+				p += 3;
 			}
-			++p2;
-			p += 3;
 		}
 	}
+	
 	cv::imwrite("binary.png", _binary);
 	_qbinary.load("binary.png");
 	ui.label_4->setPixmap(QPixmap::fromImage(_qbinary));
 	std::wstring ss;
-	bin_ocr(_binary, _record, _dict,0.95, ss);
+	bin_ocr(_binary, _record, _dict,_ocr_sim, ss);
 	ui.textEdit->setText(QString::fromStdWString(ss));
 }
 
@@ -487,4 +494,8 @@ void Tool::on_slider() {
 	std::wstring ss;
 	bin_ocr(_binary, _record, _dict, _ocr_sim, ss);
 	ui.textEdit->setText(QString::fromStdWString(ss));
+}
+
+void Tool::on_auto(bool checked) {
+	to_binary();
 }

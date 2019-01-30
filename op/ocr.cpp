@@ -4,19 +4,7 @@
 #include <list>
 #include "ocr.h"
 using cv::Mat;
-//积分二值化
-void thresholdIntegral(const Mat& inputMat, Mat& outputMat)
-{
 
-	outputMat.create(inputMat.size(), CV_8UC1);
-	for (int i = 0; i < inputMat.rows; ++i) {
-		auto p1 = inputMat.ptr<uchar>(i);
-		auto p2 = outputMat.ptr<uchar>(i);
-		for (int j = 0; j < inputMat.cols; ++j) {
-			p2[j] = (p1[j] < 128 ? 0 : 255);
-		}
-	}
-}
 //垂直方向投影
 void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_put)
 {
@@ -233,8 +221,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 			//遍历字库
 			//assert(i != 4 || j != 3);
 			for (auto&it : dict.words) {
-				if (it.info._char[0] == L'\0')
-					continue;
+				
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
@@ -295,8 +282,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 			//遍历字库
 			//assert(i != 4 || j != 3);
 			for (auto&it : dict.words) {
-				if (it.info._char[0] == L'\0')
-					continue;
+				
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;

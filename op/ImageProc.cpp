@@ -6,7 +6,7 @@
 #include <algorithm>
 ImageProc::ImageProc()
 {
-	_curr_dict = _dicts;
+	_curr_idx = 0;
 }
 
 
@@ -108,7 +108,7 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 long ImageProc::UseDict(int idx) {
 	if (idx < 0 || idx >= _max_dict)
 		return 0;
-	_curr_dict = &_dicts[idx];
+	_curr_idx = idx;
 	return 1;
 }
 
@@ -122,7 +122,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 	long s;
 	ImageBase::bgr2binary(colors);
 
-	s = ImageBase::Ocr(*_curr_dict, sim, out_str);
+	s = ImageBase::Ocr(_dicts[_curr_idx], sim, out_str);
 	return s;
 
 }
@@ -159,7 +159,7 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& out_str) {
 	if (sim<0. || sim>1.)
 		sim = 1.;
 	ImageBase::bgr2binary(colors);
-	return ImageBase::OcrEx(*_curr_dict, sim, out_str);
+	return ImageBase::OcrEx(_dicts[_curr_idx], sim, out_str);
 }
 
 long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, long& retx, long& rety) {
@@ -170,7 +170,7 @@ long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, lo
 	if (sim<0. || sim>1.)
 		sim = 1.;
 	ImageBase::bgr2binary(colors);
-	return ImageBase::FindStr(*_curr_dict, vstr, sim, retx, rety);
+	return ImageBase::FindStr(_dicts[_curr_idx], vstr, sim, retx, rety);
 }
 
 long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str) {
@@ -182,5 +182,14 @@ long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, 
 	if (sim<0. || sim>1.)
 		sim = 1.;
 	ImageBase::bgr2binary(colors);
-	return ImageBase::FindStrEx(*_curr_dict, vstr, sim, out_str);
+	return ImageBase::FindStrEx(_dicts[_curr_idx], vstr, sim, out_str);
+}
+
+long ImageProc::OcrAuto(double sim, std::wstring& retstr) {
+	retstr.clear();
+	
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	ImageBase::graytobinary();
+	return ImageBase::Ocr(_dicts[_curr_idx], sim,retstr);
 }
