@@ -36,6 +36,8 @@ class ImageBase
 public:
 	template<typename T>
 	static int get_bit_count(T x);
+
+	
 	const static int _max_return_obj_ct = 1800;
 
 	ImageBase();
@@ -57,6 +59,9 @@ public:
 	else pixel=0;
 	*/
 	void bgr2binary(vector<color_df_t>& colors);
+
+	//二值化 auto
+	void graytobinary();
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.

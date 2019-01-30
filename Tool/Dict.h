@@ -79,6 +79,14 @@ struct Dict {
 		file.open(s, std::ios::out | std::ios::binary);
 		if (!file.is_open())
 			return;
+		//删除所有空的字符
+		auto it = words.begin();
+		while (it != words.end()) {
+			if (it->info._char[0] == L'\0')
+				it = words.erase(it);
+			else
+				++it;
+		}
 		//设置校验
 		info._check_code = info._this_ver^info._word_count;
 		//写入信息

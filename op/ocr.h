@@ -18,8 +18,6 @@ struct point_t {
 	}
 };
 
-//积分二值化
-void thresholdIntegral(const cv::Mat& inputMat, cv::Mat& outputMat);
 //垂直方向投影(x)轴
 void binshadowx(const cv::Mat& binary, const rect_t& rc, std::vector<rect_t>& out_put);
 //水平方向投影(y)轴

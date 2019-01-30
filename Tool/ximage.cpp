@@ -12,15 +12,21 @@ const unsigned __int32 MASK32[] = {
 	1u << 24,1u << 25,1u << 26,1u << 27,1u << 28,1u << 29,1u << 30,1u << 31,
 };
 //积分二值化
-void thresholdIntegral(const Mat& inputMat, Mat& outputMat)
+void graytobinary(const Mat& _target, Mat& _binary)
 {
 
-	outputMat.create(inputMat.size(), CV_8UC1);
-	for (int i = 0; i < inputMat.rows; ++i) {
-		auto p1 = inputMat.ptr<uchar>(i);
-		auto p2 = outputMat.ptr<uchar>(i);
-		for (int j = 0; j < inputMat.cols; ++j) {
-			p2[j] = (p1[j] < 128 ? 0 : 255);
+	//cv::cvtColor(_src, _target, CV_BGR2GRAY);
+	auto mval = cv::mean(_target);
+	int c1 = 0, c2 = 255;
+	// black bk
+	if (mval[0] < 128) std::swap(c1, c2);
+
+	_binary.create(_target.size(), CV_8UC1);
+	for (int i = 0; i < _target.rows; ++i) {
+		auto p1 = _target.ptr<uchar>(i);
+		auto p2 = _binary.ptr<uchar>(i);
+		for (int j = 0; j < _target.cols; ++j) {
+			p2[j] = (p1[j] < 128 ? c1 : c2);
 		}
 	}
 }

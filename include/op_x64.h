@@ -6,7 +6,7 @@
  /* File created by MIDL compiler version 8.01.0622 */
 /* at Tue Jan 19 11:14:07 2038
  */
-/* Compiler settings for C:\Users\wall\AppData\Local\Temp\IDL1259.tmp:
+/* Compiler settings for C:\Users\wall\AppData\Local\Temp\IDL87BA.tmp:
     Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
@@ -662,11 +662,46 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR file_name,
             /* [retval][out] */ long *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE UseDict( 
+            /* [in] */ long idx,
+            /* [retval][out] */ long *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE Ocr( 
             /* [in] */ long x1,
             /* [in] */ long y1,
             /* [in] */ long x2,
             /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ BSTR *ret_str) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE OcrEx( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ BSTR *ret_str) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindStr( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR str,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [out] */ VARIANT *retx,
+            /* [out] */ VARIANT *rety,
+            /* [retval][out] */ long *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindStrEx( 
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR str,
             /* [in] */ BSTR color,
             /* [in] */ double sim,
             /* [retval][out] */ BSTR *ret_str) = 0;
@@ -1173,12 +1208,51 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR file_name,
             /* [retval][out] */ long *ret);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *UseDict )( 
+            IOpInterface * This,
+            /* [in] */ long idx,
+            /* [retval][out] */ long *ret);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *Ocr )( 
             IOpInterface * This,
             /* [in] */ long x1,
             /* [in] */ long y1,
             /* [in] */ long x2,
             /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ BSTR *ret_str);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *OcrEx )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [retval][out] */ BSTR *ret_str);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindStr )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR str,
+            /* [in] */ BSTR color,
+            /* [in] */ double sim,
+            /* [out] */ VARIANT *retx,
+            /* [out] */ VARIANT *rety,
+            /* [retval][out] */ long *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindStrEx )( 
+            IOpInterface * This,
+            /* [in] */ long x1,
+            /* [in] */ long y1,
+            /* [in] */ long x2,
+            /* [in] */ long y2,
+            /* [in] */ BSTR str,
             /* [in] */ BSTR color,
             /* [in] */ double sim,
             /* [retval][out] */ BSTR *ret_str);
@@ -1432,8 +1506,20 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_SetDict(This,idx,file_name,ret)	\
     ( (This)->lpVtbl -> SetDict(This,idx,file_name,ret) ) 
 
+#define IOpInterface_UseDict(This,idx,ret)	\
+    ( (This)->lpVtbl -> UseDict(This,idx,ret) ) 
+
 #define IOpInterface_Ocr(This,x1,y1,x2,y2,color,sim,ret_str)	\
     ( (This)->lpVtbl -> Ocr(This,x1,y1,x2,y2,color,sim,ret_str) ) 
+
+#define IOpInterface_OcrEx(This,x1,y1,x2,y2,color,sim,ret_str)	\
+    ( (This)->lpVtbl -> OcrEx(This,x1,y1,x2,y2,color,sim,ret_str) ) 
+
+#define IOpInterface_FindStr(This,x1,y1,x2,y2,str,color,sim,retx,rety,ret)	\
+    ( (This)->lpVtbl -> FindStr(This,x1,y1,x2,y2,str,color,sim,retx,rety,ret) ) 
+
+#define IOpInterface_FindStrEx(This,x1,y1,x2,y2,str,color,sim,ret_str)	\
+    ( (This)->lpVtbl -> FindStrEx(This,x1,y1,x2,y2,str,color,sim,ret_str) ) 
 
 #endif /* COBJMACROS */
 
