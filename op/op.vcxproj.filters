@@ -74,6 +74,9 @@
     <Filter Include="Background\Display\Opengl">
       <UniqueIdentifier>{d90dcf60-8f13-4aac-8dc0-c7c1ebe92950}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Algorithm\Bit">
+      <UniqueIdentifier>{4b0c3175-3ca6-4736-ba45-3d277e788b5b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -227,6 +230,9 @@
     </ClInclude>
     <ClInclude Include="ocr.h">
       <Filter>Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="bitfunc.h">
+      <Filter>Algorithm\Bit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
