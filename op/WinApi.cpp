@@ -3289,3 +3289,13 @@ bool WinApi::GetClipboard(wchar_t *retstr)
 
 	return bret;
 }
+
+long WinApi::SendString(HWND hwnd, const wstring& s) {
+	if (::IsWindow(hwnd)) {
+		for (int i = 0; i < s.length(); ++i) {
+			::PostMessage(hwnd, WM_CHAR, s[i], 0);
+			::Sleep(5);
+		}
+	}
+	return 0;
+}

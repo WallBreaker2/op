@@ -75,37 +75,70 @@ public:
 	//Process
 	//inject dll
 	STDMETHOD(InjectDll)(BSTR process_name,BSTR dll_name, LONG* ret);
-	//WIN API
+	//--------------------windows api------------------------------
+	//根据指定条件,枚举系统中符合条件的窗口
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);
+	//根据指定进程以及其它条件,枚举系统中符合条件的窗口
 	STDMETHOD(EnumWindowByProcess)(BSTR process_name, BSTR title, BSTR class_name, LONG filter, BSTR* retstring);
+	//根据指定进程名,枚举系统中符合条件的进程PID
 	STDMETHOD(EnumProcess)(BSTR name, BSTR* retstring);
+	//把窗口坐标转换为屏幕坐标
 	STDMETHOD(ClientToScreen)(LONG ClientToScreen, VARIANT* x, VARIANT* y, LONG* bret);
+	//查找符合类名或者标题名的顶层可见窗口
 	STDMETHOD(FindWindow)(BSTR class_name, BSTR title, LONG* rethwnd);
+	//根据指定的进程名字，来查找可见窗口
 	STDMETHOD(FindWindowByProcess)(BSTR process_name, BSTR class_name, BSTR title, LONG* rethwnd);
+	//根据指定的进程Id，来查找可见窗口
 	STDMETHOD(FindWindowByProcessId)(LONG process_id, BSTR class_name, BSTR title, LONG* rethwnd);
+	//查找符合类名或者标题名的顶层可见窗口,如果指定了parent,则在parent的第一层子窗口中查找
 	STDMETHOD(FindWindowEx)(LONG parent, BSTR class_name, BSTR title, LONG* rethwnd);
+	//获取窗口客户区域在屏幕上的位置
 	STDMETHOD(GetClientRect)(LONG hwnd, VARIANT* x1, VARIANT* y1, VARIANT* x2, VARIANT* y2, LONG* nret);
+	//获取窗口客户区域的宽度和高度
 	STDMETHOD(GetClientSize)(LONG hwnd, VARIANT* width, VARIANT* height, LONG* nret);
+	//获取顶层活动窗口中具有输入焦点的窗口句柄
 	STDMETHOD(GetForegroundFocus)(LONG* rethwnd);
+	//获取顶层活动窗口,可以获取到按键自带插件无法获取到的句柄
 	STDMETHOD(GetForegroundWindow)(LONG* rethwnd);
+	//获取鼠标指向的可见窗口句柄
 	STDMETHOD(GetMousePointWindow)(LONG* rethwnd);
+	//获取给定坐标的可见窗口句柄
 	STDMETHOD(GetPointWindow)(LONG x, LONG y, LONG* rethwnd);
+	//根据指定的pid获取进程详细信息
 	STDMETHOD(GetProcessInfo)(LONG pid, BSTR* retstring);
+	//获取特殊窗口
 	STDMETHOD(GetSpecialWindow)(LONG flag, LONG* rethwnd);
+	//获取给定窗口相关的窗口句柄
 	STDMETHOD(GetWindow)(LONG hwnd, LONG flag, LONG* nret);
+	//获取窗口的类名
 	STDMETHOD(GetWindowClass)(LONG hwnd, BSTR* retstring);
+	//获取指定窗口所在的进程ID
 	STDMETHOD(GetWindowProcessId)(LONG hwnd, LONG* nretpid);
+	//获取指定窗口所在的进程的exe文件全路径
 	STDMETHOD(GetWindowProcessPath)(LONG hwnd, BSTR* retstring);
+	//获取窗口在屏幕上的位置
 	STDMETHOD(GetWindowRect)(LONG hwnd, VARIANT* x1, VARIANT* y1, VARIANT* x2, VARIANT* y2, LONG* nret);
+	//获取指定窗口的一些属性
 	STDMETHOD(GetWindowState)(LONG hwnd, LONG flag, LONG* rethwnd);
+	//获取窗口的标题
 	STDMETHOD(GetWindowTitle)(LONG hwnd, BSTR* rettitle);
+	//移动指定窗口到指定位置
 	STDMETHOD(MoveWindow)(LONG hwnd, LONG x, LONG y, LONG* nret);
+	//把屏幕坐标转换为窗口坐标
 	STDMETHOD(ScreenToClient)(LONG hwnd, VARIANT* x, VARIANT* y, LONG* nret);
+	//向指定窗口发送粘贴命令
 	STDMETHOD(SendPaste)(LONG hwnd, LONG* nret);
+	//向指定窗口发送文本数据
+	STDMETHOD(SendString)(LONG hwnd, BSTR str, LONG* ret);
+	//设置窗口客户区域的宽度和高度
 	STDMETHOD(SetClientSize)(LONG hwnd, LONG width, LONG hight, LONG* nret);
+	//设置窗口的状态
 	STDMETHOD(SetWindowState)(LONG hwnd, LONG flag, LONG* nret);
+	//设置窗口的大小
 	STDMETHOD(SetWindowSize)(LONG hwnd, LONG width, LONG height, LONG* nret);
+	//设置窗口的标题
 	STDMETHOD(SetWindowText)(LONG hwnd, BSTR title, LONG* nret);
+	//设置窗口的透明度
 	STDMETHOD(SetWindowTransparent)(LONG hwnd, LONG trans, LONG* nret);
 
 	//cmd
@@ -115,7 +148,7 @@ public:
 	//bind window and beign capture screen
 	STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode,LONG *ret);
 	//
-	STDMETHOD(UnBind)(LONG* ret);
+	STDMETHOD(UnBindWindow)(LONG* ret);
 	//--------------------mouse & keyboard------------------
 	//获取鼠标位置.
 	STDMETHOD(GetCursorPos)(VARIANT* x, VARIANT* y, LONG* ret);
@@ -195,6 +228,8 @@ public:
 	STDMETHOD(FindStr)(LONG x1, LONG y1, LONG x2, LONG y2,BSTR strs, BSTR color, DOUBLE sim, VARIANT* retx,VARIANT* rety,LONG* ret);
 	//返回符合color_format的所有坐标位置
 	STDMETHOD(FindStrEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim,BSTR* retstr);
+	//识别屏幕范围(x1,y1,x2,y2)内的字符串,自动二值化，而无需指定颜色
+	STDMETHOD(OcrAuto)(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim, BSTR* ret_str);
 	
 
 };

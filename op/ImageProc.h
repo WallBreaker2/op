@@ -47,11 +47,13 @@ public:
 	long FindStr(const wstring& str, const wstring& color, double sim, long& retx,long& rety);
 
 	long FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str);
+
+	long OcrAuto(double sim, std::wstring& retstr);
 	
 	
 private:
 	Dict _dicts[_max_dict];
-	Dict* _curr_dict;
+	int _curr_idx;
 private:
 	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
 };

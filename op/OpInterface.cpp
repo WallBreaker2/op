@@ -322,6 +322,11 @@ STDMETHODIMP OpInterface::SendPaste(LONG hwnd, LONG* nret)
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::SendString(LONG hwnd, BSTR str, LONG* ret){
+	*ret = _winapi.SendString((HWND)hwnd, str);
+	return S_OK;
+}
+
 STDMETHODIMP OpInterface::SetClientSize(LONG hwnd, LONG width, LONG hight, LONG* nret)
 {
 	// TODO: 在此添加实现代码
@@ -375,7 +380,7 @@ STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR k
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::UnBind(LONG* ret) {
+STDMETHODIMP OpInterface::UnBindWindow(LONG* ret) {
 	*ret = _bkproc.UnBindWindow();
 	return S_OK;
 }
@@ -697,6 +702,22 @@ STDMETHODIMP OpInterface::FindStrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR str
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		_image_proc.FindStrEx(strs, color, sim, str);
+	}
+
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::OcrAuto(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim, BSTR* retstr) {
+	wstring str;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		_image_proc.OcrAuto(sim, str);
 	}
 
 	CComBSTR newstr;

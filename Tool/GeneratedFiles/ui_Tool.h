@@ -13,6 +13,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
@@ -58,6 +59,7 @@ public:
     QGroupBox *groupBox_6;
     QLabel *label_5;
     QLineEdit *lineEdit_3;
+    QCheckBox *checkBox;
     QToolBar *mainToolBar;
 
     void setupUi(QMainWindow *ToolClass)
@@ -125,10 +127,10 @@ public:
         pushButton_6->setGeometry(QRect(10, 330, 81, 23));
         pushButton_4 = new QPushButton(centralWidget);
         pushButton_4->setObjectName(QStringLiteral("pushButton_4"));
-        pushButton_4->setGeometry(QRect(20, 250, 75, 23));
+        pushButton_4->setGeometry(QRect(130, 250, 75, 23));
         pushButton_5 = new QPushButton(centralWidget);
         pushButton_5->setObjectName(QStringLiteral("pushButton_5"));
-        pushButton_5->setGeometry(QRect(150, 250, 75, 23));
+        pushButton_5->setGeometry(QRect(220, 250, 75, 23));
         groupBox_3 = new QGroupBox(centralWidget);
         groupBox_3->setObjectName(QStringLiteral("groupBox_3"));
         groupBox_3->setGeometry(QRect(10, 280, 531, 91));
@@ -156,6 +158,9 @@ public:
         lineEdit_3 = new QLineEdit(centralWidget);
         lineEdit_3->setObjectName(QStringLiteral("lineEdit_3"));
         lineEdit_3->setGeometry(QRect(10, 230, 281, 20));
+        checkBox = new QCheckBox(centralWidget);
+        checkBox->setObjectName(QStringLiteral("checkBox"));
+        checkBox->setGeometry(QRect(20, 250, 81, 20));
         ToolClass->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(ToolClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -190,6 +195,7 @@ public:
         label_6->setText(QApplication::translate("ToolClass", "sim:1.0", Q_NULLPTR));
         groupBox_6->setTitle(QApplication::translate("ToolClass", "\351\242\234\350\211\262-\345\201\217\350\211\262", Q_NULLPTR));
         label_5->setText(QString());
+        checkBox->setText(QApplication::translate("ToolClass", "\350\207\252\345\212\250(\346\227\240\350\211\262)", Q_NULLPTR));
     } // retranslateUi
 
 };
