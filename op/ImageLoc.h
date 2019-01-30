@@ -31,16 +31,16 @@ using images_t = std::vector<std::wstring>;
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
-class ImageExtend
+class ImageBase
 {
 public:
 	template<typename T>
 	static int get_bit_count(T x);
 	const static int _max_return_obj_ct = 1800;
 
-	ImageExtend();
+	ImageBase();
 
-	~ImageExtend();
+	~ImageBase();
 
 	//brief:输入图像，建立图形矩阵,在图像操作前调用
 	//image_data:	4子节对齐的像素指针
@@ -48,7 +48,15 @@ public:
 	//hegith:		h
 	//x1,y1,x2,y2 拷贝区域
 	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
+	
+
 	long input_image(byte* image_data, int width, int height,long x1,long y1,long x2,long y2, int type = 0);
+
+	/*
+	if(abs(cr-src)<=df) pixel=1;
+	else pixel=0;
+	*/
+	void bgr2binary(vector<color_df_t>& colors);
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.
@@ -73,11 +81,14 @@ public:
 
 
 	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
-	/*
-	if(abs(cr-src)<=df) pixel=1;
-	else pixel=0;
-	*/
-	void bgr2binary(vector<color_df_t>& colors);
+
+	long OcrEx(Dict& dict, double sim, std::wstring& out_str);
+
+	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
+
+	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
+
+	
 	
 public:
 	cv::Mat _src;

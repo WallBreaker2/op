@@ -313,6 +313,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Tool.h" />
     <ClInclude Include="WinApi.h" />
+    <ClInclude Include="bitfunc.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="op.rc" />

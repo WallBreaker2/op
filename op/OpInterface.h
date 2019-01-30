@@ -183,11 +183,18 @@ public:
 	STDMETHOD(GetColor)(LONG x, LONG y, BSTR* ret);
 
 	//----------------------ocr-------------------------
-	//
+	//设置字库文件
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
-	//
+	//使用哪个字库文件进行识别
+	STDMETHOD(UseDict)(LONG idx,  LONG* ret);
+	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
-	//
+	//回识别到的字符串，以及每个字符的坐标.
+	STDMETHOD(OcrEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str);
+	//在屏幕范围(x1,y1,x2,y2)内,查找string(可以是任意个字符串的组合),并返回符合color_format的坐标位置
+	STDMETHOD(FindStr)(LONG x1, LONG y1, LONG x2, LONG y2,BSTR strs, BSTR color, DOUBLE sim, VARIANT* retx,VARIANT* rety,LONG* ret);
+	//返回符合color_format的所有坐标位置
+	STDMETHOD(FindStrEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim,BSTR* retstr);
 	
 
 };

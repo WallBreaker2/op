@@ -117,7 +117,11 @@ interface IOpInterface : IDispatch
 
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
-	[id(201)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);
+	[id(202)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(203)] HRESULT OcrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(204)] HRESULT FindStr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out] VARIANT* retx, [out] VARIANT* rety, [out, retval]LONG* ret);
+	[id(205)] HRESULT FindStrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
 	
 	
 };

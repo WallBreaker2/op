@@ -207,7 +207,6 @@ inline int part_match(const cv::Mat& binary, rect_t& rc, int max_error, const wo
 
 inline void fill_rect(cv::Mat& record, const rect_t& rc) {
 	//匹配
-	unsigned __int32 val;
 	int w = rc.width();
 	for (int y = rc.y1; y < rc.y2; ++y) {
 		uchar* p = record.ptr<uchar>(y) + rc.x1;
@@ -216,8 +215,8 @@ inline void fill_rect(cv::Mat& record, const rect_t& rc) {
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&outstr) {
-	int i, j, x, y, id;
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps) {
+	int i, j, y;
 	//outstr.clear();
 	//给定下一个区
 	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
@@ -253,7 +252,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 								break;
 						if (y == crc.y2) {
 							//outstr.append(it.info._char);
-							outstr[pt] = it.info._char;
+							ps[pt] = it.info._char;
 							//设置下一个查找区域 分别为右边和下方
 							//右边最先查找，下方最后
 							//右
@@ -264,7 +263,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 					}
 					else {
-						outstr[pt] = it.info._char;
+						ps[pt] = it.info._char;
 						//
 
 						fill_rect(record, crc);
@@ -281,7 +280,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>&outstr) {
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>& ps) {
 	int i, j, x, y, id;
 	if (rc.width() <= 0 || rc.height() <= 0)
 		return;
@@ -315,7 +314,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 								break;
 						if (y == crc.y2) {
 							//outstr.append(it.info._char);
-							outstr[pt] = it.info._char;
+							ps[pt] = it.info._char;
 							//设置下一个查找区域 分别为右边和下方
 							//右边最先查找，下方最后
 							//右
@@ -326,7 +325,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 					}
 					else {
-						outstr[pt] = it.info._char;
+						ps[pt] = it.info._char;
 						//
 
 						fill_rect(record, crc);
@@ -343,9 +342,10 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 }
 
-void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::wstring& outstr) {
+
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps) {
 	std::vector<rect_t> out_y, out_x;
-	outstr.clear();
+	ps.clear();
 	if (dict.words.empty())return;
 	if (binary.cols == 0 || binary.rows == 0)
 		return;
@@ -355,28 +355,20 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double si
 	rc.x1 = rc.y1 = 0;
 	rc.x2 = binary.cols; rc.y2 = binary.rows;
 	std::vector<rect_t> vrcx, vrcy;
-	std::map<point_t, std::wstring> ms;
 	binshadowy(binary, rc, vrcy);
 	sim = 0.5 + sim / 2;
 	for (auto&ity : vrcy) {
 		binshadowx(binary, ity, vrcx);
 		for (auto&itx : vrcx) {
 			bin_image_cut(binary, itx, itx);
-			ms.clear();
 			if (sim > 1.0 - 1e-5) {
-				_bin_ocr(binary, record, itx, dict, ms);
+				_bin_ocr(binary, record, itx, dict, ps);
 			}
 			else {
-				_bin_ocr(binary, record, itx, dict, sim, ms);
+				_bin_ocr(binary, record, itx, dict, sim, ps);
 			}
 
-			for (auto&it : ms) {
-				outstr.append(it.second);
-			}
 		}
 
 	}
-
-
-
 }

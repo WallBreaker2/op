@@ -20,7 +20,7 @@ long ImageProc::Capture(const std::wstring& file) {
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
 	std::vector<color_df_t> vcolor;
 	str2colordfs(scolor, vcolor);
-	return ImageExtend::CmpColor(x, y, vcolor, sim);
+	return ImageBase::CmpColor(x, y, vcolor, sim);
 
 	return 0;
 	
@@ -29,13 +29,13 @@ long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim)
 long ImageProc::FindColor(const wstring& color, double sim, long dir, long&x, long&y) {
 	std::vector<color_df_t>colors;
 	str2colordfs(color, colors);
-	return ImageExtend::FindColor(colors, x, y);
+	return ImageBase::FindColor(colors, x, y);
 }
 
 long ImageProc::FindColoEx(const wstring& color, double sim, long dir, wstring& retstr) {
 	std::vector<color_df_t>colors;
 	str2colordfs(color, colors);
-	return ImageExtend::FindColorEx(colors, retstr);
+	return ImageBase::FindColorEx(colors, retstr);
 }
 
 long ImageProc::FindMultiColor(const wstring& first_color, const wstring& offset_color, double sim, long dir, long&x, long&y) {
@@ -58,7 +58,7 @@ long ImageProc::FindMultiColor(const wstring& first_color, const wstring& offset
 			voffset_cr.push_back(tp);
 		}
 	}
-	return ImageExtend::FindMultiColor(vfirst_color,voffset_cr,sim,dir,x,y);
+	return ImageBase::FindMultiColor(vfirst_color,voffset_cr,sim,dir,x,y);
 }
 
 long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offset_color, double sim, long dir, wstring& retstr) {
@@ -81,7 +81,7 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 			voffset_cr.push_back(tp);
 		}
 	}
-	return ImageExtend::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
+	return ImageBase::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
 }
 //Í¼ÐÎ¶¨Î»
 long ImageProc::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long &y) {
@@ -120,9 +120,9 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 		sim = 1.;
 
 	long s;
-	ImageExtend::bgr2binary(colors);
+	ImageBase::bgr2binary(colors);
 
-	s = ImageExtend::Ocr(*_curr_dict, sim, out_str);
+	s = ImageBase::Ocr(*_curr_dict, sim, out_str);
 	return s;
 
 }
@@ -130,7 +130,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 
 wstring ImageProc::GetColor(long x, long y) {
 	color_t cr;
-	if (ImageExtend::GetPixel(x, y, cr)) {
+	if (ImageBase::GetPixel(x, y, cr)) {
 		return cr.tostr();
 	}
 	else {
@@ -150,4 +150,37 @@ void ImageProc::str2colordfs(const wstring& color_str, std::vector<color_df_t>& 
 		cr.df.str2color(vstr2.size() == 2 ? vstr2[1] : L"000000");
 		colors.push_back(cr);
 	}
+}
+
+long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& out_str) {
+	out_str.clear();
+	vector<color_df_t> colors;
+	str2colordfs(color, colors);
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	ImageBase::bgr2binary(colors);
+	return ImageBase::OcrEx(*_curr_dict, sim, out_str);
+}
+
+long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, long& retx, long& rety) {
+	vector<wstring> vstr;
+	vector<color_df_t> colors;
+	Tool::split(str, vstr, L"|");
+	str2colordfs(color, colors);
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	ImageBase::bgr2binary(colors);
+	return ImageBase::FindStr(*_curr_dict, vstr, sim, retx, rety);
+}
+
+long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str) {
+	out_str.clear();
+	vector<wstring> vstr;
+	vector<color_df_t> colors;
+	Tool::split(str, vstr, L"|");
+	str2colordfs(color, colors);
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	ImageBase::bgr2binary(colors);
+	return ImageBase::FindStrEx(*_curr_dict, vstr, sim, out_str);
 }

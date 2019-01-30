@@ -2,8 +2,9 @@
 #include "ImageLoc.h"
 #include "Common.h"
 #include "ocr.h"
+#include "Tool.h"
 template<typename T>
-int ImageExtend::get_bit_count(T x) {
+int ImageBase::get_bit_count(T x) {
 	int s = 0;
 	while (x) {
 		s += x & 1;
@@ -14,18 +15,18 @@ int ImageExtend::get_bit_count(T x) {
 
 
 
-ImageExtend::ImageExtend()
+ImageBase::ImageBase()
 {
 }
 
 
-ImageExtend::~ImageExtend()
+ImageBase::~ImageBase()
 {
 }
 
 
-long ImageExtend::input_image(byte* image_data, int width,int height, long x1, long y1, long x2, long y2, int type) {
-	int i, j, k; 
+long ImageBase::input_image(byte* image_data, int width,int height, long x1, long y1, long x2, long y2, int type) {
+	int i, j;
 	int cw = x2 - x1 + 1, ch = y2 - y1 + 1;
 	if (type==-1) {//倒过来读
 		_src.create(ch, cw, CV_8UC3);
@@ -54,7 +55,32 @@ long ImageExtend::input_image(byte* image_data, int width,int height, long x1, l
 	return 1;
 }
 
-long ImageExtend::imageloc(images_t& images,double sim, long&x, long&y) {
+void ImageBase::bgr2binary(vector<color_df_t>& colors) {
+	if (_src.empty())
+		return;
+	int ncols = _src.cols, nrows = _src.rows;
+	_binary.create(nrows, ncols, CV_8UC1);
+	for (int i = 0; i < nrows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		uchar* p2 = _binary.ptr<uchar>(i);
+		for (int j = 0; j < ncols; ++j) {
+			*p2 = WORD_BKCOLOR;
+			for (auto&it : colors) {//对每个颜色描述
+				if ((*(color_t*)p - it.color) <= it.df) {
+					*p2 = WORD_COLOR;
+					break;
+				}
+			}
+			++p2;
+			p += 3;
+		}
+	}
+	//test
+	//cv::imwrite("src.png", _src);
+	//cv::imwrite("binary.png", _binary);
+}
+
+long ImageBase::imageloc(images_t& images,double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
 	//cv::imwrite("input.png", _src);
@@ -93,7 +119,7 @@ long ImageExtend::imageloc(images_t& images,double sim, long&x, long&y) {
 
 }
 
-long ImageExtend::GetPixel(long x, long y,color_t&cr) {
+long ImageBase::GetPixel(long x, long y,color_t&cr) {
 	if (!is_valid(x, y))
 		return 0;
 	auto p = _src.ptr<uchar>(y) + 3 * x;
@@ -102,7 +128,7 @@ long ImageExtend::GetPixel(long x, long y,color_t&cr) {
 	return 1;
 }
 
-long ImageExtend::CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim) {
+long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim) {
 	color_t cr;
 	if (GetPixel(x, y, cr)) {
 		for (auto&it : colors) {
@@ -113,7 +139,7 @@ long ImageExtend::CmpColor(long x, long y, std::vector<color_df_t>&colors, doubl
 	return 0;
 }
 
-long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
+long ImageBase::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
@@ -130,7 +156,7 @@ long ImageExtend::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	return 0;
 }
 
-long ImageExtend::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
+long ImageBase::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
 	retstr.clear();
 	int find_ct = 0;
 	for (int i = 0; i < _src.rows; ++i) {
@@ -156,7 +182,7 @@ long ImageExtend::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
 	return find_ct;
 }
 
-long ImageExtend::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, long&x, long&y) {
+long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, long&x, long&y) {
 	int max_err_ct = offset_color.size()*(1. - sim);
 	int err_ct;
 	for (int i = 0; i < _src.rows; ++i) {
@@ -186,7 +212,7 @@ long ImageExtend::FindMultiColor(std::vector<color_df_t>&first_color, std::vecto
 	return 0;
 }
 
-long ImageExtend::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr) {
+long ImageBase::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr) {
 	int max_err_ct = offset_color.size()*(1. - sim);
 	int err_ct;
 	int find_ct = 0;
@@ -225,34 +251,78 @@ _quick_return:
 	//x = y = -1;
 }
 
-void ImageExtend::bgr2binary(vector<color_df_t>& colors) {
-	if (_src.empty())
-		return;
-	int ncols = _src.cols, nrows = _src.rows;
-	_binary.create(nrows, ncols, CV_8UC1);
-	for (int i = 0; i < nrows; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
-		uchar* p2 = _binary.ptr<uchar>(i);
-		for (int j = 0; j < ncols; ++j) {
-			*p2 = WORD_BKCOLOR;
-			for (auto&it : colors) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
-					*p2 = WORD_COLOR;
-					break;
-				}	
-			}
-			++p2;
-			p += 3;
-		}
+
+
+long ImageBase::Ocr(Dict& dict, double sim, wstring& retstr) {
+	retstr.clear();
+	std::map<point_t, wstring> ps;
+	bin_ocr(_binary, _target, dict, sim, ps);
+	for (auto&it : ps) {
+		retstr += it.second;
 	}
-	//test
-	//cv::imwrite("src.png", _src);
-	//cv::imwrite("binary.png", _binary);
+	return 1;
 }
 
-long ImageExtend::Ocr(Dict& dict, double sim,wstring& ret_str) {
-	ret_str.clear();
-	long ret_val = 0;
-	bin_ocr(_binary, _target, dict,sim, ret_str);
-	return 1;
+long ImageBase::OcrEx(Dict& dict, double sim, std::wstring& retstr) {
+	retstr.clear();
+	std::map<point_t, wstring> ps;
+	bin_ocr(_binary, _target, dict, sim, ps);
+	//x1,y1,str....|x2,y2,str2...|...
+	int find_ct = 0;
+	for (auto&it : ps) {
+		retstr += std::to_wstring(it.first.x);
+		retstr += L",";
+		retstr += std::to_wstring(it.first.y);
+		retstr += L",";
+		retstr += it.second;
+		retstr += L"|";
+		++find_ct;
+		if (find_ct > _max_return_obj_ct)
+			break;
+	}
+	if (!retstr.empty() && retstr.back() == L'|')
+		retstr.pop_back();
+	return find_ct;
+}
+
+long ImageBase::FindStr(Dict& dict, const vector<wstring>& vstr, double sim, long& retx, long& rety) {
+	retx = rety = -1;
+	std::map<point_t, wstring> ps;
+	bin_ocr(_binary, _target, dict, sim, ps);
+	for (auto&it : ps) {
+		for (auto&s : vstr) {
+			if (it.second == s) {
+				retx = it.first.x;
+				rety = it.first.y;
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& retstr) {
+	retstr.clear();
+	std::map<point_t, wstring> ps;
+	bin_ocr(_binary, _target, dict, sim, ps);
+	int find_ct = 0;
+	for (auto&it : ps) {
+		for (auto&s : vstr) {
+			if (it.second == s) {
+				retstr += std::to_wstring(it.first.x);
+				retstr += L",";
+				retstr += std::to_wstring(it.first.y);
+				retstr += L"|";
+				++find_ct;
+				if (find_ct > _max_return_obj_ct)
+					goto _quick_return;
+				else
+					break;
+			}
+		}
+	}
+_quick_return:
+	if (!retstr.empty() && retstr.back() == L'|')
+		retstr.pop_back();
+	return find_ct;
 }
