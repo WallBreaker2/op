@@ -10,7 +10,7 @@ using std::wstring;
 4.¼òµ¥OCR
 5....
 */
-class ImageProc:public ImageExtend
+class ImageProc:public ImageBase
 {
 public:
 	const static int _max_dict = 10;
@@ -41,6 +41,12 @@ public:
 	long UseDict(int idx);
 
 	long OCR(const wstring& color, double sim, std::wstring& out_str);
+
+	long OcrEx(const wstring& color, double sim, std::wstring& out_str);
+
+	long FindStr(const wstring& str, const wstring& color, double sim, long& retx,long& rety);
+
+	long FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str);
 	
 	
 private:

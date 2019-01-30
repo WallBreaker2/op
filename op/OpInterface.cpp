@@ -629,13 +629,19 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	return S_OK;
 }
 
-//----------------------ocr-------------------------
-//
+
+
+//设置字库文件
 STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
 	*ret = _image_proc.SetDict(idx, file_name);
 	return S_OK;
 }
-//
+//使用哪个字库文件进行识别
+STDMETHODIMP OpInterface::UseDict(LONG idx, LONG* ret) {
+	*ret = _image_proc.UseDict(idx);
+	return S_OK;
+}
+//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
 	wstring str;
 	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -649,5 +655,52 @@ STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DO
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
 	newstr.CopyTo(ret_str);
+	return S_OK;
+}
+//回识别到的字符串，以及每个字符的坐标.
+STDMETHODIMP OpInterface::OcrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
+	wstring str;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		_image_proc.OcrEx(color, sim, str);
+	}
+
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(ret_str);
+	return S_OK;
+}
+//在屏幕范围(x1,y1,x2,y2)内,查找string(可以是任意个字符串的组合),并返回符合color_format的坐标位置
+STDMETHODIMP OpInterface::FindStr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim, VARIANT* retx, VARIANT* rety,LONG* ret) {
+	wstring str;
+	retx->vt = rety->vt = VT_INT;
+	retx->lVal = rety->lVal = -1;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.FindStr(strs, color, sim, retx->lVal, rety->lVal);
+	}
+
+	return S_OK;
+}
+//返回符合color_format的所有坐标位置
+STDMETHODIMP OpInterface::FindStrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim, BSTR* retstr) {
+	wstring str;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		_image_proc.FindStrEx(strs, color, sim, str);
+	}
+
+	CComBSTR newstr;
+	newstr.Append(str.c_str());
+	newstr.CopyTo(retstr);
 	return S_OK;
 }

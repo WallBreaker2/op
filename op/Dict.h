@@ -5,9 +5,10 @@
 #include <string>
 #include <fstream>
 #include <math.h>
-#define SET_BIT(x, idx) x |= 1u << (idx)
+#include "bitfunc.h"
+//#define SET_BIT(x, idx) x |= 1u << (idx)
 
-#define GET_BIT(x, idx) (x >> (idx)) & 1u
+//#define GET_BIT(x, idx) ((x >> (idx)) & 1u)
 #define WORD_COLOR 0
 #define WORD_BKCOLOR 255
 struct rect_t {

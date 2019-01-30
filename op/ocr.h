@@ -27,11 +27,14 @@ void binshadowy(const cv::Mat& binary, const rect_t& rc, std::vector<rect_t>&out
 //Í¼Ïñ²Ã¼ô
 void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc);
 //ocr in sim=1.0
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&outstr);
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps);
 //ocr with sim<1.0
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>&outstr);
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
 //ocr wrapper
+template<int _type>
 void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::wstring& outstr);
+
+void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
 
 
 #endif
