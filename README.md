@@ -9,7 +9,6 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 * [Windows消息模拟](#Windows消息模拟)
 * [后台截图](#后台截图)
 * [简单图像识别](#简单图像识别)
-* [演示Demo(Python)](#演示Demo)
 * [3rdpart-Lib](#3rdpart-Lib)
 * [Reference](#Reference)
 
@@ -19,7 +18,11 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 
 ## Usage(用法)  
 所有函数说明以及Demo可在以下链接中获得  
-[op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)
+[op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)  
+
+## Build  
+使用vs2017编译，除了DX SDK，opengl sdk外,需要以下库支持：boost,opencv,blackbone,minhook  
+可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
 
 
 #### Windows消息模拟
@@ -32,43 +35,7 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 #### 简单图像识别
 ---
 图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别
-#### 演示Demo  
----
-```Python
 
-from win32com.client import Dispatch
-op=Dispatch("op.opsoft");
-print("op ver:",op.Ver());
-hwnd=op.FindWindow("","新建文本文档.txt - 记事本");
-r=op.SetDict(0,"dm_soft.txt");
-print("SetDict:",r);
-r=0;
-if hwnd:
-	r=op.BindWindow(hwnd,"gdi","normal","windows",0);
-	if r:
-		print("bind ok.");
-		r=op.Sleep(1000);
-		print("try screencap");
-		r=op.capture("screen.bmp");
-		s = op.Ocr(0,0,106,50,"000000-0f0f0f",1.0);
-		print("ocr:",s);
-		r,x,y=op.FindColor(0,0,121,159,"000000-050505");
-		print(r,x,y);
-		if r:
-			op.MoveTo(x,y);
-			op.LeftClick();
-		print(op.GetColor(165,164));
-		op.UnBind();
-	else:
-		print("bind false.");
-else:
-	print("invalid window.");
-
-print("test end");
-
-
-
-```
 ### 3rdpart-Lib  
 ---
 [1].[c++ boost1.6](https://www.boost.org/)  
