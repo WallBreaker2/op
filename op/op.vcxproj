@@ -81,8 +81,8 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
-    <IncludePath>F:\Opencv\3.4\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\minhook\lib;D:\Opengl\glutdlls37beta;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Opencv\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;D:\boost_1_67_0;D:\BlackBone\src;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\minhook\lib;D:\Opengl\glutdlls37beta;F:\Opencv\opencv\my_build\bin\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
