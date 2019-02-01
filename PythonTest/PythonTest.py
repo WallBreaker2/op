@@ -1,8 +1,12 @@
 
 from win32com.client import Dispatch
+#创建com对象
 op=Dispatch("op.opsoft");
+#输出插件版本号
 print("op ver:",op.Ver());
+#测试窗口接口
 hwnd=op.FindWindow("","op_test.txt - 记事本");
+#ocr-设置字库
 r=op.SetDict(0,"test.dict");
 print("SetDict:",r);
 r=0;
