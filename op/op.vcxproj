@@ -83,7 +83,7 @@
     <TargetName>op_x86</TargetName>
     <IncludePath>F:\Opencv\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;D:\boost_1_67_0;D:\BlackBone\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;D:\Opengl\glutdlls37beta;F:\Opencv\opencv\my_build\bin\x86;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(SolutionDir)bin\x86\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -91,7 +91,7 @@
     <TargetName>op_x64</TargetName>
     <IncludePath>D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)bin\</OutDir>
+    <OutDir>$(SolutionDir)bin\x64\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
