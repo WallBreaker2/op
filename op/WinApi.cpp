@@ -2594,13 +2594,21 @@ bool WinApi::ClientToScreen(LONG hwnd, LONG &x, LONG &y)
 	return true;
 
 }
-bool WinApi::FindWindow(wchar_t *class_name, wchar_t*title, LONG &rethwnd, DWORD parent)
+long WinApi::FindWindow(const wchar_t *class_name, const wchar_t*title)
 {
-	if (class_name[0] == '\0')
+	if (class_name[0] == L'\0')
 		class_name = nullptr;
-	rethwnd=(LONG)::FindWindowW(class_name, title);
+	if (title[0] == L'\0')
+		title = nullptr;
+	return (LONG)::FindWindowW(class_name, title);
+}
 
-	return 1;
+long WinApi::FindWindowEx(long parent, const wchar_t* class_name, const wchar_t* title) {
+	if (class_name[0] == L'\0')
+		class_name = nullptr;
+	if (title[0] == L'\0')
+		title = nullptr;
+	return (long)::FindWindowEx((HWND)parent, NULL, class_name, title);
 }
 
 bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &rethwnd, wchar_t *process_name, DWORD Pid)
@@ -3292,10 +3300,24 @@ bool WinApi::GetClipboard(wchar_t *retstr)
 
 long WinApi::SendString(HWND hwnd, const wstring& s) {
 	if (::IsWindow(hwnd)) {
+		auto p = s.data();
 		for (int i = 0; i < s.length(); ++i) {
-			::PostMessage(hwnd, WM_CHAR, s[i], 0);
+			::PostMessage(hwnd, WM_CHAR, p[i], 0);
 			::Sleep(5);
 		}
+		return 1;
+	}
+	return 0;
+}
+
+long WinApi::SendStringIme(HWND hwnd, const wstring& s) {
+	if (::IsWindow(hwnd)) {
+		auto p = s.data();
+		for (int i = 0; i < s.length(); ++i) {
+			::PostMessage(hwnd, WM_IME_CHAR, p[i], 0);
+			::Sleep(5);
+		}
+		return 1;
 	}
 	return 0;
 }

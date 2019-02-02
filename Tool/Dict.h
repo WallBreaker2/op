@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
-//
+//e
 #define SET_BIT(x, idx) x |= 1u << (idx)
 
 #define GET_BIT(x, idx) (((x )>> (idx)) & 1u)

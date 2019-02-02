@@ -18,7 +18,8 @@ public:
 	bool EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *spec2, LONG flag2, LONG type2, LONG sort, wchar_t *retstring = NULL);
 	bool EnumProcess(wchar_t *name, wchar_t *retstring);
 	bool ClientToScreen(LONG hwnd, LONG &x, LONG &y);
-	bool FindWindow(wchar_t *class_name, wchar_t*title, LONG &rethwnd, DWORD parent = 0);
+	long FindWindow(const wchar_t *class_name, const wchar_t*title);
+	long FindWindowEx(long parent, const wchar_t *class_name, const wchar_t*title);
 	bool FindWindowByProcess(wchar_t *class_name, wchar_t *titl, LONG &rethwnd, wchar_t *process_name = NULL, DWORD Pid = 0);
 	bool GetClientRect(LONG hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1);
 	bool GetClientSize(LONG hwnd, LONG &width, LONG &height);
@@ -35,6 +36,7 @@ public:
 	bool GetClipboard(wchar_t *retstr);
 	//2019.1
 	long SendString(HWND hwnd, const wstring& str);
+	long SendStringIme(HWND hwnd, const wstring& str);
 private:
 	DWORD  FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);

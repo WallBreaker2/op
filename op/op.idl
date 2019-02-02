@@ -35,7 +35,9 @@ interface IOpInterface : IDispatch
 	[id(1)] HRESULT Ver([out, retval] BSTR* ret);
 	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
 	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
-	[id(4)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
+	[id(4)] HRESULT GetBasePath([out, retval] BSTR* path);
+	[id(5)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
+	[id(10)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
 
 	[id(31)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
 	//windows api 50-99
@@ -70,7 +72,11 @@ interface IOpInterface : IDispatch
 	[id(86)] HRESULT SetWindowSize([in] LONG hwnd, [in] LONG width, [in] LONG height, [out, retval] LONG* nret);
 	[id(87)] HRESULT SetWindowText([in] LONG hwnd, [in] BSTR title, [out, retval] LONG* nret);
 	[id(88)] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
-	[id(89)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
+	[id(89)] HRESULT SendString(LONG hwnd, BSTR str, LONG* ret);
+	[id(90)] HRESULT SendStringIme(LONG hwnd, BSTR str, LONG* ret);
+
+
+	[id(96)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
 	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
 	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);

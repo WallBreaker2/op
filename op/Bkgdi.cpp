@@ -110,13 +110,14 @@ long bkgdi::cap_release() {
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
-	Tool::setlog(L"cap_release");
+	//Tool::setlog(L"cap_release");
 	bind_release();
 	return 0;
 }
 
 long bkgdi::cap_image() {
-	Tool::setlog("bkgdi::cap_image()");
+	
+	//Tool::setlog("bkgdi::cap_image()");
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 	if (_mode == BACKTYPE::NORMAL)

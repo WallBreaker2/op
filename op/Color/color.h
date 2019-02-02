@@ -3,8 +3,7 @@
 #define __COLOR_H_
 #include <string>
 #include <opencv2/core.hpp>
-#include <boost/format.hpp>
-#include "../Common.h"
+#include "../Tool.h"
 //ÑÕÉ«½á¹¹
 struct color_t {
 	uchar b, g, r, alpha;
