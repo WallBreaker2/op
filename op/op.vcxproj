@@ -76,12 +76,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>D:\minhook\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
-    <IncludePath>F:\Opencv\opencv\build\include;D:\BlackBone\src\3rd_party;D:\minhook\include;D:\boost_1_67_0;D:\BlackBone\src;$(IncludePath)</IncludePath>
+    <IncludePath>D:\BlackBone\src\3rd_party;D:\minhook\include;D:\BlackBone\src;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;D:\Opengl\glutdlls37beta;F:\Opencv\opencv\my_build\bin\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\x86\</OutDir>
   </PropertyGroup>
@@ -132,6 +134,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;_USRDLL;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -152,7 +155,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RegisterOutput>true</RegisterOutput>
     </Link>
   </ItemDefinitionGroup>
@@ -230,6 +233,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
     <ClCompile Include="bkdisplay.cpp" />

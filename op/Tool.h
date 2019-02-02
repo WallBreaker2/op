@@ -2,6 +2,8 @@
 #ifndef __TOOL_H_
 #define __TOOL_H_
 #include "Common.h"
+std::wstring _sto_wstring(const std::string&s);
+std::string _wsto_string(const std::wstring&s);
 namespace Tool {
 	//for debug
 	long setlog(const wchar_t* format, ...);

@@ -49,6 +49,21 @@ STDMETHODIMP OpInterface::GetPath(BSTR* path) {
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::GetBasePath(BSTR* path){
+	CComBSTR bstr;
+	wchar_t basepath[256];
+	::GetModuleFileName(gInstance, basepath, 256);
+	bstr.Append(basepath);
+	bstr.CopyTo(path);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WinExec(BSTR cmdline,LONG cmdshow, LONG* ret){
+	auto str = _wsto_string(cmdline);
+	*ret = ::WinExec(str.c_str(), cmdshow) > 31 ? 1 : 0;
+	return S_OK;
+}
+
 STDMETHODIMP OpInterface::Sleep(LONG millseconds, LONG* ret) {
 	::Sleep(millseconds);
 	*ret = 1;
@@ -113,7 +128,7 @@ STDMETHODIMP OpInterface::ClientToScreen(LONG ClientToScreen, VARIANT* x, VARIAN
 STDMETHODIMP OpInterface::FindWindow(BSTR class_name, BSTR title, LONG* rethwnd)
 {
 	// TODO: 在此添加实现代码
-	_winapi.FindWindow(class_name, title, *rethwnd);
+	*rethwnd = _winapi.FindWindow(class_name, title);
 	return S_OK;
 }
 
@@ -134,7 +149,7 @@ STDMETHODIMP OpInterface::FindWindowByProcessId(LONG process_id, BSTR class_name
 STDMETHODIMP OpInterface::FindWindowEx(LONG parent, BSTR class_name, BSTR title, LONG* rethwnd)
 {
 	// TODO: 在此添加实现代码
-	_winapi.FindWindow(class_name, title, *rethwnd, parent);
+	*rethwnd = _winapi.FindWindowEx(parent,class_name, title);
 	return S_OK;
 }
 
@@ -322,11 +337,6 @@ STDMETHODIMP OpInterface::SendPaste(LONG hwnd, LONG* nret)
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::SendString(LONG hwnd, BSTR str, LONG* ret){
-	*ret = _winapi.SendString((HWND)hwnd, str);
-	return S_OK;
-}
-
 STDMETHODIMP OpInterface::SetClientSize(LONG hwnd, LONG width, LONG hight, LONG* nret)
 {
 	// TODO: 在此添加实现代码
@@ -360,6 +370,16 @@ STDMETHODIMP OpInterface::SetWindowTransparent(LONG hwnd, LONG trans, LONG* nret
 {
 	// TODO: 在此添加实现代码
 	*nret = _winapi.SetWindowTransparent(hwnd, trans);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SendString(LONG hwnd, BSTR str, LONG* ret) {
+	*ret = _winapi.SendString((HWND)hwnd, str);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SendStringIme(LONG hwnd, BSTR str, LONG* ret) {
+	*ret = _winapi.SendStringIme((HWND)hwnd, str);
 	return S_OK;
 }
 
