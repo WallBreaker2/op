@@ -62,14 +62,18 @@ private:
 	//image process
 	ImageProc _image_proc;
 public:
-	//---------------方法-------------------
+	//---------------基本设置/属性-------------------
 
 	//1.版本号Version
 	STDMETHOD(Ver)(BSTR* ret);
-	//set curr path
+	//设置目录
 	STDMETHOD(SetPath)(BSTR path, LONG* ret);
-	//get curr path
+	//获取目录
 	STDMETHOD(GetPath)(BSTR*path);
+	//获取插件目录
+	STDMETHOD(GetBasePath)(BSTR* path);
+	//运行可执行文件
+	STDMETHOD(WinExec)(BSTR cmdline,LONG cmdshow, LONG* ret);
 	//sleep
 	STDMETHOD(Sleep)(LONG millseconds, LONG* ret);
 	//Process
@@ -128,8 +132,6 @@ public:
 	STDMETHOD(ScreenToClient)(LONG hwnd, VARIANT* x, VARIANT* y, LONG* nret);
 	//向指定窗口发送粘贴命令
 	STDMETHOD(SendPaste)(LONG hwnd, LONG* nret);
-	//向指定窗口发送文本数据
-	STDMETHOD(SendString)(LONG hwnd, BSTR str, LONG* ret);
 	//设置窗口客户区域的宽度和高度
 	STDMETHOD(SetClientSize)(LONG hwnd, LONG width, LONG hight, LONG* nret);
 	//设置窗口的状态
@@ -140,8 +142,12 @@ public:
 	STDMETHOD(SetWindowText)(LONG hwnd, BSTR title, LONG* nret);
 	//设置窗口的透明度
 	STDMETHOD(SetWindowTransparent)(LONG hwnd, LONG trans, LONG* nret);
+	//向指定窗口发送文本数据
+	STDMETHOD(SendString)(LONG hwnd, BSTR str, LONG* ret);
+	//向指定窗口发送文本数据-输入法
+	STDMETHOD(SendStringIme)(LONG hwnd, BSTR str, LONG* ret);
 
-	//cmd
+	//运行命令行并返回结果
 	STDMETHOD(ExcuteCmd)(BSTR cmd,LONG millseconds, BSTR* retstr);
 
 	//--------------------Background -----------------------
@@ -194,6 +200,8 @@ public:
 	STDMETHOD(KeyUpChar)(BSTR vk_code, LONG* ret);
 	//等待指定的按键按下 (前台,不是后台)
 	STDMETHOD(WaitKey)(LONG vk_code,LONG time_out, LONG* ret);
+	//发送字符串
+	//STDMETHOD(SendString)(LONG HWND)
 
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file

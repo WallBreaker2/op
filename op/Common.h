@@ -2,7 +2,6 @@
 #ifndef __COMMON_H_
 #define __COMMON_H_
 #include <string>
-#include <boost/locale.hpp>
 #include <fstream>
 #include <vector>
 
@@ -14,8 +13,8 @@
 #define SAFE_DELETE_ARRAY(ptr) if(ptr)delete[] ptr;ptr=nullptr
 
 
-#define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
-#define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
+//#define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
+//#define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
 using std::wstring;
 using std::string;
