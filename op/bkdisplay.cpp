@@ -31,7 +31,7 @@ long bkdisplay::bind_init() {
 		_pmutex = new boost::interprocess::named_mutex(boost::interprocess::open_or_create, _mutex_name);
 	}
 	catch (std::exception&e) {
-		Tool::setlog("bkdisplay::bind_init() %s exception:%s", _shared_res_name, e.what());
+		setlog("bkdisplay::bind_init() %s exception:%s", _shared_res_name, e.what());
 	}
 
 	return 0;
@@ -47,7 +47,7 @@ long bkdisplay::bind_release() {
 
 	}
 	catch (std::exception&e) {
-		Tool::setlog("bkdisplay::bind_release std::exception:%s", e.what());
+		setlog("bkdisplay::bind_release std::exception:%s", e.what());
 	}
 
 	//_image_data = nullptr;

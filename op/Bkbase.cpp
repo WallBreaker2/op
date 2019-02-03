@@ -15,7 +15,7 @@ Bkbase::~Bkbase()
 }
 
 long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
-	Tool::setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
+	setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
 		hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
 	_hwnd = (HWND)hwnd;
 	long ret;
@@ -30,7 +30,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (sdisplay == L"opengl")
 		display = BACKTYPE::OPENGL;
 	else {
-		Tool::setlog(L"error sdisplay=%s", sdisplay.c_str());
+		setlog(L"error sdisplay=%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
@@ -43,7 +43,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (smouse == L"opengl")
 		mouse = BACKTYPE::OPENGL;
 	else {
-		Tool::setlog(L"error smouse=%s", smouse.c_str());
+		setlog(L"error smouse=%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
@@ -56,12 +56,12 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (skeypad == L"opengl")
 		keypad = BACKTYPE::OPENGL;
 	else {
-		Tool::setlog(L"error sdisplay=%s", sdisplay.c_str());
+		setlog(L"error sdisplay=%s", sdisplay.c_str());
 		return 0;
 	}
 	//check hwnd
 	if (!::IsWindow(_hwnd)) {
-		Tool::setlog(L"invalid window hwnd.");
+		setlog(L"invalid window hwnd.");
 		ret = 0; _hwnd = 0;
 	}
 	else {
@@ -188,7 +188,7 @@ long Bkbase::get_widht() {
 
 long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	if (x1 > x2 || y1 > y2) {
-		Tool::setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 		
@@ -200,7 +200,7 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 		//to do...
 	}
 	if (x1<0 || x2>get_widht() || y1<0 || y2>get_height()) {
-		Tool::setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	return 1;

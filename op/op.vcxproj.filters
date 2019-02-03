@@ -133,9 +133,6 @@
     <ClCompile Include="ImageProc.cpp">
       <Filter>ImageProc</Filter>
     </ClCompile>
-    <ClCompile Include="Tool.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="bkdisplay.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
@@ -147,6 +144,9 @@
     </ClCompile>
     <ClCompile Include="ocr.cpp">
       <Filter>Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="Tool.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -210,9 +210,6 @@
     <ClInclude Include="ImageProc.h">
       <Filter>ImageProc</Filter>
     </ClInclude>
-    <ClInclude Include="Tool.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="bkdisplay.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
@@ -233,6 +230,9 @@
     </ClInclude>
     <ClInclude Include="bitfunc.h">
       <Filter>Algorithm\Bit</Filter>
+    </ClInclude>
+    <ClInclude Include="Tool.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

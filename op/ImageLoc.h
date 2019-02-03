@@ -34,9 +34,6 @@ using images_t = std::vector<std::wstring>;
 class ImageBase
 {
 public:
-	template<typename T>
-	static int get_bit_count(T x);
-
 	
 	const static int _max_return_obj_ct = 1800;
 
@@ -68,6 +65,8 @@ public:
 	//x,y:Ä¿±ê×ø±ê
 	long imageloc(images_t& images, double sim, long&x, long&y);
 
+	long simple_match(long x, long y, cv::Mat* timg,vector<color_t>& vdf,int max_error);
+
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.cols && y < _src.rows;
 	}
@@ -84,6 +83,9 @@ public:
 
 	long FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr);
 
+	long FindPic(std::vector<cv::Mat*>&pics,std::vector<color_t>&colors,double sim, long&x, long&y);
+
+	long FindPicEx(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors,double sim, wstring& retstr);
 
 	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
 

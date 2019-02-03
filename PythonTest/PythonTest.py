@@ -10,6 +10,7 @@ class Demo:
     def test_base(self):
          #输出插件版本号
          print("op ver:",self.op.Ver());
+         print("path:",self.op.GetPath());
          r=self.op.WinExec("notepad",1);
          print("Exec notepad:",r);
 
@@ -38,12 +39,14 @@ class Demo:
         self.op.Sleep(1000);
         r=self.op.SendString(self.send_hwnd,"Hello World!");
         print("SendString ret:",r);
-        self.op.Sleep(2000);
+        self.op.Sleep(1000);
         return 0;
 
     def test_bkimage(self):
         self.op.GetColor(30,30);
         self.op.Capture(0,0,100,100,"bkimgae.bmp");
+        r,x,y=self.op.FindPic(0,0,100,100,"test.png","000000",1.0,0);
+        print("op.FindPic:",r,x,y);
         return 0;
 
     def test_ocr(self):
@@ -54,7 +57,11 @@ class Demo:
         print("ocr:",s);
         s=self.op.OcrEx(0,0,100,100,"000000-020202",1.0);
         print("OcrEx:",s);
+        s=self.op.OcrAutoFromFile("src.png",1.0);
+        print("OcrAutoFromFile:",s);
         return 0;
+    def test_clear(self):
+        self.op.UnBindWindow();
 
 
 def test_all():
@@ -66,6 +73,7 @@ def test_all():
     demo.test_bkmouse_bkkeypad();
     demo.test_bkimage();
     demo.test_ocr();
+    demo.test_clear();
 
     return 0;
 

@@ -3,7 +3,7 @@
 #define __COLOR_H_
 #include <string>
 #include <opencv2/core.hpp>
-#include "../Tool.h"
+//#include "../Tool.h"
 //ÑÕÉ«½á¹¹
 struct color_t {
 	uchar b, g, r, alpha;
@@ -19,6 +19,9 @@ struct color_t {
 	bool operator<=(const color_t& rhs) {
 		return b <= rhs.b&&g <= rhs.g&&r <= rhs.r;
 	}
+	bool operator>(const color_t& rhs) {
+		return b > rhs.b || g > rhs.g || r > rhs.r;
+	}
 	color_t& str2color(std::wstring&s) {
 		int r, g, b;
 		std::transform(s.begin(), s.end(), s.begin(), ::towupper);
@@ -26,10 +29,10 @@ struct color_t {
 		this->b = b; this->r = r; this->g = g;
 		return *this;
 	}
-	std::wstring tostr() {
+	std::string tostr() {
 		char buff[10];
 		sprintf(buff, "%02X%02X%02X", r, g, b);
-		return _sto_wstring(buff);
+		return buff;
 	}
 };
 
