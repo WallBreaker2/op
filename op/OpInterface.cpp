@@ -8,14 +8,14 @@
 #include "Tool.h"
 // OpInterface
 
-HRESULT OpInterface::Ver(BSTR* ret) {
+STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	const char* ver = "0.2110.x86";
+	const char* ver = "0.2.1.2.x86";
 #else
-	static const wchar_t* ver = L"0.2110.x64";
+	static const wchar_t* ver = L"0.2.1.2.x64";
 
 #endif;
-	Tool::setlog("address=%d,str=%s", ver, ver);
+	//Tool::setlog("address=%d,str=%s", ver, ver);
 	CComBSTR newstr;
 	newstr.Append(ver);
 	newstr.CopyTo(ret);
@@ -24,12 +24,16 @@ HRESULT OpInterface::Ver(BSTR* ret) {
 }
 
 STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
+	wchar_t buff[256];
 	if (!::PathFileExists(path)) {
-		wchar_t buff[256];
-		::GetModuleFileName(NULL, buff, 256);
+		
+		::GetCurrentDirectoryW(256, buff);
 		std::wstring str = buff;
-		str = str.substr(0, str.rfind(L'\\'));
-		_curr_path = str + path;
+		_curr_path = str;
+		if (path[0] == L'\\')
+			_curr_path += path;
+		else
+			_curr_path += L'\\' + path;
 	}
 	else
 		_curr_path = path;
@@ -38,7 +42,8 @@ STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 	*ret = ::PathFileExists(_curr_path.c_str());
 	//setlog(L"%s", _curr_path.c_str());
 	if (!*ret)
-		_curr_path.clear();
+		_curr_path = buff;
+	_image_proc._curr_path = _curr_path;
 	return S_OK;
 }
 
@@ -405,7 +410,6 @@ STDMETHODIMP OpInterface::UnBindWindow(LONG* ret) {
 	return S_OK;
 }
 
-
 STDMETHODIMP OpInterface::GetCursorPos(VARIANT* x, VARIANT* y, LONG* ret) {
 	return S_OK;
 }
@@ -469,7 +473,6 @@ STDMETHODIMP OpInterface::RightDown(LONG* ret) {
 	*ret = _bkproc._bkmouse.RightDown();
 	return S_OK;
 }
-
 
 STDMETHODIMP OpInterface::RightUp(LONG* ret) {
 	*ret = _bkproc._bkmouse.RightUp();
@@ -623,17 +626,41 @@ STDMETHODIMP OpInterface::FindMultiColorEx(LONG x1, LONG y1, LONG x2, LONG y2, B
 }
 //查找指定区域内的图片
 STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret) {
-	long lx = -1, ly = -1;
-	/*if (_background.GetDisplay() == BACKTYPE::DX)
-		*ret = _background._bkdx9.FindPic(x1, y1, x2, y2, files, sim, lx, ly);
-	else
-		*ret = _background._bkgdi.FindPic(x1, y1, x2, y2, files, sim, lx, ly);*/
+	LONG rx = -1, ry = -1;
+	*ret = 0;
 	x->vt = y->vt = VT_I4;
-	x->lVal = lx; y->lVal = ly;
+	x->lVal = rx; y->lVal = ry;
+	if (!_bkproc.IsBind())
+		return S_OK;
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.FindPic(files, delta_color, sim, 0, rx, ry);
+		if (*ret) {
+			rx += x1; ry += y1;
+			rx -= _bkproc._pbkdisplay->_client_x;
+			ry -= _bkproc._pbkdisplay->_client_y;
+		}
+	}
+	x->lVal = rx; y->lVal = ry;
+
 	return S_OK;
 }
 //查找多个图片
 STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, BSTR* retstr) {
+	CComBSTR newstr;
+	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		std::wstring str;
+		_image_proc.FindPicEx(files, delta_color, sim, dir, str);
+		newstr.Append(str.c_str());
+	}
+	newstr.CopyTo(retstr);
 	return S_OK;
 }
 //获取(x,y)的颜色
@@ -742,6 +769,25 @@ STDMETHODIMP OpInterface::OcrAuto(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim
 
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
+//从文件中识别图片
+STDMETHODIMP OpInterface::OcrFromFile(BSTR file_name, BSTR color_format, DOUBLE sim, BSTR* retstr) {
+	CComBSTR newstr;
+	wstring str;
+	_image_proc.OcrFromFile(file_name, color_format, sim, str);
+	newstr.Append(str.data());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+//从文件中识别图片,无需指定颜色
+STDMETHODIMP OpInterface::OcrAutoFromFile(BSTR file_name, DOUBLE sim, BSTR* retstr){
+	CComBSTR newstr;
+	wstring str;
+	_image_proc.OcrAutoFromFile(file_name, sim, str);
+	newstr.Append(str.data());
 	newstr.CopyTo(retstr);
 	return S_OK;
 }

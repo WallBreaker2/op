@@ -34,7 +34,7 @@ long bkgdi::UnBind() {
 		_pthread->join();
 		SAFE_DELETE(_pthread);
 	}
-	Tool::setlog(" bkgdi::UnBind()");
+	setlog(" bkgdi::UnBind()");
 	return 1;
 }
 
@@ -76,7 +76,7 @@ long bkgdi::cap_init() {
 
 	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
 	if (_hmdc == NULL) {
-		Tool::setlog("CreateCompatibleDC false");
+		setlog("CreateCompatibleDC false");
 		return -2;
 	}
 	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
@@ -132,7 +132,7 @@ long bkgdi::cap_image() {
 }
 
 long bkgdi::capture(const std::wstring& file_name) {
-	Tool::setlog(L"bkgdi::capture");
+	setlog(L"bkgdi::capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
 	if (!file.is_open())return 0;

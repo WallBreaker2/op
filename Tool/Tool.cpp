@@ -412,19 +412,19 @@ void Tool::mouseReleaseEvent(QMouseEvent* event) {
 			color.r = pcr[2];
 			
 			//::ReleaseDC(NULL, hdc);
-			std::wstring ss;
+			std::string ss;
 			for (int i = 0; i < 10; ++i) {
 				if (_checkbox[i]->isChecked()) {
 					ss += _color_info[i].color.tostr();
-					ss += L"-";
+					ss += "-";
 					ss += _color_info[i].df.tostr();
-					ss += L"|";
+					ss += "|";
 				}
 			
 			}
 			if (ss.length() > 0 && ss.back() == L'|')
 				ss.pop_back();
-			ui.lineEdit_3->setText(QString::fromStdWString(ss));
+			ui.lineEdit_3->setText(QString::fromStdString(ss));
 			update();
 		}
 		to_binary();
@@ -442,20 +442,20 @@ void Tool::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void Tool::on_state_changed(int st) {
-	std::wstring ss;
+	std::string ss;
 	for (int i = 0; i < 10; ++i) {
 		if (_checkbox[i]->isChecked()) {
 			_color_info[i].df.str2color(_df_edit[i]->text().toStdWString());
 			ss += _color_info[i].color.tostr();
-			ss += L"-";
+			ss += "-";
 			ss += _color_info[i].df.tostr();
-			ss += L"|";
+			ss += "|";
 		}
 
 	}
 	if (ss.length() > 0 && ss.back() == L'|')
 		ss.pop_back();
-	ui.lineEdit_3->setText(QString::fromStdWString(ss));
+	ui.lineEdit_3->setText(QString::fromStdString(ss));
 	to_binary();
 }
 

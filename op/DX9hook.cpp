@@ -67,7 +67,7 @@ HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 		g_pmutex->unlock();
 	}
 	catch (std::exception& e) {
-		Tool::setlog("catch exception:%s", e.what());
+		setlog("catch exception:%s", e.what());
 
 	}
 
@@ -125,7 +125,7 @@ long opengl_screen_capture() {
 		g_pmutex->unlock();
 	}
 	catch (std::exception& e) {
-		Tool::setlog("catch exception:%s", e.what());
+		setlog("catch exception:%s", e.what());
 
 	}
 	return 0;
@@ -145,7 +145,7 @@ void hook_init(HWND hwnd) {
 		g_pmutex = new boost::interprocess::named_mutex(boost::interprocess::open_only, g_mutex_name);
 	}
 	catch (std::exception&e) {
-		Tool::setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
+		setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
 	}
 }
 
@@ -167,7 +167,7 @@ long SetDX9Hook(HWND hwnd) {
 		//setlog("bind ok.");
 	}
 	else {
-		Tool::setlog("kiero::init false");
+		setlog("kiero::init false");
 	}
 
 
@@ -192,7 +192,7 @@ long SetDX10Hook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		Tool::setlog("kiero::init false");
+		setlog("kiero::init false");
 		return 0;
 	}
 
@@ -214,7 +214,7 @@ long SetDX11Hook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		Tool::setlog("kiero::init false");
+		setlog("kiero::init false");
 		return 0;
 	}
 
@@ -236,7 +236,7 @@ long SetOpenglHook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		Tool::setlog("kiero::init false");
+		setlog("kiero::init false");
 		return 0;
 	}
 

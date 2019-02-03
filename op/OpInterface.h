@@ -28,6 +28,17 @@ class ATL_NO_VTABLE OpInterface :
 public:
 	OpInterface()
 	{
+		//初始化目录
+		wchar_t buff[256];
+		::GetCurrentDirectoryW(256, buff);
+		//::GetModuleFileName(NULL, buff, 256);
+		std::wstring str = buff;
+		//auto idx = str.rfind(L'\\');
+		//if (idx != std::wstring::npos) {
+		//	str = str.substr(0, idx);
+		//}
+		_curr_path = str;
+		_image_proc._curr_path = _curr_path;
 	}
 
 DECLARE_REGISTRY_RESOURCEID(106)
@@ -238,6 +249,10 @@ public:
 	STDMETHOD(FindStrEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim,BSTR* retstr);
 	//识别屏幕范围(x1,y1,x2,y2)内的字符串,自动二值化，而无需指定颜色
 	STDMETHOD(OcrAuto)(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim, BSTR* ret_str);
+	//从文件中识别图片
+	STDMETHOD(OcrFromFile)(BSTR file_name,BSTR color_format, DOUBLE sim, BSTR* retstr);
+	//从文件中识别图片,无需指定颜色
+	STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR* retstr);
 	
 
 };

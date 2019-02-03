@@ -14,7 +14,7 @@ bkopengl::~bkopengl()
 }
 
 long bkopengl::Bind(HWND hwnd, long flag) {
-	Tool::setlog("bkopengl::Bind");
+	setlog("bkopengl::Bind");
 	DWORD id;
 	::GetWindowThreadProcessId(hwnd, &id);
 	RECT rc;
@@ -38,7 +38,7 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 		//判断是否已经注入
 		auto _dllptr = _process.modules().GetModule(_dllname);
 		if (!_dllptr) {
-			Tool::setlog(L"inject..");
+			setlog(L"inject..");
 			//reg_ret = _process.modules().Inject(buff);
 			/*long error_code = 0;
 			if (!Injecter::EnablePrivilege(true))
@@ -46,13 +46,13 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 			reg_ret.status = Injecter::InjectDll(id, buff, error_code);
 			Tool::setlog("inject ret=%d,error_code=%d", reg_ret.status, error_code);
 			*/
-			Tool::setlog(buff);
+			setlog(buff);
 			auto& modules = _process.modules();
 			reg_ret = modules.Inject(buff);
-			Tool::setlog(L"inject finish...");
+			setlog(L"inject finish...");
 		}
 		else {
-			Tool::setlog("alreadly inject.");
+			setlog("alreadly inject.");
 			reg_ret.status = 0;
 		}
 		//恢复进程
@@ -68,15 +68,15 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 				bind_ret = 1;
 			}
 			else {
-				Tool::setlog(L"remote function not found.");
+				setlog(L"remote function not found.");
 			}
 		}
 		else {
-			Tool::setlog(L"Inject false.");
+			setlog(L"Inject false.");
 		}
 	}
 	else {
-		Tool::setlog(L"attach false.");
+		setlog(L"attach false.");
 	}
 	_process.Detach();
 	_hwnd = bind_ret ? hwnd : NULL;
@@ -85,7 +85,7 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 		//setlog("shared_res_name=%s mutex_name=%s",_shared_res_name,_mutex_name);
 
 	}
-	Tool::setlog("bkopengl::Bind finish");
+	setlog("bkopengl::Bind finish");
 	return bind_ret;
 }
 
@@ -102,11 +102,11 @@ long bkopengl::UnBind() {
 			bind_ret = 1;
 		}
 		else {
-			Tool::setlog(L"get unhook ptr false.");
+			setlog(L"get unhook ptr false.");
 		}
 	}
 	else {
-		Tool::setlog("attach false.");
+		setlog("attach false.");
 	}
 	_process.Detach();
 	_hwnd = NULL;
@@ -150,7 +150,7 @@ long bkopengl::capture(const std::wstring& file_name) {
 		_pmutex->unlock();
 	}
 	catch (std::exception&e) {
-		Tool::setlog("cap exception:%s", e.what());
+		setlog("cap exception:%s", e.what());
 	}
 
 	file.close();

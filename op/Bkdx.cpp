@@ -63,15 +63,15 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 				bind_ret = 1;
 			}
 			else {
-				Tool::setlog(L"remote function not found.");
+				setlog(L"remote function not found.");
 			}
 		}
 		else {
-			Tool::setlog(L"Inject false.");
+			setlog(L"Inject false.");
 		}
 	}
 	else {
-		Tool::setlog(L"attach false.");
+		setlog(L"attach false.");
 	}
 	_process.Detach();
 	_hwnd = bind_ret ? hwnd : NULL;
@@ -98,11 +98,11 @@ long Bkdx::UnBind() {
 			bind_ret = 1;
 		}
 		else {
-			Tool::setlog(L"get unhook ptr false.");
+			setlog(L"get unhook ptr false.");
 		}
 	}
 	else {
-		Tool::setlog("attach false.");
+		setlog("attach false.");
 	}
 	_process.Detach();
 	_hwnd = NULL;

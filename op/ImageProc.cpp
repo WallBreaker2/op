@@ -7,6 +7,7 @@
 ImageProc::ImageProc()
 {
 	_curr_idx = 0;
+	_enable_cache = 1;
 }
 
 
@@ -42,7 +43,7 @@ long ImageProc::FindMultiColor(const wstring& first_color, const wstring& offset
 	std::vector<color_df_t>vfirst_color;
 	str2colordfs(first_color, vfirst_color);
 	std::vector<wstring> vseconds;
-	Tool::split(offset_color, vseconds, L",");
+	split(offset_color, vseconds, L",");
 	std::vector<pt_cr_df_t>voffset_cr;
 	pt_cr_df_t tp;
 	for (auto&it : vseconds) {
@@ -65,7 +66,7 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 	std::vector<color_df_t>vfirst_color;
 	str2colordfs(first_color, vfirst_color);
 	std::vector<wstring> vseconds;
-	Tool::split(offset_color, vseconds, L",");
+	split(offset_color, vseconds, L",");
 	std::vector<pt_cr_df_t>voffset_cr;
 	pt_cr_df_t tp;
 	for (auto&it : vseconds) {
@@ -84,12 +85,28 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 	return ImageBase::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
 }
 //图形定位
-long ImageProc::FindPic(long x1, long y1, long x2, long y2, const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long &y) {
-	return 0;
+long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long &y) {
+	vector<cv::Mat*>vpic;
+	vector<color_t> vcolor;
+	files2mats(files, vpic);
+	str2colors(delta_colors, vcolor);
+	long ret = ImageBase::FindPic(vpic, vcolor,sim, x, y);
+	//清理缓存
+	if (!_enable_cache)
+		_pic_cache.clear();
+	return ret;
 }
 //
-long ImageProc::FindPicEx(long x1, long y1, long x2, long y2, const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr) {
-	return 0;
+long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr) {
+	vector<cv::Mat*>vpic;
+	vector<color_t> vcolor;
+	files2mats(files, vpic);
+	str2colors(delta_colors, vcolor);
+	long ret = ImageBase::FindPicEx(vpic, vcolor,sim, retstr);
+	//清理缓存
+	if (!_enable_cache)
+		_pic_cache.clear();
+	return ret;
 }
 
 
@@ -97,7 +114,9 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 	if (idx < 0 || idx >= _max_dict)
 		return 0;
 	_dicts[idx].clear();
-	_dicts[idx].read_dict(file_name);
+	wstring fullpath;
+	if (Path2GlobalPath(file_name, _curr_path, fullpath))
+		_dicts[idx].read_dict(fullpath);
 	if (_dicts->info._word_count)
 		return 1;
 	else
@@ -131,7 +150,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 wstring ImageProc::GetColor(long x, long y) {
 	color_t cr;
 	if (ImageBase::GetPixel(x, y, cr)) {
-		return cr.tostr();
+		return _sto_wstring(cr.tostr());
 	}
 	else {
 		return L"";
@@ -143,12 +162,45 @@ void ImageProc::str2colordfs(const wstring& color_str, std::vector<color_df_t>& 
 	std::vector<wstring>vstr, vstr2;
 	color_df_t cr;
 	colors.clear();
-	Tool::split(color_str, vstr, L"|");
+	split(color_str, vstr, L"|");
 	for (auto&it : vstr) {
-		Tool::split(it, vstr2, L"-");
+		split(it, vstr2, L"-");
 		cr.color.str2color(vstr2[0]);
 		cr.df.str2color(vstr2.size() == 2 ? vstr2[1] : L"000000");
 		colors.push_back(cr);
+	}
+}
+
+void ImageProc::str2colors(const wstring& color, std::vector<color_t>& vcolor) {
+	std::vector<wstring>vstr, vstr2;
+	color_t cr;
+	vcolor.clear();
+	split(color, vstr, L"|");
+	for (auto&it : vstr) {
+		cr.str2color(it);
+		vcolor.push_back(cr);
+	}
+}
+
+void ImageProc::files2mats(const wstring& files, std::vector<cv::Mat*>& vpic) {
+	std::vector<wstring>vstr, vstr2;
+	cv::Mat* pm;
+	vpic.clear();
+	split(files, vstr, L"|");
+	wstring tp;
+	for (auto&it : vstr) {
+		//路径转化
+		if (!Path2GlobalPath(it, _curr_path, tp))
+			continue;
+		//先在缓存中查找
+		if (_pic_cache.count(tp)) {
+			pm = &_pic_cache[tp];
+		}
+		else {
+			_pic_cache[tp] = cv::imread(_wsto_string(tp));
+			pm = &_pic_cache[tp];
+		}
+		vpic.push_back(pm);
 	}
 }
 
@@ -165,7 +217,7 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& out_str) {
 long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, long& retx, long& rety) {
 	vector<wstring> vstr;
 	vector<color_df_t> colors;
-	Tool::split(str, vstr, L"|");
+	split(str, vstr, L"|");
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
@@ -177,7 +229,7 @@ long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, 
 	out_str.clear();
 	vector<wstring> vstr;
 	vector<color_df_t> colors;
-	Tool::split(str, vstr, L"|");
+	split(str, vstr, L"|");
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
@@ -192,4 +244,34 @@ long ImageProc::OcrAuto(double sim, std::wstring& retstr) {
 		sim = 1.;
 	ImageBase::graytobinary();
 	return ImageBase::Ocr(_dicts[_curr_idx], sim,retstr);
+}
+
+long ImageProc::OcrFromFile(const wstring& files, const wstring& color, double sim, std::wstring& retstr) {
+	retstr.clear();
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	wstring fullpath;
+	vector<color_df_t> colors;
+	str2colordfs(color, colors);
+	if (Path2GlobalPath(files, _curr_path, fullpath)) {
+		_src = cv::imread(_wsto_string(fullpath));
+		//ImageBase::graytobinary();
+		ImageBase::bgr2binary(colors);
+		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
+	}
+	return 0;
+}
+
+long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& retstr) {
+	retstr.clear();
+	if (sim<0. || sim>1.)
+		sim = 1.;
+	wstring fullpath;
+
+	if (Path2GlobalPath(files, _curr_path, fullpath)) {
+		_src = cv::imread(_wsto_string(fullpath));
+		ImageBase::graytobinary();
+		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
+	}
+	return 0;
 }

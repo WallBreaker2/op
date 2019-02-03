@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "ImageLoc.h"
+#include <map>
 using std::wstring;
 /*
 此类为图像处理，包含以下工作
@@ -30,9 +31,9 @@ public:
 
 	long FindMultiColorEx(const wstring& first_color, const wstring& offset_color, double sim, long dir, wstring& retstr);
 	//图形定位
-	long FindPic(long x1, long y1, long x2, long y2, const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
+	long FindPic(const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
 	//
-	long FindPicEx(long x1, long y1, long x2, long y2, const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr);
+	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr);
 
 	std::wstring GetColor(long x, long y);
 
@@ -49,12 +50,26 @@ public:
 	long FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str);
 
 	long OcrAuto(double sim, std::wstring& retstr);
+
+	long OcrFromFile(const wstring& files,const wstring& color, double sim, std::wstring& retstr);
+
+	long OcrAutoFromFile(const wstring& files, double sim, std::wstring& retstr);
 	
 	
 private:
 	Dict _dicts[_max_dict];
 	int _curr_idx;
+public:
+	//当前目录
+	wstring _curr_path;
+	//图片缓存
+	std::map<wstring, cv::Mat> _pic_cache;
+	//是否使用图片缓存，默认开启
+	int _enable_cache;
+	
 private:
 	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
+	void str2colors(const wstring& color, std::vector<color_t>& vcolor);
+	void files2mats(const wstring& files, std::vector<cv::Mat*>& vpic);
 };
 
