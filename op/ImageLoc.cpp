@@ -3,15 +3,7 @@
 #include "Common.h"
 #include "ocr.h"
 #include "Tool.h"
-template<typename T>
-int ImageBase::get_bit_count(T x) {
-	int s = 0;
-	while (x) {
-		s += x & 1;
-		s >>= 1;
-	}
-	return s;
-}
+
 
 
 
@@ -25,15 +17,15 @@ ImageBase::~ImageBase()
 }
 
 
-long ImageBase::input_image(byte* image_data, int width,int height, long x1, long y1, long x2, long y2, int type) {
+long ImageBase::input_image(byte* image_data, int width, int height, long x1, long y1, long x2, long y2, int type) {
 	int i, j;
 	int cw = x2 - x1 + 1, ch = y2 - y1 + 1;
-	if (type==-1) {//倒过来读
+	if (type == -1) {//倒过来读
 		_src.create(ch, cw, CV_8UC3);
 		uchar *p, *p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
-			p2 = image_data + (height- i - 1-y1) * width*4+x1*4;//偏移
+			p2 = image_data + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
 			for (j = 0; j < cw; ++j) {
 				*p++ = *p2++; *p++ = *p2++;
 				*p++ = *p2++; ++p2;
@@ -99,12 +91,12 @@ void ImageBase::graytobinary()
 	}
 }
 
-long ImageBase::imageloc(images_t& images,double sim, long&x, long&y) {
+long ImageBase::imageloc(images_t& images, double sim, long&x, long&y) {
 	x = y = -1;
 	if (_src.empty())return 0;
 	//cv::imwrite("input.png", _src);
 	for (auto&it : images) {
-		_target=cv::imread(_wsto_string(it));
+		_target = cv::imread(_wsto_string(it));
 		if (_target.empty()) {
 			//setlog(L"ImageExtend::imageloc,file:%s read false.", it.c_str());
 			continue;
@@ -116,16 +108,16 @@ long ImageBase::imageloc(images_t& images,double sim, long&x, long&y) {
 		_result.create(result_rows, result_cols, CV_32FC1);
 		cv::matchTemplate(_src, _target, _result, CV_TM_SQDIFF);
 		//cv::normalize(_result, _result, 0, 1, cv::NORM_MINMAX, -1, cv::Mat());
-		
-		
-		double minval, maxval,bestval;
+
+
+		double minval, maxval, bestval;
 		cv::Point pt1, pt2;
 		cv::minMaxLoc(_result, &minval, &maxval, &pt1, &pt2);
 		minval /= 255.*255.*_target.rows*_target.cols;
 		bestval = 1. - minval;
 		//setlog(L"ImageExtend::imageloc(),file=%s, bestval=%lf,pos=[%d,%d]",it.c_str(), bestval, pt1.x, pt1.y);
-		
-		if (bestval>=sim) {
+
+		if (bestval >= sim) {
 			x = pt1.x; y = pt1.y;
 			return 1;
 		}
@@ -138,7 +130,28 @@ long ImageBase::imageloc(images_t& images,double sim, long&x, long&y) {
 
 }
 
-long ImageBase::GetPixel(long x, long y,color_t&cr) {
+long ImageBase::simple_match(long x, long y, cv::Mat* timg, vector<color_t>& vdf, int max_error) {
+	int err_ct = 0, k;
+	for (int i = 0; i < timg->rows; ++i) {
+		auto p1 = _src.ptr<uchar>(i + y) + x * 3;
+		auto p2 = timg->ptr<uchar>(i);
+		for (int j = 0; j < timg->cols; ++j) {
+			for (k = 0; k < vdf.size(); ++k) {
+				if (*(color_t*)p1 - *(color_t*)p2 <= vdf[k])
+					break;
+			}
+			//err color
+			if (k == vdf.size())
+				++err_ct;
+			if (err_ct > max_error)
+				return 0;
+			p1 += 3; p2 += 3;
+		}
+	}
+	return 1;
+}
+
+long ImageBase::GetPixel(long x, long y, color_t&cr) {
 	if (!is_valid(x, y))
 		return 0;
 	auto p = _src.ptr<uchar>(y) + 3 * x;
@@ -175,7 +188,7 @@ long ImageBase::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	return 0;
 }
 
-long ImageBase::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
+long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 	retstr.clear();
 	int find_ct = 0;
 	for (int i = 0; i < _src.rows; ++i) {
@@ -183,7 +196,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
 		for (int j = 0; j < _src.cols; ++j) {
 			for (auto&it : colors) {//对每个颜色描述
 				if ((*(color_t*)p - it.color) <= it.df) {
-					retstr += std::to_wstring(j) +L","+std::to_wstring(i);
+					retstr += std::to_wstring(j) + L"," + std::to_wstring(i);
 					retstr += L"|";
 					++find_ct;
 					//return 1;
@@ -195,7 +208,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors,std::wstring& retstr) {
 			p += 3;
 		}
 	}
-	_quick_break:
+_quick_break:
 	if (!retstr.empty() && retstr.back() == L'|')
 		retstr.pop_back();
 	return find_ct;
@@ -223,7 +236,7 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<
 					return 1;
 				}
 			}
-			_quick_break:
+		_quick_break:
 			p += 3;
 		}
 	}
@@ -270,6 +283,60 @@ _quick_return:
 	//x = y = -1;
 }
 
+long ImageBase::FindPic(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors, double sim, long&x, long&y) {
+
+	int err_ct;
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			for (auto pic : pics) {
+				//step 1. 边界检查
+				if (i + pic->rows > _src.rows || j + pic->cols > _src.cols)
+					continue;
+				//step 2. 计算最大误差
+				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
+				//step 3. 开始匹配
+				if (simple_match(j, i, pic, colors, max_err_ct)) {
+					x = j; y = i;
+					return 1;
+				}
+			}//end for pics
+
+		}//end for j
+	}//end for i
+	x = y = -1;
+	return 0;
+}
+
+long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors, double sim, wstring& retstr) {
+	int obj_ct = 0;
+	retstr.clear();
+	for (int i = 0; i < _src.rows; ++i) {
+		uchar* p = _src.ptr<uchar>(i);
+		for (int j = 0; j < _src.cols; ++j) {
+			for (auto pic : pics) {
+				//step 1. 边界检查
+				if (i + pic->rows > _src.rows || j + pic->cols > _src.cols)
+					continue;
+				//step 2. 计算最大误差
+				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
+				//step 3. 开始匹配
+				if (simple_match(j, i, pic, colors, max_err_ct)) {
+					retstr += std::to_wstring(j) + L"," + std::to_wstring(i);
+					retstr += L"|";
+					++obj_ct;
+					if (obj_ct > _max_return_obj_ct)
+						goto _quick_return;
+					else
+						break;
+				}
+			}//end for pics
+
+		}//end for j
+	}//end for i
+_quick_return:
+	return obj_ct;
+}
 
 
 long ImageBase::Ocr(Dict& dict, double sim, wstring& retstr) {

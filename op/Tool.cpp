@@ -27,7 +27,20 @@ std::string _wsto_string(const std::wstring&ws) {
 	return strResult;
 }
 
-long Tool::setlog(const wchar_t* format, ...) {
+long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out) {
+	if (::PathFileExistsW(file.c_str())) {
+		out = file;
+		return 1;
+	}
+	out.clear();
+	out = curr_path + L"\\" + file;
+	if (::PathFileExistsW(file.c_str())) {
+		return 1;
+	}
+	return 0;
+}
+
+long setlog(const wchar_t* format, ...) {
 	va_list args;
 	wchar_t buf[512];
 	SYSTEMTIME sys;
@@ -49,7 +62,7 @@ long Tool::setlog(const wchar_t* format, ...) {
 	return 1;
 }
 
-long Tool::setlog(const char* format, ...) {
+long setlog(const char* format, ...) {
 	va_list args;
 	char buf[512];
 	SYSTEMTIME sys;
@@ -71,7 +84,7 @@ long Tool::setlog(const char* format, ...) {
 	return 1;
 }
 
-void Tool::split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c)
+void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c)
 {
 	std::wstring::size_type pos1, pos2;
 	size_t len = s.length();
@@ -89,7 +102,7 @@ void Tool::split(const std::wstring& s, std::vector<std::wstring>& v, const std:
 		v.emplace_back(s.substr(pos1));
 }
 
-void Tool::split(const std::string& s, std::vector<std::string>& v, const std::string& c)
+void split(const std::string& s, std::vector<std::string>& v, const std::string& c)
 {
 	std::string::size_type pos1, pos2;
 	size_t len = s.length();
@@ -107,10 +120,10 @@ void Tool::split(const std::string& s, std::vector<std::string>& v, const std::s
 		v.emplace_back(s.substr(pos1));
 }
 
-void Tool::wstring2upper(std::wstring& s) {
+void wstring2upper(std::wstring& s) {
 	std::transform(s.begin(), s.end(),s.begin(), towupper);
 }
 
-void Tool::string2upper(std::string& s) {
+void string2upper(std::string& s) {
 	std::transform(s.begin(), s.end(), s.begin(), toupper);
 }
