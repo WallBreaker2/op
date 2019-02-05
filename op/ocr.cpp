@@ -2,6 +2,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <list>
+#include "include/color.h"
 #include "ocr.h"
 using cv::Mat;
 
@@ -267,8 +268,8 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>& ps) {
-	int i, j, x, y, id;
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, int *max_error, std::map<point_t, std::wstring>& ps) {
+	int i, j, y;
 	if (rc.width() <= 0 || rc.height() <= 0)
 		return;
 	//遍历行
@@ -281,17 +282,20 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 			pt.x = j; pt.y = i;
 			//遍历字库
 			//assert(i != 4 || j != 3);
+			int k = 0;
 			for (auto&it : dict.words) {
 				
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
 				//边界检查
-				if (crc.y2 > rc.y2 || crc.x2 > rc.x2)
+				if (crc.y2 > rc.y2 || crc.x2 > rc.x2) {
+					++k;
 					continue;
+				}
 				//match
-				int max_error = it.info.width*it.info.height*sim;
-				int matched = part_match(binary, crc, max_error, it.clines);
+				int matched = part_match(binary, crc, max_error[k], it.clines);
+				++k;
 				if (matched) {
 					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
 					{
@@ -342,7 +346,16 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double si
 	rc.x2 = binary.cols; rc.y2 = binary.rows;
 	std::vector<rect_t> vrcx, vrcy;
 	binshadowy(binary, rc, vrcy);
+	/*
+	计算误差
+	*/
 	sim = 0.5 + sim / 2;
+	sim = 1.0 - sim;
+	std::vector<int> vmax_error;
+	vmax_error.resize(dict.words.size());
+	for (int i = 0; i < vmax_error.size(); ++i) {
+		vmax_error[i] = dict.words[i].info.bit_count*sim;
+	}
 	for (auto&ity : vrcy) {
 		binshadowx(binary, ity, vrcx);
 		for (auto&itx : vrcx) {
@@ -351,7 +364,7 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double si
 				_bin_ocr(binary, record, itx, dict, ps);
 			}
 			else {
-				_bin_ocr(binary, record, itx, dict, sim, ps);
+				_bin_ocr(binary, record, itx, dict, vmax_error.data(), ps);
 			}
 
 		}

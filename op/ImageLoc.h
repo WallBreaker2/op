@@ -7,8 +7,8 @@
 #include <vector>
 #include "Common.h"
 #include <string>
-#include "Dict.h"
-#include "Color/color.h"
+#include "include/Dict.h"
+#include "include/color.h"
 
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')

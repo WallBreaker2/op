@@ -275,5 +275,13 @@ __pycache__/
 /PythonTest
 
 
+!/doc/*.chm
+
+/doc
+
+/Ref
+
+
+
 
 

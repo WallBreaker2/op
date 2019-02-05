@@ -116,7 +116,7 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 	_dicts[idx].clear();
 	wstring fullpath;
 	if (Path2GlobalPath(file_name, _curr_path, fullpath))
-		_dicts[idx].read_dict(fullpath);
+		_dicts[idx].read_dict(_wsto_string(fullpath));
 	if (_dicts->info._word_count)
 		return 1;
 	else
