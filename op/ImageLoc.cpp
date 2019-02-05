@@ -285,7 +285,6 @@ _quick_return:
 
 long ImageBase::FindPic(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors, double sim, long&x, long&y) {
 
-	int err_ct;
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {

@@ -3,14 +3,12 @@
 #define __DICT_H_
 #include <vector>
 #include <string>
-#include <fstream>
 #include <math.h>
-#include "bitfunc.h"
+#include "../op/include/bitfunc.h"
 //#define SET_BIT(x, idx) x |= 1u << (idx)
 
-//#define GET_BIT(x, idx) ((x >> (idx)) & 1u)
-#define WORD_COLOR 0
-#define WORD_BKCOLOR 255
+//#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
+
 struct rect_t {
 	int x1, y1;
 	int x2, y2;
@@ -64,7 +62,7 @@ struct Dict {
 	dict_info_t info;
 	Dict() {}
 	std::vector<word_t>words;
-	void read_dict(const std::wstring&s) {
+	void read_dict(const std::string&s) {
 		std::fstream file;
 		file.open(s, std::ios::in | std::ios::binary);
 		if (!file.is_open())
@@ -83,6 +81,14 @@ struct Dict {
 		file.open(s, std::ios::out | std::ios::binary);
 		if (!file.is_open())
 			return;
+		//删除所有空的字符
+		auto it = words.begin();
+		while (it != words.end()) {
+			if (it->info._char[0] == L'\0')
+				it = words.erase(it);
+			else
+				++it;
+		}
 		//设置校验
 		info._check_code = info._this_ver^info._word_count;
 		//写入信息
@@ -99,8 +105,11 @@ struct Dict {
 			unsigned __int32 x = 0, val;
 			for (int i = rc.y1, id = 0; i < y2; ++i, ++id) {
 				val = binary.at<uchar>(i, j);
-				if (val == 0)
+				if (val == 0) {
 					SET_BIT(x, 31 - id);
+					++word.info.bit_count;
+				}
+					
 			}
 			word.clines[word.info.width++] = x;
 			//t = QString::asprintf("%08X", x);
@@ -109,9 +118,9 @@ struct Dict {
 		}
 		word.info.height = y2 - rc.y1;
 		auto it = find(word);
-		if (words.empty() || it == words.end()) {
+		if (words.empty()||it==words.end()) {
 			word.set_chars(L"");
-
+			
 			words.push_back(word);
 			info._word_count = words.size();
 		}
@@ -122,7 +131,7 @@ struct Dict {
 	}
 	void add_word(const word_t&word) {
 		auto it = find(word);
-		if (words.empty() || it == words.end()) {
+		if (words.empty()||it==words.end()) {
 			words.push_back(word);
 		}
 		else {
@@ -142,7 +151,7 @@ struct Dict {
 
 	void erase(const word_t&word) {
 		auto it = find(word);
-		if (!words.empty() && it != words.end())
+		if (!words.empty() && it !=words.end())
 			words.erase(it);
 		info._word_count = words.size();
 	}

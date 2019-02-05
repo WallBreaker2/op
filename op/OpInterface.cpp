@@ -526,7 +526,19 @@ STDMETHODIMP OpInterface::WaitKey(LONG vk_code, LONG time_out, LONG* ret) {
 
 //抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret) {
-	*ret = _bkproc.Capture(file_name);
+	
+	*ret = 0;
+	if (!_bkproc.IsBind()) {
+		
+		return S_OK;
+	}
+	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.Capture(file_name);
+	}
 	return S_OK;
 }
 //比较指定坐标点(x,y)的颜色
