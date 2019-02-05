@@ -42,7 +42,8 @@ long bkmouse::MoveTo(int x, int y) {
 	{
 		POINT pt;
 		pt.x = x, pt.y = y;
-		::ClientToScreen(_hwnd, &pt);
+		if (_hwnd)
+			::ClientToScreen(_hwnd, &pt);
 		x = pt.x, y = pt.y;
 		//setlog(L"hwnd:%d,pt:%d,%d",_hwnd, 0, y);
 		static double fScreenWidth = ::GetSystemMetrics(SM_CXSCREEN) - 1;

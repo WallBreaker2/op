@@ -6,6 +6,11 @@ class Demo:
         self.op=op=Dispatch("op.opsoft");
         self.hwnd=0;
         self.send_hwnd=0;
+        print("init");
+        r=self.op.MoveTo(30,30);
+        print("op.MoveTo ret:",r);
+        self.op.LeftClick();
+        self.op.Sleep(1000);
 
     def test_base(self):
          #输出插件版本号
@@ -27,7 +32,7 @@ class Demo:
         return 0;
 
     def test_bkmode(self):
-        r=self.op.BindWindow(self.hwnd,"gdi","normal","windows",0);
+        r=self.op.BindWindow(self.hwnd,"gdi","normal","normal",0);
         if r == 0:
             print("bind false");
         return r;
@@ -43,8 +48,10 @@ class Demo:
         return 0;
 
     def test_bkimage(self):
-        self.op.GetColor(30,30);
-        self.op.Capture(0,0,100,100,"bkimgae.bmp");
+        cr=self.op.GetColor(30,30);
+        print("color of (30,30):",cr);
+        ret=self.op.Capture(0,0,100,100,"screen.bmp");
+        print("op.Capture ret:",ret);
         r,x,y=self.op.FindPic(0,0,100,100,"test.png","000000",1.0,0);
         print("op.FindPic:",r,x,y);
         return 0;

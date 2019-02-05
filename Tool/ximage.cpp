@@ -290,7 +290,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict,double sim, std::map<point_t, std::wstring>&outstr) {
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict,int* max_error, std::map<point_t, std::wstring>&outstr) {
 	int i, j, x, y, id;
 	if (rc.width() <= 0 || rc.height() <= 0)
 		return;
@@ -304,18 +304,26 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 			pt.x = j; pt.y = i;
 			//±È¿˙◊÷ø‚
 			//assert(i != 4 || j != 3);
+			int k = 0;
 			for (auto&it : dict.words) {
-				if (it.info._char[0] == L'\0')
+				if (it.info._char[0] == L'\0') {
+					++k;
 					continue;
+				}
+					
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
 				//±ﬂΩÁºÏ≤È
 				if (crc.y2 > rc.y2 || crc.x2 > rc.x2)
+				{
+					++k;
 					continue;
+				}
+					
 				//match
-				int max_error = it.info.width*it.info.height*sim;
-				int matched = part_match(binary, crc, max_error, it.clines);
+				int matched = part_match(binary, crc, max_error[k], it.clines);
+				++k;
 				if (matched) {
 					if (crc.x2 < rc.x2)//ªπ”– £”‡≤ø∑÷£¨ºÏ≤È”“±ﬂ «∑Òø’∞◊
 					{
@@ -366,7 +374,17 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict,double sim
 	std::vector<rect_t> vrcx, vrcy;
 	std::map<point_t, std::wstring> ms;
 	binshadowy(binary, rc, vrcy);
+	
+	/*
+	º∆À„ŒÛ≤Ó
+	*/
 	sim = 0.5 + sim / 2;
+	sim = 1.0 - sim;
+	std::vector<int> vmax_error;
+	vmax_error.resize(dict.words.size());
+	for (int i = 0; i < vmax_error.size(); ++i) {
+		vmax_error[i] = dict.words[i].info.bit_count*sim;
+	}
 	for (auto&ity : vrcy) {
 		binshadowx(binary, ity, vrcx);
 		for (auto&itx : vrcx) {
@@ -376,7 +394,7 @@ void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict,double sim
 				_bin_ocr(binary, record, itx, dict, ms);
 			}
 			else {
-				_bin_ocr(binary, record, itx, dict,sim, ms);
+				_bin_ocr(binary, record, itx, dict,vmax_error.data(), ms);
 			}
 			
 			for (auto&it : ms) {

@@ -10,7 +10,7 @@
 #include <QStandardItemModel>
 #include <QModelIndex>
 #include "ximage.h"
-#include "../op/Color/color.h"
+#include "../op/include/color.h"
 #include <qcheckbox.h>
 #include <qdialog.h>
 #include <qtimer.h>

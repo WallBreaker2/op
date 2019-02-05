@@ -3,7 +3,7 @@
 #define __OCR_H_
 #include <opencv2/core.hpp>
 #include <fstream>
-#include "Dict.h"
+#include "include/Dict.h"
 #include<map>
 struct point_t {
 	int x, y;
@@ -27,10 +27,10 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc);
 //ocr in sim=1.0
 void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps);
 //ocr with sim<1.0
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
+void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, int *max_error, std::map<point_t, std::wstring>&ps);
 //ocr wrapper
-template<int _type>
-void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::wstring& outstr);
+//template<int _type>
+//void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, int* max_error, std::wstring& outstr);
 
 void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
 

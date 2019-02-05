@@ -3,6 +3,8 @@
 #define __COLOR_H_
 #include <string>
 #include <opencv2/core.hpp>
+#define WORD_BKCOLOR 255
+#define WORD_COLOR 0
 //#include "../Tool.h"
 //ÑÕÉ«½á¹¹
 struct color_t {

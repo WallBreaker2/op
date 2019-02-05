@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "DX9hook.h"
+#include "xhook.h"
 #include <d3d9.h>
 #include <d3d10.h>
 #include <boost/interprocess/shared_memory_object.hpp>

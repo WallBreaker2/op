@@ -139,14 +139,14 @@
     <ClCompile Include="bkopengl.cpp">
       <Filter>Background\Display\Opengl</Filter>
     </ClCompile>
-    <ClCompile Include="DX9hook.cpp">
-      <Filter>Background\Display</Filter>
-    </ClCompile>
     <ClCompile Include="ocr.cpp">
       <Filter>Algorithm</Filter>
     </ClCompile>
     <ClCompile Include="Tool.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="xhook.cpp">
+      <Filter>Background\Display</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -216,23 +216,23 @@
     <ClInclude Include="bkopengl.h">
       <Filter>Background\Display\Opengl</Filter>
     </ClInclude>
-    <ClInclude Include="DX9hook.h">
-      <Filter>Background\Display</Filter>
-    </ClInclude>
-    <ClInclude Include="Dict.h">
-      <Filter>Algorithm</Filter>
-    </ClInclude>
-    <ClInclude Include="Color\color.h">
-      <Filter>Algorithm</Filter>
-    </ClInclude>
     <ClInclude Include="ocr.h">
       <Filter>Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="bitfunc.h">
-      <Filter>Algorithm\Bit</Filter>
-    </ClInclude>
     <ClInclude Include="Tool.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="xhook.h">
+      <Filter>Background\Display</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bitfunc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\color.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Dict.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
