@@ -16,6 +16,7 @@
 #include <qtimer.h>
 #include <windows.h>
 #include <vector>
+#include "cap_dialog.h"
 class my_dialog : public QDialog {
 public:
 	my_dialog(QWidget* parent) :QDialog(parent,Qt::WindowFlags::enum_type::FramelessWindowHint)
@@ -81,6 +82,8 @@ public:
 	void mouseMoveEvent(QMouseEvent* event);
 	void on_slider();
 	void on_auto(bool checked = false);
+	void on_capture();
+	private slots: void to_mat();
 private:
 	Ui::ToolClass ui;
 	cv::Mat _src;
@@ -111,6 +114,10 @@ private:
 	int _width, _height;
 	std::vector<unsigned char> _imagedata;
 	double _ocr_sim;
+	cap_dialog _cap_dlg;
+private:
+	void capture_full_screen();
+	void release_res();
 };
 
 

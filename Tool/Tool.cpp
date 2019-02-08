@@ -9,7 +9,7 @@
 #include <Windows.h>
 
 Tool::Tool(QWidget *parent)
-	: QMainWindow(parent),_motive(this)
+	: QMainWindow(parent),_motive(this),_cap_dlg(this)
 {
 	_is_edit = 0;
 	_is_press = 0;
@@ -53,7 +53,9 @@ Tool::Tool(QWidget *parent)
 	QObject::connect(ui.pushButton_6, &QPushButton::clicked, this, &Tool::del_word);
 	QObject::connect(ui.horizontalSlider, &QSlider::sliderReleased, this, &Tool::on_slider);
 	QObject::connect(ui.checkBox, &QCheckBox::clicked, this, &Tool::on_auto);
-
+	QObject::connect(ui.pushButton_10, &QPushButton::clicked, this, &Tool::on_capture);
+	QObject::connect(&_cap_dlg, &cap_dialog::sendCapture, this, &Tool::to_mat);
+	//connect(maptable,)
 }
 void Tool::paintEvent(QPaintEvent* event) {
 	QPainter paint(this);
@@ -361,40 +363,8 @@ void Tool::mousePressEvent(QMouseEvent* event) {
 		auto global = mapToGlobal(event->pos());
 		_motive.move(global.x() + 20, global.y());
 		_motive.show();
-		_hdc = ::GetDC(NULL);
-		RECT rc;
-
-		::GetWindowRect(GetDesktopWindow(), &rc);
-		_width = rc.right - rc.left;
-		_height = rc.bottom - rc.top;
-		//qDebug() << _width << "," << _height;
-		_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
-		if (_hmdc == NULL) {
-			//Tool::setlog("CreateCompatibleDC false");
-			//return -2;
-		}
-		_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
-
-		_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
-
-
-		GetObject(_hbmpscreen, sizeof(_bm), (LPSTR)&_bm); //得到指定图形对象的信息	
-		//BITMAPINFOHEADER _bih;
-		_bih.biBitCount = _bm.bmBitsPixel;//每个像素字节大小
-		_bih.biCompression = BI_RGB;
-		_bih.biHeight = _bm.bmHeight;//高度
-		_bih.biPlanes = 1;
-		_bih.biSize = sizeof(BITMAPINFOHEADER);
-		_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
-		_bih.biWidth = _bm.bmWidth;//宽度
-		BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
-		//if (_pimagedata)
-		//	delete[] _pimagedata;
-		//_pimagedata = new byte[_width*_height * 4];
-		_imagedata.reserve(_width*_height * 4);
-		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
-		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_imagedata.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
-		
+		release_res();
+		capture_full_screen();
 	}
 }
 
@@ -429,14 +399,7 @@ void Tool::mouseReleaseEvent(QMouseEvent* event) {
 		}
 		to_binary();
 		_motive.hide();
-		if (_holdbmp&&_hmdc)
-			_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
-		//delete[dwLen_2]hDib;
-		if (_hdc)DeleteDC(_hdc); _hdc = NULL;
-		if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
-
-		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
-		if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
+		
 		//qDebug() << "move" << event->x() << ":" << event->y();
 	}
 }
@@ -497,5 +460,91 @@ void Tool::on_slider() {
 }
 
 void Tool::on_auto(bool checked) {
+	to_binary();
+}
+
+void Tool::on_capture() {
+	this->showMinimized();
+	Sleep(300);
+	release_res();
+	capture_full_screen();
+	_cap_dlg._img = QImage(_imagedata.data(), _width, _height, QImage::Format_RGBX8888).mirrored(false, true);
+	_cap_dlg._src = _cap_dlg._img;
+	
+	_cap_dlg.AdjLight(0.3);
+	_cap_dlg._screen_w = _width;
+	_cap_dlg._pscreen = _imagedata.data();
+	_cap_dlg.show();
+	_cap_dlg.showFullScreen();
+	
+}
+
+void Tool::capture_full_screen() {
+	_hdc = ::GetDC(NULL);
+	RECT rc;
+
+	::GetWindowRect(GetDesktopWindow(), &rc);
+	_width = rc.right - rc.left;
+	_height = rc.bottom - rc.top;
+	//qDebug() << _width << "," << _height;
+	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
+	if (_hmdc == NULL) {
+		//Tool::setlog("CreateCompatibleDC false");
+		//return -2;
+	}
+	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
+
+	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
+
+
+	GetObject(_hbmpscreen, sizeof(_bm), (LPSTR)&_bm); //得到指定图形对象的信息	
+	//BITMAPINFOHEADER _bih;
+	_bih.biBitCount = _bm.bmBitsPixel;//每个像素字节大小
+	_bih.biCompression = BI_RGB;
+	_bih.biHeight = _bm.bmHeight;//高度
+	_bih.biPlanes = 1;
+	_bih.biSize = sizeof(BITMAPINFOHEADER);
+	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
+	_bih.biWidth = _bm.bmWidth;//宽度
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
+	//if (_pimagedata)
+	//	delete[] _pimagedata;
+	//_pimagedata = new byte[_width*_height * 4];
+	_imagedata.reserve(_width*_height * 4);
+	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
+	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_imagedata.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+
+}
+
+void Tool::release_res() {
+	if (_holdbmp&&_hmdc)
+		_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
+	//delete[dwLen_2]hDib;
+	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
+	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
+
+	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
+	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
+}
+
+void Tool::to_mat() {
+	int ch, cw;
+	ch = _cap_dlg._rect.height();
+	cw = _cap_dlg._rect.width();
+	_src.create(ch,cw, CV_8UC3);
+	uchar *p, *p2;
+	int x1 = _cap_dlg._rect.left();
+	int y1 = _cap_dlg._rect.top();
+	for (int i = 0; i < ch; ++i) {
+		p = _src.ptr<uchar>(i);
+		p2 = _imagedata.data() + (_height - i - 1 - y1) * _width * 4 + x1 * 4;//偏移
+		for (int j = 0; j < cw; ++j) {
+			*p++ = *p2++; *p++ = *p2++;
+			*p++ = *p2++; ++p2;
+		}
+	}
+	cv::imwrite("_src.bmp", _src);
+	_qimage.load("_src.bmp");
+	ui.label_3->setPixmap(QPixmap::fromImage(_qimage));
 	to_binary();
 }

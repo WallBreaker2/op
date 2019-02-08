@@ -34,7 +34,7 @@ long bkgdi::UnBind() {
 		_pthread->join();
 		SAFE_DELETE(_pthread);
 	}
-	setlog(" bkgdi::UnBind()");
+	//setlog(" bkgdi::UnBind()");
 	return 1;
 }
 
@@ -132,7 +132,7 @@ long bkgdi::cap_image() {
 }
 
 long bkgdi::capture(const std::wstring& file_name) {
-	setlog(L"bkgdi::capture");
+	//setlog(L"bkgdi::capture");
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);
 	if (!file.is_open())return 0;

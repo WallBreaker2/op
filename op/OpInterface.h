@@ -83,6 +83,8 @@ public:
 	STDMETHOD(GetPath)(BSTR*path);
 	//获取插件目录
 	STDMETHOD(GetBasePath)(BSTR* path);
+	//设置是否弹出错误信息,默认是打开 0为关闭，1为显示为信息框，2为保存到文件
+	STDMETHOD(SetShowErrorMsg)(LONG show_type, LONG* ret);
 	//运行可执行文件
 	STDMETHOD(WinExec)(BSTR cmdline,LONG cmdshow, LONG* ret);
 	//sleep

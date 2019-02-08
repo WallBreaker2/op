@@ -44,6 +44,9 @@
     <QtMoc Include="Tool.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="cap_dialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="Tool.ui">

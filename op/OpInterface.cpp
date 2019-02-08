@@ -10,9 +10,9 @@
 
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	const char* ver = "0.2.1.2.x86";
+	const char* ver = "0.2.1.3.x86";
 #else
-	static const wchar_t* ver = L"0.2.1.2.x64";
+	static const wchar_t* ver = L"0.2.1.3.x64";
 
 #endif;
 	//Tool::setlog("address=%d,str=%s", ver, ver);
@@ -60,6 +60,12 @@ STDMETHODIMP OpInterface::GetBasePath(BSTR* path){
 	::GetModuleFileName(gInstance, basepath, 256);
 	bstr.Append(basepath);
 	bstr.CopyTo(path);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SetShowErrorMsg(LONG show_type, LONG* ret){
+	gShowError = show_type;
+	*ret = 1;
 	return S_OK;
 }
 
@@ -411,6 +417,8 @@ STDMETHODIMP OpInterface::UnBindWindow(LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::GetCursorPos(VARIANT* x, VARIANT* y, LONG* ret) {
+	x->vt = y->vt = VT_I4;
+	*ret = _bkproc._bkmouse.GetCursorPos(x->lVal, y->lVal);
 	return S_OK;
 }
 
@@ -420,7 +428,7 @@ STDMETHODIMP OpInterface::MoveR(LONG x, LONG y, LONG* ret) {
 }
 //把鼠标移动到目的点(x,y)
 STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG* ret) {
-	*ret = _bkproc.MoveTo(x, y);
+	*ret = _bkproc._bkmouse.MoveTo(x, y);
 	return S_OK;
 }
 
@@ -430,7 +438,7 @@ STDMETHODIMP OpInterface::MoveToEx(LONG x, LONG y, LONG w, LONG h, LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::LeftClick(LONG* ret) {
-	*ret = _bkproc.LeftClick();
+	*ret = _bkproc._bkmouse.LeftClick();
 	return S_OK;
 }
 

@@ -53,12 +53,18 @@ long setlog(const wchar_t* format, ...) {
 	va_start(args, format);
 	vswprintf(buf, format, args);
 	va_end(args);
-	std::wfstream file;
-	file.open(L"op.log", std::ios::app | std::ios::out);
-	if (!file.is_open())
-		return 0;
-	file << tm << buf << std::endl;
-	file.close();
+	if (gShowError == 1) {
+		MessageBoxW(NULL, buf, L"error", MB_ICONERROR);
+	}
+	else if (gShowError == 2) {
+		std::wfstream file;
+		file.open(L"op.log", std::ios::app | std::ios::out);
+		if (!file.is_open())
+			return 0;
+		file << tm << buf << std::endl;
+		file.close();
+	}
+	
 	return 1;
 }
 
@@ -75,12 +81,17 @@ long setlog(const char* format, ...) {
 	va_start(args, format);
 	vsprintf(buf, format, args);
 	va_end(args);
-	std::fstream file;
-	file.open("op.log", std::ios::app | std::ios::out);
-	if (!file.is_open())
-		return 0;
-	file << tm << buf << std::endl;
-	file.close();
+	if (gShowError == 1) {
+		MessageBoxA(NULL, buf, "error", MB_ICONERROR);
+	}
+	else if (gShowError == 2) {
+		std::fstream file;
+		file.open(L"op.log", std::ios::app | std::ios::out);
+		if (!file.is_open())
+			return 0;
+		file << tm << buf << std::endl;
+		file.close();
+	}
 	return 1;
 }
 
