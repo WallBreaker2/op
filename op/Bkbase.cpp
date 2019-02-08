@@ -4,6 +4,7 @@
 #include "Bkgdi.h"
 #include "Bkdx.h"
 #include "bkopengl.h"
+#include <algorithm>
 Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
 {
 	_mode = 0;
@@ -15,8 +16,8 @@ Bkbase::~Bkbase()
 }
 
 long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
-	setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
-		hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
+	//setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
+	//	hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
 	_hwnd = (HWND)hwnd;
 	long ret;
 	int display, mouse, keypad;
@@ -127,40 +128,13 @@ long Bkbase::GetCursorPos(int&x, int&y) {
 	return r;
 }
 
-long Bkbase::GetKeyState(int vk_code) {
-	return ::GetAsyncKeyState(vk_code);
-}
+//long Bkbase::GetKeyState(int vk_code) {
+//	return ::GetAsyncKeyState(vk_code);
+//}
 
-long Bkbase::KeyDown(int vk_code) {
-	return 0;
-}
 
-long Bkbase::KeyUp(int vk_code) {
-	return 0;
-}
 
-long Bkbase::LeftClick() {
-	long ret = 0;
-	ret = _bkmouse.LeftClick();
-	return ret;
-}
 
-long Bkbase::RightClick() {
-	
-	return _bkmouse.RightClick();
-}
-
-long Bkbase::MoveTo(long x, long y) {
-	
-	return _bkmouse.MoveTo(x,y);
-}
-
-long Bkbase::Capture(const std::wstring& file_name) {
-	if (_is_bind)
-		return _pbkdisplay->capture(file_name);
-	else
-		return 0;
-}
 
 long Bkbase::GetDisplay() {
 	return _display;
@@ -199,7 +173,9 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	else {
 		//to do...
 	}
-	if (x1<0 || x2>get_widht() || y1<0 || y2>get_height()) {
+	x2 = std::min<long>(get_widht(), x2);
+	y2 = std::min<long>(get_height(), y2);
+	if (x1<0 || y1<0) {
 		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}

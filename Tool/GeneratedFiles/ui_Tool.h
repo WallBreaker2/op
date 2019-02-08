@@ -60,6 +60,7 @@ public:
     QLabel *label_5;
     QLineEdit *lineEdit_3;
     QCheckBox *checkBox;
+    QPushButton *pushButton_10;
     QToolBar *mainToolBar;
 
     void setupUi(QMainWindow *ToolClass)
@@ -83,10 +84,10 @@ public:
         label_4->setGeometry(QRect(10, 20, 151, 61));
         pushButton = new QPushButton(centralWidget);
         pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(130, 90, 75, 23));
+        pushButton->setGeometry(QRect(130, 90, 41, 23));
         pushButton_3 = new QPushButton(centralWidget);
         pushButton_3->setObjectName(QStringLiteral("pushButton_3"));
-        pushButton_3->setGeometry(QRect(210, 90, 75, 23));
+        pushButton_3->setGeometry(QRect(244, 90, 41, 23));
         groupBox_4 = new QGroupBox(centralWidget);
         groupBox_4->setObjectName(QStringLiteral("groupBox_4"));
         groupBox_4->setGeometry(QRect(300, 0, 241, 261));
@@ -161,6 +162,9 @@ public:
         checkBox = new QCheckBox(centralWidget);
         checkBox->setObjectName(QStringLiteral("checkBox"));
         checkBox->setGeometry(QRect(20, 250, 81, 20));
+        pushButton_10 = new QPushButton(centralWidget);
+        pushButton_10->setObjectName(QStringLiteral("pushButton_10"));
+        pushButton_10->setGeometry(QRect(180, 90, 51, 23));
         ToolClass->setCentralWidget(centralWidget);
         mainToolBar = new QToolBar(ToolClass);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -196,6 +200,7 @@ public:
         groupBox_6->setTitle(QApplication::translate("ToolClass", "\351\242\234\350\211\262-\345\201\217\350\211\262", Q_NULLPTR));
         label_5->setText(QString());
         checkBox->setText(QApplication::translate("ToolClass", "\350\207\252\345\212\250(\346\227\240\350\211\262)", Q_NULLPTR));
+        pushButton_10->setText(QApplication::translate("ToolClass", "\346\212\223\345\233\276", Q_NULLPTR));
     } // retranslateUi
 
 };
