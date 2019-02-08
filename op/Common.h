@@ -41,8 +41,9 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 #define SHARED_RES_NAME_FORMAT "op_x64_shared_res_%p"
 #define MUTEX_NAME_FORMAT "op_x64_mutex_%p"
 #endif
-
+//模块句柄
 extern HINSTANCE gInstance;
-
+//是否显示错误信息
+extern int gShowError;
 
 #endif

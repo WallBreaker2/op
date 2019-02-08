@@ -36,7 +36,8 @@ interface IOpInterface : IDispatch
 	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
 	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
 	[id(4)] HRESULT GetBasePath([out, retval] BSTR* path);
-	[id(5)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
+	[id(5)] HRESULT SetShowErrorMsg([in] LONG show_type, [out, retval] LONG* ret);
+	
 	[id(10)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
 
 	[id(31)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
@@ -75,7 +76,7 @@ interface IOpInterface : IDispatch
 	[id(89)] HRESULT SendString(LONG hwnd, BSTR str, LONG* ret);
 	[id(90)] HRESULT SendStringIme(LONG hwnd, BSTR str, LONG* ret);
 
-
+	[id(95)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
 	[id(96)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
 	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
