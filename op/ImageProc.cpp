@@ -87,10 +87,13 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 //图形定位
 long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long &y) {
 	vector<cv::Mat*>vpic;
-	vector<color_t> vcolor;
+	//vector<color_t> vcolor;
+	color_t dfcolor;
 	files2mats(files, vpic);
-	str2colors(delta_colors, vcolor);
-	long ret = ImageBase::FindPic(vpic, vcolor,sim, x, y);
+	dfcolor.str2color(delta_colors);
+	//str2colors(delta_colors, vcolor);
+	sim = 0.5 + sim / 2;
+	long ret = ImageBase::FindPic(vpic, dfcolor,sim, x, y);
 	//清理缓存
 	if (!_enable_cache)
 		_pic_cache.clear();
@@ -99,10 +102,12 @@ long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, 
 //
 long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr) {
 	vector<cv::Mat*>vpic;
-	vector<color_t> vcolor;
+	//vector<color_t> vcolor;
+	color_t dfcolor;
 	files2mats(files, vpic);
-	str2colors(delta_colors, vcolor);
-	long ret = ImageBase::FindPicEx(vpic, vcolor,sim, retstr);
+	dfcolor.str2color(delta_colors);
+	sim = 0.5 + sim / 2;
+	long ret = ImageBase::FindPicEx(vpic, dfcolor,sim, retstr);
 	//清理缓存
 	if (!_enable_cache)
 		_pic_cache.clear();

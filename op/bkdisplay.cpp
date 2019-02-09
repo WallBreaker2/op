@@ -9,6 +9,7 @@ bkdisplay::bkdisplay()
 	_pmutex = nullptr;
 	_bind_state = 0;
 	_width = _height = 0;
+	_client_x = _client_y = 0;
 }
 
 
