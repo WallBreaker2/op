@@ -63,16 +63,18 @@ long bkgdi::cap_init() {
 	_height = rc.bottom - rc.top;
 	//::MoveWindow(_hwnd, 0, 0, _width, _height, 1);
 	POINT pt;
-	::GetWindowRect(_hwnd, &rc);
 	pt.x = rc.left; pt.y = rc.top;
 	::ScreenToClient(_hwnd, &pt);
-	//setlog("WindowRect:%d,%d", pt.x,pt.y);
-	//setlog("Window:%d,%d", _width, _height);
+
+	//::GetWindowRect(_hwnd, &rc);
+	//::GetClientRect(_hwnd, &rcc);
 	//设置偏移
-	::GetClientRect(_hwnd, &rc);
 	_client_x = -pt.x;
 	_client_y = -pt.y;
-	//setlog("ClientRect:%d,%d,%d,%d", rc.left,rc.top,rc.right,rc.bottom);
+	//setlog("dx,dy=%d,%d", _client_x, _client_y);
+	//setlog("pt[%d,%d]", pt.x, pt.y);
+	//setlog("WindowRect:%d,%d,%d,%d", rc.left, rc.top, rc.right, rc.bottom);
+	//setlog("ClientRect:%d,%d,%d,%d", rcc.left,rcc.top,rcc.right,rcc.bottom);
 
 	_hmdc = CreateCompatibleDC(_hdc); //创建一个与指定设备兼容的内存设备上下文环境	
 	if (_hmdc == NULL) {

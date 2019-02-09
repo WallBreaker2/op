@@ -7,15 +7,13 @@ class Demo:
         self.hwnd=0;
         self.send_hwnd=0;
         print("init");
-        r=self.op.MoveTo(30,30);
-        print("op.MoveTo ret:",r);
-        self.op.LeftClick();
-        self.op.Sleep(1000);
+        
 
     def test_base(self):
          #输出插件版本号
          print("op ver:",self.op.Ver());
          print("path:",self.op.GetPath());
+         self.op.SetShowErrorMsg(2);
          r=self.op.WinExec("notepad",1);
          print("Exec notepad:",r);
 
@@ -50,7 +48,7 @@ class Demo:
     def test_bkimage(self):
         cr=self.op.GetColor(30,30);
         print("color of (30,30):",cr);
-        ret=self.op.Capture(0,0,100,100,"screen.bmp");
+        ret=self.op.Capture(0,0,2000,2000,"screen.bmp");
         print("op.Capture ret:",ret);
         r,x,y=self.op.FindPic(0,0,100,100,"test.png","000000",1.0,0);
         print("op.FindPic:",r,x,y);
