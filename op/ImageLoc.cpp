@@ -19,7 +19,7 @@ ImageBase::~ImageBase()
 
 long ImageBase::input_image(byte* image_data, int width, int height, long x1, long y1, long x2, long y2, int type) {
 	int i, j;
-	int cw = x2 - x1 + 1, ch = y2 - y1 + 1;
+	int cw = x2 - x1 - 1, ch = y2 - y1 - 1;
 	if (type == -1) {//倒过来读
 		_src.create(ch, cw, CV_8UC3);
 		uchar *p, *p2;
@@ -130,18 +130,13 @@ long ImageBase::imageloc(images_t& images, double sim, long&x, long&y) {
 
 }
 
-long ImageBase::simple_match(long x, long y, cv::Mat* timg, vector<color_t>& vdf, int max_error) {
+long ImageBase::simple_match(long x, long y, cv::Mat* timg, color_t dfcolor, int max_error) {
 	int err_ct = 0, k;
 	for (int i = 0; i < timg->rows; ++i) {
 		auto p1 = _src.ptr<uchar>(i + y) + x * 3;
 		auto p2 = timg->ptr<uchar>(i);
 		for (int j = 0; j < timg->cols; ++j) {
-			for (k = 0; k < vdf.size(); ++k) {
-				if (*(color_t*)p1 - *(color_t*)p2 <= vdf[k])
-					break;
-			}
-			//err color
-			if (k == vdf.size())
+			if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
 				++err_ct;
 			if (err_ct > max_error)
 				return 0;
@@ -283,7 +278,7 @@ _quick_return:
 	//x = y = -1;
 }
 
-long ImageBase::FindPic(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors, double sim, long&x, long&y) {
+long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, long&x, long&y) {
 
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
@@ -295,7 +290,7 @@ long ImageBase::FindPic(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors,
 				//step 2. 计算最大误差
 				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
 				//step 3. 开始匹配
-				if (simple_match(j, i, pic, colors, max_err_ct)) {
+				if (simple_match(j, i, pic, dfcolor, max_err_ct)) {
 					x = j; y = i;
 					return 1;
 				}
@@ -307,7 +302,7 @@ long ImageBase::FindPic(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors,
 	return 0;
 }
 
-long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, std::vector<color_t>&colors, double sim, wstring& retstr) {
+long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, wstring& retstr) {
 	int obj_ct = 0;
 	retstr.clear();
 	for (int i = 0; i < _src.rows; ++i) {
@@ -320,7 +315,7 @@ long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, std::vector<color_t>&color
 				//step 2. 计算最大误差
 				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
 				//step 3. 开始匹配
-				if (simple_match(j, i, pic, colors, max_err_ct)) {
+				if (simple_match(j, i, pic, dfcolor, max_err_ct)) {
 					retstr += std::to_wstring(j) + L"," + std::to_wstring(i);
 					retstr += L"|";
 					++obj_ct;

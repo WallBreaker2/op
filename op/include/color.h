@@ -24,10 +24,11 @@ struct color_t {
 	bool operator>(const color_t& rhs) {
 		return b > rhs.b || g > rhs.g || r > rhs.r;
 	}
-	color_t& str2color(std::wstring&s) {
+	color_t& str2color(const std::wstring&s) {
 		int r, g, b;
-		std::transform(s.begin(), s.end(), s.begin(), ::towupper);
-		swscanf(s.c_str(), L"%02X%02X%02X", &r, &g, &b);
+		auto ss = s;
+		std::transform(ss.begin(), ss.end(), ss.begin(), ::towupper);
+		swscanf(ss.c_str(), L"%02X%02X%02X", &r, &g, &b);
 		this->b = b; this->r = r; this->g = g;
 		return *this;
 	}

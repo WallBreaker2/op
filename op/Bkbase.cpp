@@ -173,8 +173,8 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	else {
 		//to do...
 	}
-	x2 = std::min<long>(get_widht(), x2);
-	y2 = std::min<long>(get_height(), y2);
+	x2 = std::min<long>(get_widht()-1, x2);
+	y2 = std::min<long>(get_height()-1, y2);
 	if (x1<0 || y1<0) {
 		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
