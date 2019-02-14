@@ -145,11 +145,15 @@ byte* Bkbase::GetScreenData() {
 }
 
 void Bkbase::lock_data() {
-	_pbkdisplay->get_mutex()->lock();
+	auto p = _pbkdisplay->get_mutex();
+	if (p)
+		p->lock();
 }
 
 void Bkbase::unlock_data() {
-	_pbkdisplay->get_mutex()->unlock();
+	auto p = _pbkdisplay->get_mutex();
+	if (p)
+		p->unlock();
 }
 
 long Bkbase::get_height() {
