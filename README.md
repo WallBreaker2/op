@@ -1,7 +1,7 @@
 Overview
 ===========
 OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Windows消息模拟,后台截图，图像识别,字符识别(OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll.可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)  
-![struct](/doc/struct.png] "")
+![struct](doc/struct.png "")
 ***
 ## Fetaure
 * [Windows消息模拟](#Windows消息模拟)
