@@ -468,12 +468,12 @@ void Tool::on_capture() {
 	Sleep(300);
 	release_res();
 	capture_full_screen();
-	_cap_dlg._img = QImage(_imagedata.data(), _width, _height, QImage::Format_RGBX8888).mirrored(false, true);
-	_cap_dlg._src = _cap_dlg._img;
+	_cap_dlg._src = QImage(_imagedata.data(), _width, _height, QImage::Format_RGB32).mirrored(false, true);
+	_cap_dlg._img = _cap_dlg._src;
 	
-	_cap_dlg.AdjLight(0.3);
+	_cap_dlg.AdjLight(0.4);
 	_cap_dlg._screen_w = _width;
-	_cap_dlg._pscreen = _imagedata.data();
+	//_cap_dlg._pscreen = _imagedata.data();
 	_cap_dlg.show();
 	_cap_dlg.showFullScreen();
 	
