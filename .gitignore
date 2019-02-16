@@ -273,13 +273,16 @@ __pycache__/
 
 /MFCApp
 /PythonTest
-
-
+/op_test
+/Tool
+/tool_ex
 !/doc/*.chm
 
 /doc
 
 /Ref
+
+
 
 
 
