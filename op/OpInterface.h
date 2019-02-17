@@ -92,6 +92,11 @@ public:
 	//Process
 	//inject dll
 	STDMETHOD(InjectDll)(BSTR process_name,BSTR dll_name, LONG* ret);
+	//设置是否开启或者关闭插件内部的图片缓存机制
+	STDMETHOD(EnablePicCache)(LONG enable, LONG* ret);
+	//---------------------algorithm-------------------------------
+	//A星算法
+	STDMETHOD(AStarFindPath)(LONG mapWidth,LONG mapHeight,BSTR disable_points,LONG beginX,LONG beginY, LONG endX,LONG endY,BSTR* path);
 	//--------------------windows api------------------------------
 	//根据指定条件,枚举系统中符合条件的窗口
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);

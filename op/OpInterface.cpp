@@ -6,13 +6,14 @@
 #include "Cmder.h"
 #include "Injecter.h"
 #include "Tool.h"
+#include "AStar.hpp"
 // OpInterface
 
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	const char* ver = "0.2.1.3.x86";
+	const char* ver = "0.2.2.0.x86";
 #else
-	static const wchar_t* ver = L"0.2.1.3.x64";
+	static const wchar_t* ver = L"0.2.2.0.x64";
 
 #endif;
 	//Tool::setlog("address=%d,str=%s", ver, ver);
@@ -89,6 +90,44 @@ STDMETHODIMP OpInterface::InjectDll(BSTR process_name, BSTR dll_name, LONG* ret)
 	*ret = 0;
 	return S_OK;
 }
+
+STDMETHODIMP OpInterface::EnablePicCache(LONG enable, LONG* ret) {
+	_image_proc._enable_cache = enable;
+	*ret = 1;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disable_points, LONG beginX, LONG beginY, LONG endX, LONG endY, BSTR* path) {
+	AStar as;
+	vector<Vector2i>walls;
+	vector<wstring> vstr;
+	Vector2i tp;
+	split(disable_points, vstr, L"|");
+	for (auto&it : vstr) {
+		if (swscanf(it.c_str(), L"%d,%d", &tp[0], &tp[1]) != 2)
+			break;
+		walls.push_back(tp);
+	}
+	list<Vector2i> paths;
+	
+	as.set_map( mapWidth, mapHeight , walls);
+	as.findpath(beginX,beginY , endX,endY , paths);
+	wstring pathstr;
+	wchar_t buf[20];
+	for (auto it = paths.rbegin(); it != paths.rend(); ++it) {
+		auto v = *it;
+		wsprintf(buf, L"%d,%d", v[0], v[1]);
+		pathstr += buf;
+		pathstr.push_back(L'|');
+	}
+	if (!pathstr.empty())
+		pathstr.pop_back();
+	CComBSTR newstr;
+	newstr.Append(pathstr.c_str());
+	newstr.CopyTo(path);
+	return S_OK;
+}
+
 
 STDMETHODIMP OpInterface::EnumWindow(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr)
 {

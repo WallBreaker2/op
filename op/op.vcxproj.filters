@@ -234,6 +234,9 @@
     <ClInclude Include="include\Dict.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="AStar.hpp">
+      <Filter>Algorithm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="op.rc">

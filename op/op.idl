@@ -32,15 +32,17 @@ interface IComponentRegistrar : IDispatch
 ]
 interface IOpInterface : IDispatch
 {
+	//base config 1-119
 	[id(1)] HRESULT Ver([out, retval] BSTR* ret);
 	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
 	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
 	[id(4)] HRESULT GetBasePath([out, retval] BSTR* path);
 	[id(5)] HRESULT SetShowErrorMsg([in] LONG show_type, [out, retval] LONG* ret);
-	
-	[id(10)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
-
-	[id(31)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
+	[id(6)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
+	[id(7)] HRESULT InjectDll(BSTR process_name, BSTR dll_name, LONG* ret);
+	[id(8)] HRESULT EnablePicCache([in] LONG enable, [out, retval] LONG* ret);
+	//algorithm 20-49
+	[id(20)] HRESULT AStarFindPath([in] LONG mapWidth, [in] LONG mapHeight, [in] BSTR disable_points, [in] LONG beginX, [in] LONG beginY, [in] LONG endX, [in] LONG endY, [out, retval] BSTR* path);
 	//windows api 50-99
 	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
