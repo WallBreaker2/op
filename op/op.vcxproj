@@ -199,8 +199,8 @@
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)doc\*.chm $(SolutionDir)bin\x86 /y
-copy $(SolutionDir)op\op_i.h $(SolutionDir)include /y
-copy $(SolutionDir)op\op_i.c $(SolutionDir)include /y</Command>
+copy $(SolutionDir)op\op_i.h $(SolutionDir)include\op.h /y
+copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
