@@ -85,8 +85,7 @@ public:
 	STDMETHOD(GetBasePath)(BSTR* path);
 	//设置是否弹出错误信息,默认是打开 0为关闭，1为显示为信息框，2为保存到文件
 	STDMETHOD(SetShowErrorMsg)(LONG show_type, LONG* ret);
-	//运行可执行文件
-	STDMETHOD(WinExec)(BSTR cmdline,LONG cmdshow, LONG* ret);
+	
 	//sleep
 	STDMETHOD(Sleep)(LONG millseconds, LONG* ret);
 	//Process
@@ -164,9 +163,13 @@ public:
 	STDMETHOD(SendString)(LONG hwnd, BSTR str, LONG* ret);
 	//向指定窗口发送文本数据-输入法
 	STDMETHOD(SendStringIme)(LONG hwnd, BSTR str, LONG* ret);
+	//运行可执行文件,可指定模式
+	STDMETHOD(RunApp)(BSTR cmdline, LONG mode, LONG* ret);
+	//运行可执行文件，可指定显示模式
+	STDMETHOD(WinExec)(BSTR cmdline, LONG cmdshow, LONG* ret);
 
 	//运行命令行并返回结果
-	STDMETHOD(ExcuteCmd)(BSTR cmd,LONG millseconds, BSTR* retstr);
+	STDMETHOD(GetCmdStr)(BSTR cmd,LONG millseconds, BSTR* retstr);
 
 	//--------------------Background -----------------------
 	//bind window and beign capture screen

@@ -51,6 +51,7 @@ public:
 
 	long input_image(byte* image_data, int width, int height,long x1,long y1,long x2,long y2, int type = 0);
 
+	void set_offset(int dx, int dy);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
 	else pixel=0;
@@ -63,7 +64,7 @@ public:
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.
 	//x,y:目标坐标
-	long imageloc(images_t& images, double sim, long&x, long&y);
+	/*long imageloc(images_t& images, double sim, long&x, long&y);*/
 
 	long simple_match(long x, long y, cv::Mat* timg,color_t dfcolor,int max_error);
 
@@ -104,7 +105,10 @@ public:
 	cv::Mat _result;
 	
 private:
-	
+	//起始点
+	int _x1, _y1;
+	//偏移
+	int _dx, _dy;
 	
 };
 

@@ -44,30 +44,11 @@
 
 /* Forward Declarations */ 
 
-#ifndef __IComponentRegistrar_FWD_DEFINED__
-#define __IComponentRegistrar_FWD_DEFINED__
-typedef interface IComponentRegistrar IComponentRegistrar;
-
-#endif 	/* __IComponentRegistrar_FWD_DEFINED__ */
-
-
 #ifndef __IOpInterface_FWD_DEFINED__
 #define __IOpInterface_FWD_DEFINED__
 typedef interface IOpInterface IOpInterface;
 
 #endif 	/* __IOpInterface_FWD_DEFINED__ */
-
-
-#ifndef __CompReg_FWD_DEFINED__
-#define __CompReg_FWD_DEFINED__
-
-#ifdef __cplusplus
-typedef class CompReg CompReg;
-#else
-typedef struct CompReg CompReg;
-#endif /* __cplusplus */
-
-#endif 	/* __CompReg_FWD_DEFINED__ */
 
 
 #ifndef __OpInterface_FWD_DEFINED__
@@ -90,184 +71,6 @@ typedef struct OpInterface OpInterface;
 #ifdef __cplusplus
 extern "C"{
 #endif 
-
-
-#ifndef __IComponentRegistrar_INTERFACE_DEFINED__
-#define __IComponentRegistrar_INTERFACE_DEFINED__
-
-/* interface IComponentRegistrar */
-/* [unique][dual][uuid][object] */ 
-
-
-EXTERN_C const IID IID_IComponentRegistrar;
-
-#if defined(__cplusplus) && !defined(CINTERFACE)
-    
-    MIDL_INTERFACE("a817e7a2-43fa-11d0-9e44-00aa00b6770a")
-    IComponentRegistrar : public IDispatch
-    {
-    public:
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE Attach( 
-            /* [in] */ BSTR bstrPath) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE RegisterAll( void) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE UnregisterAll( void) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetComponents( 
-            /* [out] */ SAFEARRAY * *pbstrCLSIDs,
-            /* [out] */ SAFEARRAY * *pbstrDescriptions) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE RegisterComponent( 
-            /* [in] */ BSTR bstrCLSID) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE UnregisterComponent( 
-            /* [in] */ BSTR bstrCLSID) = 0;
-        
-    };
-    
-    
-#else 	/* C style interface */
-
-    typedef struct IComponentRegistrarVtbl
-    {
-        BEGIN_INTERFACE
-        
-        HRESULT ( STDMETHODCALLTYPE *QueryInterface )( 
-            IComponentRegistrar * This,
-            /* [in] */ REFIID riid,
-            /* [annotation][iid_is][out] */ 
-            _COM_Outptr_  void **ppvObject);
-        
-        ULONG ( STDMETHODCALLTYPE *AddRef )( 
-            IComponentRegistrar * This);
-        
-        ULONG ( STDMETHODCALLTYPE *Release )( 
-            IComponentRegistrar * This);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetTypeInfoCount )( 
-            IComponentRegistrar * This,
-            /* [out] */ UINT *pctinfo);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetTypeInfo )( 
-            IComponentRegistrar * This,
-            /* [in] */ UINT iTInfo,
-            /* [in] */ LCID lcid,
-            /* [out] */ ITypeInfo **ppTInfo);
-        
-        HRESULT ( STDMETHODCALLTYPE *GetIDsOfNames )( 
-            IComponentRegistrar * This,
-            /* [in] */ REFIID riid,
-            /* [size_is][in] */ LPOLESTR *rgszNames,
-            /* [range][in] */ UINT cNames,
-            /* [in] */ LCID lcid,
-            /* [size_is][out] */ DISPID *rgDispId);
-        
-        /* [local] */ HRESULT ( STDMETHODCALLTYPE *Invoke )( 
-            IComponentRegistrar * This,
-            /* [annotation][in] */ 
-            _In_  DISPID dispIdMember,
-            /* [annotation][in] */ 
-            _In_  REFIID riid,
-            /* [annotation][in] */ 
-            _In_  LCID lcid,
-            /* [annotation][in] */ 
-            _In_  WORD wFlags,
-            /* [annotation][out][in] */ 
-            _In_  DISPPARAMS *pDispParams,
-            /* [annotation][out] */ 
-            _Out_opt_  VARIANT *pVarResult,
-            /* [annotation][out] */ 
-            _Out_opt_  EXCEPINFO *pExcepInfo,
-            /* [annotation][out] */ 
-            _Out_opt_  UINT *puArgErr);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *Attach )( 
-            IComponentRegistrar * This,
-            /* [in] */ BSTR bstrPath);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *RegisterAll )( 
-            IComponentRegistrar * This);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *UnregisterAll )( 
-            IComponentRegistrar * This);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetComponents )( 
-            IComponentRegistrar * This,
-            /* [out] */ SAFEARRAY * *pbstrCLSIDs,
-            /* [out] */ SAFEARRAY * *pbstrDescriptions);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *RegisterComponent )( 
-            IComponentRegistrar * This,
-            /* [in] */ BSTR bstrCLSID);
-        
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *UnregisterComponent )( 
-            IComponentRegistrar * This,
-            /* [in] */ BSTR bstrCLSID);
-        
-        END_INTERFACE
-    } IComponentRegistrarVtbl;
-
-    interface IComponentRegistrar
-    {
-        CONST_VTBL struct IComponentRegistrarVtbl *lpVtbl;
-    };
-
-    
-
-#ifdef COBJMACROS
-
-
-#define IComponentRegistrar_QueryInterface(This,riid,ppvObject)	\
-    ( (This)->lpVtbl -> QueryInterface(This,riid,ppvObject) ) 
-
-#define IComponentRegistrar_AddRef(This)	\
-    ( (This)->lpVtbl -> AddRef(This) ) 
-
-#define IComponentRegistrar_Release(This)	\
-    ( (This)->lpVtbl -> Release(This) ) 
-
-
-#define IComponentRegistrar_GetTypeInfoCount(This,pctinfo)	\
-    ( (This)->lpVtbl -> GetTypeInfoCount(This,pctinfo) ) 
-
-#define IComponentRegistrar_GetTypeInfo(This,iTInfo,lcid,ppTInfo)	\
-    ( (This)->lpVtbl -> GetTypeInfo(This,iTInfo,lcid,ppTInfo) ) 
-
-#define IComponentRegistrar_GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId)	\
-    ( (This)->lpVtbl -> GetIDsOfNames(This,riid,rgszNames,cNames,lcid,rgDispId) ) 
-
-#define IComponentRegistrar_Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr)	\
-    ( (This)->lpVtbl -> Invoke(This,dispIdMember,riid,lcid,wFlags,pDispParams,pVarResult,pExcepInfo,puArgErr) ) 
-
-
-#define IComponentRegistrar_Attach(This,bstrPath)	\
-    ( (This)->lpVtbl -> Attach(This,bstrPath) ) 
-
-#define IComponentRegistrar_RegisterAll(This)	\
-    ( (This)->lpVtbl -> RegisterAll(This) ) 
-
-#define IComponentRegistrar_UnregisterAll(This)	\
-    ( (This)->lpVtbl -> UnregisterAll(This) ) 
-
-#define IComponentRegistrar_GetComponents(This,pbstrCLSIDs,pbstrDescriptions)	\
-    ( (This)->lpVtbl -> GetComponents(This,pbstrCLSIDs,pbstrDescriptions) ) 
-
-#define IComponentRegistrar_RegisterComponent(This,bstrCLSID)	\
-    ( (This)->lpVtbl -> RegisterComponent(This,bstrCLSID) ) 
-
-#define IComponentRegistrar_UnregisterComponent(This,bstrCLSID)	\
-    ( (This)->lpVtbl -> UnregisterComponent(This,bstrCLSID) ) 
-
-#endif /* COBJMACROS */
-
-
-#endif 	/* C style interface */
-
-
-
-
-#endif 	/* __IComponentRegistrar_INTERFACE_DEFINED__ */
 
 
 #ifndef __IOpInterface_INTERFACE_DEFINED__
@@ -495,12 +298,17 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE RunApp( 
+            /* [in] */ BSTR cmdline,
+            /* [in] */ LONG mode,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WinExec( 
             /* [in] */ BSTR cmdline,
             /* [in] */ LONG cmdshow,
             /* [retval][out] */ LONG *ret) = 0;
         
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ExcuteCmd( 
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetCmdStr( 
             /* [in] */ BSTR cmd,
             /* [in] */ LONG millseconds,
             /* [retval][out] */ BSTR *retstr) = 0;
@@ -1067,13 +875,19 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *RunApp )( 
+            IOpInterface * This,
+            /* [in] */ BSTR cmdline,
+            /* [in] */ LONG mode,
+            /* [retval][out] */ LONG *ret);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WinExec )( 
             IOpInterface * This,
             /* [in] */ BSTR cmdline,
             /* [in] */ LONG cmdshow,
             /* [retval][out] */ LONG *ret);
         
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ExcuteCmd )( 
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetCmdStr )( 
             IOpInterface * This,
             /* [in] */ BSTR cmd,
             /* [in] */ LONG millseconds,
@@ -1535,11 +1349,14 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_SendStringIme(This,hwnd,str,ret)	\
     ( (This)->lpVtbl -> SendStringIme(This,hwnd,str,ret) ) 
 
+#define IOpInterface_RunApp(This,cmdline,mode,ret)	\
+    ( (This)->lpVtbl -> RunApp(This,cmdline,mode,ret) ) 
+
 #define IOpInterface_WinExec(This,cmdline,cmdshow,ret)	\
     ( (This)->lpVtbl -> WinExec(This,cmdline,cmdshow,ret) ) 
 
-#define IOpInterface_ExcuteCmd(This,cmd,millseconds,retstr)	\
-    ( (This)->lpVtbl -> ExcuteCmd(This,cmd,millseconds,retstr) ) 
+#define IOpInterface_GetCmdStr(This,cmd,millseconds,retstr)	\
+    ( (This)->lpVtbl -> GetCmdStr(This,cmd,millseconds,retstr) ) 
 
 #define IOpInterface_BindWindow(This,hwnd,display,mouse,keypad,mode,ret)	\
     ( (This)->lpVtbl -> BindWindow(This,hwnd,display,mouse,keypad,mode,ret) ) 
@@ -1688,14 +1505,6 @@ EXTERN_C const IID IID_IOpInterface;
 
 EXTERN_C const IID LIBID_opLib;
 
-EXTERN_C const CLSID CLSID_CompReg;
-
-#ifdef __cplusplus
-
-class DECLSPEC_UUID("54ca0535-fb49-4d91-8709-786fb8725132")
-CompReg;
-#endif
-
 EXTERN_C const CLSID CLSID_OpInterface;
 
 #ifdef __cplusplus
@@ -1712,11 +1521,6 @@ unsigned char * __RPC_USER  BSTR_UserMarshal(  unsigned long *, unsigned char *,
 unsigned char * __RPC_USER  BSTR_UserUnmarshal(unsigned long *, unsigned char *, BSTR * ); 
 void                      __RPC_USER  BSTR_UserFree(     unsigned long *, BSTR * ); 
 
-unsigned long             __RPC_USER  LPSAFEARRAY_UserSize(     unsigned long *, unsigned long            , LPSAFEARRAY * ); 
-unsigned char * __RPC_USER  LPSAFEARRAY_UserMarshal(  unsigned long *, unsigned char *, LPSAFEARRAY * ); 
-unsigned char * __RPC_USER  LPSAFEARRAY_UserUnmarshal(unsigned long *, unsigned char *, LPSAFEARRAY * ); 
-void                      __RPC_USER  LPSAFEARRAY_UserFree(     unsigned long *, LPSAFEARRAY * ); 
-
 unsigned long             __RPC_USER  VARIANT_UserSize(     unsigned long *, unsigned long            , VARIANT * ); 
 unsigned char * __RPC_USER  VARIANT_UserMarshal(  unsigned long *, unsigned char *, VARIANT * ); 
 unsigned char * __RPC_USER  VARIANT_UserUnmarshal(unsigned long *, unsigned char *, VARIANT * ); 
@@ -1726,11 +1530,6 @@ unsigned long             __RPC_USER  BSTR_UserSize64(     unsigned long *, unsi
 unsigned char * __RPC_USER  BSTR_UserMarshal64(  unsigned long *, unsigned char *, BSTR * ); 
 unsigned char * __RPC_USER  BSTR_UserUnmarshal64(unsigned long *, unsigned char *, BSTR * ); 
 void                      __RPC_USER  BSTR_UserFree64(     unsigned long *, BSTR * ); 
-
-unsigned long             __RPC_USER  LPSAFEARRAY_UserSize64(     unsigned long *, unsigned long            , LPSAFEARRAY * ); 
-unsigned char * __RPC_USER  LPSAFEARRAY_UserMarshal64(  unsigned long *, unsigned char *, LPSAFEARRAY * ); 
-unsigned char * __RPC_USER  LPSAFEARRAY_UserUnmarshal64(unsigned long *, unsigned char *, LPSAFEARRAY * ); 
-void                      __RPC_USER  LPSAFEARRAY_UserFree64(     unsigned long *, LPSAFEARRAY * ); 
 
 unsigned long             __RPC_USER  VARIANT_UserSize64(     unsigned long *, unsigned long            , VARIANT * ); 
 unsigned char * __RPC_USER  VARIANT_UserMarshal64(  unsigned long *, unsigned char *, VARIANT * ); 

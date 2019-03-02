@@ -31,7 +31,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (sdisplay == L"opengl")
 		display = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error sdisplay=%s", sdisplay.c_str());
+		setlog(L"错误的display:%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
@@ -44,7 +44,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (smouse == L"opengl")
 		mouse = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error smouse=%s", smouse.c_str());
+		setlog(L"错误mouse:%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
@@ -57,12 +57,12 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (skeypad == L"opengl")
 		keypad = BACKTYPE::OPENGL;
 	else {
-		setlog(L"error sdisplay=%s", sdisplay.c_str());
+		setlog(L"错误的keypad:%s", sdisplay.c_str());
 		return 0;
 	}
 	//check hwnd
 	if (!::IsWindow(_hwnd)) {
-		setlog(L"invalid window hwnd.");
+		setlog(L"无效的窗口句柄:%d", _hwnd);
 		ret = 0; _hwnd = 0;
 	}
 	else {
@@ -87,9 +87,8 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 			SAFE_DELETE(_pbkdisplay);
 			return 0;
 		}
-			
-		
-		Sleep(20);
+		//等待线程创建好
+		Sleep(200);
 		
 	}
 	_is_bind = 1;
@@ -166,7 +165,7 @@ long Bkbase::get_widht() {
 
 long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	if (x1 > x2 || y1 > y2) {
-		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 		
@@ -180,7 +179,7 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	x2 = std::min<long>(get_widht()-1, x2);
 	y2 = std::min<long>(get_height()-1, y2);
 	if (x1<0 || y1<0) {
-		setlog("Invalid rect:%d %d %d %d", x1, y1, x2, y2);
+		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	return 1;

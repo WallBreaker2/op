@@ -6,7 +6,7 @@ public:
 		_readed += ss;
 
 	}
-	string ExcuteCmd(const string&cmd,size_t milseconds) {
+	string GetCmdStr(const string&cmd,size_t milseconds) {
 		open(cmd);
 		if (is_open()) {
 			auto deadline = clock()+milseconds;

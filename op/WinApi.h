@@ -37,6 +37,8 @@ public:
 	//2019.1
 	long SendString(HWND hwnd, const wstring& str);
 	long SendStringIme(HWND hwnd, const wstring& str);
+	//2019.3
+	long RunApp(const wstring& cmd, long mode);
 private:
 	DWORD  FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);

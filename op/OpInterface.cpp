@@ -2,18 +2,18 @@
 
 #include "stdafx.h"
 #include "OpInterface.h"
-
 #include "Cmder.h"
 #include "Injecter.h"
 #include "Tool.h"
 #include "AStar.hpp"
+#include <filesystem>
 // OpInterface
 
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	const char* ver = "0.2.2.0.x86";
+	const char* ver = "0.2.3.0.x86";
 #else
-	static const wchar_t* ver = L"0.2.2.0.x64";
+	static const wchar_t* ver = L"0.2.3.0.x64";
 
 #endif;
 	//Tool::setlog("address=%d,str=%s", ver, ver);
@@ -25,26 +25,11 @@ STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 }
 
 STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
-	wchar_t buff[256];
-	if (!::PathFileExists(path)) {
-		
-		::GetCurrentDirectoryW(256, buff);
-		std::wstring str = buff;
-		_curr_path = str;
-		if (path[0] == L'\\')
-			_curr_path += path;
-		else
-			_curr_path += L'\\' + path;
-	}
-	else
-		_curr_path = path;
-	if (_curr_path.back() == L'\\')
-		_curr_path.pop_back();
-	*ret = ::PathFileExists(_curr_path.c_str());
-	//setlog(L"%s", _curr_path.c_str());
-	if (!*ret)
-		_curr_path = buff;
+	std::filesystem::path p = path;
+	auto fullpath = std::filesystem::absolute(p);
+	_curr_path = fullpath.generic_wstring();
 	_image_proc._curr_path = _curr_path;
+	*ret = 1;
 	return S_OK;
 }
 
@@ -70,11 +55,7 @@ STDMETHODIMP OpInterface::SetShowErrorMsg(LONG show_type, LONG* ret){
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::WinExec(BSTR cmdline,LONG cmdshow, LONG* ret){
-	auto str = _wsto_string(cmdline);
-	*ret = ::WinExec(str.c_str(), cmdshow) > 31 ? 1 : 0;
-	return S_OK;
-}
+
 
 STDMETHODIMP OpInterface::Sleep(LONG millseconds, LONG* ret) {
 	::Sleep(millseconds);
@@ -132,24 +113,25 @@ STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disa
 STDMETHODIMP OpInterface::EnumWindow(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr)
 {
 	// TODO: 在此添加实现代码
-	wchar_t retstring[MAX_PATH * 200] = { 0 };
-	//memset(retstring, 0, sizeof(wchar_t)*MAX_PATH * 200);
-	_winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring);
+	std::unique_ptr<wchar_t> retstring(new wchar_t[MAX_PATH * 200]);
+	memset(retstring.get(), 0, sizeof(wchar_t)*MAX_PATH * 200);
+	_winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring.get());
 	//*retstr=_bstr_t(retstring);
 	CComBSTR newbstr;
-	newbstr.Append(retstring);
-	newbstr.CopyTo(retstr);
-	return S_OK;
+	auto hr=newbstr.Append(retstring.get());
+	hr=newbstr.CopyTo(retstr);
+	return hr;
 }
 
 STDMETHODIMP OpInterface::EnumWindowByProcess(BSTR process_name, BSTR title, BSTR class_name, LONG filter, BSTR* retstring)
 {
 	// TODO: 在此添加实现代码
-	wchar_t retstr[MAX_PATH * 200] = { 0 };
-	_winapi.EnumWindow((HWND)0, title, class_name, filter, retstr, process_name);
+	std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
+	memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
+	_winapi.EnumWindow((HWND)0, title, class_name, filter, retstr.get(), process_name);
 	//*retstring=_bstr_t(retstr);
 	CComBSTR newbstr;
-	newbstr.Append(retstr);
+	newbstr.Append(retstr.get());
 	newbstr.CopyTo(retstring);
 	return S_OK;
 }
@@ -157,11 +139,12 @@ STDMETHODIMP OpInterface::EnumWindowByProcess(BSTR process_name, BSTR title, BST
 STDMETHODIMP OpInterface::EnumProcess(BSTR name, BSTR* retstring)
 {
 	// TODO: 在此添加实现代码
-	wchar_t retstr[MAX_PATH * 100] = { 0 };
-	_winapi.EnumProcess(name, retstr);
+	std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
+	memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
+	_winapi.EnumProcess(name, retstr.get());
 	//*retstring=_bstr_t(retstr);
 	CComBSTR newbstr;
-	newbstr.Append(retstr);
+	newbstr.Append(retstr.get());
 	newbstr.CopyTo(retstring);
 	return S_OK;
 }
@@ -433,20 +416,34 @@ STDMETHODIMP OpInterface::SendStringIme(LONG hwnd, BSTR str, LONG* ret) {
 	return S_OK;
 }
 
-STDMETHODIMP OpInterface::ExcuteCmd(BSTR cmd, LONG millseconds, BSTR* retstr) {
+STDMETHODIMP OpInterface::RunApp(BSTR cmdline, LONG mode, LONG* ret) {
+	*ret = _winapi.RunApp(cmdline, mode);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WinExec(BSTR cmdline, LONG cmdshow, LONG* ret) {
+	auto str = _wsto_string(cmdline);
+	*ret = ::WinExec(str.c_str(), cmdshow) > 31 ? 1 : 0;
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetCmdStr(BSTR cmd, LONG millseconds, BSTR* retstr) {
 	CComBSTR bstr;
 	auto strcmd = _wsto_string(cmd);
 	Cmder cd;
-	auto str = cd.ExcuteCmd(strcmd, millseconds <= 0 ? 5 : millseconds);
-	bstr.Append(str.c_str());
-	bstr.CopyTo(retstr);
-	return S_OK;
+	auto str = cd.GetCmdStr(strcmd, millseconds <= 0 ? 5 : millseconds);
+	auto hr = bstr.Append(str.c_str());
+	hr = bstr.CopyTo(retstr);
+	return hr;
 }
 
 
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
 	*ret = _bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
+	if (*ret == 1) {
+		_image_proc.set_offset(_bkproc._pbkdisplay->_client_x, _bkproc._pbkdisplay->_client_y);
+	}
 	return S_OK;
 }
 
@@ -616,12 +613,13 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
+		
 		*ret = _image_proc.FindColor(color, sim, dir, rx, ry);
-		if (*ret) {
+	/*	if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc._pbkdisplay->_client_x;
 			ry -= _bkproc._pbkdisplay->_client_y;
-		}
+		}*/
 	}
 	x->lVal = rx; y->lVal = ry;
 
@@ -656,11 +654,11 @@ STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BST
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.FindMultiColor(first_color, offset_color, sim, dir, rx, ry);
-		if (*ret) {
+		/*if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc._pbkdisplay->_client_x;
 			ry -= _bkproc._pbkdisplay->_client_y;
-		}
+		}*/
 	}
 	x->lVal = rx; y->lVal = ry;
 
@@ -697,11 +695,11 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.FindPic(files, delta_color, sim, 0, rx, ry);
-		if (*ret) {
+		/*if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc._pbkdisplay->_client_x;
 			ry -= _bkproc._pbkdisplay->_client_y;
-		}
+		}*/
 	}
 	x->lVal = rx; y->lVal = ry;
 
@@ -710,6 +708,7 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 //查找多个图片
 STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, BSTR* retstr) {
 	CComBSTR newstr;
+	HRESULT hr;
 	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
@@ -717,10 +716,10 @@ STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR fil
 		_bkproc.unlock_data();
 		std::wstring str;
 		_image_proc.FindPicEx(files, delta_color, sim, dir, str);
-		newstr.Append(str.c_str());
+		hr=newstr.Append(str.c_str());
 	}
-	newstr.CopyTo(retstr);
-	return S_OK;
+	hr=newstr.CopyTo(retstr);
+	return hr;
 }
 //获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
