@@ -46,7 +46,7 @@ long bkopengl::Bind(HWND hwnd, long flag) {
 			reg_ret.status = Injecter::InjectDll(id, buff, error_code);
 			Tool::setlog("inject ret=%d,error_code=%d", reg_ret.status, error_code);
 			*/
-			setlog(buff);
+			//setlog(buff);
 			auto& modules = _process.modules();
 			reg_ret = modules.Inject(buff);
 			//setlog(L"inject finish...");

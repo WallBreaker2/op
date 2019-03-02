@@ -57,8 +57,11 @@ public:
 	
 	
 private:
+	//字库
 	Dict _dicts[_max_dict];
+	//当前字库索引
 	int _curr_idx;
+	
 public:
 	//当前目录
 	wstring _curr_path;
