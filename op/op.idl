@@ -6,22 +6,22 @@
 
 import "oaidl.idl";
 import "ocidl.idl";
-
-[
-	object,
-	uuid(a817e7a2-43fa-11d0-9e44-00aa00b6770a),
-	dual,
-	pointer_default(unique)
-]
-interface IComponentRegistrar : IDispatch
-{
-	[id(1)]	HRESULT Attach([in] BSTR bstrPath);
-	[id(2)]	HRESULT RegisterAll();
-	[id(3)]	HRESULT UnregisterAll();
-	[id(4)]	HRESULT GetComponents([out] SAFEARRAY(BSTR)* pbstrCLSIDs, [out] SAFEARRAY(BSTR)* pbstrDescriptions);
-	[id(5)]	HRESULT RegisterComponent([in] BSTR bstrCLSID);
-	[id(6)] HRESULT UnregisterComponent([in] BSTR bstrCLSID);
-};
+//
+//[
+//	object,
+//	uuid(a817e7a2-43fa-11d0-9e44-00aa00b6770a),
+//	dual,
+//	pointer_default(unique)
+//]
+//interface IComponentRegistrar : IDispatch
+//{
+//	[id(1)]	HRESULT Attach([in] BSTR bstrPath);
+//	[id(2)]	HRESULT RegisterAll();
+//	[id(3)]	HRESULT UnregisterAll();
+//	[id(4)]	HRESULT GetComponents([out] SAFEARRAY(BSTR)* pbstrCLSIDs, [out] SAFEARRAY(BSTR)* pbstrDescriptions);
+//	[id(5)]	HRESULT RegisterComponent([in] BSTR bstrCLSID);
+//	[id(6)] HRESULT UnregisterComponent([in] BSTR bstrCLSID);
+//};
 
 [
 	object,
@@ -77,9 +77,9 @@ interface IOpInterface : IDispatch
 	[id(88)] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
 	[id(89)] HRESULT SendString([in] LONG hwnd, [in] BSTR str, [out, retval] LONG* ret);
 	[id(90)] HRESULT SendStringIme([in] LONG hwnd, [in] BSTR str, [out, retval] LONG* ret);
-
+	[id(91)] HRESULT RunApp([in] BSTR cmdline, [in] LONG mode, [out, retval] LONG* ret);
 	[id(95)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
-	[id(96)] HRESULT ExcuteCmd([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
+	[id(96)] HRESULT GetCmdStr([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
 	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
 	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
@@ -145,13 +145,13 @@ interface IOpInterface : IDispatch
 library opLib
 {
 	importlib("stdole2.tlb");
-	[
+	/*[
 		uuid(54ca0535-fb49-4d91-8709-786fb8725132)
 	]
 	coclass CompReg
 	{
 		[default] interface IComponentRegistrar;
-	};
+	};*/
 	[
 		uuid(12bec402-a06e-4fad-a7d4-830f967374c6)
 	]

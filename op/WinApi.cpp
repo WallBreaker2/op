@@ -3,7 +3,7 @@
 #include <Tlhelp32.h> 
 #include <psapi.h>
 #pragma comment ( lib, "psapi.lib" )
-
+#include "Tool.h"
 
 
 WinApi::WinApi(void)
@@ -2608,7 +2608,7 @@ long WinApi::FindWindowEx(long parent, const wchar_t* class_name, const wchar_t*
 		class_name = nullptr;
 	if (title[0] == L'\0')
 		title = nullptr;
-	return (long)::FindWindowEx((HWND)parent, NULL, class_name, title);
+	return (long)::FindWindowExW((HWND)parent, NULL, class_name, title);
 }
 
 bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &rethwnd, wchar_t *process_name, DWORD Pid)
@@ -2788,8 +2788,9 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y)
 		point.x = x;
 		point.y = y;
 	}
-	else
-		return false;
+	else {
+		::GetCursorPos(&point);
+	}
 	rethwnd = (DWORD)::WindowFromPoint(point);
 	if (rethwnd == NULL)
 	{
@@ -3205,8 +3206,8 @@ bool WinApi::SetWindowTransparent(LONG hwnd, LONG trans)
 		trans = 0;
 	if (trans > 255)
 		trans = 255;
-
-	typedef bool(__stdcall  *  mySetLayeredWindowAttributes)(
+	//...
+	/*typedef bool(__stdcall  *  mySetLayeredWindowAttributes)(
 		HWND hwnd,
 		COLORREF pcrKey,
 		BYTE pbAlpha,
@@ -3214,9 +3215,10 @@ bool WinApi::SetWindowTransparent(LONG hwnd, LONG trans)
 	mySetLayeredWindowAttributes obj_SetLayeredWindowAttributes = NULL;
 	HINSTANCE hlibrary;
 	hlibrary = LoadLibrary(_T("user32.dll"));
-	obj_SetLayeredWindowAttributes = (mySetLayeredWindowAttributes)GetProcAddress(hlibrary, "SetLayeredWindowAttributes");
+	obj_SetLayeredWindowAttributes = (mySetLayeredWindowAttributes)GetProcAddress(hlibrary, "SetLayeredWindowAttributes");*/
+	
 	SetWindowLong((HWND)hwnd, GWL_EXSTYLE, 0x80001);
-	bret = obj_SetLayeredWindowAttributes((HWND)hwnd, crKey, trans, 2);
+	bret = SetLayeredWindowAttributes((HWND)hwnd, crKey, trans, 2);
 
 	return bret;
 }
@@ -3320,4 +3322,54 @@ long WinApi::SendStringIme(HWND hwnd, const wstring& s) {
 		return 1;
 	}
 	return 0;
+}
+
+long WinApi::RunApp(const wstring& cmd, long mode) {
+	std::unique_ptr<wchar_t> cmdptr(new wchar_t[cmd.length()]);
+	memcpy(cmdptr.get(), cmd.data(), cmd.length() * sizeof(wchar_t));
+	/*SECURITY_ATTRIBUTES SA;
+	SA.bInheritHandle = NULL;
+	SA.*/
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	ZeroMemory(&pi, sizeof(pi));
+	int bret;
+	wstring curr_dir;
+	if (mode == 1) {
+		//find
+		size_t pos;
+		pos = cmd.find(L".exe");
+		if (pos != wstring::npos&&pos!=0) {
+			for (int i = pos - 1; i >= 1; --i) {
+				if (cmd[i] == L'\\' || cmd[i] == L'/') {
+					pos = i;
+					break;
+				}
+					
+			}
+			if (pos > 0) {
+				curr_dir = cmd.substr(0, pos);
+			}
+		}
+		//setlog(curr_dir.c_str());
+	}
+	bret = ::CreateProcessW(
+		nullptr,//// 应用程序名称
+		cmdptr.get(), // 命令行字符串
+		NULL,// 进程的安全属性
+		NULL, // 线程的安全属性
+		false, // 是否继承父进程的属性
+		0, // 创建标志
+		nullptr,// 指向新的环境块的指针
+		mode==1&&!curr_dir.empty()?curr_dir.c_str():nullptr,// 指向当前目录名的指针
+		&si,// 传递给新进程的信息
+		&pi// 新进程返回的信息  
+	);
+	if (bret) {
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+
+	return bret;
 }
