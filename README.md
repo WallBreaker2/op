@@ -1,18 +1,12 @@
 Overview
 ===========
-OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Windows消息模拟,后台截图，图像识别,字符识别(OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll.可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)  
-![struct](doc/struct.png "")
-***
-## Fetaure
-* [Windows消息模拟](#Windows消息模拟)
-* [后台截图](#后台截图)
-* [图像识别](#图像识别)
-* [3rdpart-Lib](#3rdpart-Lib)
-* [Reference](#Reference)
+OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Windows消息模拟,后台截图，找图,字符识别(OCR),以及其他实用功能...使用c++编写，提供高效稳定的算法实现.源代码可编译为32/64位dll.可为32位和64位应用程序调用,支持大多数语言的调用(c++,c#,vb,delphi,...)  
+![struct](doc/struct.png "")  
 
 ## Download
 包含32位和64位插件，tool工具以及必要的第三方库等文件  
-下载地址：[https://github.com/WallBreaker2/op/releases](https://github.com/WallBreaker2/op/releases)
+下载地址：[https://github.com/WallBreaker2/op/releases](https://github.com/WallBreaker2/op/releases)  
+也可进QQ群(979466049)下载
 
 ## Usage(用法)  
 所有函数说明以及Demo可在以下链接中获得  
@@ -21,6 +15,15 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 ## Build  
 使用vs2017编译，除了DX SDK，opengl sdk外,需要以下库支持：boost,opencv,blackbone,minhook  
 boost,opencv可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
+***
+## Fetaure
+* [Windows消息模拟](#Windows消息模拟)
+* [后台截图](#后台截图)
+* [图像识别](#图像识别)
+* [3rdpart-Lib](#3rdpart-Lib)
+* [Reference](#Reference)
+
+
 
 
 #### Windows消息模拟
