@@ -20,6 +20,8 @@ long bkkeypad::Bind(HWND hwnd, long mode) {
 }
 
 long bkkeypad::UnBind() {
+	_hwnd = NULL;
+	_mode = 0;
 	return 1;
 }
 
@@ -28,11 +30,13 @@ long bkkeypad::GetKeyState(long vk_code) {
 }
 
 long bkkeypad::KeyDown(long vk_code) {
-	return 0;
+	auto ret=::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
+	return ret;
 }
 
 long bkkeypad::KeyUp(long vk_code) {
-	return 0;
+	auto ret=::PostMessageW(_hwnd, WM_KEYUP, vk_code, 1);
+	return ret;
 }
 
 long bkkeypad::WaitKey(long vk_code, long time_out) {
@@ -43,4 +47,10 @@ long bkkeypad::WaitKey(long vk_code, long time_out) {
 		::Sleep(1);
 	}
 	return 0;
+}
+
+long bkkeypad::KeyPress(long vk_code) {
+	KeyDown(vk_code);
+	Sleep(20);
+	return KeyUp(vk_code);
 }
