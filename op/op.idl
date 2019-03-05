@@ -112,6 +112,8 @@ interface IOpInterface : IDispatch
 	[id(139)] HRESULT KeyUp([in] LONG vk_code, [out, retval] LONG* ret);
 	[id(140)] HRESULT KeyUpChar([in] BSTR vk_code, [out, retval] LONG* ret);
 	[id(141)] HRESULT WaitKey([in] LONG vk_code, [in] LONG time_out, [out, retval] LONG* ret);
+	[id(142)] HRESULT KeyPress([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(143)] HRESULT KeyPressChar([in] BSTR vk_code, [out, retval] LONG* ret);
 	//image & color 150-199
 	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);

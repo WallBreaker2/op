@@ -31,14 +31,23 @@ public:
 		//初始化目录
 		wchar_t buff[256];
 		::GetCurrentDirectoryW(256, buff);
-		//::GetModuleFileName(NULL, buff, 256);
-		std::wstring str = buff;
-		//auto idx = str.rfind(L'\\');
-		//if (idx != std::wstring::npos) {
-		//	str = str.substr(0, idx);
-		//}
-		_curr_path = str;
+		_curr_path = buff;
 		_image_proc._curr_path = _curr_path;
+		//初始化键码表
+		_vkmap[L"back"] = VK_BACK; _vkmap[L"ctrl"] = VK_CONTROL;
+		_vkmap[L"alt"] = LVKF_ALT; _vkmap[L"shift"] = VK_SHIFT;
+		_vkmap[L"win"] = VK_LWIN;
+		_vkmap[L"space"] = L' '; _vkmap[L"tab"] = VK_TAB;
+		_vkmap[L"esc"] = VK_CANCEL;
+		_vkmap[L"enter"] = L'\r'; _vkmap[L"up"] = VK_UP;
+		_vkmap[L"down"] = VK_DOWN; _vkmap[L"left"] = VK_LEFT;
+		_vkmap[L"right"] = VK_RIGHT; 
+		_vkmap[L"f1"] = VK_F1; _vkmap[L"f2"] = VK_F2;
+		_vkmap[L"f3"] = VK_F3; _vkmap[L"f4"] = VK_F4;
+		_vkmap[L"f5"] = VK_F5; _vkmap[L"f6"] = VK_F6;
+		_vkmap[L"f7"] = VK_F7; _vkmap[L"f8"] = VK_F8;
+		_vkmap[L"f9"] = VK_F9; _vkmap[L"f10"] = VK_F10;
+		_vkmap[L"f11"] = VK_F11; _vkmap[L"f12"] = VK_F12;
 	}
 
 DECLARE_REGISTRY_RESOURCEID(106)
@@ -72,6 +81,7 @@ private:
 	std::wstring _curr_path;
 	//image process
 	ImageProc _image_proc;
+	std::map<wstring, long> _vkmap;
 public:
 	//---------------基本设置/属性-------------------
 
@@ -223,6 +233,9 @@ public:
 	STDMETHOD(WaitKey)(LONG vk_code,LONG time_out, LONG* ret);
 	//发送字符串
 	//STDMETHOD(SendString)(LONG HWND)
+	//弹起来虚拟键vk_code
+	STDMETHOD(KeyPress)(LONG vk_code, LONG* ret);
+	STDMETHOD(KeyPressChar)(BSTR vk_code, LONG* ret);
 
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
