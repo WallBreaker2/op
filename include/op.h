@@ -407,6 +407,14 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG time_out,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE KeyPress( 
+            /* [in] */ LONG vk_code,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE KeyPressChar( 
+            /* [in] */ BSTR vk_code,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE Capture( 
             /* [in] */ LONG x1,
             /* [in] */ LONG y1,
@@ -1011,6 +1019,16 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG time_out,
             /* [retval][out] */ LONG *ret);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *KeyPress )( 
+            IOpInterface * This,
+            /* [in] */ LONG vk_code,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *KeyPressChar )( 
+            IOpInterface * This,
+            /* [in] */ BSTR vk_code,
+            /* [retval][out] */ LONG *ret);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *Capture )( 
             IOpInterface * This,
             /* [in] */ LONG x1,
@@ -1429,6 +1447,12 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_WaitKey(This,vk_code,time_out,ret)	\
     ( (This)->lpVtbl -> WaitKey(This,vk_code,time_out,ret) ) 
+
+#define IOpInterface_KeyPress(This,vk_code,ret)	\
+    ( (This)->lpVtbl -> KeyPress(This,vk_code,ret) ) 
+
+#define IOpInterface_KeyPressChar(This,vk_code,ret)	\
+    ( (This)->lpVtbl -> KeyPressChar(This,vk_code,ret) ) 
 
 #define IOpInterface_Capture(This,x1,y1,x2,y2,file_name,ret)	\
     ( (This)->lpVtbl -> Capture(This,x1,y1,x2,y2,file_name,ret) ) 

@@ -545,7 +545,12 @@ STDMETHODIMP OpInterface::KeyDown(LONG vk_code, LONG* ret) {
 
 STDMETHODIMP OpInterface::KeyDownChar(BSTR vk_code, LONG* ret) {
 	auto nlen = ::SysStringLen(vk_code);
-	*ret = nlen > 0 ? _bkproc._keypad.KeyDown(vk_code[0]) : 0;
+	*ret = 0;
+	if (nlen > 0) {
+		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		*ret = _bkproc._keypad.KeyDown(vk);
+	}
+	
 	return S_OK;
 }
 
@@ -556,13 +561,34 @@ STDMETHODIMP OpInterface::KeyUp(LONG vk_code, LONG* ret) {
 
 STDMETHODIMP OpInterface::KeyUpChar(BSTR vk_code, LONG* ret) {
 	auto nlen = ::SysStringLen(vk_code);
-	*ret = nlen > 0 ? _bkproc._keypad.KeyUp(vk_code[0]) : 0;
+	*ret = 0;
+	if (nlen > 0) {
+		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		*ret = _bkproc._keypad.KeyUp(vk);
+	}
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::WaitKey(LONG vk_code, LONG time_out, LONG* ret) {
 	if (time_out < 0)time_out = 0;
 	*ret = _bkproc._keypad.WaitKey(vk_code, time_out);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyPress(LONG vk_code, LONG* ret) {
+	
+		*ret = _bkproc._keypad.KeyPress(vk_code);
+	
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::KeyPressChar(BSTR vk_code, LONG* ret) {
+	auto nlen = ::SysStringLen(vk_code);
+	*ret = 0;
+	if (nlen > 0) {
+		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		*ret = _bkproc._keypad.KeyPress(vk);
+	}
 	return S_OK;
 }
 
