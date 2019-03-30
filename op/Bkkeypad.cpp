@@ -51,6 +51,6 @@ long bkkeypad::WaitKey(long vk_code, long time_out) {
 
 long bkkeypad::KeyPress(long vk_code) {
 	KeyDown(vk_code);
-	Sleep(20);
+	Sleep(1);
 	return KeyUp(vk_code);
 }
