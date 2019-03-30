@@ -1,7 +1,8 @@
 #pragma once
-#include <BlackBone/Process/Process.h>
+#include "3rd_party/include/BlackBone/Process/Process.h"
 //#include <BlackBone/Patterns/PatternSearch.h>
-#include <BlackBone/Process/RPC/RemoteFunction.hpp>
+#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
+#pragma comment(lib,"./3rd_party/lib/x86/BlackBone.lib")
 #include "bkdisplay.h"
 class bkopengl :public bkdisplay
 {

@@ -1,9 +1,9 @@
 #pragma once
 #ifndef __DXBACKGROUND_H_
 #define __DXBACKGROUND_H_
-#include <BlackBone/Process/Process.h>
+#include "3rd_party/include/BlackBone/Process/Process.h"
 //#include <BlackBone/Patterns/PatternSearch.h>
-#include <BlackBone/Process/RPC/RemoteFunction.hpp>
+#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
 //#include <BlackBone/Syscalls/Syscall.h>
 #include "Common.h"
 
