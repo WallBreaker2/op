@@ -7,6 +7,7 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/named_mutex.hpp> 
 #include <exception>
+#pragma comment(lib,"./3rd_party/lib/x86/libMinHook.x86.lib")
 #include "3rd_party/kiero/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
