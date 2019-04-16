@@ -13,14 +13,15 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 [op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)  
 
 ## Build  
-使用vs2017编译，除了DX SDK，opengl sdk外,需要以下库支持：boost,opencv,blackbone,minhook  
-boost,opencv可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
+使用vs2017编译，除了DX SDK，opengl sdk外,需要以下库支持：boost,opencv
+可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
+其它额外的库可自己编译，参见[3rdparty-Lib](#3rdparty-Lib),也可进群下载
 ***
 ## Fetaure
 * [Windows消息模拟](#Windows消息模拟)
 * [后台截图](#后台截图)
 * [图像识别](#图像识别)
-* [3rdpart-Lib](#3rdpart-Lib)
+* [3rdparty-Lib](#3rdparty-Lib)
 * [Reference](#Reference)
 
 
@@ -37,7 +38,7 @@ boost,opencv可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
 ---
 图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别,支持自动二值化识别
 
-### 3rdpart-Lib  
+### 3rdparty-Lib  
 ---
 [1].[c++ boost1.6](https://www.boost.org/)  
 [2].[opencv3.4](https://opencv.org/)  
