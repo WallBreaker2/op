@@ -11,9 +11,9 @@
 
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 #ifndef _WIN64
-	const char* ver = "0.2.3.1.x86";
+	const char* ver = "0.2.3.2.x86";
 #else
-	static const wchar_t* ver = L"0.2.3.1.x64";
+	static const wchar_t* ver = L"0.2.3.2.x64";
 
 #endif;
 	//Tool::setlog("address=%d,str=%s", ver, ver);

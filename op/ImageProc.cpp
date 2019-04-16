@@ -122,6 +122,9 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 	wstring fullpath;
 	if (Path2GlobalPath(file_name, _curr_path, fullpath))
 		_dicts[idx].read_dict(_wsto_string(fullpath));
+	else {
+		setlog(L"file '%s' does not exist", file_name.c_str());
+	}
 	if (_dicts->info._word_count)
 		return 1;
 	else
