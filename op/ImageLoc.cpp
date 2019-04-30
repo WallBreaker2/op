@@ -4,7 +4,7 @@
 #include "ocr.h"
 #include "Tool.h"
 
-
+using std::to_wstring;
 
 
 ImageBase::ImageBase()
@@ -24,27 +24,21 @@ long ImageBase::input_image(byte* image_data, int width, int height, long x1, lo
 	_x1 = x1; _y1 = y1;
 	int cw = x2 - x1 - 1, ch = y2 - y1 - 1;
 	if (type == -1) {//µ¹¹ýÀ´¶Á
-		_src.create(ch, cw, CV_8UC3);
+		_src.create(ch, cw, CV_8UC4);
 		uchar *p, *p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
 			p2 = image_data + (height - i - 1 - y1) * width * 4 + x1 * 4;//Æ«ÒÆ
-			for (j = 0; j < cw; ++j) {
-				*p++ = *p2++; *p++ = *p2++;
-				*p++ = *p2++; ++p2;
-			}
+			memcpy(p, p2, 4 * cw);
 		}
 	}
 	else {
-		_src.create(ch, cw, CV_8UC3);
+		_src.create(ch, cw, CV_8UC4);
 		uchar *p, *p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
 			p2 = image_data + (i + y1) * width * 4 + x1 * 4;
-			for (j = 0; j < cw; ++j) {
-				*p++ = *p2++; *p++ = *p2++;
-				*p++ = *p2++; ++p2;
-			}
+			memcpy(p, p2, 4 * cw);
 		}
 	}
 	return 1;
@@ -72,7 +66,7 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 				}
 			}
 			++p2;
-			p += 3;
+			p += 4;
 		}
 	}
 	//test
@@ -141,23 +135,26 @@ void ImageBase::graytobinary()
 long ImageBase::simple_match(long x, long y, cv::Mat* timg, color_t dfcolor, int max_error) {
 	int err_ct = 0, k;
 	for (int i = 0; i < timg->rows; ++i) {
-		auto p1 = _src.ptr<uchar>(i + y) + x * 3;
+		auto p1 = _src.ptr<uchar>(i + y) + x * 4;
 		auto p2 = timg->ptr<uchar>(i);
 		for (int j = 0; j < timg->cols; ++j) {
 			if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
 				++err_ct;
 			if (err_ct > max_error)
 				return 0;
-			p1 += 3; p2 += 3;
+			p1 += 4; p2 += 3;
 		}
 	}
 	return 1;
 }
 
 long ImageBase::GetPixel(long x, long y, color_t&cr) {
-	if (!is_valid(x, y))
+	if (!is_valid(x, y)) {
+		setlog("Invalid pos:%d %d", x, y);
 		return 0;
-	auto p = _src.ptr<uchar>(y) + 3 * x;
+	}
+		
+	auto p = _src.ptr<uchar>(y) + 4 * x;
 	static_assert(sizeof(color_t) == 4);
 	cr.b = p[0]; cr.g = p[1]; cr.r = p[2];
 	return 1;
@@ -184,7 +181,7 @@ long ImageBase::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 					return 1;
 				}
 			}
-			p += 3;
+			p += 4;
 		}
 	}
 	x = y = -1;
@@ -208,7 +205,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 					break;
 				}
 			}
-			p += 3;
+			p += 4;
 		}
 	}
 _quick_break:
@@ -240,7 +237,7 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<
 				}
 			}
 		_quick_break:
-			p += 3;
+			p += 4;
 		}
 	}
 	x = y = -1;
@@ -266,7 +263,7 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vecto
 							goto _quick_break;
 					}
 					//ok
-					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
+					retstr += to_wstring(j + _x1 + _dx) + L"," + to_wstring(i + _y1 + _dy);
 					retstr += L"|";
 					++find_ct;
 					if (find_ct > _max_return_obj_ct)
@@ -276,7 +273,7 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vecto
 				}
 			}
 		_quick_break:
-			p += 3;
+			p += 4;
 		}
 	}
 _quick_return:

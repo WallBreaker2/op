@@ -55,6 +55,12 @@ long bkmouse::MoveTo(int x, int y) {
 		Input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
 		Input.mi.dx = static_cast<LONG>(fx);
 		Input.mi.dy = static_cast<LONG>(fy);
+		/*The function returns the number of events that it successfully inserted into the keyboard or mouse input stream.
+		If the function returns zero, the input was already blocked by another thread.
+		To get extended error information, call GetLastError.
+		This function fails when it is blocked by UIPI.
+		Note that neither GetLastError nor the return value will indicate the failure was caused by UIPI blocking.
+		*/
 		ret = ::SendInput(1, &Input, sizeof(INPUT));
 		break;
 	}
