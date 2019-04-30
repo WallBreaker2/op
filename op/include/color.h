@@ -7,6 +7,8 @@
 #define WORD_COLOR 0
 //#include "../Tool.h"
 //颜色结构
+#pragma pack(push)
+#pragma pack(1)
 struct color_t {
 	uchar b, g, r, alpha;
 	color_t() :b(0), g(0), r(0), alpha(0) {}
@@ -38,7 +40,7 @@ struct color_t {
 		return buff;
 	}
 };
-
+#pragma pack(pop)
 //颜色-偏色结构
 struct color_df_t {
 	//颜色
