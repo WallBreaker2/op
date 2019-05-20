@@ -49,6 +49,20 @@ void ImageBase::set_offset(int dx, int dy) {
 	_dy = -dy;
 }
 
+int ImageBase::get_bk_color(const cv::Mat& input) {
+	int y[256] = { 0 };
+	auto ptr = input.data;
+	int n = input.cols * input.rows;
+	for (int i = 0; i < n; ++i)
+		y[ptr[i]]++;
+	//scan max
+	int m = 0;
+	for (int i = 0; i < 256; ++i) {
+		if (y[i] > y[m])m = i;
+	}
+	return m;
+}
+
 void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 	if (_src.empty())
 		return;
@@ -75,21 +89,16 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 }
 
 //¶þÖµ»¯
-void ImageBase::graytobinary()
+void ImageBase::tobinary()
 {
 	cv::cvtColor(_src, _target, CV_BGR2GRAY);
-	auto mval = cv::mean(_target);
-	int c1 = WORD_COLOR, c2 = WORD_BKCOLOR;
-	// black bk
-	if (mval[0] < 128) std::swap(c1, c2);
 
-	_binary.create(_target.size(), CV_8UC1);
-	for (int i = 0; i < _target.rows; ++i) {
-		auto p1 = _target.ptr<uchar>(i);
-		auto p2 = _binary.ptr<uchar>(i);
-		for (int j = 0; j < _target.cols; ++j) {
-			p2[j] = (p1[j] < 128 ? c1 : c2);
-		}
+	int bkcolor = get_bk_color(_target);
+	int n = _target.cols * _target.rows;
+	auto ptr1 = _target.data;
+	auto ptr2 = _binary.data;
+	for (int i = 0; i < n; ++i) {
+		ptr2[i] = (std::abs(ptr1[i] - bkcolor) < 10 ? WORD_BKCOLOR : WORD_COLOR);
 	}
 }
 

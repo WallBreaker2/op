@@ -52,6 +52,8 @@ public:
 	long input_image(byte* image_data, int width, int height,long x1,long y1,long x2,long y2, int type = 0);
 
 	void set_offset(int dx, int dy);
+
+	int get_bk_color(const cv::Mat& input);
 	/*
 	if(abs(cr-src)<=df) pixel=1;
 	else pixel=0;
@@ -59,7 +61,7 @@ public:
 	void bgr2binary(vector<color_df_t>& colors);
 
 	//二值化 auto
-	void graytobinary();
+	void tobinary();
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.
