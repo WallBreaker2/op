@@ -250,7 +250,7 @@ long ImageProc::OcrAuto(double sim, std::wstring& retstr) {
 	
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	ImageBase::graytobinary();
+	ImageBase::tobinary();
 	return ImageBase::Ocr(_dicts[_curr_idx], sim,retstr);
 }
 
@@ -278,7 +278,7 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
 		_src = cv::imread(_wsto_string(fullpath));
-		ImageBase::graytobinary();
+		ImageBase::tobinary();
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}
 	return 0;
