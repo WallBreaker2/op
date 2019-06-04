@@ -35,11 +35,11 @@ enum BACKTYPE {
 const size_t MAX_IMAGE_WIDTH = 1<<11;
 const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 #ifndef _WIN64
-#define SHARED_RES_NAME_FORMAT "op_x86_mutex_%p"
-#define MUTEX_NAME_FORMAT "op_x86_shared_res_%p"
+#define SHARED_RES_NAME_FORMAT L"op_x86_mutex_%p"
+#define MUTEX_NAME_FORMAT L"op_x86_shared_res_%p"
 #else
-#define SHARED_RES_NAME_FORMAT "op_x64_shared_res_%p"
-#define MUTEX_NAME_FORMAT "op_x64_mutex_%p"
+#define SHARED_RES_NAME_FORMAT L"op_x64_shared_res_%p"
+#define MUTEX_NAME_FORMAT L"op_x64_mutex_%p"
 #endif
 //Ä£¿é¾ä±ú
 extern HINSTANCE gInstance;

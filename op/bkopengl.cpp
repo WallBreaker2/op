@@ -138,15 +138,9 @@ long bkopengl::capture(const std::wstring& file_name) {
 	file.write((char*)&bih, sizeof(BITMAPINFOHEADER));
 	//setlog("file.write((char*)_image_data=%p", _image_data);
 	try {
-		/*boost::interprocess::shared_memory_object shm(
-			boost::interprocess::open_only,
-			_shared_res_name,
-			boost::interprocess::read_only);
-		boost::interprocess::mapped_region region(shm, boost::interprocess::read_only);
-		_image_data = (byte*)region.get_address();
-		*/
+		
 		_pmutex->lock();
-		file.write((char*)_region->get_address(), bih.biSizeImage);
+		file.write(_shmem->data<char>(), bih.biSizeImage);
 		_pmutex->unlock();
 	}
 	catch (std::exception&e) {
