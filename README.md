@@ -21,6 +21,7 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 * [Windows消息模拟](#Windows消息模拟)
 * [后台截图](#后台截图)
 * [图像识别](#图像识别)
+* [算法](#算法)
 * [3rdparty-Lib](#3rdparty-Lib)
 * [Reference](#Reference)
 
@@ -36,7 +37,9 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 前台,gdi后台,dx后台，opengl后台
 #### 图像识别
 ---
-图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别,支持自动二值化识别
+图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别,支持自动背景识别  
+#### 算法  
+A星寻路算法
 
 ### 3rdparty-Lib  
 ---
