@@ -128,7 +128,7 @@ long bkgdi::cap_image() {
 		::PrintWindow(_hwnd, _hmdc, 0);
 
 	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
-	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_region->get_address(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 	return 1;
 
 }
@@ -141,7 +141,7 @@ long bkgdi::capture(const std::wstring& file_name) {
 	_pmutex->lock();
 	file.write((char*)&_bfh, sizeof(BITMAPFILEHEADER));
 	file.write((char*)&_bih, sizeof(BITMAPINFOHEADER));
-	file.write((char*)_region->get_address(), _bih.biSizeImage);
+	file.write(_shmem->data<char>(), _bih.biSizeImage);
 	_pmutex->unlock();
 	file.close();
 	return 1;

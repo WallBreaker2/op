@@ -98,7 +98,7 @@ void ImageBase::tobinary()
 	auto ptr1 = _target.data;
 	auto ptr2 = _binary.data;
 	for (int i = 0; i < n; ++i) {
-		ptr2[i] = (std::abs(ptr1[i] - bkcolor) < 10 ? WORD_BKCOLOR : WORD_COLOR);
+		ptr2[i] = (std::abs(ptr1[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
 	}
 }
 

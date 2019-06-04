@@ -1,10 +1,12 @@
 #pragma once
-#include <boost/interprocess/sync/named_mutex.hpp> 
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/windows_shared_memory.hpp> 
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
+//#include <boost/interprocess/sync/named_mutex.hpp> 
+//#include <boost/interprocess/shared_memory_object.hpp>
+//#include <boost/interprocess/windows_shared_memory.hpp> 
+//#include <boost/interprocess/mapped_region.hpp>
+//#include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <exception>
+#include "./include/promutex.h"
+#include "./include/sharedmem.h"
 class bkdisplay
 {
 public:
@@ -22,10 +24,10 @@ public:
 	//资源释放
 	long bind_release();
 	byte* get_data() { 
-		return (byte*)_region->get_address(); 
+		return _shmem->data<byte>(); 
 	}
 
-	boost::interprocess::named_mutex* get_mutex() {
+	promutex* get_mutex() {
 		return _pmutex;
 	}
 
@@ -39,14 +41,14 @@ public:
 public:
 	//窗口句柄
 	HWND _hwnd;
-	//地址映射
-	boost::interprocess::mapped_region* _region;
+	//共享内存
+	sharedmem* _shmem;
 	//进程互斥量
-	boost::interprocess::named_mutex* _pmutex;
+	promutex* _pmutex;
 
-	char _shared_res_name[256];
+	wchar_t _shared_res_name[256];
 
-	char _mutex_name[256];
+	wchar_t _mutex_name[256];
 	//绑定状态
 	long _bind_state;
 	//宽度

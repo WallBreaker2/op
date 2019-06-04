@@ -2,21 +2,31 @@
 #include "xhook.h"
 #include <d3d9.h>
 #include <d3d10.h>
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
-#include <boost/interprocess/sync/named_mutex.hpp> 
+//#include <boost/interprocess/shared_memory_object.hpp>
+//#include <boost/interprocess/mapped_region.hpp>
+//#include <boost/interprocess/sync/interprocess_mutex.hpp>
+//#include <boost/interprocess/sync/named_mutex.hpp> 
+#include "./include/promutex.h"
+#include "./include/sharedmem.h"
 #include <exception>
 #pragma comment(lib,"./3rd_party/lib/x86/libMinHook.x86.lib")
 #include "3rd_party/kiero/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
 #include "Tool.h"
-char g_shared_res_name[256];
-char g_mutex_name[256];
-boost::interprocess::named_mutex *g_pmutex = nullptr;
+
+/*name of ...*/
+wchar_t g_shared_res_name[256];
+wchar_t g_mutex_name[256];
+
+
+
+/*target window hwnd*/
 HWND g_hwnd = NULL;
+
 typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
+
+//
 EndScene g_oEndScene = nullptr;
 //dx9
 HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
@@ -47,34 +57,15 @@ HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	D3DLOCKED_RECT lockedRect;
 
 	pTex->LockRect(0, &lockedRect, NULL, D3DLOCK_READONLY);
-	/*
-		È¡ÏñËØ
-	*/
-	//
-	//setlog("step 3. open shared mem name=\"%s\"", g_shared_res_name);
-	//Open already created shared memory object.
-	try {
-		boost::interprocess::shared_memory_object shm(
-			boost::interprocess::open_only,
-			g_shared_res_name,
-			boost::interprocess::read_write);
-		//Map the whole shared memory in this process
-		
-		boost::interprocess::mapped_region region(shm, boost::interprocess::read_write);
-		auto *p = static_cast<char*>(region.get_address());
-		//setlog(L"step 4.try memcpy(p, lockedRect.pBits,size=%d,%d,%d", surface_Desc.Width, surface_Desc.Height, lockedRect.Pitch);
-		g_pmutex->lock();
-		memcpy(p, (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
-		g_pmutex->unlock();
+	/*È¡ÏñËØ*/
+	sharedmem mem;
+	promutex mutex;
+	if (mem.open(g_shared_res_name)&&mutex.open(g_mutex_name)) {
+		mutex.lock();
+		memcpy(mem.data<byte>(), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
+		mutex.unlock();
 	}
-	catch (std::exception& e) {
-		setlog("catch exception:%s", e.what());
-
-	}
-
-	//end
 	pTex->UnlockRect(0);
-
 	//D3DXSaveTextureToFile(file, D3DXIFF_BMP, pTex, NULL);
 	pSurface->Release();
 	//setlog(L"memcpy end.");
@@ -108,27 +99,16 @@ glEnd_t g_oglEnd = nullptr;
 long opengl_screen_capture() {
 	RECT rc;
 	::GetClientRect(g_hwnd, &rc);
-	try {
-		boost::interprocess::shared_memory_object shm(
-			boost::interprocess::open_only,
-			g_shared_res_name,
-			boost::interprocess::read_write);
-		//Map the whole shared memory in this process
-		boost::interprocess::mapped_region region(shm, boost::interprocess::read_write);
-		auto *p = static_cast<char*>(region.get_address());
-		
-		g_pmutex->lock();
-		auto pglReadPixels= (glReadPixels_t)kiero::getMethodsTable()[237];
 
-		//glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-		pglReadPixels(0, 0, rc.right - rc.left, rc.bottom - rc.top, GL_BGRA_EXT, GL_UNSIGNED_BYTE, p);
-		//memcpy(p, (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
-		g_pmutex->unlock();
+	auto pglReadPixels = (glReadPixels_t)kiero::getMethodsTable()[237];
+	sharedmem mem;
+	promutex mutex;
+	if (mem.open(g_shared_res_name)&&mutex.open(g_mutex_name)) {
+		mutex.lock();
+		pglReadPixels(0, 0, rc.right - rc.left, rc.bottom - rc.top, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		mutex.unlock();
 	}
-	catch (std::exception& e) {
-		setlog("catch exception:%s", e.what());
 
-	}
 	return 0;
 }
 void __stdcall hkglEnd(void) {
@@ -140,18 +120,13 @@ void __stdcall hkglEnd(void) {
 }
 void hook_init(HWND hwnd) {
 	g_hwnd = hwnd;
-	sprintf(g_shared_res_name, SHARED_RES_NAME_FORMAT, hwnd);
-	sprintf(g_mutex_name, MUTEX_NAME_FORMAT, hwnd);
-	try {
-		g_pmutex = new boost::interprocess::named_mutex(boost::interprocess::open_only, g_mutex_name);
-	}
-	catch (std::exception&e) {
-		setlog("SetDX9Hook g_mutex_name=%s, std::exception:%s", g_mutex_name, e.what());
-	}
+	wsprintf(g_shared_res_name, SHARED_RES_NAME_FORMAT, hwnd);
+	wsprintf(g_mutex_name, MUTEX_NAME_FORMAT, hwnd);
+	
 }
 
 void hook_release() {
-	SAFE_DELETE(g_pmutex);
+	//
 }
 
 //export function

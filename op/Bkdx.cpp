@@ -134,7 +134,7 @@ long Bkdx::capture(const std::wstring& file_name) {
 	file.write((char*)&bih, sizeof(BITMAPINFOHEADER));
 
 	_pmutex->lock();
-	file.write((char*)_region->get_address(), bih.biSizeImage);
+	file.write(_shmem->data<char>(), bih.biSizeImage);
 	_pmutex->unlock();
 	
 	file.close();
