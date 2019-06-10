@@ -2,7 +2,7 @@
 #include "Bkdx.h"
 #include "Tool.h"
 #include <exception>
-//以下函数用于 user call
+
 
 
 Bkdx::Bkdx() 

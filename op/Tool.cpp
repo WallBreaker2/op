@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Tool.h"
 #include <algorithm>
-std::wstring _sto_wstring(const std::string&s) {
+std::wstring _s2wstring(const std::string&s) {
 	std::string strLocale = setlocale(LC_ALL, "");
 	const char* chSrc = s.c_str();
 	size_t nDestSize = mbstowcs(NULL, chSrc, 0) + 1;
@@ -14,7 +14,7 @@ std::wstring _sto_wstring(const std::string&s) {
 	return wstrResult;
 }
 
-std::string _wsto_string(const std::wstring&ws) {
+std::string _ws2string(const std::wstring&ws) {
 	std::string strLocale = setlocale(LC_ALL, "");
 	const wchar_t* wchSrc = ws.c_str();
 	size_t nDestSize = wcstombs(NULL, wchSrc, 0) + 1;
