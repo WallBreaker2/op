@@ -2,8 +2,8 @@
 #ifndef __TOOL_H_
 #define __TOOL_H_
 #include "Common.h"
-std::wstring _sto_wstring(const std::string&s);
-std::string _wsto_string(const std::wstring&s);
+std::wstring _s2wstring(const std::string&s);
+std::string _ws2string(const std::wstring&s);
 //将路径转化为全局路径
 long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out);
 

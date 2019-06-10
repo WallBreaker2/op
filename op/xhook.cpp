@@ -2,14 +2,17 @@
 #include "xhook.h"
 #include <d3d9.h>
 #include <d3d10.h>
-//#include <boost/interprocess/shared_memory_object.hpp>
-//#include <boost/interprocess/mapped_region.hpp>
-//#include <boost/interprocess/sync/interprocess_mutex.hpp>
-//#include <boost/interprocess/sync/named_mutex.hpp> 
-#include "./include/promutex.h"
+
 #include "./include/sharedmem.h"
+#include "./include/promutex.h"
 #include <exception>
+#ifdef _M_X64
+#pragma comment(lib,"./3rd_party/lib/x64/libMinHook.x64.lib")
+#else
 #pragma comment(lib,"./3rd_party/lib/x86/libMinHook.x86.lib")
+#endif // _M_X64
+
+
 #include "3rd_party/kiero/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
@@ -28,7 +31,7 @@ typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
 
 //
 EndScene g_oEndScene = nullptr;
-//dx9
+//dx9 hooked screen capture
 HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	//save bmp
 	HRESULT hr = NULL;
@@ -72,7 +75,7 @@ HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	return hr;
 }
 
-//dx9
+//dx9 hooked EndScene function
 HRESULT STDMETHODCALLTYPE hkEndScene(IDirect3DDevice9* thiz)
 {
 	auto ret = g_oEndScene(thiz);
