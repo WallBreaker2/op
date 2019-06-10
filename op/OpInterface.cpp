@@ -422,14 +422,14 @@ STDMETHODIMP OpInterface::RunApp(BSTR cmdline, LONG mode, LONG* ret) {
 }
 
 STDMETHODIMP OpInterface::WinExec(BSTR cmdline, LONG cmdshow, LONG* ret) {
-	auto str = _wsto_string(cmdline);
+	auto str = _ws2string(cmdline);
 	*ret = ::WinExec(str.c_str(), cmdshow) > 31 ? 1 : 0;
 	return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetCmdStr(BSTR cmd, LONG millseconds, BSTR* retstr) {
 	CComBSTR bstr;
-	auto strcmd = _wsto_string(cmd);
+	auto strcmd = _ws2string(cmd);
 	Cmder cd;
 	auto str = cd.GetCmdStr(strcmd, millseconds <= 0 ? 5 : millseconds);
 	auto hr = bstr.Append(str.c_str());

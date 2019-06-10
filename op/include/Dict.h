@@ -9,6 +9,7 @@
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
 
+
 struct rect_t {
 	int x1, y1;
 	int x2, y2;
@@ -49,6 +50,35 @@ struct word_t {
 	void set_chars(const std::wstring&s) {
 		memcpy(info._char, s.c_str(), std::min(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
 	}
+	/*从 dm 字库中 的一个点阵转化为op的点阵*/
+	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
+		int bin[50] = { 0 };
+		ct = std::min<int>(ct, 88);
+		int i = 0;
+		auto hex2bin = [](wchar_t c) {
+			return c <= L'9' ? c - L'0' : c - L'A'+10;
+		};
+		while (i < ct) {
+			
+			bin[i / 2] = (hex2bin(str[i]) << 4) | (hex2bin(str[i+1]));
+			i += 2;
+		}
+		int cols = (ct * 4) / 11;
+		memset(this, 0, sizeof(*this));
+		for (int j = 0; j < cols; ++j) {
+			for (int i = 0; i < 11; ++i) {
+				int idx = j * 11 + i;
+				if (GET_BIT(bin[idx>>3],7-(idx&7))) {
+					SET_BIT(clines[j], 31-i);
+					++info.bit_count;
+				}
+					
+			}
+		}
+		info.height = 11;
+		info.width = cols;
+		set_chars(w);
+	}
 };
 
 struct Dict {
@@ -63,6 +93,7 @@ struct Dict {
 	Dict() {}
 	std::vector<word_t>words;
 	void read_dict(const std::string&s) {
+		clear();
 		std::fstream file;
 		file.open(s, std::ios::in | std::ios::binary);
 		if (!file.is_open())
@@ -76,6 +107,26 @@ struct Dict {
 		}
 		file.close();
 	}
+	void read_dict_dm(const std::string&s) {
+		clear();
+		std::wfstream file;
+		file.open(s, std::ios::in);
+		if (!file.is_open())
+			return;
+		//读取信息
+		std::wstring ss;
+		while (std::getline(file, ss)) {
+			size_t idx1 = ss.find(L'$');
+			auto idx2=ss.find(L'$',idx1+1);
+			word_t wd;
+			if (idx1 != -1&&idx2!=-1) {
+				wd.fromDm(ss.data(), idx1 + 1, ss.substr(idx1 + 1, idx2 - idx1-1));
+				add_word(wd);
+			}
+		}
+		file.close();
+	}
+
 	void write_dict(const std::string&s) {
 		std::fstream file;
 		file.open(s, std::ios::out | std::ios::binary);

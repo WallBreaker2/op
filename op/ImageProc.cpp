@@ -16,7 +16,7 @@ ImageProc::~ImageProc()
 }
 
 long ImageProc::Capture(const std::wstring& file) {
-	return cv::imwrite(_wsto_string(file),_src);
+	return cv::imwrite(_ws2string(file),_src);
 }
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
 	std::vector<color_df_t> vcolor;
@@ -120,8 +120,12 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 		return 0;
 	_dicts[idx].clear();
 	wstring fullpath;
-	if (Path2GlobalPath(file_name, _curr_path, fullpath))
-		_dicts[idx].read_dict(_wsto_string(fullpath));
+	if (Path2GlobalPath(file_name, _curr_path, fullpath)) {
+		if (fullpath.substr(fullpath.length() - 4) == L".txt")
+			_dicts[idx].read_dict_dm(_ws2string(fullpath));
+		else
+			_dicts[idx].read_dict(_ws2string(fullpath));
+	}
 	else {
 		setlog(L"file '%s' does not exist", file_name.c_str());
 	}
@@ -158,7 +162,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 wstring ImageProc::GetColor(long x, long y) {
 	color_t cr;
 	if (ImageBase::GetPixel(x, y, cr)) {
-		return _sto_wstring(cr.tostr());
+		return _s2wstring(cr.tostr());
 	}
 	else {
 		return L"";
@@ -205,7 +209,7 @@ void ImageProc::files2mats(const wstring& files, std::vector<cv::Mat*>& vpic) {
 			pm = &_pic_cache[tp];
 		}
 		else {
-			_pic_cache[tp] = cv::imread(_wsto_string(tp));
+			_pic_cache[tp] = cv::imread(_ws2string(tp));
 			pm = &_pic_cache[tp];
 		}
 		vpic.push_back(pm);
@@ -262,7 +266,7 @@ long ImageProc::OcrFromFile(const wstring& files, const wstring& color, double s
 	vector<color_df_t> colors;
 	str2colordfs(color, colors);
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
-		_src = cv::imread(_wsto_string(fullpath));
+		_src = cv::imread(_ws2string(fullpath));
 		//ImageBase::graytobinary();
 		ImageBase::bgr2binary(colors);
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
@@ -277,7 +281,7 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 	wstring fullpath;
 
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
-		_src = cv::imread(_wsto_string(fullpath));
+		_src = cv::imread(_ws2string(fullpath));
 		ImageBase::tobinary();
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}
