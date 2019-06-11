@@ -206,6 +206,14 @@ struct Dict {
 			words.erase(it);
 		info._word_count = words.size();
 	}
+
+	int size() const{
+		return info._word_count;
+	}
+
+	bool empty()const {
+		return size() == 0;
+	}
 };
 
 #endif
