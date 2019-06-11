@@ -144,13 +144,14 @@ long SetDX9Hook(HWND hwnd) {
 	if (ret == kiero::Status::Success) {
 		kiero::bind(42, (void**)&g_oEndScene, hkEndScene);
 		//setlog("bind ok.");
+		return 1;
 	}
 	else {
-		setlog("kiero::init false");
+		//kiero::init false
+		return 0;
 	}
 
 
-	return 1;
 }
 
 long UnDX9Hook() {
@@ -158,7 +159,7 @@ long UnDX9Hook() {
 		kiero::unbind();
 	}
 	hook_release();
-	return 0;
+	return 1;
 }
 
 long SetDX10Hook(HWND hwnd) {
@@ -171,7 +172,7 @@ long SetDX10Hook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		setlog("kiero::init false");
+		//setlog("kiero::init false");
 		return 0;
 	}
 
@@ -180,7 +181,7 @@ long SetDX10Hook(HWND hwnd) {
 long UnDX10Hook() {
 	kiero::unbind();
 	hook_release();
-	return 0;
+	return 1;
 }
 
 long SetDX11Hook(HWND hwnd) {
@@ -193,7 +194,7 @@ long SetDX11Hook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		setlog("kiero::init false");
+		//setlog("kiero::init false");
 		return 0;
 	}
 
@@ -202,7 +203,7 @@ long SetDX11Hook(HWND hwnd) {
 long UnDX11Hook() {
 	kiero::unbind();
 	hook_release();
-	return 0;
+	return 1;
 }
 
 long SetOpenglHook(HWND hwnd) {
@@ -215,7 +216,7 @@ long SetOpenglHook(HWND hwnd) {
 		return 1;
 	}
 	else {
-		setlog("kiero::init false");
+		//setlog("kiero::init false");
 		return 0;
 	}
 
@@ -224,5 +225,5 @@ long SetOpenglHook(HWND hwnd) {
 long UnOpenglHook() {
 	kiero::unbind();
 	hook_release();
-	return 0;
+	return 1;
 }

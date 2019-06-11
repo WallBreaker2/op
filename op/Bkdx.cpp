@@ -32,43 +32,50 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 	auto hr = _process.Attach(id);
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
-		//获取当前模块文件名
-		wchar_t buff[256];
-		::GetModuleFileName(gInstance, buff, 256);
-		_dllname = buff;
-		_dllname = _dllname.substr(_dllname.rfind(L"\\") + 1);
-		_process.Resume();
-		blackbone::call_result_t<blackbone::ModuleDataPtr> reg_ret;
-		//判断是否已经注入
-		auto _dllptr = _process.modules().GetModule(_dllname);
-		if (!_dllptr) {
-			//setlog(L"inject..");
-			reg_ret = _process.modules().Inject(buff);
-			//setlog(L"inject finish...");
-		}
-		else {
-			//setlog("alreadly inject.");
-			reg_ret.status = 0;
-		}
-		//恢复进程
-		_process.Resume();
-		if (NT_SUCCESS(reg_ret.status)) {
-			//wait some time 
-			::Sleep(200);
-			using my_func_t = long(__stdcall*)(HWND);
-			auto SetDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetDX9Hook");
-			if (SetDX9HookPtr) {
-				bind_init();
-				SetDX9HookPtr(hwnd);
-				bind_ret = 1;
+		//检查是否与插件相同的32/64位
+		auto &mod = _process.modules().GetMainModule();
+		constexpr blackbone::eModType curModType = (SYSTEM_BITS == 32 ? blackbone::eModType::mt_mod32 : blackbone::eModType::mt_mod64);
+		if (mod&&mod->type == curModType) {
+			//获取当前模块文件名
+			wchar_t buff[256];
+			::GetModuleFileName(gInstance, buff, 256);
+			_dllname = buff;
+			_dllname = _dllname.substr(_dllname.rfind(L"\\") + 1);
+
+			/*_process.Resume();*/
+			bool injected = false;
+			//判断是否已经注入
+			auto _dllptr = _process.modules().GetModule(_dllname);
+			if (_dllptr) {
+				injected = true;
 			}
 			else {
-				setlog(L"remote function not found.");
+				injected = (_process.modules().Inject(buff) ? true : false);
+			}
+			if (injected) {
+				//wait some time 
+				::Sleep(200);
+				using my_func_t = long(__stdcall*)(HWND);
+				auto SetDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetDX9Hook");
+				if (SetDX9HookPtr) {
+					bind_init();
+					auto cret = SetDX9HookPtr(hwnd);
+					bind_ret = cret.result();
+				}
+				else {
+					setlog(L"remote function not found.");
+				}
+			}
+			else {
+				setlog(L"Inject false.");
 			}
 		}
 		else {
-			setlog(L"Inject false.");
-		}
+			setlog("error:mod->type != current_mod");
+		}//end check
+		
+		
+		
 	}
 	else {
 		setlog(L"attach false.");
@@ -77,8 +84,11 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 	_hwnd = bind_ret ? hwnd : NULL;
 	if (bind_ret) {
 		_bind_state = 1;
-		//setlog("shared_res_name=%s mutex_name=%s",_shared_res_name,_mutex_name);
 
+	}
+	else {
+		bind_release();
+		_bind_state = 0;
 	}
 
 	return bind_ret;
@@ -86,28 +96,23 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 
 long Bkdx::UnBind() {
 	auto hr = _process.Attach(_process_id);
-	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
 		//wait some time 
 		::Sleep(200);
 		using my_func_t = long(__stdcall*)(void);
 		auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "UnDX9Hook");
-		//auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, L"dll_test.dll", "UnDX9Hook");
 		if (UnDX9HookPtr) {
 			UnDX9HookPtr();
-			bind_ret = 1;
 		}
 		else {
 			setlog(L"get unhook ptr false.");
 		}
 	}
-	else {
-		setlog("attach false.");
-	}
+	
 	_process.Detach();
 	_hwnd = NULL;
 	bind_release();
-	return bind_ret;
+	return 1;
 }
 
 
