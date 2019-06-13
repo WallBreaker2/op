@@ -2,7 +2,26 @@
 #ifndef __DX9HOOK_H_
 #define __DX9HOOK_H_
 #include "Common.h"
+
+
+namespace xhook {
+	
+	/*target window hwnd*/
+	extern HWND render_hwnd;
+	extern int render_type;
+	/*name of ...*/
+	extern wchar_t shared_res_name[256];
+	extern wchar_t mutex_name[256];
+	extern void* old_address;
+	//
+	int init(HWND hwnd_, int bktype_);
+	int detour();
+	int release();
+
+
+};
 //以下函数用于HOOK DX9
+
 //此函数做以下工作
 /*
 1.hook相关函数
@@ -11,18 +30,7 @@
 */
 
 //返回值:1 成功，0失败
-//dx9
-DLL_API long SetDX9Hook(HWND hwnd);
-//恢复原状态，释放共享内存
-DLL_API long UnDX9Hook();
-//dx10
-DLL_API long SetDX10Hook(HWND hwnd);
-DLL_API long UnDX10Hook();
-//dx11
-DLL_API long SetDX11Hook(HWND hwnd);
-DLL_API long UnDX11Hook();
-//opengl
-DLL_API long SetOpenglHook(HWND hwnd);
-DLL_API long UnOpenglHook();
+DLL_API long SetXHook(HWND hwnd_,int bktype_);
 
+DLL_API long UnXHook();
 #endif // !__DX9HOOK_H_

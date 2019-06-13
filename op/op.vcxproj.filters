@@ -65,17 +65,17 @@
     <Filter Include="Background\Display">
       <UniqueIdentifier>{acf387f7-b155-472c-a34b-628ffb0e5f56}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Background\Display\DX">
-      <UniqueIdentifier>{00fc6957-34c4-499b-b4b0-f66ed59ebec5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Background\Display\Gdi">
       <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Background\Display\Opengl">
-      <UniqueIdentifier>{d90dcf60-8f13-4aac-8dc0-c7c1ebe92950}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Algorithm\Bit">
       <UniqueIdentifier>{4b0c3175-3ca6-4736-ba45-3d277e788b5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Hook">
+      <UniqueIdentifier>{f5ed6785-de8e-4af0-9025-589644dcf89a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Display\DX_Opengl">
+      <UniqueIdentifier>{00fc6957-34c4-499b-b4b0-f66ed59ebec5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -124,9 +124,6 @@
     <ClCompile Include="Bkgdi.cpp">
       <Filter>Background\Display\Gdi</Filter>
     </ClCompile>
-    <ClCompile Include="Bkdx.cpp">
-      <Filter>Background\Display\DX</Filter>
-    </ClCompile>
     <ClCompile Include="3rd_party\kiero\kiero.cpp">
       <Filter>3rd_party\kiero</Filter>
     </ClCompile>
@@ -136,9 +133,6 @@
     <ClCompile Include="bkdisplay.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
-    <ClCompile Include="bkopengl.cpp">
-      <Filter>Background\Display\Opengl</Filter>
-    </ClCompile>
     <ClCompile Include="ocr.cpp">
       <Filter>Algorithm</Filter>
     </ClCompile>
@@ -147,6 +141,12 @@
     </ClCompile>
     <ClCompile Include="xhook.cpp">
       <Filter>Background\Display</Filter>
+    </ClCompile>
+    <ClCompile Include="query_api.cpp">
+      <Filter>Background\Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="bxdo.cpp">
+      <Filter>Background\Display\DX_Opengl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -201,9 +201,6 @@
     <ClInclude Include="Bkgdi.h">
       <Filter>Background\Display\Gdi</Filter>
     </ClInclude>
-    <ClInclude Include="Bkdx.h">
-      <Filter>Background\Display\DX</Filter>
-    </ClInclude>
     <ClInclude Include="3rd_party\kiero\kiero.h">
       <Filter>3rd_party\kiero</Filter>
     </ClInclude>
@@ -212,9 +209,6 @@
     </ClInclude>
     <ClInclude Include="bkdisplay.h">
       <Filter>Background\Display</Filter>
-    </ClInclude>
-    <ClInclude Include="bkopengl.h">
-      <Filter>Background\Display\Opengl</Filter>
     </ClInclude>
     <ClInclude Include="ocr.h">
       <Filter>Algorithm</Filter>
@@ -236,6 +230,12 @@
     </ClInclude>
     <ClInclude Include="AStar.hpp">
       <Filter>Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="query_api.h">
+      <Filter>Background\Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="bkdo.h">
+      <Filter>Background\Display\DX_Opengl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
