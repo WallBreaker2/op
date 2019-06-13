@@ -46,6 +46,9 @@ public:
 			return -1;
 		case BACKTYPE::DX:
 			return 0;
+		case BACKTYPE::DX2:
+		case BACKTYPE::DX3:
+			return -1;
 		case BACKTYPE::OPENGL:
 			return -1;
 		default:

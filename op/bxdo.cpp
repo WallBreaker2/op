@@ -1,39 +1,44 @@
 #include "stdafx.h"
-#include "Bkdx.h"
+#include "bkdo.h"
 #include "Tool.h"
 #include <exception>
+#include "3rd_party/include/BlackBone/Process/Process.h"
+//#include <BlackBone/Patterns/PatternSearch.h>
+#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
+//#include <BlackBone/Syscalls/Syscall.h>
 
 
-
-Bkdx::Bkdx() 
-{
-	_process_id = 0;
-}
-
-
-Bkdx::~Bkdx()
+bkdo::bkdo() 
 {
 	
 }
 
 
-long Bkdx::Bind(HWND hwnd,long flag) {
+bkdo::~bkdo()
+{
 	
+}
+
+
+long bkdo::Bind(HWND hwnd,long render_type) {
+	
+	_hwnd = hwnd;
 	DWORD id;
-	::GetWindowThreadProcessId(hwnd, &id);
+	::GetWindowThreadProcessId(_hwnd, &id);
 	RECT rc;
 	//获取客户区大小
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	//setlog(L"Bkdx::Bind,width=%d,height=%d", _width, _height);
-	_hwnd = hwnd;
+	
 	//attach 进程
-	auto hr = _process.Attach(id);
+	blackbone::Process proc;
+	auto hr = proc.Attach(id);
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
 		//检查是否与插件相同的32/64位
-		auto &mod = _process.modules().GetMainModule();
+		auto &mod = proc.modules().GetMainModule();
 		constexpr blackbone::eModType curModType = (SYSTEM_BITS == 32 ? blackbone::eModType::mt_mod32 : blackbone::eModType::mt_mod64);
 		if (mod&&mod->type == curModType) {
 			//获取当前模块文件名
@@ -45,21 +50,19 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 			/*_process.Resume();*/
 			bool injected = false;
 			//判断是否已经注入
-			auto _dllptr = _process.modules().GetModule(_dllname);
+			auto _dllptr = proc.modules().GetModule(_dllname);
 			if (_dllptr) {
 				injected = true;
 			}
 			else {
-				injected = (_process.modules().Inject(buff) ? true : false);
+				injected = (proc.modules().Inject(buff) ? true : false);
 			}
 			if (injected) {
-				//wait some time 
-				::Sleep(200);
-				using my_func_t = long(__stdcall*)(HWND);
-				auto SetDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "SetDX9Hook");
-				if (SetDX9HookPtr) {
+				using my_func_t = long(__stdcall*)(HWND,int);
+				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, _dllname, "SetXHook");
+				if (pSetXHook) {
 					bind_init();
-					auto cret = SetDX9HookPtr(hwnd);
+					auto cret = pSetXHook(hwnd,render_type);
 					bind_ret = cret.result();
 				}
 				else {
@@ -80,8 +83,7 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 	else {
 		setlog(L"attach false.");
 	}
-	_process.Detach();
-	_hwnd = bind_ret ? hwnd : NULL;
+	proc.Detach();
 	if (bind_ret) {
 		_bind_state = 1;
 
@@ -94,29 +96,37 @@ long Bkdx::Bind(HWND hwnd,long flag) {
 	return bind_ret;
 }
 
-long Bkdx::UnBind() {
-	auto hr = _process.Attach(_process_id);
-	if (NT_SUCCESS(hr)) {
-		//wait some time 
-		::Sleep(200);
-		using my_func_t = long(__stdcall*)(void);
-		auto UnDX9HookPtr = blackbone::MakeRemoteFunction<my_func_t>(_process, _dllname, "UnDX9Hook");
-		if (UnDX9HookPtr) {
-			UnDX9HookPtr();
+long bkdo::UnBind() {
+	
+	if (_bind_state) {
+		
+		DWORD id;
+		::GetWindowThreadProcessId(_hwnd, &id);
+		blackbone::Process proc;
+		auto hr = proc.Attach(id);
+		if (NT_SUCCESS(hr)) {
+			
+			using my_func_t = long(__stdcall*)(void);
+			auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, _dllname, "UnXHook");
+			if (pUnXHook) {
+				pUnXHook();
+			}
+			else {
+				setlog(L"get unhook ptr false.");
+			}
 		}
 		else {
-			setlog(L"get unhook ptr false.");
+			setlog("blackbone::MakeRemoteFunction false,errcode:%X,pid=%d,hwnd=%d",hr,id,_hwnd);
 		}
+
+		proc.Detach();
 	}
-	
-	_process.Detach();
-	_hwnd = NULL;
 	bind_release();
 	return 1;
 }
 
 
-long Bkdx::capture(const std::wstring& file_name) {
+long bkdo::capture(const std::wstring& file_name) {
 	//setlog(L"Bkdx::capture")
 	std::fstream file;
 	file.open(file_name, std::ios::out | std::ios::binary);

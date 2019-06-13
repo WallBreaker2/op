@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "xhook.h"
-#include <d3d9.h>
-#include <d3d10.h>
 
+#include <d3d11.h>
+#include <D3DX11.h>
+#include <d3d10.h>
+#include <d3dx10.h>
+#include <d3d9.h>
 #include "./include/sharedmem.h"
 #include "./include/promutex.h"
 #include <exception>
@@ -17,21 +20,88 @@
 #include <gl\gl.h>
 #include <gl\glu.h>
 #include "Tool.h"
+#include "query_api.h"
 
-/*name of ...*/
-wchar_t g_shared_res_name[256];
-wchar_t g_mutex_name[256];
+HWND xhook::render_hwnd = NULL;
+int xhook::render_type = 0;
+wchar_t xhook::shared_res_name[256];
+wchar_t xhook::mutex_name[256];
+void* xhook::old_address;
+
+//dx9 hooked EndScene function
+HRESULT __stdcall dx9_hkEndScene(IDirect3DDevice9* thiz);
+//dx10
+HRESULT __stdcall dx10_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags);
+//dx11
+HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags);
+//opengl
+void __stdcall gl_hkglBegin(GLenum mode);
+
+int xhook::init(HWND hwnd_, int bktype_) {
+	xhook::render_hwnd = hwnd_;
+	wsprintf(xhook::shared_res_name, SHARED_RES_NAME_FORMAT, hwnd_);
+	wsprintf(xhook::mutex_name, MUTEX_NAME_FORMAT, hwnd_);
+	//if(bktype_)
+	if (bktype_ == BACKTYPE::DX) {
+		render_type = kiero::RenderType::D3D9;
+	}
+	else if (bktype_ == BACKTYPE::DX2) {
+		render_type = kiero::RenderType::D3D10;
+	}
+	else if (bktype_ == BACKTYPE::DX3) {
+		render_type = kiero::RenderType::D3D11;
+	}
+	else if (bktype_ == BACKTYPE::OPENGL) {
+		render_type = kiero::RenderType::OpenGL;
+	}
+	else {
+		render_type = kiero::RenderType::None;
+	}
+	if (kiero::init(render_type) != kiero::Status::Success)
+		return 0;
+	return 1;
+}
 
 
+static int need_screen;
 
-/*target window hwnd*/
-HWND g_hwnd = NULL;
+int xhook::detour() {
+	int idx = 0;
+	void* address = nullptr;
+	using kiero::RenderType;
+	switch (render_type)
+	{
+	case RenderType::D3D9:
+		idx = 42; address = dx9_hkEndScene;
+		break;
+	case RenderType::D3D10:
+		idx = 8; address = dx10_hkPresent;
+		break;
+	case RenderType::D3D11:
+		idx = 8; address = dx11_hkPresent;
+		break;
+	case RenderType::OpenGL:
+		idx = 4; address = gl_hkglBegin;
+		break;
+	default:
+		break;
+	}
 
-typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
+	need_screen = 1;
+	kiero::bind(idx, &old_address, address);
+	return 1;
+}
 
-//
-EndScene g_oEndScene = nullptr;
-//dx9 hooked screen capture
+int xhook::release() {
+	need_screen = 0;
+	int ret = kiero::unbind();
+	//setlog(MH)
+	return 1;
+}
+
+
+//------------------------dx9-------------------------------
+//screen capture
 HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	//save bmp
 	HRESULT hr = NULL;
@@ -63,7 +133,7 @@ HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	/*取像素*/
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(g_shared_res_name)&&mutex.open(g_mutex_name)) {
+	if (mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)) {
 		mutex.lock();
 		memcpy(mem.data<byte>(), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
 		mutex.unlock();
@@ -71,159 +141,282 @@ HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	pTex->UnlockRect(0);
 	//D3DXSaveTextureToFile(file, D3DXIFF_BMP, pTex, NULL);
 	pSurface->Release();
+	pTex->Release();
+	pTexSurface->Release();
 	//setlog(L"memcpy end.");
 	return hr;
 }
-
 //dx9 hooked EndScene function
-HRESULT STDMETHODCALLTYPE hkEndScene(IDirect3DDevice9* thiz)
+HRESULT STDMETHODCALLTYPE dx9_hkEndScene(IDirect3DDevice9* thiz)
 {
-	auto ret = g_oEndScene(thiz);
-	//每隔段时间调用截图
-	static DWORD t = 0;
-	if (::GetTickCount() - t > 500) {
-		t = ::GetTickCount();
+	typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
+	auto ret = ((EndScene)xhook::old_address)(thiz);
+	if (need_screen)
 		dx9screen_capture(thiz);
-	}
+	
 	return ret;
 }
-//dx10
-void  STDMETHODCALLTYPE hkDraw(ID3D10Device* thiz, unsigned int VertexCount, unsigned int StartVertexLocation) {
-	thiz->Draw(VertexCount, StartVertexLocation);
-	//thiz.
-}
-//dx11
+//------------------------------------------------------------
 
-//opengl
-using glEnd_t = decltype(glEnd)*;
-using glReadPixels_t = decltype(glReadPixels)*;
-//using glReadPixels_t = decltype(glReadPixels)*;
-glEnd_t g_oglEnd = nullptr;
-long opengl_screen_capture() {
-	RECT rc;
-	::GetClientRect(g_hwnd, &rc);
+//-----------------------dx10----------------------------------
+//screen capture
+void dx10_capture(IDXGISwapChain* pswapchain) {
+	using Texture2D = ID3D10Texture2D * ;
+	//init some fucntion
+	query_api qr;
+	static auto pD3DX10SaveTextureToMemory =qr.query<decltype(D3DX10SaveTextureToMemory)*>("d3dx10_43.dll","D3DX10SaveTextureToMemory");
+	if (!pD3DX10SaveTextureToMemory) {
+		setlog("!pD3DX10SaveTextureToMemory,error code=%d",qr.error_code());
+		return;
+	}
 
-	auto pglReadPixels = (glReadPixels_t)kiero::getMethodsTable()[237];
+	HRESULT hr;
+	ID3D10Device *pdevices = nullptr;
+	ID3D10Texture2D* texture = nullptr;
+	Texture2D textureDest = nullptr;
+	LPD3D10BLOB pblob = nullptr;
+	
+	//setlog("before GetBuffer");
+	hr =pswapchain->GetBuffer(0, __uuidof(ID3D10Texture2D), (void**)&texture);
+	if (hr < 0) {
+		//setlog("hr < 0");
+		return;
+	}
+	texture->GetDevice(&pdevices);
+	
+	if (!pdevices) {
+		//setlog(" pswapchain->GetDevice false");
+		texture->Release();
+		return;
+	}
+	//auto p
+
+	D3D10_TEXTURE2D_DESC desc;
+	texture->GetDesc(&desc);
+	// If texture is multisampled, then we can use ResolveSubresource to copy it into a non-multisampled texture
+	//Texture2D textureResolved = nullptr;
+	if (desc.SampleDesc.Count > 1) {
+		// texture is multi-sampled, lets resolve it down to single sample
+		setlog("texture is multi-sampled");
+	}
+	
+	D3D10_TEXTURE2D_DESC desc2;
+	desc2.CPUAccessFlags = DXGI_CPU_ACCESS_NONE;
+	desc2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc2.Height = desc.Height;
+	desc2.Usage = D3D10_USAGE_DEFAULT;
+	desc2.Width = desc.Width;
+	desc2.ArraySize = 1;
+	desc2.SampleDesc = DXGI_SAMPLE_DESC{ 1,0 };
+	desc2.BindFlags = 0;
+	desc2.MipLevels = 1;
+	desc2.MiscFlags = desc.MiscFlags;
+	hr = pdevices->CreateTexture2D(&desc2, nullptr, &textureDest);
+	if (hr < 0) {
+		pdevices->Release();
+		texture->Release();
+		return;
+	}
+	
+	D3D10_BOX box = {};
+	box.top = 0; box.left = 0;
+	box.bottom = desc.Height;
+	box.right = desc.Width;
+	box.front = 0; box.back = 1;
+	pdevices->CopySubresourceRegion(textureDest, 0, 0, 0, 0, texture, 0, &box);
+	
+	hr = pD3DX10SaveTextureToMemory(textureDest, D3DX10_IMAGE_FILE_FORMAT::D3DX10_IFF_BMP, &pblob, 0);
+	if (hr < 0) {
+		pdevices->Release();
+		texture->Release();
+		textureDest->Release();
+		setlog("hr = pD3DX10SaveTextureToMemory false,hr=%d",hr);
+		return;
+	}
+	//0x7FFF BFFB -2147467259
+	//setlog("after D3DX10SaveTextureToMemory");
+
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(g_shared_res_name)&&mutex.open(g_mutex_name)) {
+	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+		char* ptr = (char*)pblob->GetBufferPointer();
+		size_t bits = pblob->GetBufferSize();
+		constexpr int offset = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+		bits -= offset;
+		//setlog("num of  bits=%d,width*height*4=%d", bits, desc.Width*desc.Height * 4);
+		if (bits > SHARED_MEMORY_SIZE)
+			bits = SHARED_MEMORY_SIZE;
+		
 		mutex.lock();
-		pglReadPixels(0, 0, rc.right - rc.left, rc.bottom - rc.top, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		memcpy(mem.data<char>(), ptr+offset,bits);
 		mutex.unlock();
 	}
+	else {
+		setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
+	}
+	//release
+	pdevices->Release();
+	texture->Release();
+	textureDest->Release();
+	pblob->Release();
+	//setlog("pblob->Release()");
+}
+//dx10 hook Present
+HRESULT STDMETHODCALLTYPE dx10_hkPresent(IDXGISwapChain* thiz,UINT SyncInterval,UINT Flags){
+	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
+	if (need_screen)
+		dx10_capture(thiz);
+	return ((Present_t)xhook::old_address)(thiz, SyncInterval, Flags);
+	//thiz.
+}
+//------------------------------------------------------------
 
+//------------------------dx11----------------------------------
+//screen capture
+void dx11_capture(IDXGISwapChain* pswapchain) {
+	//query api
+	query_api qr;
+	static auto pD3DX11SaveTextureToMemory = qr.query<decltype(D3DX11SaveTextureToMemory)*>("d3dx11_43.dll", "D3DX11SaveTextureToMemory");
+	if (!pD3DX11SaveTextureToMemory) {
+		setlog("!pD3DX11SaveTextureToMemory");
+		return;
+	}
+		
+	using Texture2D = ID3D11Texture2D * ;
+	HRESULT hr = 0;
+	Texture2D texture = nullptr, textureDst = nullptr;
+	ID3D11Device* device = nullptr;
+	ID3D11DeviceContext* context = nullptr;
+	ID3D10Blob* pblob = nullptr;
+	hr = pswapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&texture);
+	if (hr < 0) {
+		setlog("pswapchain->GetBuffer,error code=%d", hr);
+		return;
+	}
+
+	D3D11_TEXTURE2D_DESC desc;
+	texture->GetDesc(&desc);
+	texture->GetDevice(&device);
+	D3D11_TEXTURE2D_DESC desc2 = { 0 };
+	desc2.CPUAccessFlags = 0;
+	desc2.Format = desc.Format;
+	desc2.Height = desc.Height;
+	desc2.Usage = D3D11_USAGE_DEFAULT;
+	desc2.Width = desc.Width;
+	desc2.ArraySize = 1;
+	desc2.SampleDesc = DXGI_SAMPLE_DESC{ 1,0 };
+	desc2.BindFlags = 0;
+	desc2.MipLevels = 1;
+	desc2.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+	hr = device->CreateTexture2D(&desc2, nullptr, &textureDst);
+	if (hr < 0) {
+
+		texture->Release();
+		device->Release();
+		setlog("device->CreateTexture2D,error code=%d", hr);
+		return;
+	}
+	//DXGI_KEY
+	device->GetImmediateContext(&context);
+	D3D11_BOX box = { 0 };
+	box.top = box.left = 0;
+	box.bottom = desc.Height;
+	box.right = desc.Width;
+	box.front = 0;
+	box.back = 1;
+	context->CopySubresourceRegion(textureDst, 0, 0, 0, 0, texture, 0, &box);
+	
+	hr = pD3DX11SaveTextureToMemory(context, textureDst, D3DX11_IMAGE_FILE_FORMAT::D3DX11_IFF_BMP, &pblob, 0);
+	if (hr < 0) {
+		setlog("D3DX11SaveTextureToMemory error code=%d", hr);
+	}
+	else {
+		sharedmem mem;
+		promutex mutex;
+		if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+			char* ptr = (char*)pblob->GetBufferPointer();
+			size_t bits = pblob->GetBufferSize();
+			constexpr int offset = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+			bits -= offset;
+			//setlog("num of  bits=%d,width*height*4=%d", bits, desc.Width*desc.Height * 4);
+			if (bits > SHARED_MEMORY_SIZE)
+				bits = SHARED_MEMORY_SIZE;
+
+			mutex.lock();
+			memcpy(mem.data<char>(), ptr + offset, bits);
+			mutex.unlock();
+		}
+		else {
+			setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
+		}
+	}
+	texture->Release();
+	device->Release();
+	textureDst->Release();
+	context->Release();
+	if (pblob)pblob->Release();
+}
+//hooked present
+HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags) {
+	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
+	if (need_screen)
+		dx11_capture(thiz);
+	return ((Present_t)xhook::old_address)(thiz, SyncInterval, Flags);
+}
+//------------------------------------------------------------
+
+//-----------------------opengl-----------------------------
+//screen capture
+long opengl_screen_capture() {
+	
+	using glPixelStorei_t = decltype(glPixelStorei)*;
+	using glReadBuffer_t = decltype(glReadBuffer)*;
+	using glGetIntegerv_t = decltype(glGetIntegerv)*;
+	using glReadPixels_t = decltype(glReadPixels)*;
+
+	auto pglPixelStorei = (glPixelStorei_t)kiero::getMethodsTable()[195];
+	auto pglReadBuffer = (glReadBuffer_t)kiero::getMethodsTable()[236];
+	auto pglGetIntegerv = (glGetIntegerv_t)kiero::getMethodsTable()[104];
+	auto pglReadPixels = (glReadPixels_t)kiero::getMethodsTable()[237];
+
+	GLint viewport[4] = { 0 };
+	pglGetIntegerv(GL_VIEWPORT, viewport);
+	int width = viewport[2], height = viewport[3];
+
+	pglPixelStorei(GL_PACK_ALIGNMENT, 1);
+	pglPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	pglReadBuffer(GL_FRONT);
+
+	sharedmem mem;
+	promutex mutex;
+	if (mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)) {
+		mutex.lock();
+		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		mutex.unlock();
+	}
+	setlog("gl screen ok");
 	return 0;
 }
-void __stdcall hkglEnd(void) {
+void __stdcall gl_hkglBegin(GLenum mode) {
 	static DWORD t = 0;
-	g_oglEnd();
-	//capture
-	if (GetTickCount() > t + 500)
-		opengl_screen_capture();
-}
-void hook_init(HWND hwnd) {
-	g_hwnd = hwnd;
-	wsprintf(g_shared_res_name, SHARED_RES_NAME_FORMAT, hwnd);
-	wsprintf(g_mutex_name, MUTEX_NAME_FORMAT, hwnd);
+	using glBegin_t = decltype(glBegin)*;
 	
+	if (need_screen)
+		opengl_screen_capture();
+	((glBegin_t)xhook::old_address)(mode);
 }
 
-void hook_release() {
-	//
-}
 
-//export function
-long SetDX9Hook(HWND hwnd) {
 
-	//setlog(L"step 1. init hook.");
-	//initHook(hwnd);
-	hook_init(hwnd);
-	//step 2. init hook
-	auto ret = kiero::init(kiero::RenderType::D3D9);
-	//step 3. bind function
-	if (ret == kiero::Status::Success) {
-		kiero::bind(42, (void**)&g_oEndScene, hkEndScene);
-		//setlog("bind ok.");
-		return 1;
-	}
-	else {
-		//kiero::init false
+//--------------export function--------------------------
+long SetXHook(HWND hwnd_, int bktype_) {
+	if (xhook::init(hwnd_, bktype_) != 1)
 		return 0;
-	}
-
-
+	return xhook::detour();
 }
 
-long UnDX9Hook() {
-	if (g_oEndScene) {
-		kiero::unbind();
-	}
-	hook_release();
-	return 1;
+long UnXHook() {
+	
+	return xhook::release();
 }
 
-long SetDX10Hook(HWND hwnd) {
-	hook_init(hwnd);
-	//step 2. init hook
-	auto ret = kiero::init(kiero::RenderType::D3D10);
-	//step 3. bind function
-	if (ret == kiero::Status::Success) {
-		//kiero::bind(42, (void**)&g_oEndScene, hkEndScene);
-		return 1;
-	}
-	else {
-		//setlog("kiero::init false");
-		return 0;
-	}
-
-}
-
-long UnDX10Hook() {
-	kiero::unbind();
-	hook_release();
-	return 1;
-}
-
-long SetDX11Hook(HWND hwnd) {
-	hook_init(hwnd);
-	//step 2. init hook
-	auto ret = kiero::init(kiero::RenderType::D3D11);
-	//step 3. bind function
-	if (ret == kiero::Status::Success) {
-		//kiero::bind(42, (void**)&g_oEndScene, hkEndScene);
-		return 1;
-	}
-	else {
-		//setlog("kiero::init false");
-		return 0;
-	}
-
-}
-
-long UnDX11Hook() {
-	kiero::unbind();
-	hook_release();
-	return 1;
-}
-
-long SetOpenglHook(HWND hwnd) {
-	hook_init(hwnd);
-	//step 2. init hook
-	auto ret = kiero::init(kiero::RenderType::OpenGL);
-	//step 3. bind function
-	if (ret == kiero::Status::Success) {
-		kiero::bind(74, (void**)&g_oglEnd, hkglEnd);
-		return 1;
-	}
-	else {
-		//setlog("kiero::init false");
-		return 0;
-	}
-
-}
-
-long UnOpenglHook() {
-	kiero::unbind();
-	hook_release();
-	return 1;
-}

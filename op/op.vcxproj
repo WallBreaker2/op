@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -85,16 +85,16 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
-    <IncludePath>E:\project\op\op\3rd_party\include\3rd_party;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\project\op\op\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\project\op\op\3rd_party\lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\x86\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x64</TargetName>
-    <IncludePath>D:\BlackBone\src\3rd_party;D:\minhook\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>E:\project\op\op\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>E:\project\op\op\3rd_party\lib\x64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\x64\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -191,7 +191,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
@@ -232,7 +232,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;blackbone.lib;d3d9.lib;d3dx9.lib;libMinHook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
@@ -250,7 +250,6 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
-    <ClCompile Include="bkopengl.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="compreg.cpp" />
     <ClCompile Include="dllmain.cpp">
@@ -267,7 +266,8 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Bkdx.cpp" />
+    <ClCompile Include="bxdo.cpp" />
+    <ClCompile Include="query_api.cpp" />
     <ClCompile Include="xhook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="ImageProc.cpp" />
@@ -307,14 +307,14 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
-    <ClInclude Include="bkopengl.h" />
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="Bkdx.h" />
+    <ClInclude Include="bkdo.h" />
     <ClInclude Include="include\bitfunc.h" />
     <ClInclude Include="include\color.h" />
     <ClInclude Include="include\Dict.h" />
+    <ClInclude Include="query_api.h" />
     <ClInclude Include="xhook.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="ImageProc.h" />

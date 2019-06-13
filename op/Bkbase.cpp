@@ -2,8 +2,8 @@
 #include "Bkbase.h"
 #include "Tool.h"
 #include "Bkgdi.h"
-#include "Bkdx.h"
-#include "bkopengl.h"
+#include "bkdo.h"
+
 #include <algorithm>
 Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
 {
@@ -28,6 +28,10 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = BACKTYPE::GDI;
 	else if (sdisplay == L"dx")
 		display = BACKTYPE::DX;
+	else if (sdisplay == L"dx2")
+		display = BACKTYPE::DX2;
+	else if (sdisplay == L"dx3")
+		display = BACKTYPE::DX3;
 	else if (sdisplay == L"opengl")
 		display = BACKTYPE::OPENGL;
 	else {
@@ -76,11 +80,11 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
 			_pbkdisplay = new bkgdi();
 		}
-		else if (display == BACKTYPE::DX) {
-			_pbkdisplay = new Bkdx;
+		else if (display == BACKTYPE::DX|| display == BACKTYPE::DX2|| display == BACKTYPE::DX3) {
+			_pbkdisplay = new bkdo;
 		}
 		else if(display==BACKTYPE::OPENGL)
-			_pbkdisplay = new bkopengl;
+			_pbkdisplay = new bkdo;
 		
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
 		if (!ret) {
