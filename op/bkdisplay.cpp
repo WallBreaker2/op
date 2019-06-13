@@ -20,7 +20,7 @@ bkdisplay::~bkdisplay()
 long bkdisplay::bind_init() {
 	wsprintf(_shared_res_name, SHARED_RES_NAME_FORMAT, _hwnd);
 	wsprintf(_mutex_name, MUTEX_NAME_FORMAT, _hwnd);
-	bind_release();
+	//bind_release();
 	try {
 		_shmem = new sharedmem();
 		_shmem->open_create(_shared_res_name, SHARED_MEMORY_SIZE);
@@ -35,16 +35,10 @@ long bkdisplay::bind_init() {
 }
 
 long bkdisplay::bind_release() {
-	try {
-		
-		SAFE_DELETE(_shmem);
-		SAFE_DELETE(_pmutex);
+	SAFE_DELETE(_shmem);
+	SAFE_DELETE(_pmutex);
 
-	}
-	catch (std::exception&e) {
-		setlog("bkdisplay::bind_release std::exception:%s", e.what());
-	}
-
+	_hwnd = NULL;
 	//_image_data = nullptr;
 	return 0;
 }

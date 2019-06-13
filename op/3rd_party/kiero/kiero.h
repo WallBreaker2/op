@@ -57,7 +57,7 @@ namespace kiero
 		};
 	};
 
-	Status::Enum init(RenderType::Enum renderType);
+	Status::Enum init(int renderType);
 
 	void shutdown();
 
@@ -69,9 +69,9 @@ namespace kiero
 	uint32_t* getMethodsTable();
 #endif
 
-	void bind(uint16_t index, void** original, void* function);
+	int bind(uint16_t index, void** original, void* function);
 
-	void unbind();
+	int unbind();
 }
 
 #endif // __KIERO_H__
