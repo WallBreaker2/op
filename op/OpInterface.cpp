@@ -10,15 +10,10 @@
 // OpInterface
 
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
-#ifndef _WIN64
-	const char* ver = "0.2.4.0.x86";
-#else
-	static const wchar_t* ver = L"0.2.4.0.x64";
-
-#endif;
+	
 	//Tool::setlog("address=%d,str=%s", ver, ver);
 	CComBSTR newstr;
-	newstr.Append(ver);
+	newstr.Append(OP_VERSION);
 	newstr.CopyTo(ret);
 
 	return S_OK;

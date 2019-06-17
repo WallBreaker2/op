@@ -57,8 +57,13 @@ long setlog(const wchar_t* format, ...) {
 		MessageBoxW(NULL, buf, L"error", MB_ICONERROR);
 	}
 	else if (gShowError == 2) {
+		wchar_t dll_path[MAX_PATH];
+		::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
+		wstring fname = dll_path;
+		fname = fname.substr(0, fname.rfind(L'\\'));
+		fname += L"\\op.log";
 		std::wfstream file;
-		file.open(L"op.log", std::ios::app | std::ios::out);
+		file.open(fname, std::ios::app | std::ios::out);
 		if (!file.is_open())
 			return 0;
 		file << tm << buf << std::endl;
@@ -85,8 +90,13 @@ long setlog(const char* format, ...) {
 		MessageBoxA(NULL, buf, "error", MB_ICONERROR);
 	}
 	else if (gShowError == 2) {
+		wchar_t dll_path[MAX_PATH];
+		::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
+		wstring fname = dll_path;
+		fname = fname.substr(0, fname.rfind(L'\\'));
+		fname += L"\\op.log";
 		std::fstream file;
-		file.open(L"op.log", std::ios::app | std::ios::out);
+		file.open(fname, std::ios::app | std::ios::out);
 		if (!file.is_open())
 			return 0;
 		file << tm << buf << std::endl;

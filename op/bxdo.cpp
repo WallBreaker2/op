@@ -1,16 +1,22 @@
+
 #include "stdafx.h"
+#include <BlackBone/Process/Process.h>
+#include <BlackBone/Process/RPC/RemoteFunction.hpp>
 #include "bkdo.h"
 #include "Tool.h"
 #include <exception>
-#include "3rd_party/include/BlackBone/Process/Process.h"
-//#include <BlackBone/Patterns/PatternSearch.h>
-#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
-//#include <BlackBone/Syscalls/Syscall.h>
+//#include "3rd_party/include/BlackBone/Process/Process.h"
+//#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
 
+#ifdef _M_X64
+#pragma comment(lib,"E:/git_pro/Blackbone/build/x64/Release/BlackBone.lib")
+#else
+#pragma comment(lib,"E:/git_pro/Blackbone/build/Win32/Release/BlackBone.lib")
+#endif
 
 bkdo::bkdo() 
 {
-	
+	_render_type = 0;
 }
 
 
@@ -21,8 +27,11 @@ bkdo::~bkdo()
 
 
 long bkdo::Bind(HWND hwnd,long render_type) {
-	
+
+	_render_type = render_type;
 	_hwnd = hwnd;
+	bind_init();
+
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 	RECT rc;
@@ -31,37 +40,55 @@ long bkdo::Bind(HWND hwnd,long render_type) {
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	//setlog(L"Bkdx::Bind,width=%d,height=%d", _width, _height);
+
+	//获取当前模块文件名
+	wstring op_path;
+	op_path.resize(512);
+	DWORD real_size=::GetModuleFileNameW(gInstance, op_path.data(), 512);
+	op_path.resize(real_size);
+	_dllname = op_path.substr(op_path.rfind(L"\\") + 1);
 	
+
 	//attach 进程
 	blackbone::Process proc;
-	auto hr = proc.Attach(id);
+	NTSTATUS hr;
+#ifndef _M_X64
+	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::OPENGL&&GET_RENDER_FLAG(_render_type) == RENDER_FLAG::GL_NOX) {
+		hr = proc.Attach(L"NoxVMHandle.exe");
+		_dllname = L"op_x64.dll";
+		op_path = op_path.substr(0,op_path.rfind(L'\\')+1) + _dllname;
+		
+	}
+	else {
+		hr = proc.Attach(id);
+	}
+#else
+	hr = proc.Attach(id);
+#endif
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
 		//检查是否与插件相同的32/64位
-		auto &mod = proc.modules().GetMainModule();
-		constexpr blackbone::eModType curModType = (SYSTEM_BITS == 32 ? blackbone::eModType::mt_mod32 : blackbone::eModType::mt_mod64);
-		if (mod&&mod->type == curModType) {
-			//获取当前模块文件名
-			wchar_t buff[256];
-			::GetModuleFileName(gInstance, buff, 256);
-			_dllname = buff;
-			_dllname = _dllname.substr(_dllname.rfind(L"\\") + 1);
-
+		constexpr bool op64= (SYSTEM_BITS == 64);
+		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
+		//setlog("::IsWow64Process=%d",is64);
+		if (is64== op64|| GET_RENDER_FLAG(render_type)==RENDER_FLAG::GL_NOX) {
+			
 			/*_process.Resume();*/
 			bool injected = false;
 			//判断是否已经注入
 			auto _dllptr = proc.modules().GetModule(_dllname);
+			auto mods = proc.modules().GetAllModules();
 			if (_dllptr) {
 				injected = true;
 			}
 			else {
-				injected = (proc.modules().Inject(buff) ? true : false);
+				auto iret = proc.modules().Inject(op_path);
+				injected = ( iret? true : false);
 			}
 			if (injected) {
 				using my_func_t = long(__stdcall*)(HWND,int);
 				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, _dllname, "SetXHook");
 				if (pSetXHook) {
-					bind_init();
 					auto cret = pSetXHook(hwnd,render_type);
 					bind_ret = cret.result();
 				}
@@ -102,8 +129,32 @@ long bkdo::UnBind() {
 		
 		DWORD id;
 		::GetWindowThreadProcessId(_hwnd, &id);
+
+		//获取当前模块文件名
+		wstring op_path;
+		op_path.resize(512);
+		DWORD real_size = ::GetModuleFileNameW(gInstance, op_path.data(), 512);
+		op_path.resize(real_size);
+		_dllname = op_path.substr(op_path.rfind(L"\\") + 1);
+
+
+		//attach 进程
 		blackbone::Process proc;
-		auto hr = proc.Attach(id);
+		NTSTATUS hr;
+#ifndef _M_X64
+		if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::OPENGL&&GET_RENDER_FLAG(_render_type) == RENDER_FLAG::GL_NOX) {
+			hr = proc.Attach(L"NoxVMHandle.exe");
+			_dllname = L"op_x64.dll";
+			op_path = op_path.substr(0, op_path.rfind(L'\\') + 1) + _dllname;
+
+		}
+		else {
+			hr = proc.Attach(id);
+		}
+#else
+		hr = proc.Attach(id);
+#endif
+
 		if (NT_SUCCESS(hr)) {
 			
 			using my_func_t = long(__stdcall*)(void);

@@ -39,13 +39,13 @@ long bkgdi::UnBind() {
 }
 
 int bkgdi::cap_thread() {
-	_is_cap = 1;
-	cap_init();
+	
+	_is_cap = cap_init();
 	while (_is_cap) {
-		_pmutex->lock();
+		
 		//do cap
 		cap_image();
-		_pmutex->unlock();
+		
 		//sleep some time to free cpu
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
@@ -54,9 +54,16 @@ int bkgdi::cap_thread() {
 }
 
 long bkgdi::cap_init() {
-	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
-	_hdc = ::GetWindowDC(_hwnd);
+	if (_mode == RENDER_TYPE::NORMAL)
+		_hdc = ::GetWindowDC(_hwnd);
+	else {
+		_hdc = ::GetDC(_hwnd);
+	}
 	RECT rc;
+	if (_hdc == NULL) {
+		setlog("hdc == NULL", _hdc);
+		return 0;
+	}
 	
 	::GetWindowRect(_hwnd, &rc);
 	_width = rc.right - rc.left;
@@ -99,13 +106,14 @@ long bkgdi::cap_init() {
 	_bih.biSize = sizeof(BITMAPINFOHEADER);
 	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
 	_bih.biWidth = _bm.bmWidth;//宽度
+
+	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
 	bind_init();
 	return 1;
 }
 
 long bkgdi::cap_release() {
-	if (_holdbmp&&_hmdc)
-		_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
+	
 	//delete[dwLen_2]hDib;
 	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
 	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
@@ -119,16 +127,23 @@ long bkgdi::cap_release() {
 
 long bkgdi::cap_image() {
 	
-	//Tool::setlog("bkgdi::cap_image()");
+	
 	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
+
+	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
-	if (_mode == BACKTYPE::NORMAL)
-		BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
-	else if (_mode == BACKTYPE::GDI)
+	
+	if (_mode == RENDER_TYPE::GDI)
 		::PrintWindow(_hwnd, _hmdc, 0);
 
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
+	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
+	_pmutex->lock();
 	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+	_pmutex->unlock();
+
+	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
 	return 1;
 
 }
