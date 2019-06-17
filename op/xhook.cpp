@@ -21,7 +21,7 @@
 #include <gl\glu.h>
 #include "Tool.h"
 #include "query_api.h"
-
+#include <wingdi.h>
 HWND xhook::render_hwnd = NULL;
 int xhook::render_type = 0;
 wchar_t xhook::shared_res_name[256];
@@ -37,21 +37,24 @@ HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT F
 //opengl
 void __stdcall gl_hkglBegin(GLenum mode);
 
-int xhook::init(HWND hwnd_, int bktype_) {
+void __stdcall gl_hkwglSwapBuffers(HDC hdc);
+
+int xhook::init(HWND hwnd_, int render_type_, int render_flag_) {
 	xhook::render_hwnd = hwnd_;
 	wsprintf(xhook::shared_res_name, SHARED_RES_NAME_FORMAT, hwnd_);
 	wsprintf(xhook::mutex_name, MUTEX_NAME_FORMAT, hwnd_);
 	//if(bktype_)
-	if (bktype_ == BACKTYPE::DX) {
-		render_type = kiero::RenderType::D3D9;
+	if (render_type_ == RENDER_TYPE::DX) {
+		if (render_flag_ == RENDER_FLAG::D3D9)
+			render_type = kiero::RenderType::D3D9;
+		else if (render_flag_ == RENDER_FLAG::D3D10)
+			render_type = kiero::RenderType::D3D10;
+		else if (render_flag_ == RENDER_FLAG::D3D11)
+			render_type = kiero::RenderType::D3D11;
+		else
+			render_type = kiero::RenderType::D3D9;
 	}
-	else if (bktype_ == BACKTYPE::DX2) {
-		render_type = kiero::RenderType::D3D10;
-	}
-	else if (bktype_ == BACKTYPE::DX3) {
-		render_type = kiero::RenderType::D3D11;
-	}
-	else if (bktype_ == BACKTYPE::OPENGL) {
+	else if (render_type_ == RENDER_TYPE::OPENGL) {
 		render_type = kiero::RenderType::OpenGL;
 	}
 	else {
@@ -81,15 +84,16 @@ int xhook::detour() {
 		idx = 8; address = dx11_hkPresent;
 		break;
 	case RenderType::OpenGL:
-		idx = 4; address = gl_hkglBegin;
+		idx = 2; address = gl_hkwglSwapBuffers;
 		break;
 	default:
 		break;
 	}
 
-	need_screen = 1;
-	kiero::bind(idx, &old_address, address);
-	return 1;
+
+	 need_screen=kiero::bind(idx, &old_address, address);
+	 return need_screen;
+	
 }
 
 int xhook::release() {
@@ -104,6 +108,7 @@ int xhook::release() {
 //screen capture
 HRESULT dx9screen_capture(LPDIRECT3DDEVICE9 pDevice) {
 	//save bmp
+	setlog("dx9screen_capture");
 	HRESULT hr = NULL;
 	IDirect3DSurface9 *pSurface;
 	hr = pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurface);
@@ -161,12 +166,13 @@ HRESULT STDMETHODCALLTYPE dx9_hkEndScene(IDirect3DDevice9* thiz)
 //-----------------------dx10----------------------------------
 //screen capture
 void dx10_capture(IDXGISwapChain* pswapchain) {
+	setlog("dx10_capture");
 	using Texture2D = ID3D10Texture2D * ;
 	//init some fucntion
-	query_api qr;
-	static auto pD3DX10SaveTextureToMemory =qr.query<decltype(D3DX10SaveTextureToMemory)*>("d3dx10_43.dll","D3DX10SaveTextureToMemory");
+	
+	static auto pD3DX10SaveTextureToMemory =(decltype(D3DX10SaveTextureToMemory)*)query_api("d3dx10_43.dll","D3DX10SaveTextureToMemory");
 	if (!pD3DX10SaveTextureToMemory) {
-		setlog("!pD3DX10SaveTextureToMemory,error code=%d",qr.error_code());
+		setlog("!pD3DX10SaveTextureToMemory");
 		return;
 	}
 
@@ -275,8 +281,8 @@ HRESULT STDMETHODCALLTYPE dx10_hkPresent(IDXGISwapChain* thiz,UINT SyncInterval,
 //screen capture
 void dx11_capture(IDXGISwapChain* pswapchain) {
 	//query api
-	query_api qr;
-	static auto pD3DX11SaveTextureToMemory = qr.query<decltype(D3DX11SaveTextureToMemory)*>("d3dx11_43.dll", "D3DX11SaveTextureToMemory");
+	setlog("dx11_capture");
+	static auto pD3DX11SaveTextureToMemory = (decltype(D3DX11SaveTextureToMemory)*)query_api("d3dx11_43.dll", "D3DX11SaveTextureToMemory");
 	if (!pD3DX11SaveTextureToMemory) {
 		setlog("!pD3DX11SaveTextureToMemory");
 		return;
@@ -368,20 +374,23 @@ HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT F
 //-----------------------opengl-----------------------------
 //screen capture
 long opengl_screen_capture() {
-	
 	using glPixelStorei_t = decltype(glPixelStorei)*;
 	using glReadBuffer_t = decltype(glReadBuffer)*;
 	using glGetIntegerv_t = decltype(glGetIntegerv)*;
 	using glReadPixels_t = decltype(glReadPixels)*;
 
-	auto pglPixelStorei = (glPixelStorei_t)kiero::getMethodsTable()[195];
-	auto pglReadBuffer = (glReadBuffer_t)kiero::getMethodsTable()[236];
-	auto pglGetIntegerv = (glGetIntegerv_t)kiero::getMethodsTable()[104];
-	auto pglReadPixels = (glReadPixels_t)kiero::getMethodsTable()[237];
-
-	GLint viewport[4] = { 0 };
-	pglGetIntegerv(GL_VIEWPORT, viewport);
-	int width = viewport[2], height = viewport[3];
+	auto pglPixelStorei = (glPixelStorei_t)query_api("opengl32.dll", "glPixelStorei");
+	auto pglReadBuffer = (glReadBuffer_t)query_api("opengl32.dll", "glReadBuffer");
+	auto pglGetIntegerv = (glGetIntegerv_t)query_api("opengl32.dll", "glGetIntegerv");
+	auto pglReadPixels = (glReadPixels_t)query_api("opengl32.dll", "glReadPixels");
+	if (!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels) {
+		need_screen = 0;
+		setlog("error.!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels");
+		return 0;
+	}
+	RECT rc;
+	::GetClientRect(xhook::render_hwnd, &rc);
+	int width = rc.right-rc.left, height = rc.bottom-rc.top;
 
 	pglPixelStorei(GL_PACK_ALIGNMENT, 1);
 	pglPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -394,9 +403,15 @@ long opengl_screen_capture() {
 		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
 		mutex.unlock();
 	}
-	setlog("gl screen ok");
+	else {
+		need_screen = 0;
+		setlog("!mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)");
+	}
+	//setlog("gl screen ok");
 	return 0;
 }
+// hook glBegin or wglSwapLayerBuffers
+
 void __stdcall gl_hkglBegin(GLenum mode) {
 	static DWORD t = 0;
 	using glBegin_t = decltype(glBegin)*;
@@ -406,12 +421,20 @@ void __stdcall gl_hkglBegin(GLenum mode) {
 	((glBegin_t)xhook::old_address)(mode);
 }
 
+void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
+	using wglSwapBuffers_t = void (__stdcall*) (HDC hdc);
+	if (need_screen)
+		opengl_screen_capture();
+	((wglSwapBuffers_t)xhook::old_address)(hdc);
+}
+
 
 
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int bktype_) {
-	if (xhook::init(hwnd_, bktype_) != 1)
+	if (xhook::init(hwnd_, GET_RENDER_TYPE(bktype_), GET_RENDER_FLAG(bktype_)) != 1)
 		return 0;
+	setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
 	return xhook::detour();
 }
 

@@ -16,7 +16,7 @@ ImageProc::~ImageProc()
 }
 
 long ImageProc::Capture(const std::wstring& file) {
-	return cv::imwrite(_ws2string(file),_src);
+	return  cv::imwrite(_ws2string(file), _src);
 }
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
 	std::vector<color_df_t> vcolor;

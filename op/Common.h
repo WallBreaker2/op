@@ -21,26 +21,38 @@ using std::string;
 using std::vector;
 
 #define DLL_API extern "C" _declspec(dllexport)
-//0x0-0xf:normal windows,gdi;0x10-0xf0,dx;0x100-0xf00,opengl;
-enum BACKTYPE {
-	NORMAL = 0x0000,
-	WINDOWS = 0x0001,
-	GDI = 0x0002,
-	DX = 0x0010,//DX9
-	DX2 = 0X0020,//DX10
-	DX3 = 0X0030,//DX11
-	OPENGL = 0X0100
+//normal windows,gdi;,dx;opengl;
+enum RENDER_TYPE {
+	NORMAL = 0,
+	GDI=1,
+	DX = 2,//DX9
+	OPENGL = 3
+};
+enum RENDER_FLAG {
+	NONE = 0,
+	D3D9 = 1,
+	D3D10 = 2,
+	D3D11 = 3,
+	GL_STD = 4,
+	GL_NOX = 5
+};
+#define MAKE_RENDER(type,flag) ((type<<16)|flag)
+
+#define GET_RENDER_TYPE(t) (t>>16)
+
+#define GET_RENDER_FLAG(t) (t&0xffff)
+
+enum INPUT_TYPE {
+	IN_NORMAL = 0,
+	IN_WINDOWS=1
 };
 
 const size_t MAX_IMAGE_WIDTH = 1<<11;
 const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
-#ifndef _WIN64
-#define SHARED_RES_NAME_FORMAT L"op_x86_mutex_%p"
-#define MUTEX_NAME_FORMAT L"op_x86_shared_res_%p"
-#else
-#define SHARED_RES_NAME_FORMAT L"op_x64_shared_res_%p"
-#define MUTEX_NAME_FORMAT L"op_x64_mutex_%p"
-#endif
+
+#define SHARED_RES_NAME_FORMAT L"op_mutex_%d"
+#define MUTEX_NAME_FORMAT L"op_shared_mem_%d"
+
 
 #ifndef _M_X64
 #define SYSTEM_BITS 32
@@ -48,6 +60,11 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 #define SYSTEM_BITS 64
 #endif
 
+#define _TOSTRING(x) #x
+
+#define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
+
+#define OP_VERSION MAKE_OP_VERSION(0,3,0,1)
 //模块句柄
 extern HINSTANCE gInstance;
 //是否显示错误信息

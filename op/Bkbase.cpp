@@ -18,48 +18,51 @@ Bkbase::~Bkbase()
 long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
 	//setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
 	//	hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
+	_pbkdisplay = nullptr;
 	_hwnd = (HWND)hwnd;
 	long ret;
 	int display, mouse, keypad;
 	//check display
 	if (sdisplay == L"normal")
-		display = BACKTYPE::NORMAL;
+		display = MAKE_RENDER(RENDER_TYPE::NORMAL, 0);
 	else if (sdisplay == L"gdi")
-		display = BACKTYPE::GDI;
-	else if (sdisplay == L"dx")
-		display = BACKTYPE::DX;
-	else if (sdisplay == L"dx2")
-		display = BACKTYPE::DX2;
-	else if (sdisplay == L"dx3")
-		display = BACKTYPE::DX3;
-	else if (sdisplay == L"opengl")
-		display = BACKTYPE::OPENGL;
+		display = MAKE_RENDER(RENDER_TYPE::GDI, 0);
+	else if (sdisplay.find(L"dx")!=-1) {
+		if (sdisplay.find(L"d3d9") != -1)
+			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D9);
+		else if (sdisplay.find(L"d3d10") != -1)
+			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D10);
+		else if (sdisplay.find(L"d3d11") != -1)
+			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D11);
+		else
+			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::NONE);
+	}
+	else if (sdisplay.find(L"opengl")!=-1) {
+		if (sdisplay.find(L"std") != -1)
+			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::GL_STD);
+		else if (sdisplay.find(L"nox") != -1)
+			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::GL_NOX);
+		else
+			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::NONE);
+	}
 	else {
 		setlog(L"´íÎóµÄdisplay:%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
 	if (smouse == L"normal")
-		mouse = BACKTYPE::NORMAL;
+		mouse = INPUT_TYPE::IN_NORMAL;
 	else if (smouse == L"windows")
-		mouse = BACKTYPE::WINDOWS;
-	else if (smouse == L"dx")
-		mouse = BACKTYPE::DX;
-	else if (smouse == L"opengl")
-		mouse = BACKTYPE::OPENGL;
+		mouse = INPUT_TYPE::IN_WINDOWS;
 	else {
 		setlog(L"´íÎómouse:%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
 	if (skeypad == L"normal")
-		keypad = BACKTYPE::NORMAL;
+		keypad = INPUT_TYPE::IN_NORMAL;
 	else if (skeypad == L"windows")
-		keypad = BACKTYPE::WINDOWS;
-	else if (skeypad == L"dx")
-		keypad = BACKTYPE::DX;
-	else if (skeypad == L"opengl")
-		keypad = BACKTYPE::OPENGL;
+		keypad = INPUT_TYPE::IN_WINDOWS;
 	else {
 		setlog(L"´íÎóµÄkeypad:%s", sdisplay.c_str());
 		return 0;
@@ -77,13 +80,13 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		if (!_keypad.Bind(_hwnd, keypad))
 			return 0;
 		
-		if (display == BACKTYPE::NORMAL || display == BACKTYPE::GDI) {
+		if (GET_RENDER_TYPE(display) == RENDER_TYPE::NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
 			_pbkdisplay = new bkgdi();
 		}
-		else if (display == BACKTYPE::DX|| display == BACKTYPE::DX2|| display == BACKTYPE::DX3) {
+		else if (GET_RENDER_TYPE(display) == RENDER_TYPE::DX) {
 			_pbkdisplay = new bkdo;
 		}
-		else if(display==BACKTYPE::OPENGL)
+		else if (GET_RENDER_TYPE(display) == RENDER_TYPE::OPENGL)
 			_pbkdisplay = new bkdo;
 		
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
@@ -173,7 +176,7 @@ long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 		return 0;
 	}
 		
-	if (_display == BACKTYPE::NORMAL || _display == BACKTYPE::GDI) {
+	if (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
 	}

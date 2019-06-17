@@ -44,9 +44,6 @@
     <Filter Include="Common">
       <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Algorithm">
-      <UniqueIdentifier>{2e27773d-b0be-4940-b18d-70ce0cc221c1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Process">
       <UniqueIdentifier>{1a017bf0-4f0a-4204-b494-0a9286be8cfb}</UniqueIdentifier>
     </Filter>
@@ -68,14 +65,17 @@
     <Filter Include="Background\Display\Gdi">
       <UniqueIdentifier>{6be59f0f-5140-4234-93d4-a467a3b24fa1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Algorithm\Bit">
-      <UniqueIdentifier>{4b0c3175-3ca6-4736-ba45-3d277e788b5b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Background\Hook">
       <UniqueIdentifier>{f5ed6785-de8e-4af0-9025-589644dcf89a}</UniqueIdentifier>
     </Filter>
     <Filter Include="Background\Display\DX_Opengl">
       <UniqueIdentifier>{00fc6957-34c4-499b-b4b0-f66ed59ebec5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_party\kiero\Algorithm">
+      <UniqueIdentifier>{2e27773d-b0be-4940-b18d-70ce0cc221c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd_party\kiero\Algorithm\Bit">
+      <UniqueIdentifier>{4b0c3175-3ca6-4736-ba45-3d277e788b5b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +110,7 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="ImageLoc.cpp">
-      <Filter>Algorithm</Filter>
+      <Filter>3rd_party\kiero\Algorithm</Filter>
     </ClCompile>
     <ClCompile Include="Bkkeypad.cpp">
       <Filter>Background\Keypad</Filter>
@@ -134,7 +134,7 @@
       <Filter>Background\Display</Filter>
     </ClCompile>
     <ClCompile Include="ocr.cpp">
-      <Filter>Algorithm</Filter>
+      <Filter>3rd_party\kiero\Algorithm</Filter>
     </ClCompile>
     <ClCompile Include="Tool.cpp">
       <Filter>Common</Filter>
@@ -187,7 +187,7 @@
       <Filter>Background\Mouse</Filter>
     </ClInclude>
     <ClInclude Include="ImageLoc.h">
-      <Filter>Algorithm</Filter>
+      <Filter>3rd_party\kiero\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="Bkkeypad.h">
       <Filter>Background\Keypad</Filter>
@@ -211,7 +211,7 @@
       <Filter>Background\Display</Filter>
     </ClInclude>
     <ClInclude Include="ocr.h">
-      <Filter>Algorithm</Filter>
+      <Filter>3rd_party\kiero\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="Tool.h">
       <Filter>Common</Filter>
@@ -229,7 +229,7 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="AStar.hpp">
-      <Filter>Algorithm</Filter>
+      <Filter>3rd_party\kiero\Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="query_api.h">
       <Filter>Background\Hook</Filter>

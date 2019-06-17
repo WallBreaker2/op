@@ -91,7 +91,7 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 //¶þÖµ»¯
 void ImageBase::tobinary()
 {
-	cv::cvtColor(_src, _target, CV_BGR2GRAY);
+	//cv::cvtColor(_src, _target, CV_BGR2GRAY);
 	_binary.create(_target.size(), CV_8UC1);
 	int bkcolor = get_bk_color(_target);
 	int n = _target.cols * _target.rows;

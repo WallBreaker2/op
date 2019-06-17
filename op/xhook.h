@@ -14,7 +14,7 @@ namespace xhook {
 	extern wchar_t mutex_name[256];
 	extern void* old_address;
 	//
-	int init(HWND hwnd_, int bktype_);
+	int init(HWND hwnd_, int render_type_,int render_flag_);
 	int detour();
 	int release();
 

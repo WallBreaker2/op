@@ -38,18 +38,15 @@ public:
 	long get_widht();
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
 	long get_image_type() {
-		switch (_display)
+		switch (GET_RENDER_TYPE(_display))
 		{
-		case BACKTYPE::NORMAL:
+		case RENDER_TYPE::NORMAL:
 			return -1;
-		case BACKTYPE::GDI:
+		case RENDER_TYPE::GDI:
 			return -1;
-		case BACKTYPE::DX:
+		case RENDER_TYPE::DX:
 			return 0;
-		case BACKTYPE::DX2:
-		case BACKTYPE::DX3:
-			return -1;
-		case BACKTYPE::OPENGL:
+		case RENDER_TYPE::OPENGL:
 			return -1;
 		default:
 			return 0;
