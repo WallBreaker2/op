@@ -5,6 +5,7 @@
 #include <string>
 #include <math.h>
 #include "../op/include/bitfunc.h"
+#include <opencv2/core/mat.hpp>
 //#define SET_BIT(x, idx) x |= 1u << (idx)
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
@@ -48,7 +49,7 @@ struct word_t {
 		return true;
 	}
 	void set_chars(const std::wstring&s) {
-		memcpy(info._char, s.c_str(), std::min(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
+		memcpy(info._char, s.c_str(), std::min<int>(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
 	}
 	/*从 dm 字库中 的一个点阵转化为op的点阵*/
 	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
@@ -149,8 +150,8 @@ struct Dict {
 		file.close();
 	}
 	void add_word(const cv::Mat& binary, const rect_t& rc) {
-		int x2 = std::min(rc.x1 + 32, rc.x2);
-		int y2 = std::min(rc.y1 + 32, rc.y2);
+		int x2 = std::min<int>(rc.x1 + 32, rc.x2);
+		int y2 = std::min<int>(rc.y1 + 32, rc.y2);
 		word_t word;
 		for (int j = rc.x1; j < x2; ++j) {
 			unsigned __int32 x = 0, val;

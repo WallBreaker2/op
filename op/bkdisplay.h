@@ -51,6 +51,8 @@ public:
 	wchar_t _mutex_name[256];
 	//°ó¶¨×´Ì¬
 	long _bind_state;
+	//
+	int _render_type;
 	//¿í¶È
 	long _width;
 	long _height;

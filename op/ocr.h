@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __OCR_H_
 #define __OCR_H_
-#include <opencv2/core.hpp>
+#include <opencv2/core/mat.hpp>
 #include <fstream>
 #include "include/Dict.h"
 #include<map>

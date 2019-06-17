@@ -4,5 +4,5 @@
 
 HINSTANCE gInstance;
 
-int gShowError = 1;
+int gShowError = 2;
 

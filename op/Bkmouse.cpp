@@ -38,7 +38,7 @@ long bkmouse::MoveTo(int x, int y) {
 
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL:
+	case INPUT_TYPE::IN_NORMAL:
 	{
 		POINT pt;
 		pt.x = x, pt.y = y;
@@ -65,17 +65,9 @@ long bkmouse::MoveTo(int x, int y) {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
 
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
@@ -93,33 +85,25 @@ long bkmouse::MoveToEx(int x, int y, int w, int h) {
 long bkmouse::LeftClick() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-		ret=::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT));
 
 		// left up
 		::ZeroMemory(&Input, sizeof(INPUT));
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-		ret=::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT));
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
-		ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON,MAKELPARAM(_x, _y));
+	case INPUT_TYPE::IN_WINDOWS: {
+		ret = ::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 
-		ret=::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON,  MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
+		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 	}
@@ -137,7 +121,7 @@ long bkmouse::LeftDoubleClick() {
 long bkmouse::LeftDown() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
@@ -146,16 +130,8 @@ long bkmouse::LeftDown() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
@@ -165,7 +141,7 @@ long bkmouse::LeftDown() {
 long bkmouse::LeftUp() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left up
 		::ZeroMemory(&Input, sizeof(INPUT));
@@ -175,16 +151,8 @@ long bkmouse::LeftUp() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
@@ -202,7 +170,7 @@ long bkmouse::MiddleClick() {
 long bkmouse::MiddleDown() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
@@ -211,18 +179,11 @@ long bkmouse::MiddleDown() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
-		break;
-	}
 	}
 	return ret;
 }
@@ -230,7 +191,7 @@ long bkmouse::MiddleDown() {
 long bkmouse::MiddleUp() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left up
 		::ZeroMemory(&Input, sizeof(INPUT));
@@ -240,16 +201,8 @@ long bkmouse::MiddleUp() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
@@ -260,7 +213,7 @@ long bkmouse::MiddleUp() {
 long bkmouse::RightClick() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
@@ -275,19 +228,12 @@ long bkmouse::RightClick() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret=::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
 		ret=::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
-		break;
-	}
 	}
 	return ret;
 }
@@ -295,7 +241,7 @@ long bkmouse::RightClick() {
 long bkmouse::RightDown() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
@@ -303,19 +249,11 @@ long bkmouse::RightDown() {
 		ret = ::SendInput(1, &Input, sizeof(INPUT));
 		break;
 	}
-
-	case BACKTYPE::WINDOWS: {
+	case	INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
-		break;
-	}
 	}
 	return ret;
 }
@@ -323,7 +261,7 @@ long bkmouse::RightDown() {
 long bkmouse::RightUp() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left up
 		::ZeroMemory(&Input, sizeof(INPUT));
@@ -333,16 +271,8 @@ long bkmouse::RightUp() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
@@ -352,7 +282,7 @@ long bkmouse::RightUp() {
 long bkmouse::WheelDown() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		//down 
 		/*
@@ -368,7 +298,7 @@ long bkmouse::WheelDown() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		/*
 		wParam
 		The high-order word indicates the distance the wheel is rotated, 
@@ -388,13 +318,7 @@ long bkmouse::WheelDown() {
 		break;
 	}
 
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
-		break;
-	}
+	
 	}
 	
 	return ret;
@@ -403,7 +327,7 @@ long bkmouse::WheelDown() {
 long bkmouse::WheelUp() {
 	long ret = 0;
 	switch (_mode) {
-	case BACKTYPE::NORMAL: {
+	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left up
 		Input.type = INPUT_MOUSE;
@@ -413,16 +337,8 @@ long bkmouse::WheelUp() {
 		break;
 	}
 
-	case BACKTYPE::WINDOWS: {
+	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
-		break;
-	}
-
-	case BACKTYPE::DX: {
-		break;
-	}
-
-	case BACKTYPE::OPENGL: {
 		break;
 	}
 	}
