@@ -58,13 +58,12 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 		render_type = kiero::RenderType::D3D10;
 		idx = 8; address = dx10_hkPresent;
 	}
-
 	else if (render_type_ == RDT_DX_D3D11)
 	{
 		render_type = kiero::RenderType::D3D11;
 		idx = 8; address = dx11_hkPresent;
 	}
-	else if (render_type_ == RDT_GL_DEFAULT|| render_type_ == RDT_GL_NOX) {
+	else if (render_type_ == RDT_GL_DEFAULT || render_type_ == RDT_GL_NOX) {
 		render_type = kiero::RenderType::OpenGL;
 		idx = 2; address = gl_hkwglSwapBuffers;
 	}
@@ -82,19 +81,48 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 	return is_capture;
 }
 
-
-
-
-
-
-
-
-
 int xhook::release() {
 	is_capture = 0;
 	int ret = kiero::unbind();
 	//setlog(MH)
 	return 1;
+}
+
+static void CopyImageData(char* dst_, const char* src_, int rows_, int cols_, int fmt_) {
+	if (fmt_ == IBF_B8G8R8A8) {
+		::memcpy(dst_, src_, rows_*cols_ * 4);
+	}
+	else if (fmt_ == IBF_R8G8B8A8) {
+		//pixels count
+		int n = rows_ * cols_;
+		for (int i = 0; i < n; ++i) {
+			dst_[0] = src_[2];
+			dst_[1] = src_[1];
+			dst_[2] = src_[0];
+			dst_[3] = src_[3];
+			dst_ += 4; src_ += 4;
+		}
+	}
+	else {
+		//pixels count
+		int n = rows_ * cols_;
+		for (int i = 0; i < n; ++i) {
+			*dst_++ = *src_++;
+			*dst_++ = *src_++;
+			*dst_++ = *src_++;
+			dst_++;//dst is 4 B
+		}
+	}
+}
+
+static DXGI_FORMAT GetDxgiFormat(DXGI_FORMAT format) {
+	if (format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB) {
+		return DXGI_FORMAT_B8G8R8A8_UNORM;
+	}
+	if (format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB) {
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+	}
+	return format;
 }
 
 
@@ -160,105 +188,95 @@ HRESULT STDMETHODCALLTYPE dx9_hkEndScene(IDirect3DDevice9* thiz)
 //-----------------------dx10----------------------------------
 //screen capture
 void dx10_capture(IDXGISwapChain* pswapchain) {
-	setlog("dx10_capture");
 	using Texture2D = ID3D10Texture2D * ;
-	//init some fucntion
-
-	static auto pD3DX10SaveTextureToMemory = (decltype(D3DX10SaveTextureToMemory)*)query_api("d3dx10_43.dll", "D3DX10SaveTextureToMemory");
-	if (!pD3DX10SaveTextureToMemory) {
-		setlog("!pD3DX10SaveTextureToMemory");
-		return;
-	}
-
+	
 	HRESULT hr;
 	ID3D10Device *pdevices = nullptr;
-	ID3D10Texture2D* texture = nullptr;
-	Texture2D textureDest = nullptr;
-	LPD3D10BLOB pblob = nullptr;
+	ID3D10Resource* backbuffer = nullptr;
+	Texture2D textDst = nullptr;
+	//LPD3D10BLOB pblob = nullptr;
 
 	//setlog("before GetBuffer");
-	hr = pswapchain->GetBuffer(0, __uuidof(ID3D10Texture2D), (void**)&texture);
+	hr = pswapchain->GetBuffer(0, __uuidof(ID3D10Resource), (void**)&backbuffer);
 	if (hr < 0) {
-		//setlog("hr < 0");
+		setlog("pswapchain->GetBuffer error code=%d", hr);
+		is_capture = 0;
 		return;
 	}
-	texture->GetDevice(&pdevices);
+	backbuffer->GetDevice(&pdevices);
 
 	if (!pdevices) {
 		//setlog(" pswapchain->GetDevice false");
-		texture->Release();
+		backbuffer->Release();
+		is_capture = 0;
 		return;
 	}
 	//auto p
 
-	D3D10_TEXTURE2D_DESC desc;
-	texture->GetDesc(&desc);
+	DXGI_SWAP_CHAIN_DESC desc;
+	pswapchain->GetDesc(&desc);;
+	//backbuffer->GetDesc(&desc);
 	// If texture is multisampled, then we can use ResolveSubresource to copy it into a non-multisampled texture
 	//Texture2D textureResolved = nullptr;
-	if (desc.SampleDesc.Count > 1) {
-		// texture is multi-sampled, lets resolve it down to single sample
-		setlog("texture is multi-sampled");
-	}
 
-	D3D10_TEXTURE2D_DESC desc2;
-	desc2.CPUAccessFlags = DXGI_CPU_ACCESS_NONE;
-	desc2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	desc2.Height = desc.Height;
-	desc2.Usage = D3D10_USAGE_DEFAULT;
-	desc2.Width = desc.Width;
-	desc2.ArraySize = 1;
-	desc2.SampleDesc = DXGI_SAMPLE_DESC{ 1,0 };
-	desc2.BindFlags = 0;
-	desc2.MipLevels = 1;
-	desc2.MiscFlags = desc.MiscFlags;
-	hr = pdevices->CreateTexture2D(&desc2, nullptr, &textureDest);
+
+	D3D10_TEXTURE2D_DESC textDesc = {};
+	textDesc.Format = GetDxgiFormat(desc.BufferDesc.Format);
+	textDesc.Width = desc.BufferDesc.Width;
+	textDesc.Height = desc.BufferDesc.Height;
+	textDesc.MipLevels = 1;
+	textDesc.ArraySize = 1;
+	textDesc.SampleDesc.Count = 1;
+	textDesc.Usage = D3D10_USAGE_STAGING;
+	textDesc.CPUAccessFlags = D3D10_CPU_ACCESS_READ;
+	hr = pdevices->CreateTexture2D(&textDesc, nullptr, &textDst);
 	if (hr < 0) {
 		pdevices->Release();
-		texture->Release();
+		backbuffer->Release();
 		return;
 	}
 
-	D3D10_BOX box = {};
-	box.top = 0; box.left = 0;
-	box.bottom = desc.Height;
-	box.right = desc.Width;
-	box.front = 0; box.back = 1;
-	pdevices->CopySubresourceRegion(textureDest, 0, 0, 0, 0, texture, 0, &box);
+	pdevices->CopyResource(textDst, backbuffer);
 
-	hr = pD3DX10SaveTextureToMemory(textureDest, D3DX10_IMAGE_FILE_FORMAT::D3DX10_IFF_BMP, &pblob, 0);
+	D3D10_MAPPED_TEXTURE2D mapText = { 0,0 };
+
+	hr = textDst->Map(0, D3D10_MAP_READ, 0, &mapText);
+
+	//hr = pD3DX10SaveTextureToMemory(textureDest, D3DX10_IMAGE_FILE_FORMAT::D3DX10_IFF_BMP, &pblob, 0);
 	if (hr < 0) {
-		pdevices->Release();
-		texture->Release();
-		textureDest->Release();
-		setlog("hr = pD3DX10SaveTextureToMemory false,hr=%d", hr);
+		setlog("textDst->Map false,hr=%d", hr);
+		is_capture = 0;
 		return;
 	}
-	//0x7FFF BFFB -2147467259
-	//setlog("after D3DX10SaveTextureToMemory");
+
+	int fmt = IBF_R8G8B8A8;
+	if (textDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_UNORM ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8A8_TYPELESS ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
+	{
+		fmt = IBF_B8G8R8A8;
+	}
 
 	sharedmem mem;
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
-		char* ptr = (char*)pblob->GetBufferPointer();
-		size_t bits = pblob->GetBufferSize();
-		constexpr int offset = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-		bits -= offset;
-		//setlog("num of  bits=%d,width*height*4=%d", bits, desc.Width*desc.Height * 4);
-		if (bits > SHARED_MEMORY_SIZE)
-			bits = SHARED_MEMORY_SIZE;
 
 		mutex.lock();
-		memcpy(mem.data<char>(), ptr + offset, bits);
+		//memcpy(mem.data<char>(), mapText.pData, textDesc.Width*textDesc.Height * 4);
+		CopyImageData(mem.data<char>(), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
 		mutex.unlock();
 	}
 	else {
 		setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
 	}
 	//release
-	pdevices->Release();
-	texture->Release();
-	textureDest->Release();
-	pblob->Release();
+	SAFE_RELEASE(textDst);
+	SAFE_RELEASE(pdevices);
+	SAFE_RELEASE(backbuffer);
+	//pblob->Release();
 	//setlog("pblob->Release()");
 }
 //dx10 hook Present
@@ -273,88 +291,105 @@ HRESULT STDMETHODCALLTYPE dx10_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval
 
 //------------------------dx11----------------------------------
 //screen capture
-void dx11_capture(IDXGISwapChain* pswapchain) {
-	//query api
-	setlog("dx11_capture");
-	static auto pD3DX11SaveTextureToMemory = (decltype(D3DX11SaveTextureToMemory)*)query_api("d3dx11_43.dll", "D3DX11SaveTextureToMemory");
-	if (!pD3DX11SaveTextureToMemory) {
-		setlog("!pD3DX11SaveTextureToMemory");
-		return;
-	}
-
+void dx11_capture(IDXGISwapChain* swapchain) {
+	
+	setlog("d3d11 cap");
 	using Texture2D = ID3D11Texture2D * ;
 	HRESULT hr = 0;
-	Texture2D texture = nullptr, textureDst = nullptr;
+	IDXGIResource* backbufferptr = nullptr;
+	ID3D11Resource* backbuffer = nullptr;
+	Texture2D textDst = nullptr;
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
-	ID3D10Blob* pblob = nullptr;
-	hr = pswapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&texture);
+
+	hr = swapchain->GetBuffer(0, __uuidof(IDXGIResource), (void**)&backbufferptr);
 	if (hr < 0) {
-		setlog("pswapchain->GetBuffer,error code=%d", hr);
+		setlog("pswapchain->GetBuffer,error code=%X", hr);
+		is_capture = 0;
+		return;
+	}
+	hr = backbufferptr->QueryInterface(__uuidof(ID3D11Resource), (void**)&backbuffer);
+	if (hr < 0) {
+		setlog("backbufferptr->QueryInterface,error code=%X", hr);
+		is_capture = 0;
+		return;
+	}
+	hr = swapchain->GetDevice(__uuidof(ID3D11Device), (void**)&device);
+	if (hr < 0) {
+		setlog("swapchain->GetDevice hr=%X", hr);
+		is_capture = 0;
+		return;
+	}
+	DXGI_SWAP_CHAIN_DESC desc;
+	hr = swapchain->GetDesc(&desc);
+	if (hr < 0) {
+		setlog("swapchain->GetDesc hr=%X", hr);
+		is_capture = 0;
 		return;
 	}
 
-	D3D11_TEXTURE2D_DESC desc;
-	texture->GetDesc(&desc);
-	texture->GetDevice(&device);
-	D3D11_TEXTURE2D_DESC desc2 = { 0 };
-	desc2.CPUAccessFlags = 0;
-	desc2.Format = desc.Format;
-	desc2.Height = desc.Height;
-	desc2.Usage = D3D11_USAGE_DEFAULT;
-	desc2.Width = desc.Width;
-	desc2.ArraySize = 1;
-	desc2.SampleDesc = DXGI_SAMPLE_DESC{ 1,0 };
-	desc2.BindFlags = 0;
-	desc2.MipLevels = 1;
-	desc2.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
-	hr = device->CreateTexture2D(&desc2, nullptr, &textureDst);
+	D3D11_TEXTURE2D_DESC textDesc = { };
+	textDesc.Format = GetDxgiFormat(desc.BufferDesc.Format);
+	textDesc.Width = desc.BufferDesc.Width;
+	textDesc.Height = desc.BufferDesc.Height;
+	textDesc.MipLevels = 1;
+	textDesc.ArraySize = 1;
+	textDesc.SampleDesc.Count = 1;
+	textDesc.Usage = D3D11_USAGE_STAGING;
+	textDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	hr = device->CreateTexture2D(&textDesc, nullptr, &textDst);
 	if (hr < 0) {
-
-		texture->Release();
-		device->Release();
 		setlog("device->CreateTexture2D,error code=%d", hr);
+		is_capture = 0;
 		return;
 	}
 	//DXGI_KEY
 	device->GetImmediateContext(&context);
-	D3D11_BOX box = { 0 };
-	box.top = box.left = 0;
-	box.bottom = desc.Height;
-	box.right = desc.Width;
-	box.front = 0;
-	box.back = 1;
-	context->CopySubresourceRegion(textureDst, 0, 0, 0, 0, texture, 0, &box);
+	if (!context) {
+		setlog("!context");
+		is_capture = 0;
+		return;
+	}
 
-	hr = pD3DX11SaveTextureToMemory(context, textureDst, D3DX11_IMAGE_FILE_FORMAT::D3DX11_IFF_BMP, &pblob, 0);
+	context->CopyResource(textDst, backbuffer);
+
+	D3D11_MAPPED_SUBRESOURCE mapSubres = { 0,0,0 };
+
+	//hr = pD3DX11SaveTextureToMemory(context, textureDst, D3DX11_IMAGE_FILE_FORMAT::D3DX11_IFF_BMP, &pblob, 0);
+	hr = context->Map(textDst, 0, D3D11_MAP_READ, 0, &mapSubres);
 	if (hr < 0) {
-		setlog("D3DX11SaveTextureToMemory error code=%d", hr);
+		setlog("context->Map error code=%d", hr);
+		is_capture = 0;
+		return;
+	}
+	int fmt = IBF_R8G8B8A8;
+	if (textDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_UNORM ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8A8_TYPELESS ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
+		textDesc.Format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
+	{
+		fmt = IBF_B8G8R8A8;
+	}
+	sharedmem mem;
+	promutex mutex;
+	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+		mutex.lock();
+		//memcpy(mem.data<char>(), ptr + offset, bits);
+		CopyImageData(mem.data<char>(), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, fmt);
+		mutex.unlock();
 	}
 	else {
-		sharedmem mem;
-		promutex mutex;
-		if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
-			char* ptr = (char*)pblob->GetBufferPointer();
-			size_t bits = pblob->GetBufferSize();
-			constexpr int offset = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-			bits -= offset;
-			//setlog("num of  bits=%d,width*height*4=%d", bits, desc.Width*desc.Height * 4);
-			if (bits > SHARED_MEMORY_SIZE)
-				bits = SHARED_MEMORY_SIZE;
-
-			mutex.lock();
-			memcpy(mem.data<char>(), ptr + offset, bits);
-			mutex.unlock();
-		}
-		else {
-			setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
-		}
+		setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
 	}
-	texture->Release();
-	device->Release();
-	textureDst->Release();
-	context->Release();
-	if (pblob)pblob->Release();
+	context->Unmap(textDst, 0);
+	SAFE_RELEASE(backbufferptr);
+	SAFE_RELEASE(backbuffer);
+	SAFE_RELEASE(device);
+	SAFE_RELEASE(textDst);
+	SAFE_RELEASE(context);
+	//if (pblob)pblob->Release();
 }
 //hooked present
 HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags) {
