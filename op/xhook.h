@@ -14,8 +14,7 @@ namespace xhook {
 	extern wchar_t mutex_name[256];
 	extern void* old_address;
 	//
-	int init(HWND hwnd_, int render_type_,int render_flag_);
-	int detour();
+	int setup(HWND hwnd_, int render_type_);
 	int release();
 
 
@@ -30,7 +29,7 @@ namespace xhook {
 */
 
 //返回值:1 成功，0失败
-DLL_API long SetXHook(HWND hwnd_,int bktype_);
+DLL_API long SetXHook(HWND hwnd_,int render_type_);
 
 DLL_API long UnXHook();
 #endif // !__DX9HOOK_H_

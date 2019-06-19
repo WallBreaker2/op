@@ -24,27 +24,23 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	int display, mouse, keypad;
 	//check display
 	if (sdisplay == L"normal")
-		display = MAKE_RENDER(RENDER_TYPE::NORMAL, 0);
+		display = RDT_NORMAL;
 	else if (sdisplay == L"gdi")
-		display = MAKE_RENDER(RENDER_TYPE::GDI, 0);
-	else if (sdisplay.find(L"dx")!=-1) {
-		if (sdisplay.find(L"d3d9") != -1)
-			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D9);
-		else if (sdisplay.find(L"d3d10") != -1)
-			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D10);
-		else if (sdisplay.find(L"d3d11") != -1)
-			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::D3D11);
-		else
-			display = MAKE_RENDER(RENDER_TYPE::DX, RENDER_FLAG::NONE);
-	}
-	else if (sdisplay.find(L"opengl")!=-1) {
-		if (sdisplay.find(L"std") != -1)
-			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::GL_STD);
-		else if (sdisplay.find(L"nox") != -1)
-			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::GL_NOX);
-		else
-			display = MAKE_RENDER(RENDER_TYPE::OPENGL, RENDER_FLAG::NONE);
-	}
+		display = RDT_GDI;
+	else if (sdisplay == L"dx")
+		display = RDT_DX_DEFAULT;
+	else if (sdisplay==L"dx.d3d9") 
+		display = RDT_DX_D3D9;
+	else if (sdisplay == L"dx.d3d10")
+		display = RDT_DX_D3D10;
+	else if (sdisplay == L"dx.d3d11")
+		display = RDT_DX_D3D11;
+	else if (sdisplay == L"opengl")
+		display = RDT_GL_DEFAULT;
+	else if (sdisplay == L"opengl.std")
+		display = RDT_GL_STD;
+	else if (sdisplay == L"opengl.nox")
+		display = RDT_GL_NOX;
 	else {
 		setlog(L"´íÎóµÄdisplay:%s", sdisplay.c_str());
 		return 0;

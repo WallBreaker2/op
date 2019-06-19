@@ -25,22 +25,26 @@ using std::vector;
 enum RENDER_TYPE {
 	NORMAL = 0,
 	GDI=1,
-	DX = 2,//DX9
+	DX = 2,
 	OPENGL = 3
 };
-enum RENDER_FLAG {
-	NONE = 0,
-	D3D9 = 1,
-	D3D10 = 2,
-	D3D11 = 3,
-	GL_STD = 4,
-	GL_NOX = 5
-};
+
 #define MAKE_RENDER(type,flag) ((type<<16)|flag)
 
 #define GET_RENDER_TYPE(t) (t>>16)
 
 #define GET_RENDER_FLAG(t) (t&0xffff)
+
+constexpr int RDT_NORMAL = MAKE_RENDER(NORMAL, 0);
+constexpr int RDT_GDI = MAKE_RENDER(GDI, 0);
+constexpr int RDT_DX_DEFAULT = MAKE_RENDER(DX, 0);
+constexpr int RDT_DX_D3D9 = MAKE_RENDER(DX, 1);
+constexpr int RDT_DX_D3D10 = MAKE_RENDER(DX, 2);
+constexpr int RDT_DX_D3D11 = MAKE_RENDER(DX, 3);
+constexpr int RDT_GL_DEFAULT = MAKE_RENDER(OPENGL, 0);
+constexpr int RDT_GL_STD = MAKE_RENDER(OPENGL, 1);
+constexpr int RDT_GL_NOX = MAKE_RENDER(OPENGL, 2);
+constexpr int RDT_GL_ES = MAKE_RENDER(OPENGL, 3);
 
 enum INPUT_TYPE {
 	IN_NORMAL = 0,

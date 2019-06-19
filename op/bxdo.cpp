@@ -53,7 +53,7 @@ long bkdo::Bind(HWND hwnd,long render_type) {
 	blackbone::Process proc;
 	NTSTATUS hr;
 #ifndef _M_X64
-	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::OPENGL&&GET_RENDER_FLAG(_render_type) == RENDER_FLAG::GL_NOX) {
+	if (_render_type==RDT_GL_NOX) {
 		hr = proc.Attach(L"NoxVMHandle.exe");
 		_dllname = L"op_x64.dll";
 		op_path = op_path.substr(0,op_path.rfind(L'\\')+1) + _dllname;
@@ -71,7 +71,7 @@ long bkdo::Bind(HWND hwnd,long render_type) {
 		constexpr bool op64= (SYSTEM_BITS == 64);
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		//setlog("::IsWow64Process=%d",is64);
-		if (is64== op64|| GET_RENDER_FLAG(render_type)==RENDER_FLAG::GL_NOX) {
+		if (is64== op64||_render_type==RDT_GL_NOX) {
 			
 			/*_process.Resume();*/
 			bool injected = false;
@@ -142,7 +142,7 @@ long bkdo::UnBind() {
 		blackbone::Process proc;
 		NTSTATUS hr;
 #ifndef _M_X64
-		if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::OPENGL&&GET_RENDER_FLAG(_render_type) == RENDER_FLAG::GL_NOX) {
+		if (_render_type==RDT_GL_NOX) {
 			hr = proc.Attach(L"NoxVMHandle.exe");
 			_dllname = L"op_x64.dll";
 			op_path = op_path.substr(0, op_path.rfind(L'\\') + 1) + _dllname;
