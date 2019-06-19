@@ -13,8 +13,8 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 [op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)  
 
 ## Build  
-使用vs2017编译，除了DX SDK，opengl sdk外,需要以下库支持：boost,opencv
-可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速配置
+使用vs2017编译，除了DirectX SDK外,需要以下库支持：opencv，blackbone和minhook  
+可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速安装opencv库
 其它额外的库可自己编译，参见[3rdparty-Lib](#3rdparty-Lib),也可进群下载
 ***
 ## Fetaure
@@ -34,19 +34,20 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 
 #### 后台截图
 ---
-前台,gdi后台,dx后台，opengl后台
+前台,gdi后台;  
+dx后台;d3d9,d3d10,d3d11等截图模式；  
+opengl后台，支持常见模拟器（雷电，夜神）的截图，支持最小化窗口截图  
 #### 图像识别
 ---
-图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别,支持自动背景识别  
+图像定位,OCR（32x32点阵),支持多色，偏色，模糊识别,支持自动背景识别，支持系统字库，兼容大漠字库  
 #### 算法  
 A星寻路算法
 
 ### 3rdparty-Lib  
 ---
-[1].[c++ boost1.6](https://www.boost.org/)  
-[2].[opencv3.4](https://opencv.org/)  
-[3].[blackbone](https://github.com/DarthTon/Blackbone.git)  
-[4].[minhook](https://github.com/TsudaKageyu/minhook.git)  
+[1].[opencv3.4](https://opencv.org/)  
+[2].[blackbone](https://github.com/DarthTon/Blackbone.git)  
+[3].[minhook](https://github.com/TsudaKageyu/minhook.git)  
 
 ### Reference
 ---
