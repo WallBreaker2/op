@@ -12,6 +12,8 @@
 
 #define SAFE_DELETE_ARRAY(ptr) if(ptr)delete[] ptr;ptr=nullptr
 
+#define SAFE_RELEASE(obj) if(obj) obj->Release();obj=nullptr
+
 
 //#define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 //#define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
@@ -50,6 +52,10 @@ enum INPUT_TYPE {
 	IN_NORMAL = 0,
 	IN_WINDOWS=1
 };
+//define Image byte format
+constexpr int IBF_R8G8B8A8 = 0;
+constexpr int IBF_B8G8R8A8 = 1;
+constexpr int IBF_R8G8B8 = 2;
 
 const size_t MAX_IMAGE_WIDTH = 1<<11;
 const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
