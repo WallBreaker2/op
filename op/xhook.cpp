@@ -31,6 +31,8 @@ void* xhook::old_address;
 
 static int is_capture;
 
+using ATL::CComPtr;
+
 //dx9 hooked EndScene function
 HRESULT __stdcall dx9_hkEndScene(IDirect3DDevice9* thiz);
 //dx10
@@ -130,29 +132,31 @@ static DXGI_FORMAT GetDxgiFormat(DXGI_FORMAT format) {
 //screen capture
 HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	//save bmp
-	setlog("dx9screen_capture");
+	//setlog("dx9screen_capture");
 	HRESULT hr = NULL;
-	IDirect3DSurface9 *pSurface;
+	CComPtr<IDirect3DSurface9> pSurface;
 	hr = pDevice->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pSurface);
 	if (FAILED(hr)) return hr;
 
 	D3DSURFACE_DESC surface_Desc;
 	hr = pSurface->GetDesc(&surface_Desc);
-	if (FAILED(hr)) return 0;
+	if (FAILED(hr)) return hr;
 
-	IDirect3DTexture9 *pTex = NULL;
-	IDirect3DSurface9 *pTexSurface = NULL;
-	pDevice->CreateTexture(surface_Desc.Width,
+	CComPtr<IDirect3DTexture9> pTex;
+	CComPtr<IDirect3DSurface9> pTexSurface;
+	hr = pDevice->CreateTexture(surface_Desc.Width,
 		surface_Desc.Height,
 		1,
 		0,
 		surface_Desc.Format,
 		D3DPOOL_SYSTEMMEM, //必须为这个
 		&pTex, NULL);
-	if (pTex)
-		hr = pTex->GetSurfaceLevel(0, &pTexSurface);
-	if (pTexSurface)
-		hr = pDevice->GetRenderTargetData(pSurface, pTexSurface);
+	if (hr < 0) {
+		return hr;
+	}
+	hr = pTex->GetSurfaceLevel(0, &pTexSurface);
+	if (hr < 0)return hr;
+	hr = pDevice->GetRenderTargetData(pSurface, pTexSurface);
 
 	D3DLOCKED_RECT lockedRect;
 
@@ -166,11 +170,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 		mutex.unlock();
 	}
 	pTex->UnlockRect(0);
-	//D3DXSaveTextureToFile(file, D3DXIFF_BMP, pTex, NULL);
-	pSurface->Release();
-	pTex->Release();
-	pTexSurface->Release();
-	//setlog(L"memcpy end.");
+	
 	return hr;
 }
 //dx9 hooked EndScene function
@@ -189,7 +189,7 @@ HRESULT STDMETHODCALLTYPE dx9_hkEndScene(IDirect3DDevice9* thiz)
 //screen capture
 void dx10_capture(IDXGISwapChain* pswapchain) {
 	using Texture2D = ID3D10Texture2D * ;
-	
+
 	HRESULT hr;
 	ID3D10Device *pdevices = nullptr;
 	ID3D10Resource* backbuffer = nullptr;
@@ -292,8 +292,8 @@ HRESULT STDMETHODCALLTYPE dx10_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval
 //------------------------dx11----------------------------------
 //screen capture
 void dx11_capture(IDXGISwapChain* swapchain) {
-	
-	setlog("d3d11 cap");
+
+	//setlog("d3d11 cap");
 	using Texture2D = ID3D11Texture2D * ;
 	HRESULT hr = 0;
 	IDXGIResource* backbufferptr = nullptr;
