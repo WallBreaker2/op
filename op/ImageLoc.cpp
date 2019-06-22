@@ -297,23 +297,23 @@ long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim,
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
-			for (auto pic : pics) {
+			for (int pic_id = 0; pic_id < pics.size();++pic_id) {
 				//step 1. 边界检查
-				if (i + pic->rows > _src.rows || j + pic->cols > _src.cols)
+				if (i + pics[pic_id]->rows > _src.rows || j + pics[pic_id]->cols > _src.cols)
 					continue;
 				//step 2. 计算最大误差
-				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
+				int max_err_ct = pics[pic_id]->rows*pics[pic_id]->cols*(1.0 - sim);
 				//step 3. 开始匹配
-				if (simple_match(j, i, pic, dfcolor, max_err_ct)) {
+				if (simple_match(j, i, pics[pic_id], dfcolor, max_err_ct)) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
-					return 1;
+					return pic_id;
 				}
 			}//end for pics
 
 		}//end for j
 	}//end for i
 	x = y = -1;
-	return 0;
+	return -1;
 }
 
 long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, wstring& retstr) {

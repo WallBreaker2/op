@@ -74,7 +74,7 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 
 #define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0,3,0,1)
+#define OP_VERSION MAKE_OP_VERSION(0,3,1,0)
 //模块句柄
 extern HINSTANCE gInstance;
 //是否显示错误信息
