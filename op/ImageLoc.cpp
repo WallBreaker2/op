@@ -295,7 +295,6 @@ _quick_return:
 long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, long&x, long&y) {
 
 	for (int i = 0; i < _src.rows; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
 			for (int pic_id = 0; pic_id < pics.size();++pic_id) {
 				//step 1. ±ß½ç¼ì²é
