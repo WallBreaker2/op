@@ -65,9 +65,9 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 
 
 #ifndef _M_X64
-#define SYSTEM_BITS 32
+#define OP64 0
 #else
-#define SYSTEM_BITS 64
+#define OP64 1
 #endif
 
 #define _TOSTRING(x) #x
@@ -79,5 +79,9 @@ const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 extern HINSTANCE gInstance;
 //是否显示错误信息
 extern int gShowError;
+//op 路径
+extern wstring g_op_path;
+
+extern wstring g_op_name;
 
 #endif

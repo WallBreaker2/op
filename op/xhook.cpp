@@ -2,9 +2,9 @@
 #include "xhook.h"
 
 #include <d3d11.h>
-#include <D3DX11.h>
+//#include <D3DX11.h>
 #include <d3d10.h>
-#include <d3dx10.h>
+//#include <d3dx10.h>
 #include <d3d9.h>
 #include "./include/sharedmem.h"
 #include "./include/promutex.h"
@@ -86,7 +86,6 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 int xhook::release() {
 	is_capture = 0;
 	int ret = kiero::unbind();
-	//setlog(MH)
 	return 1;
 }
 

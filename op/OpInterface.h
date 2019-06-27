@@ -48,6 +48,18 @@ public:
 		_vkmap[L"f7"] = VK_F7; _vkmap[L"f8"] = VK_F8;
 		_vkmap[L"f9"] = VK_F9; _vkmap[L"f10"] = VK_F10;
 		_vkmap[L"f11"] = VK_F11; _vkmap[L"f12"] = VK_F12;
+		//初始化 op 路径 & name
+		static bool is_init = false;
+		if (!is_init) {
+			g_op_path.resize(512);
+			DWORD real_size = ::GetModuleFileNameW(gInstance, g_op_path.data(), 512);
+			g_op_path.resize(real_size);
+
+			g_op_name = g_op_path.substr(g_op_path.rfind(L"\\") + 1);
+			g_op_path = g_op_path.substr(0, g_op_path.rfind(L"\\"));
+
+			is_init = true;
+		}
 	}
 
 DECLARE_REGISTRY_RESOURCEID(106)
