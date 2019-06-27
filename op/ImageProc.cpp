@@ -16,8 +16,13 @@ ImageProc::~ImageProc()
 }
 
 long ImageProc::Capture(const std::wstring& file) {
-	return  cv::imwrite(_ws2string(file), _src);
+	wstring fpath = file;
+	if (fpath.find(L'\\') == -1)
+		return cv::imwrite(_ws2string(_curr_path + L"\\" + fpath), _src);
+	else
+		return cv::imwrite(_ws2string(fpath), _src);
 }
+
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
 	std::vector<color_df_t> vcolor;
 	str2colordfs(scolor, vcolor);
@@ -114,7 +119,6 @@ long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors
 	return ret;
 }
 
-
 long ImageProc::SetDict(int idx, const wstring& file_name) {
 	if (idx < 0 || idx >= _max_dict)
 		return 0;
@@ -155,7 +159,6 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 
 }
 
-
 wstring ImageProc::GetColor(long x, long y) {
 	color_t cr;
 	if (ImageBase::GetPixel(x, y, cr)) {
@@ -165,7 +168,6 @@ wstring ImageProc::GetColor(long x, long y) {
 		return L"";
 	}
 }
-
 
 void ImageProc::str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors) {
 	std::vector<wstring>vstr, vstr2;

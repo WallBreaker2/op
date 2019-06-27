@@ -120,7 +120,7 @@ long Bkbase::GetBindWindow() {
 }
 
 long Bkbase::IsBind() {
-	return _is_bind==1?1:0;
+	return _is_bind && ::IsWindow(_hwnd);
 }
 
 long Bkbase::GetCursorPos(int&x, int&y) {

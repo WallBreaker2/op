@@ -17,16 +17,15 @@ public:
 
 	long UnBind() override;
 
-	
 	//╫ьм╪жанд╪Ч
-	long capture(const std::wstring& file_name);
+	long capture(const std::wstring& file_name) override;
+	//nox mode
+	long BindNox(HWND hwnd, long render_type);
+	//
+	long UnBindNox();
 private:
 	//blackbone::Process _process;
 
-	
-
-	std::wstring _dllname;
-	
 };
 
 #endif
