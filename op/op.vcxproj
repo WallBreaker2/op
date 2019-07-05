@@ -84,8 +84,8 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x86</TargetName>
-    <IncludePath>E:\project\op\op\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;E:\git_pro\Blackbone\src;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\project\op\op\3rd_party\lib\x86;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\3rd_party\lib\x86;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\x86\</OutDir>
     <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
     <VcpkgEnabled>true</VcpkgEnabled>
@@ -196,7 +196,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;blackbone.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;libminhook.x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>
@@ -271,7 +271,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="bxdo.cpp" />
+    <ClCompile Include="bkdx_gl.cpp" />
     <ClCompile Include="query_api.cpp" />
     <ClCompile Include="xhook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
@@ -315,7 +315,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="bkdo.h" />
+    <ClInclude Include="bkdx_gl.h" />
     <ClInclude Include="include\bitfunc.h" />
     <ClInclude Include="include\color.h" />
     <ClInclude Include="include\Dict.h" />

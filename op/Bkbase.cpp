@@ -2,7 +2,7 @@
 #include "Bkbase.h"
 #include "Tool.h"
 #include "Bkgdi.h"
-#include "bkdo.h"
+#include "bkdx_gl.h"
 
 #include <algorithm>
 Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
@@ -27,6 +27,10 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_NORMAL;
 	else if (sdisplay == L"gdi")
 		display = RDT_GDI;
+	else if (sdisplay == L"gdi2")
+		display = RDT_GDI2;
+	else if (sdisplay == L"dx2")
+		display = RDT_GDI_DX2;
 	else if (sdisplay == L"dx")
 		display = RDT_DX_DEFAULT;
 	else if (sdisplay==L"dx.d3d9") 
@@ -76,7 +80,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		if (!_keypad.Bind(_hwnd, keypad))
 			return 0;
 		
-		if (GET_RENDER_TYPE(display) == RENDER_TYPE::NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
+		if (display ==RDT_NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
 			_pbkdisplay = new bkgdi();
 		}
 		else if (GET_RENDER_TYPE(display) == RENDER_TYPE::DX) {
