@@ -145,7 +145,7 @@
     <ClCompile Include="query_api.cpp">
       <Filter>Background\Hook</Filter>
     </ClCompile>
-    <ClCompile Include="bxdo.cpp">
+    <ClCompile Include="bkdx_gl.cpp">
       <Filter>Background\Display\DX_Opengl</Filter>
     </ClCompile>
   </ItemGroup>
@@ -234,7 +234,7 @@
     <ClInclude Include="query_api.h">
       <Filter>Background\Hook</Filter>
     </ClInclude>
-    <ClInclude Include="bkdo.h">
+    <ClInclude Include="bkdx_gl.h">
       <Filter>Background\Display\DX_Opengl</Filter>
     </ClInclude>
   </ItemGroup>

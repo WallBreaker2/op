@@ -1,18 +1,15 @@
 
 #include "stdafx.h"
-#include <BlackBone/Process/Process.h>
-#include <BlackBone/Process/RPC/RemoteFunction.hpp>
-#include "bkdo.h"
+
+#include "bkdx_gl.h"
 #include "Tool.h"
 #include <exception>
-//#include "3rd_party/include/BlackBone/Process/Process.h"
-//#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
+#include "3rd_party/include/BlackBone/Process/Process.h"
+#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
 
-#ifdef _M_X64
-#pragma comment(lib,"E:/git_pro/Blackbone/build/x64/Release/BlackBone.lib")
-#else
-#pragma comment(lib,"E:/git_pro/Blackbone/build/Win32/Release/BlackBone.lib")
-#endif
+
+
+
 
 bkdo::bkdo()
 {
@@ -143,36 +140,6 @@ long bkdo::UnBind() {
 		proc.Detach();
 	}
 	bind_release();
-	return 1;
-}
-
-long bkdo::capture(const std::wstring& file_name) {
-	//setlog(L"Bkdx::capture")
-	std::fstream file;
-	file.open(file_name, std::ios::out | std::ios::binary);
-	if (!file.is_open())return 0;
-	//_mutex.lock();
-	BITMAPFILEHEADER bfh = { 0 };
-	BITMAPINFOHEADER bih = { 0 };//位图信息头
-	bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	bfh.bfSize = bfh.bfOffBits + _width * _height * 4;
-	bfh.bfType = static_cast<WORD>(0x4d42);
-
-	bih.biBitCount = 32;//每个像素字节大小
-	bih.biCompression = BI_RGB;
-	bih.biHeight = -_height;//高度
-	bih.biPlanes = 1;
-	bih.biSize = sizeof(BITMAPINFOHEADER);
-	bih.biSizeImage = _width * _height * 4;//图像数据大小
-	bih.biWidth = _width;//宽度
-	file.write((char*)&bfh, sizeof(BITMAPFILEHEADER));
-	file.write((char*)&bih, sizeof(BITMAPINFOHEADER));
-
-	_pmutex->lock();
-	file.write(_shmem->data<char>(), bih.biSizeImage);
-	_pmutex->unlock();
-
-	file.close();
 	return 1;
 }
 
