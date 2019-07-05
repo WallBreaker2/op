@@ -39,6 +39,8 @@ enum RENDER_TYPE {
 
 constexpr int RDT_NORMAL = MAKE_RENDER(NORMAL, 0);
 constexpr int RDT_GDI = MAKE_RENDER(GDI, 0);
+constexpr int RDT_GDI2 = MAKE_RENDER(GDI, 1);
+constexpr int RDT_GDI_DX2 = MAKE_RENDER(GDI, 2);
 constexpr int RDT_DX_DEFAULT = MAKE_RENDER(DX, 0);
 constexpr int RDT_DX_D3D9 = MAKE_RENDER(DX, 1);
 constexpr int RDT_DX_D3D10 = MAKE_RENDER(DX, 2);

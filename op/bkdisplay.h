@@ -16,8 +16,7 @@ public:
 	virtual long Bind(HWND hwnd, long flag) = 0;
 	//unbind window
 	virtual long UnBind() = 0;
-	//截图至文件
-	virtual long capture(const std::wstring& file_name) = 0;
+	
 	//因为各种截图方式的差异，是否成功判断较复杂，故在此实现资源的申请和释放，子类调用
 	//资源申请
 	long bind_init();

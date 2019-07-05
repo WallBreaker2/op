@@ -9,7 +9,7 @@ public:
 	bkgdi();
 	~bkgdi();
 	//绑定
-	long Bind(HWND _hwnd, long flag);
+	long Bind(HWND _hwnd, long render_type);
 	//解绑
 	long UnBind();
 	//截图初始化
@@ -18,20 +18,16 @@ public:
 	long cap_release();
 	//截图
 	long cap_image();
-	//截图至文件
-	long capture(const std::wstring& file_name);
 	
 	
 private:
-	//截图模式
-	int _mode;
 	//设备句柄
 	HDC _hdc;
 
 	HDC _hmdc;
 	//位图句柄
 	HBITMAP _hbmpscreen;
-	HBITMAP _holdbmp;
+	HBITMAP _hbmp_old;
 	//位图信息
 	BITMAP           _bm;
 	//bmp 文件头

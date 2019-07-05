@@ -5,9 +5,9 @@
 #include "Tool.h"
 bkgdi::bkgdi() :_is_cap(0), _pthread(nullptr)
 {
-	_mode = 0;
+	_render_type = 0;
 	_hdc = _hmdc = NULL;
-	_hbmpscreen = _holdbmp = NULL;
+	_hbmpscreen = _hbmp_old = NULL;
 	//4*2^22=16*2^20=16MB
 	//_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH * 4];
 }
@@ -17,15 +17,14 @@ bkgdi::~bkgdi()
 	//SAFE_DELETE_ARRAY(_image_data);
 }
 
-long bkgdi::Bind(HWND hwnd, long mode) {
+long bkgdi::Bind(HWND hwnd, long render_type) {
 	if (!::IsWindow(hwnd))
 		return 0;
-	_hwnd = hwnd; _mode = mode;
-	long ret = 0;
-	
+	_hwnd = hwnd; _render_type = render_type;
+	_is_cap = 1;
+	bind_init();
 	_pthread = new std::thread(&bkgdi::cap_thread, this);
-	ret = 1;
-	return ret;
+	return 1;
 }
 
 long bkgdi::UnBind() {
@@ -34,30 +33,35 @@ long bkgdi::UnBind() {
 		_pthread->join();
 		SAFE_DELETE(_pthread);
 	}
-	//setlog(" bkgdi::UnBind()");
+	bkdisplay::bind_release();
 	return 1;
 }
 
 int bkgdi::cap_thread() {
 	
-	_is_cap = cap_init();
+	
 	while (_is_cap) {
 		
 		//do cap
 		cap_image();
-		
 		//sleep some time to free cpu
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
-	cap_release();
+	
 	return 0;
 }
 
 long bkgdi::cap_init() {
-	if (_mode == RENDER_TYPE::NORMAL)
+	if (!::IsWindow(_hwnd))
+		return 0;
+	_hdc = NULL;
+	if (_render_type == RDT_NORMAL)
 		_hdc = ::GetWindowDC(_hwnd);
-	else {
+	else if(_render_type==RDT_GDI){
 		_hdc = ::GetDC(_hwnd);
+	}
+	else if (_render_type == RDT_GDI2||_render_type==RDT_GDI_DX2) {
+		_hdc = ::GetDCEx(_hwnd, NULL, DCX_PARENTCLIP);
 	}
 	RECT rc;
 	if (_hdc == NULL) {
@@ -90,7 +94,7 @@ long bkgdi::cap_init() {
 	}
 	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
 
-	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
+	_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
 
 
 	GetObject(_hbmpscreen, sizeof(_bm), (LPSTR)&_bm); //得到指定图形对象的信息	
@@ -107,8 +111,8 @@ long bkgdi::cap_init() {
 	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//图像数据大小
 	_bih.biWidth = _bm.bmWidth;//宽度
 
-	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
-	bind_init();
+	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _hbmp_old);
+	
 	return 1;
 }
 
@@ -119,48 +123,42 @@ long bkgdi::cap_release() {
 	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
-	if (_holdbmp)DeleteObject(_holdbmp); _holdbmp = NULL;
-	//Tool::setlog(L"cap_release");
-	bind_release();
+	if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
 	return 0;
 }
 
 long bkgdi::cap_image() {
 	
-	
-	if (!IsWindow(_hwnd)) { _is_cap = 0; return 0; }
+	if (!cap_init())return 0;
 
-	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
+	_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 	
-	if (_mode == RENDER_TYPE::GDI)
+	if (_render_type == RDT_GDI)
 		::PrintWindow(_hwnd, _hmdc, 0);
+	else if (_render_type == RDT_GDI2) {
+		::UpdateWindow(_hwnd);
+		::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+		::PrintWindow(_hwnd, _hmdc, 0);
+	}
 
-	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
-	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, CAPTUREBLT|SRCCOPY);
+
+	//_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
+
+	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _hbmp_old);
+
 	//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
 	_pmutex->lock();
 	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 	_pmutex->unlock();
 
-	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _holdbmp);
+	cap_release();
 	return 1;
 
 }
 
-long bkgdi::capture(const std::wstring& file_name) {
-	//setlog(L"bkgdi::capture");
-	std::fstream file;
-	file.open(file_name, std::ios::out | std::ios::binary);
-	if (!file.is_open())return 0;
-	_pmutex->lock();
-	file.write((char*)&_bfh, sizeof(BITMAPFILEHEADER));
-	file.write((char*)&_bih, sizeof(BITMAPINFOHEADER));
-	file.write(_shmem->data<char>(), _bih.biSizeImage);
-	_pmutex->unlock();
-	file.close();
-	return 1;
-}
+
 
 
 
