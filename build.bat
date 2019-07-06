@@ -1,4 +1,4 @@
-echo "begin build\n"
+echo "begin build..."
 :: 1.mkdir
 mkdir build
 
@@ -10,5 +10,5 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmak
 :: 3. build
 cmake --build . --config release
 
-
+echo "build finished"
 pause
