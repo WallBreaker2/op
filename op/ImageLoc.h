@@ -25,8 +25,10 @@ inline int HEX2INT(wchar_t c) {
 #define SET_BIT(x, idx) x |= 1u << (idx)
 
 #define GET_BIT(x, idx) (x >> (idx)) & 1u
-using images_t = std::vector<std::wstring>;
 
+using images_t = std::vector<std::wstring>;
+//检查是否为透明图
+bool check_transparent(cv::Mat* img);
 
 
 /*
@@ -70,6 +72,8 @@ public:
 	/*long imageloc(images_t& images, double sim, long&x, long&y);*/
 
 	long simple_match(long x, long y, cv::Mat* timg,color_t dfcolor,int max_error);
+
+	long trans_match(long x, long y, cv::Mat* timg, color_t dfcolor, int max_error);
 
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.cols && y < _src.rows;
