@@ -94,8 +94,8 @@
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
     <TargetName>op_x64</TargetName>
-    <IncludePath>E:\project\op\op\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;E:\git_pro\Blackbone\src;$(IncludePath)</IncludePath>
-    <LibraryPath>E:\project\op\op\3rd_party\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\3rd_party\lib\x64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\x86\</OutDir>
     <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
     <VcpkgEnabled>true</VcpkgEnabled>
@@ -237,7 +237,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <ModuleDefinitionFile>.\op.def</ModuleDefinitionFile>
-      <AdditionalDependencies>comsvcs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>comsvcs.lib;blackbone.lib;libminhook.x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <RegisterOutput>true</RegisterOutput>

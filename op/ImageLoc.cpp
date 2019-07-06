@@ -6,6 +6,24 @@
 
 using std::to_wstring;
 
+bool check_transparent(cv::Mat* img) {
+	if (img->rows < 2 || img->cols < 2)
+		return false;
+	bool x = img->at<uint>(0, 0) == img->at<uint>(0, img->cols - 1) &&
+		img->at<uint>(0, 0) - img->at<uint>(img->rows - 1, 0) &&
+		img->at<uint>(0, 0) - img->at<uint>(img->rows - 1, img->cols - 1);
+	if (!x)
+		return false;
+	uint c0 = img->at<uint>(0, 0);
+	int n = img->rows*img->cols;
+	uint* ptr = (uint*)img->data;
+	for (int i = 1; i < n; ++i) {
+		if (ptr[i] != c0)
+			return true;
+	}
+	return false;
+}
+
 
 ImageBase::ImageBase()
 {
@@ -157,6 +175,27 @@ long ImageBase::simple_match(long x, long y, cv::Mat* timg, color_t dfcolor, int
 	return 1;
 }
 
+long ImageBase::trans_match(long x, long y, cv::Mat* timg, color_t dfcolor, int max_error) {
+	int err_ct = 0, k;
+	//background color
+	uint c0 = timg->at<uint>(0, 0);
+	for (int i = 0; i < timg->rows; ++i) {
+		auto p1 = _src.ptr<uchar>(i + y) + x * 4;
+		auto p2 = timg->ptr<uchar>(i);
+		for (int j = 0; j < timg->cols; ++j) {
+			if (*(uint*)p2 != c0) {//ignore background color
+				if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
+					++err_ct;
+				if (err_ct > max_error)
+					return 0;
+			}
+			
+			p1 += 4; p2 += 3;
+		}
+	}
+	return 1;
+}
+
 long ImageBase::GetPixel(long x, long y, color_t&cr) {
 	if (!is_valid(x, y)) {
 		setlog("Invalid pos:%d %d", x, y);
@@ -293,6 +332,9 @@ _quick_return:
 }
 
 long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, long&x, long&y) {
+	vector<char> use_ts_match(pics.size());
+	for (int i = 0; i < pics.size(); ++i)
+		use_ts_match[i] = check_transparent(pics[i]);
 
 	for (int i = 0; i < _src.rows; ++i) {
 		for (int j = 0; j < _src.cols; ++j) {
@@ -303,7 +345,9 @@ long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim,
 				//step 2. 计算最大误差
 				int max_err_ct = pics[pic_id]->rows*pics[pic_id]->cols*(1.0 - sim);
 				//step 3. 开始匹配
-				if (simple_match(j, i, pics[pic_id], dfcolor, max_err_ct)) {
+				int match_ret = (use_ts_match[i] ? trans_match(j, i, pics[pic_id], dfcolor, max_err_ct) :
+					simple_match(j, i, pics[pic_id], dfcolor, max_err_ct));
+				if (match_ret) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return pic_id;
 				}
@@ -318,6 +362,11 @@ long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim,
 long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, wstring& retstr) {
 	int obj_ct = 0;
 	retstr.clear();
+
+	vector<char> use_ts_match(pics.size());
+	for (int i = 0; i < pics.size(); ++i)
+		use_ts_match[i] = check_transparent(pics[i]);
+
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
@@ -328,7 +377,9 @@ long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, color_t dfcolor, double si
 				//step 2. 计算最大误差
 				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
 				//step 3. 开始匹配
-				if (simple_match(j, i, pic, dfcolor, max_err_ct)) {
+				int match_ret = (use_ts_match[i] ? trans_match(j, i, pic, dfcolor, max_err_ct) :
+					simple_match(j, i, pic, dfcolor, max_err_ct));
+				if (match_ret) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
 					retstr += L"|";
 					++obj_ct;
