@@ -580,6 +580,43 @@ kiero::Status::Enum kiero::init(int _renderType)
 			return Status::Success;
 			//#endif // __gl_h_
 		}
+		else if (_renderType == RenderType::OpenglES) {
+			HMODULE libegl = GetModuleHandleW(L"libEGL.dll");
+			if (libegl == NULL)
+			{
+				return Status::ModuleNotFoundError;
+			}
+
+			const char* const methodsNames[] = {
+				"eglSwapBuffers"
+			};
+
+			const size_t size = KIERO_ARRAY_SIZE(methodsNames);
+
+#if KIERO_ARCH_X64
+			g_methodsTable = (uint64_t*)::calloc(size, sizeof(uint64_t));
+
+			for (int i = 0; i < size; i++)
+			{
+				g_methodsTable[i] = (uint64_t)::GetProcAddress(libOpenGL32, methodsNames[i]);
+			}
+#else
+			g_methodsTable = (uint32_t*)::calloc(size, sizeof(uint32_t));
+
+			for (int i = 0; i < size; i++)
+			{
+				g_methodsTable[i] = (uint32_t)::GetProcAddress(libegl, methodsNames[i]);
+			}
+#endif
+
+#ifdef KIERO_USE_MINHOOK
+			MH_Initialize();
+#endif
+
+			g_renderType = RenderType::OpenglES;
+
+			return Status::Success;
+		}
 		else if (_renderType == RenderType::Vulkan)
 		{
 #ifdef VULKAN_H_

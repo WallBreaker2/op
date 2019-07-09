@@ -53,6 +53,7 @@ namespace kiero
 			D3D12,  // Implemented
 
 			OpenGL, // Implemented
+			OpenglES,
 			Vulkan  // Implemented
 		};
 	};
