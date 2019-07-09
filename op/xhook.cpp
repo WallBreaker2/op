@@ -43,6 +43,8 @@ HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT F
 void __stdcall gl_hkglBegin(GLenum mode);
 //opengl dn,nox
 void __stdcall gl_hkwglSwapBuffers(HDC hdc);
+//egl
+unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface);
 
 int xhook::setup(HWND hwnd_, int render_type_) {
 	xhook::render_hwnd = hwnd_;
@@ -72,6 +74,10 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 	else if (render_type_ == RDT_GL_STD) {
 		render_type = kiero::RenderType::OpenGL;
 		idx = 0; address = gl_hkglBegin;
+	}
+	else if(render_type_==RDT_GL_ES){
+		render_type = kiero::RenderType::OpenglES;
+		idx = 0; address = gl_hkeglSwapBuffers;
 	}
 	else {
 		render_type = kiero::RenderType::None;
@@ -458,14 +464,52 @@ void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
 
 
 //---------------------OPENGL ES------------------------------
-//int egl_capture() {
-//	egl
-//}
-//unsigned int __stdcall hkeglSwapBuffers(void* dpy, void* surface) {
-//
-//}
+//es 类似 opengl 截图，只是模块不同
+long egl_capture() {
+	using glPixelStorei_t = decltype(glPixelStorei)*;
+	using glReadBuffer_t = decltype(glReadBuffer)*;
+	using glGetIntegerv_t = decltype(glGetIntegerv)*;
+	using glReadPixels_t = decltype(glReadPixels)*;
 
+	auto pglPixelStorei = (glPixelStorei_t)query_api("libglesv2.dll", "glPixelStorei");
+	auto pglReadBuffer = (glReadBuffer_t)query_api("libglesv2.dll", "glReadBuffer");
+	auto pglGetIntegerv = (glGetIntegerv_t)query_api("libglesv2.dll", "glGetIntegerv");
+	auto pglReadPixels = (glReadPixels_t)query_api("libglesv2.dll", "glReadPixels");
+	if (!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels) {
+		is_capture = 0;
+		setlog("error.!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels");
+		return 0;
+	}
+	RECT rc;
+	::GetClientRect(xhook::render_hwnd, &rc);
+	int width = rc.right - rc.left, height = rc.bottom - rc.top;
 
+	pglPixelStorei(GL_PACK_ALIGNMENT, 1);
+	pglPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	pglReadBuffer(GL_FRONT);
+
+	sharedmem mem;
+	promutex mutex;
+	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+		mutex.lock();
+		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		mutex.unlock();
+	}
+	else {
+		is_capture = 0;
+		setlog("!mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)");
+	}
+	//setlog("gl screen ok");
+	return 0;
+}
+
+unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface) {
+	using eglSwapBuffers_t = decltype(gl_hkeglSwapBuffers)*;
+	if (is_capture)
+		egl_capture();
+	return ((eglSwapBuffers_t)xhook::old_address)(dpy, surface);
+	
+}
 
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int render_type_) {

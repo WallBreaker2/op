@@ -33,7 +33,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_GDI_DX2;
 	else if (sdisplay == L"dx")
 		display = RDT_DX_DEFAULT;
-	else if (sdisplay==L"dx.d3d9") 
+	else if (sdisplay == L"dx.d3d9")
 		display = RDT_DX_D3D9;
 	else if (sdisplay == L"dx.d3d10")
 		display = RDT_DX_D3D10;
@@ -45,6 +45,8 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_GL_STD;
 	else if (sdisplay == L"opengl.nox")
 		display = RDT_GL_NOX;
+	else if (sdisplay == L"opengl.es")
+		display = RDT_GL_ES;
 	else {
 		setlog(L"´íÎóµÄdisplay:%s", sdisplay.c_str());
 		return 0;
