@@ -13,7 +13,7 @@ public:
 	int close();
 	virtual void on_read(const string& info);
 	virtual int on_write(const string& info);
-	int is_open() { return _reading; }
+	bool is_open();
 private:
 	handle_t _hread, _hwrite;
 	handle_t _hread2, _hwrite2;

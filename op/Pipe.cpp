@@ -92,3 +92,12 @@ void Pipe::reader() {
 	}
 }
 
+bool Pipe::is_open() {
+	if (_reading) {
+		DWORD code = 0;
+		::GetExitCodeProcess(_pi.hProcess, &code);
+		return code == STILL_ACTIVE;
+	}
+	return false;
+}
+
