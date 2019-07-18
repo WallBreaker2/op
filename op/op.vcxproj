@@ -70,15 +70,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\git_pro\Blackbone\src;$(IncludePath)</IncludePath>
+    <IncludePath>.\3rd_party\include\3rd_party;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <TargetName>op_x86d</TargetName>
+	<VcpkgTriplet>x86-windows-static</VcpkgTriplet>
+    <VcpkgEnabled>true</VcpkgEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>D:\minhook\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\minhook\lib;$(LibraryPath)</LibraryPath>
+	<TargetName>op_x64d</TargetName>
+	<VcpkgTriplet>x64-windows-static</VcpkgTriplet>
+    <VcpkgEnabled>true</VcpkgEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -244,11 +249,9 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="3rd_party\kiero\kiero.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="3rd_party\src\kiero.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
     <ClCompile Include="bkdisplay.cpp" />
@@ -305,7 +308,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="3rd_party\kiero\kiero.h" />
+    <ClInclude Include="3rd_party\include\kiero.h" />
     <ClInclude Include="AStar.hpp" />
     <ClInclude Include="Bkbase.h" />
     <ClInclude Include="bkdisplay.h" />

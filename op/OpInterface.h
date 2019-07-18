@@ -88,7 +88,7 @@ private:
 	//1. Windows API
 	WinApi _winapi;
 	// background module
-	Bkbase _bkproc;
+	bkbase _bkproc;
 	// work path
 	std::wstring _curr_path;
 	//image process

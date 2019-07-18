@@ -595,11 +595,8 @@ STDMETHODIMP OpInterface::KeyPressChar(BSTR vk_code, LONG* ret) {
 STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret) {
 	
 	*ret = 0;
-	if (!_bkproc.IsBind()) {
-		
-		return S_OK;
-	}
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+	
+	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -612,14 +609,14 @@ STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_
 STDMETHODIMP OpInterface::CmpColor(LONG x, LONG y, BSTR color, DOUBLE sim, LONG* ret) {
 	//LONG rx = -1, ry = -1;
 	*ret = 0;
-	if (!_bkproc.IsBind())
-		return S_OK;
-
-	_bkproc.lock_data();
-	_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
-		0, 0, _bkproc.get_widht(), _bkproc.get_height(), _bkproc.get_image_type());
-	_bkproc.unlock_data();
-	*ret = _image_proc.CmpColor(x, y, color, sim);
+	if (_bkproc.check_bind()) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+			0, 0, _bkproc.get_widht(), _bkproc.get_height(), _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		*ret = _image_proc.CmpColor(x, y, color, sim);
+	}
+	
 
 	return S_OK;
 }
@@ -629,20 +626,12 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 	*ret = 0;
 	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
-	if (!_bkproc.IsBind())
-		return S_OK;
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+	
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
-		
-		*ret = _image_proc.FindColor(color, sim, dir, rx, ry);
-	/*	if (*ret) {
-			rx += x1; ry += y1;
-			rx -= _bkproc._pbkdisplay->_client_x;
-			ry -= _bkproc._pbkdisplay->_client_y;
-		}*/
 	}
 	x->lVal = rx; y->lVal = ry;
 
@@ -651,7 +640,7 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 //查找指定区域内的所有颜色
 STDMETHODIMP OpInterface::FindColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG dir, BSTR* retstr) {
 	CComBSTR newstr;
-	if (_bkproc.IsBind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -669,9 +658,8 @@ STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BST
 	*ret = 0;
 	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
-	if (!_bkproc.IsBind())
-		return S_OK;
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+	
+	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -690,9 +678,8 @@ STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BST
 //根据指定的多点查找所有颜色坐标
 STDMETHODIMP OpInterface::FindMultiColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, BSTR* retstr) {
 	CComBSTR newstr;
-	if (!_bkproc.IsBind())
-		return S_OK;
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+
+	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -710,9 +697,8 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 	*ret = 0;
 	x->vt = y->vt = VT_I4;
 	x->lVal = rx; y->lVal = ry;
-	if (!_bkproc.IsBind())
-		return S_OK;
-	if (_bkproc.RectConvert(x1, y1, x2, y2)) {
+	
+	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -732,7 +718,7 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, BSTR* retstr) {
 	CComBSTR newstr;
 	HRESULT hr;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -746,16 +732,18 @@ STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR fil
 }
 //获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
-	static DWORD recent_call = 0;
-	DWORD t = GetTickCount();
-	if (!_bkproc.IsBind())
-		return S_OK;
-	x += _bkproc._pbkdisplay->_client_x;
-	y += _bkproc._pbkdisplay->_client_y;
 	color_t cr;
-	auto p = _bkproc.GetScreenData();
-	cr = *(color_t*)(p + y * 4 + x);
+	if (_bkproc.IsBind()) {
+		x += _bkproc._pbkdisplay->_client_x;
+		y += _bkproc._pbkdisplay->_client_y;
+	}
+	if (x >= 0 && y >= 0 && x < _bkproc.get_widht() && y < _bkproc.get_height()) {
+		auto p = _bkproc.GetScreenData() + (y*_bkproc.get_widht() * 4 + x * 4);
+		cr = *(color_t*)p;
+	}
+	
 	auto str = cr.tostr();
+
 	CComBSTR newstr;
 	newstr.Append(str.c_str());
 	newstr.CopyTo(ret);
@@ -777,7 +765,7 @@ STDMETHODIMP OpInterface::UseDict(LONG idx, LONG* ret) {
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
 	wstring str;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -793,7 +781,7 @@ STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DO
 //回识别到的字符串，以及每个字符的坐标.
 STDMETHODIMP OpInterface::OcrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* ret_str) {
 	wstring str;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -811,7 +799,7 @@ STDMETHODIMP OpInterface::FindStr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs,
 	wstring str;
 	retx->vt = rety->vt = VT_INT;
 	retx->lVal = rety->lVal = -1;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -824,7 +812,7 @@ STDMETHODIMP OpInterface::FindStr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs,
 //返回符合color_format的所有坐标位置
 STDMETHODIMP OpInterface::FindStrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim, BSTR* retstr) {
 	wstring str;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
@@ -840,7 +828,7 @@ STDMETHODIMP OpInterface::FindStrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR str
 
 STDMETHODIMP OpInterface::OcrAuto(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim, BSTR* retstr) {
 	wstring str;
-	if (_bkproc.IsBind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
 		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
