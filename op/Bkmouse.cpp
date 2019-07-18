@@ -102,7 +102,7 @@ long bkmouse::LeftClick() {
 
 	case INPUT_TYPE::IN_WINDOWS: {
 		ret = ::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-
+		
 		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}

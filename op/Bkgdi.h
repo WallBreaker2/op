@@ -9,37 +9,19 @@ public:
 	bkgdi();
 	~bkgdi();
 	//绑定
-	long Bind(HWND _hwnd, long render_type);
+	long Bind(HWND _hwnd, long render_type) override;
 	//解绑
-	long UnBind();
-	//截图初始化
-	long cap_init();
-	//截图释放
-	long cap_release();
-	//截图
-	long cap_image();
+	long UnBind() override;
+	
+	
+	long updata_screen();
+
+	byte* get_data() override;
 	
 	
 private:
-	//设备句柄
-	HDC _hdc;
-
-	HDC _hmdc;
-	//位图句柄
-	HBITMAP _hbmpscreen;
-	HBITMAP _hbmp_old;
-	//位图信息
-	BITMAP           _bm;
-	//bmp 文件头
-	BITMAPFILEHEADER _bfh = { 0 };
-	BITMAPINFOHEADER _bih = { 0 };//位图信息头
-	//截图线程指针
-	std::thread* _pthread;
-	//截图标识
-	int _is_cap;
 	
-	//截图线程函数
-	int cap_thread();
+	
 };
 
 #endif

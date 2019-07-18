@@ -1,23 +1,30 @@
 #include "stdafx.h"
-#include "Bkbase.h"
+
 #include "Tool.h"
-#include "Bkgdi.h"
-#include "bkdx_gl.h"
 
+#include "Bkbase.h"
 #include <algorithm>
-Bkbase::Bkbase() :_hwnd(0),_is_bind(0)
+bkbase::bkbase() :_hwnd(0), _is_bind(0), _pbkdisplay(nullptr)
 {
+
+}
+
+
+bkbase::~bkbase()
+{
+	_hwnd = NULL;
+	_is_bind = 0;
 	_mode = 0;
+	_bkmouse.UnBind();
+	if (_pbkdisplay) {
+		_pbkdisplay->UnBind();
+		delete _pbkdisplay;
+		_pbkdisplay = nullptr;
+	}
 }
 
+long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
 
-Bkbase::~Bkbase()
-{
-}
-
-long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
-	//setlog(L"Bkbase::BindWindow(%d,%s,%s,%s,%d",
-	//	hwnd, sdisplay.c_str(), smouse.c_str(), skeypad.c_str(), mode);
 	_pbkdisplay = nullptr;
 	_hwnd = (HWND)hwnd;
 	long ret;
@@ -81,8 +88,8 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 			return 0;
 		if (!_keypad.Bind(_hwnd, keypad))
 			return 0;
-		
-		if (display ==RDT_NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
+
+		if (display == RDT_NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
 			_pbkdisplay = new bkgdi();
 		}
 		else if (GET_RENDER_TYPE(display) == RENDER_TYPE::DX) {
@@ -90,7 +97,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		}
 		else if (GET_RENDER_TYPE(display) == RENDER_TYPE::OPENGL)
 			_pbkdisplay = new bkdo;
-		
+
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
 		if (!ret) {
 			SAFE_DELETE(_pbkdisplay);
@@ -98,7 +105,7 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		}
 		//等待线程创建好
 		Sleep(200);
-		
+
 	}
 	_is_bind = 1;
 	_display = display;
@@ -106,32 +113,32 @@ long Bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 
 }
 
-long Bkbase::UnBindWindow() {
+long bkbase::UnBindWindow() {
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
-	
+
 	_bkmouse.UnBind();
 	if (_pbkdisplay) {
 		_pbkdisplay->UnBind();
 		delete _pbkdisplay;
 		_pbkdisplay = nullptr;
 	}
-	
+
 	return 1;
 }
 
-long Bkbase::GetBindWindow() {
+long bkbase::GetBindWindow() {
 	return (long)_hwnd;
 }
 
-long Bkbase::IsBind() {
+long bkbase::IsBind() {
 	return _is_bind && ::IsWindow(_hwnd);
 }
 
-long Bkbase::GetCursorPos(int&x, int&y) {
+long bkbase::GetCursorPos(int&x, int&y) {
 	POINT pt;
-	auto r=::GetCursorPos(&pt);
+	auto r = ::GetCursorPos(&pt);
 	x = pt.x; y = pt.y;
 	return r;
 }
@@ -144,54 +151,87 @@ long Bkbase::GetCursorPos(int&x, int&y) {
 
 
 
-long Bkbase::GetDisplay() {
+long bkbase::GetDisplay() {
 	return _display;
 }
 
-byte* Bkbase::GetScreenData() {
-	return _pbkdisplay->get_data();
+byte* bkbase::GetScreenData() {
+
+	return _pbkdisplay ? _pbkdisplay->get_data() : nullptr;
 }
 
-void Bkbase::lock_data() {
-	auto p = _pbkdisplay->get_mutex();
-	if (p)
-		p->lock();
+void bkbase::lock_data() {
+	if (_pbkdisplay) {
+		auto p = _pbkdisplay->get_mutex();
+		if (p)
+			p->lock();
+	}
+
 }
 
-void Bkbase::unlock_data() {
-	auto p = _pbkdisplay->get_mutex();
-	if (p)
-		p->unlock();
+void bkbase::unlock_data() {
+	if (_pbkdisplay) {
+		auto p = _pbkdisplay->get_mutex();
+		if (p)
+			p->unlock();
+	}
+
 }
 
-long Bkbase::get_height() {
-	return _pbkdisplay->get_height();
+long bkbase::get_height() {
+	return _pbkdisplay ? _pbkdisplay->get_height() : 0;
 }
 
-long Bkbase::get_widht() {
-	return _pbkdisplay->get_width();
+long bkbase::get_widht() {
+	return _pbkdisplay ? _pbkdisplay->get_width() : 0;
 }
 
-long Bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
+long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	if (x1 > x2 || y1 > y2) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
-		
+	if (!_pbkdisplay)
+		return 0;
+
 	if (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
 	}
-	else {
-		//to do...
-	}
-	x2 = std::min<long>(get_widht()-1, x2);
-	y2 = std::min<long>(get_height()-1, y2);
-	if (x1<0 || y1<0) {
+
+
+	x2 = std::min<long>(get_widht() - 1, x2);
+	y2 = std::min<long>(get_height() - 1, y2);
+	if (x1 < 0 || y1 < 0) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	return 1;
+}
+
+long bkbase::get_image_type() {
+	switch (GET_RENDER_TYPE(_display))
+	{
+	case RENDER_TYPE::NORMAL:
+		return -1;
+	case RENDER_TYPE::GDI:
+		return -1;
+	case RENDER_TYPE::DX:
+		return 0;
+	case RENDER_TYPE::OPENGL:
+		return -1;
+	default:
+		return 0;
+	}
+
+}
+
+bool bkbase::check_bind() {
+	//已绑定
+	if (IsBind())
+		return true;
+	//绑定前台桌面
+	return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
 }
 
 

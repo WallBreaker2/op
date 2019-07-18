@@ -1,35 +1,33 @@
 #pragma once
 #ifndef __BACKBASE_H_
 #define __BACKBASE_H_
+#include <string>
+#include "bkgdi.h"
 #include "Bkmouse.h"
-#include "bkdisplay.h"
 #include "Bkkeypad.h"
+#include "bkdx_gl.h"
+
 using std::wstring;
+
 /*
 后台处理类，包含以下功能:
 1.窗口绑定
 2.后台截图
 3.鼠标键盘操作
 */
-class Bkbase
+class bkbase
 {
 public:
 	
-	Bkbase();
-	~Bkbase();
+	bkbase();
+	~bkbase();
 public:
 	virtual long BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode);
 	virtual long UnBindWindow();
 	virtual long GetBindWindow();
 	virtual long IsBind();
 	virtual long GetCursorPos(int& x, int& y);
-	//virtual long GetKeyState(int vk_code);
-	//virtual long KeyDown(int vk_code);
-	//virtual long KeyUp(int vk_code);
-	//virtual long LeftClick();
-	//virtual long RightClick();
-	//virtual long MoveTo(long x, long y);
-	//virtual long Capture(const std::wstring& file_name);
+	
 	long GetDisplay();
 	byte* GetScreenData();
 	void lock_data();
@@ -37,22 +35,9 @@ public:
 	long get_height();
 	long get_widht();
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
-	long get_image_type() {
-		switch (GET_RENDER_TYPE(_display))
-		{
-		case RENDER_TYPE::NORMAL:
-			return -1;
-		case RENDER_TYPE::GDI:
-			return -1;
-		case RENDER_TYPE::DX:
-			return 0;
-		case RENDER_TYPE::OPENGL:
-			return -1;
-		default:
-			return 0;
-		}
-		
-	}
+	long get_image_type();
+	//检查是否绑定或者桌面前台
+	bool check_bind();
 private:
 	HWND _hwnd;
 	int _is_bind;
