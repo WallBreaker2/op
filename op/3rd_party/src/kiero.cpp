@@ -1,5 +1,5 @@
 
-#include "kiero.h"
+#include "../include/kiero.h"
 #include <Windows.h>
 
 #ifdef KIERO_USE_MINHOOK

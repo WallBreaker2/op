@@ -43,3 +43,7 @@ long bkdisplay::bind_release() {
 	return 0;
 }
 
+byte* bkdisplay::get_data() {
+	return _shmem->data<byte>();
+}
+

@@ -22,9 +22,7 @@ public:
 	long bind_init();
 	//×ÊÔ´ÊÍ·Å
 	long bind_release();
-	byte* get_data() { 
-		return _shmem->data<byte>(); 
-	}
+	virtual byte* get_data();
 
 	promutex* get_mutex() {
 		return _pmutex;

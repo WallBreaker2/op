@@ -9,14 +9,9 @@
 #include "./include/sharedmem.h"
 #include "./include/promutex.h"
 #include <exception>
-//#ifdef _M_X64
-//#pragma comment(lib,"./3rd_party/lib/x64/libMinHook.x64.lib")
-//#else
-//#pragma comment(lib,"./3rd_party/lib/x86/libMinHook.x86.lib")
-//#endif // _M_X64
 
 
-#include "3rd_party/kiero/kiero.h"
+#include "3rd_party/include/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
 #include "Tool.h"
