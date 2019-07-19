@@ -64,7 +64,7 @@ SET(SRC_FILES
 "tool.cpp"
 "winapi.cpp"
 "xhook.cpp"
-"./3rd_party/kiero/kiero.cpp"
+"./3rd_party/src/kiero.cpp"
 "op_i.c"
 "op.def"
 )

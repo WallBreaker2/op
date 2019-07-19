@@ -733,7 +733,7 @@ STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR fil
 //获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	color_t cr;
-	if (_bkproc.IsBind()) {
+	if (_bkproc.check_bind()) {
 		x += _bkproc._pbkdisplay->_client_x;
 		y += _bkproc._pbkdisplay->_client_y;
 	}
