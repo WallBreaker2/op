@@ -107,10 +107,13 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 }
 
 //二值化
-void ImageBase::tobinary()
+void ImageBase::auto2binary()
 {
-	//cv::cvtColor(_src, _target, CV_BGR2GRAY);
+	//转为灰度图
+	cv::cvtColor(_src, _target, CV_BGR2GRAY);
+	//创建二值图
 	_binary.create(_target.size(), CV_8UC1);
+	//获取背景颜色
 	int bkcolor = get_bk_color(_target);
 	int n = _target.cols * _target.rows;
 	auto ptr1 = _target.data;

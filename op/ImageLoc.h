@@ -64,7 +64,7 @@ public:
 	void bgr2binary(vector<color_df_t>& colors);
 
 	//二值化 auto
-	void tobinary();
+	void auto2binary();
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.

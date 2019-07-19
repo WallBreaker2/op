@@ -64,7 +64,7 @@ long bkgdi::updata_screen() {
 
 	_hdc = NULL;
 	if (_render_type == RDT_NORMAL)
-		_hdc = ::GetWindowDC(_hwnd);
+		_hdc = ::GetDC(::GetDesktopWindow());
 	else if (_render_type == RDT_GDI) {
 		_hdc = ::GetDC(_hwnd);
 	}
@@ -76,20 +76,23 @@ long bkgdi::updata_screen() {
 		setlog("hdc == NULL", _hdc);
 		return 0;
 	}
-
+	//step 3.获取截图区域，大小
 	::GetWindowRect(_hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	//::MoveWindow(_hwnd, 0, 0, _width, _height, 1);
 	POINT pt;
 	pt.x = rc.left; pt.y = rc.top;
-	::ScreenToClient(_hwnd, &pt);
-
-	//::GetWindowRect(_hwnd, &rc);
-	//::GetClientRect(_hwnd, &rcc);
-	//设置偏移
-	_client_x = -pt.x;
-	_client_y = -pt.y;
+	if (_render_type != RDT_NORMAL) {
+		::ScreenToClient(_hwnd, &pt);
+		//设置偏移
+		_client_x = -pt.x;
+		_client_y = -pt.y;
+	}
+	else {
+		_client_x = _client_y = 0;
+	}
+	
 
 	_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 	_bfh.bfSize = _bfh.bfOffBits + _width * _height * 4;
@@ -123,8 +126,12 @@ long bkgdi::updata_screen() {
 		::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 		::PrintWindow(_hwnd, _hmdc, 0);
 	}
+	int x1 = 0, y1 = 0;
+	if (_render_type == RDT_NORMAL) {
+		x1 = rc.left; y1 = rc.top;
+	}
 
-	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, CAPTUREBLT|SRCCOPY);
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, x1, y1, CAPTUREBLT|SRCCOPY);
 
 	//_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 

@@ -133,7 +133,7 @@ long bkbase::GetBindWindow() {
 }
 
 long bkbase::IsBind() {
-	return _is_bind && ::IsWindow(_hwnd);
+	return _pbkdisplay ? 1 : 0;
 }
 
 long bkbase::GetCursorPos(int&x, int&y) {
