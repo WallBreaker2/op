@@ -5,23 +5,25 @@
 #include "Tool.h"
 
 using std::to_wstring;
-
-bool check_transparent(cv::Mat* img) {
+//检查是否为透明图，返回透明像素个数
+int check_transparent(cv::Mat* img) {
 	if (img->rows < 2 || img->cols < 2)
-		return false;
+		return 0;
 	bool x = img->at<uint>(0, 0) == img->at<uint>(0, img->cols - 1) &&
 		img->at<uint>(0, 0) - img->at<uint>(img->rows - 1, 0) &&
 		img->at<uint>(0, 0) - img->at<uint>(img->rows - 1, img->cols - 1);
 	if (!x)
-		return false;
+		return 0;
 	uint c0 = img->at<uint>(0, 0);
 	int n = img->rows*img->cols;
 	uint* ptr = (uint*)img->data;
+	int ct = 0;
 	for (int i = 1; i < n; ++i) {
-		if (ptr[i] != c0)
-			return true;
+		if (ptr[i] == c0)
+			++ct;
 	}
-	return false;
+
+	return ct < n ? ct : 0;
 }
 
 
@@ -335,21 +337,22 @@ _quick_return:
 }
 
 long ImageBase::FindPic(std::vector<cv::Mat*>&pics, color_t dfcolor, double sim, long&x, long&y) {
-	vector<char> use_ts_match(pics.size());
+	vector<int> use_ts_match(pics.size());
 	for (int i = 0; i < pics.size(); ++i)
 		use_ts_match[i] = check_transparent(pics[i]);
 
 	for (int i = 0; i < _src.rows; ++i) {
 		for (int j = 0; j < _src.cols; ++j) {
 			for (int pic_id = 0; pic_id < pics.size();++pic_id) {
+				auto pic = pics[pic_id];
 				//step 1. 边界检查
-				if (i + pics[pic_id]->rows > _src.rows || j + pics[pic_id]->cols > _src.cols)
+				if (i + pic->rows > _src.rows || j + pic->cols > _src.cols)
 					continue;
 				//step 2. 计算最大误差
-				int max_err_ct = pics[pic_id]->rows*pics[pic_id]->cols*(1.0 - sim);
+				int max_err_ct = (pic->rows*pic->cols - use_ts_match[pic_id])*(1.0 - sim);
 				//step 3. 开始匹配
-				int match_ret = (use_ts_match[i] ? trans_match(j, i, pics[pic_id], dfcolor, max_err_ct) :
-					simple_match(j, i, pics[pic_id], dfcolor, max_err_ct));
+				int match_ret = (use_ts_match[pic_id] ? trans_match(j, i, pic, dfcolor, max_err_ct) :
+					simple_match(j, i, pic, dfcolor, max_err_ct));
 				if (match_ret) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return pic_id;
@@ -366,21 +369,22 @@ long ImageBase::FindPicEx(std::vector<cv::Mat*>&pics, color_t dfcolor, double si
 	int obj_ct = 0;
 	retstr.clear();
 
-	vector<char> use_ts_match(pics.size());
+	vector<int> use_ts_match(pics.size());
 	for (int i = 0; i < pics.size(); ++i)
 		use_ts_match[i] = check_transparent(pics[i]);
 
 	for (int i = 0; i < _src.rows; ++i) {
 		uchar* p = _src.ptr<uchar>(i);
 		for (int j = 0; j < _src.cols; ++j) {
-			for (auto pic : pics) {
+			for (int pic_id = 0; pic_id < pics.size();++i) {
+				auto pic = pics[pic_id];
 				//step 1. 边界检查
 				if (i + pic->rows > _src.rows || j + pic->cols > _src.cols)
 					continue;
 				//step 2. 计算最大误差
-				int max_err_ct = pic->rows*pic->cols*(1.0 - sim);
+				int max_err_ct = (pic->rows*pic->cols - use_ts_match[pic_id])*(1.0 - sim);
 				//step 3. 开始匹配
-				int match_ret = (use_ts_match[i] ? trans_match(j, i, pic, dfcolor, max_err_ct) :
+				int match_ret = (use_ts_match[pic_id] ? trans_match(j, i, pic, dfcolor, max_err_ct) :
 					simple_match(j, i, pic, dfcolor, max_err_ct));
 				if (match_ret) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);

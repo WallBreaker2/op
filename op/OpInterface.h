@@ -26,41 +26,7 @@ class ATL_NO_VTABLE OpInterface :
 	public IDispatchImpl<IOpInterface, &IID_IOpInterface, &LIBID_opLib, /*wMajor =*/ 1, /*wMinor =*/ 0>
 {
 public:
-	OpInterface()
-	{
-		//初始化目录
-		wchar_t buff[256];
-		::GetCurrentDirectoryW(256, buff);
-		_curr_path = buff;
-		_image_proc._curr_path = _curr_path;
-		//初始化键码表
-		_vkmap[L"back"] = VK_BACK; _vkmap[L"ctrl"] = VK_CONTROL;
-		_vkmap[L"alt"] = LVKF_ALT; _vkmap[L"shift"] = VK_SHIFT;
-		_vkmap[L"win"] = VK_LWIN;
-		_vkmap[L"space"] = L' '; _vkmap[L"tab"] = VK_TAB;
-		_vkmap[L"esc"] = VK_CANCEL;
-		_vkmap[L"enter"] = L'\r'; _vkmap[L"up"] = VK_UP;
-		_vkmap[L"down"] = VK_DOWN; _vkmap[L"left"] = VK_LEFT;
-		_vkmap[L"right"] = VK_RIGHT; 
-		_vkmap[L"f1"] = VK_F1; _vkmap[L"f2"] = VK_F2;
-		_vkmap[L"f3"] = VK_F3; _vkmap[L"f4"] = VK_F4;
-		_vkmap[L"f5"] = VK_F5; _vkmap[L"f6"] = VK_F6;
-		_vkmap[L"f7"] = VK_F7; _vkmap[L"f8"] = VK_F8;
-		_vkmap[L"f9"] = VK_F9; _vkmap[L"f10"] = VK_F10;
-		_vkmap[L"f11"] = VK_F11; _vkmap[L"f12"] = VK_F12;
-		//初始化 op 路径 & name
-		static bool is_init = false;
-		if (!is_init) {
-			g_op_path.resize(512);
-			DWORD real_size = ::GetModuleFileNameW(gInstance, g_op_path.data(), 512);
-			g_op_path.resize(real_size);
-
-			g_op_name = g_op_path.substr(g_op_path.rfind(L"\\") + 1);
-			g_op_path = g_op_path.substr(0, g_op_path.rfind(L"\\"));
-
-			is_init = true;
-		}
-	}
+	OpInterface();
 
 DECLARE_REGISTRY_RESOURCEID(106)
 
