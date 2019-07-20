@@ -72,7 +72,7 @@ BOOL WinApi::EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type)
 }
 
 
-DWORD  WinApi::FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wchar_t *retstring, bool isGW_OWNER, bool isVisible, wchar_t  *process_name)
+DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring, bool isGW_OWNER, bool isVisible, const wchar_t  *process_name)
 {
 	hchile = ::GetWindow(hchile, GW_HWNDFIRST);
 	while (hchile != NULL)
@@ -295,7 +295,7 @@ DWORD  WinApi::FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wch
 //16 : 匹配可见的窗口
 //
 //32 : 匹配出的窗口按照窗口打开顺序依次排列
-bool WinApi::EnumWindow(HWND parent, wchar_t *title, wchar_t *class_name, LONG filter, wchar_t *retstring, wchar_t  *process_name)
+bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_name, LONG filter, wchar_t *retstring, const wchar_t  *process_name)
 {
 	bool bret = false;
 	bool bZwindow = false;//匹配出的窗口按照窗口打开顺序依次排列
@@ -2560,7 +2560,7 @@ bool WinApi::EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *sp
 	return bret;
 }
 
-bool WinApi::EnumProcess(wchar_t *name, wchar_t *retstring)
+bool WinApi::EnumProcess(const wchar_t *name, wchar_t *retstring)
 {
 	bool bret = false;
 	retstringlen = 0;
@@ -2611,7 +2611,7 @@ long WinApi::FindWindowEx(long parent, const wchar_t* class_name, const wchar_t*
 	return (long)::FindWindowExW((HWND)parent, NULL, class_name, title);
 }
 
-bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &rethwnd, wchar_t *process_name, DWORD Pid)
+bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title, LONG &rethwnd, const wchar_t *process_name, DWORD Pid)
 {
 	bool bret = false;
 	rethwnd = 0;
@@ -2661,8 +2661,8 @@ bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &reth
 						HWND hchile = ::GetWindow(p, GW_CHILD);
 						if (hchile != NULL)
 						{
-							wchar_t * classname = NULL;
-							wchar_t *titles = NULL;
+							const wchar_t * classname = NULL;
+							const wchar_t *titles = NULL;
 							if (wcslen(class_name) > 0)
 								classname = class_name;
 							if (wcslen(title) > 0)
@@ -2719,8 +2719,8 @@ bool WinApi::FindWindowByProcess(wchar_t *class_name, wchar_t *title, LONG &reth
 						HWND hchile = ::GetWindow(p, GW_CHILD);
 						if (hchile != NULL)
 						{
-							wchar_t * classname = NULL;
-							wchar_t *titles = NULL;
+							const wchar_t * classname = NULL;
+							const wchar_t *titles = NULL;
 							if (wcslen(class_name) > 0)
 								classname = class_name;
 							if (wcslen(title) > 0)

@@ -28,7 +28,7 @@ inline int HEX2INT(wchar_t c) {
 
 using images_t = std::vector<std::wstring>;
 //检查是否为透明图
-bool check_transparent(cv::Mat* img);
+int check_transparent(cv::Mat* img);
 
 
 /*

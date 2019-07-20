@@ -14,13 +14,13 @@ public:
 	DWORD WindowVerion;
 	DWORD IsEuemprosuccess;
 	DWORD npid[MAX_PATH];
-	bool EnumWindow(HWND parent, wchar_t *title, wchar_t *class_name, LONG filter, wchar_t *retstring, wchar_t  *process_name = NULL);
+	bool EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_name, LONG filter, wchar_t *retstring, const wchar_t  *process_name = NULL);
 	bool EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *spec2, LONG flag2, LONG type2, LONG sort, wchar_t *retstring = NULL);
-	bool EnumProcess(wchar_t *name, wchar_t *retstring);
+	bool EnumProcess(const wchar_t *name, wchar_t *retstring);
 	bool ClientToScreen(LONG hwnd, LONG &x, LONG &y);
 	long FindWindow(const wchar_t *class_name, const wchar_t*title);
 	long FindWindowEx(long parent, const wchar_t *class_name, const wchar_t*title);
-	bool FindWindowByProcess(wchar_t *class_name, wchar_t *titl, LONG &rethwnd, wchar_t *process_name = NULL, DWORD Pid = 0);
+	bool FindWindowByProcess(const wchar_t *class_name, const wchar_t *titl, LONG &rethwnd, const wchar_t *process_name = NULL, DWORD Pid = 0);
 	bool GetClientRect(LONG hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1);
 	bool GetClientSize(LONG hwnd, LONG &width, LONG &height);
 	bool GetMousePointWindow(LONG &rethwnd, LONG x = -1, LONG y = -1);
@@ -40,7 +40,7 @@ public:
 	//2019.3
 	long RunApp(const wstring& cmd, long mode);
 private:
-	DWORD  FindChildWnd(HWND hchile, wchar_t *title, wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, wchar_t  *process_name = NULL);
+	DWORD  FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, const wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);
 	int GetProcessNumber();//获取CPU个数
 	// 时间格式转换
