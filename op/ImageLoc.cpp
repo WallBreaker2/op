@@ -201,6 +201,27 @@ long ImageBase::trans_match(long x, long y, cv::Mat* timg, color_t dfcolor, int 
 	return 1;
 }
 
+//long ImageBase::ndiff_match(long x, long y, cv::Mat* timg, int max_error) {
+//	int err_ct = 0, k;
+//	//background color
+//	uint c0 = timg->at<uint>(0, 0);
+//	for (int i = 0; i < timg->rows; ++i) {
+//		auto p1 = _src.ptr<uchar>(i + y) + x * 4;
+//		auto p2 = timg->ptr<uchar>(i);
+//		for (int j = 0; j < timg->cols; ++j) {
+//			if (*(uint*)p2 != c0) {//ignore background color
+//				if (*(uint*)p1 - *(uint*)p2)
+//					++err_ct;
+//				if (err_ct > max_error)
+//					return 0;
+//			}
+//
+//			p1 += 4; p2 += 3;
+//		}
+//	}
+//	return 1;
+//}
+
 long ImageBase::GetPixel(long x, long y, color_t&cr) {
 	if (!is_valid(x, y)) {
 		setlog("Invalid pos:%d %d", x, y);
