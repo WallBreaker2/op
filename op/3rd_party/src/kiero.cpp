@@ -598,7 +598,7 @@ kiero::Status::Enum kiero::init(int _renderType)
 
 			for (int i = 0; i < size; i++)
 			{
-				g_methodsTable[i] = (uint64_t)::GetProcAddress(libOpenGL32, methodsNames[i]);
+				g_methodsTable[i] = (uint64_t)::GetProcAddress(libegl, methodsNames[i]);
 			}
 #else
 			g_methodsTable = (uint32_t*)::calloc(size, sizeof(uint32_t));

@@ -28,7 +28,6 @@ long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim)
 	str2colordfs(scolor, vcolor);
 	return ImageBase::CmpColor(x, y, vcolor, sim);
 
-	return 0;
 	
 }
 

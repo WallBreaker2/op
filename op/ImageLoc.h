@@ -74,6 +74,8 @@ public:
 	long simple_match(long x, long y, cv::Mat* timg,color_t dfcolor,int max_error);
 
 	long trans_match(long x, long y, cv::Mat* timg, color_t dfcolor, int max_error);
+	//ÎÞÆ«Æ¥Åä
+	/*long ndiff_match(long x, long y, cv::Mat* timg, int max_error);*/
 
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.cols && y < _src.rows;
