@@ -61,7 +61,7 @@ op::~op() {
 long  op::Ver(std::wstring& ret) {
 	
 	//Tool::setlog("address=%d,str=%s", ver, ver);
-
+	ret = _T(OP_VERSION);
 	return S_OK;
 }
 

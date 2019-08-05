@@ -210,7 +210,8 @@
     <PostBuildEvent>
       <Command>copy $(SolutionDir)doc\*.chm $(SolutionDir)bin\x86 /y
 copy $(SolutionDir)op\op_i.h $(SolutionDir)include\op.h /y
-copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
+copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y
+copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -276,6 +277,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="bkdx_gl.cpp" />
+    <ClCompile Include="libop.cpp" />
     <ClCompile Include="query_api.cpp" />
     <ClCompile Include="xhook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
@@ -323,6 +325,7 @@ copy $(SolutionDir)op\op_i.c $(SolutionDir)include\op.c /y</Command>
     <ClInclude Include="include\bitfunc.h" />
     <ClInclude Include="include\color.h" />
     <ClInclude Include="include\Dict.h" />
+    <ClInclude Include="libop.h" />
     <ClInclude Include="query_api.h" />
     <ClInclude Include="xhook.h" />
     <ClInclude Include="ImageLoc.h" />
