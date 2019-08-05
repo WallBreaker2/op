@@ -77,6 +77,9 @@
     <Filter Include="Algorithm\Bit">
       <UniqueIdentifier>{4b0c3175-3ca6-4736-ba45-3d277e788b5b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libop">
+      <UniqueIdentifier>{cfd85035-dbb8-416c-9f11-e7ebb83ee607}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -147,6 +150,9 @@
     </ClCompile>
     <ClCompile Include="3rd_party\src\kiero.cpp">
       <Filter>3rd_party</Filter>
+    </ClCompile>
+    <ClCompile Include="libop.cpp">
+      <Filter>libop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -236,6 +242,9 @@
     </ClInclude>
     <ClInclude Include="3rd_party\include\kiero.h">
       <Filter>3rd_party</Filter>
+    </ClInclude>
+    <ClInclude Include="libop.h">
+      <Filter>libop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
