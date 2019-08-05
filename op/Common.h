@@ -59,8 +59,8 @@ constexpr int IBF_R8G8B8A8 = 0;
 constexpr int IBF_B8G8R8A8 = 1;
 constexpr int IBF_R8G8B8 = 2;
 
-const size_t MAX_IMAGE_WIDTH = 1<<11;
-const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
+//const size_t MAX_IMAGE_WIDTH = 1<<11;
+//const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 
 #define SHARED_RES_NAME_FORMAT L"op_mutex_%d"
 #define MUTEX_NAME_FORMAT L"op_shared_mem_%d"

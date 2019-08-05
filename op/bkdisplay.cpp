@@ -18,12 +18,17 @@ bkdisplay::~bkdisplay()
 }
 
 long bkdisplay::bind_init() {
+	int res_size = 0;
+	RECT rc;
+	assert(::IsWindow(_hwnd));
+	::GetClientRect(_hwnd, &rc);
+	res_size = (rc.right - rc.left)*(rc.bottom - rc.top) * 4;
 	wsprintf(_shared_res_name, SHARED_RES_NAME_FORMAT, _hwnd);
 	wsprintf(_mutex_name, MUTEX_NAME_FORMAT, _hwnd);
 	//bind_release();
 	try {
 		_shmem = new sharedmem();
-		_shmem->open_create(_shared_res_name, SHARED_MEMORY_SIZE);
+		_shmem->open_create(_shared_res_name, res_size);
 		_pmutex = new promutex();
 		_pmutex->open_create(_mutex_name);
 	}
