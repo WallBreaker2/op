@@ -21,7 +21,7 @@ long bkdisplay::bind_init() {
 	int res_size = 0;
 	RECT rc;
 	assert(::IsWindow(_hwnd));
-	::GetClientRect(_hwnd, &rc);
+	::GetWindowRect(_hwnd, &rc);
 	res_size = (rc.right - rc.left)*(rc.bottom - rc.top) * 4;
 	wsprintf(_shared_res_name, SHARED_RES_NAME_FORMAT, _hwnd);
 	wsprintf(_mutex_name, MUTEX_NAME_FORMAT, _hwnd);
