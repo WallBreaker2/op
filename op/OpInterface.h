@@ -81,6 +81,8 @@ public:
 	STDMETHOD(InjectDll)(BSTR process_name,BSTR dll_name, LONG* ret);
 	//设置是否开启或者关闭插件内部的图片缓存机制
 	STDMETHOD(EnablePicCache)(LONG enable, LONG* ret);
+	//取上次操作的图色区域，保存为file(24位位图)
+	STDMETHOD(CapturePre)(BSTR file_name, LONG* ret);
 	//---------------------algorithm-------------------------------
 	//A星算法
 	STDMETHOD(AStarFindPath)(LONG mapWidth,LONG mapHeight,BSTR disable_points,LONG beginX,LONG beginY, LONG endX,LONG endY,BSTR* path);

@@ -1,13 +1,12 @@
 #include "stdafx.h"
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
+
 #include <list>
 #include "include/color.h"
 #include "ocr.h"
-using cv::Mat;
+
 
 //垂直方向投影
-void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_put)
+void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& out_put)
 {
 	//qDebug("in x rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
@@ -16,14 +15,14 @@ void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_pu
 
 	//int* blackcout = new int[binary.cols];
 	std::vector<int> ys;
-	ys.resize(binary.cols);
-	memset(&ys[0], 0, binary.cols * 4);
+	ys.resize(binary.width);
+	memset(&ys[0], 0, binary.width * 4);
 
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
 		for (int j = rc.x1; j < rc.x2; j++)
 		{
-			if (binary.at<uchar>(i, j) == 0)
+			if (binary.at(i, j) == 0)
 			{
 				ys[j]++; //垂直投影按列在x轴进行投影
 			}
@@ -62,7 +61,7 @@ void binshadowx(const Mat& binary, const rect_t& rc, std::vector<rect_t>& out_pu
 
 }
 //水平方向投影并行分割
-void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put)
+void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&out_put)
 {
 	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
@@ -71,14 +70,14 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 	//水平投影
 	//int* pointcount = new int[binary.rows]; //在二值图片中记录行中特征点的个数
 	std::vector<int> xs;
-	xs.resize(binary.rows);
-	memset(&xs[0], 0, binary.rows * 4);//注意这里需要进行初始化
+	xs.resize(binary.height);
+	memset(&xs[0], 0, binary.height * 4);//注意这里需要进行初始化
 
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
 		for (int j = rc.x1; j < rc.x2; j++)
 		{
-			if (binary.at<uchar>(i, j) == WORD_COLOR)
+			if (binary.at(i, j) == WORD_COLOR)
 			{
 				xs[i]++; //记录每行中黑色点的个数 //水平投影按行在y轴上的投影
 			}
@@ -119,16 +118,16 @@ void binshadowy(const Mat& binary, const rect_t& rc, std::vector<rect_t>&out_put
 
 }
 
-void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
+void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
 	//水平裁剪
 	std::vector<int>v;
 
 	int i, j;
-	v.resize(binary.rows);
+	v.resize(binary.width);
 	for (auto&it : v)it = 0;
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
-			v[i] += (binary.at<uchar>(i, j) == 0 ? 1 : 0);
+			v[i] += (binary.at(i, j) == 0 ? 1 : 0);
 	}
 	for (i = inrc.y1 + 1; i < inrc.y2; ++i)
 		if (v[i - 1] == 0 && v[i] != 0) {
@@ -141,11 +140,11 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 			break;
 		}
 	//垂直裁剪
-	v.resize(binary.cols);
+	v.resize(binary.height);
 	for (auto&it : v)it = 0;
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
-			v[j] += binary.at<uchar>(i, j) == 0 ? 1 : 0;
+			v[j] += binary.at(i, j) == 0 ? 1 : 0;
 	}
 	for (j = inrc.x1 + 1; i < inrc.x2; ++i)
 		if (v[j - 1] == 0 && v[j] != 0) {
@@ -159,13 +158,13 @@ void bin_image_cut(const cv::Mat& binary, const rect_t&inrc, rect_t& outrc) {
 		}
 }
 
-inline int full_match(const cv::Mat& binary, rect_t& rc, const word_t::cline_t* lines) {
+inline int full_match(const ImageBin& binary, rect_t& rc, const word_t::cline_t* lines) {
 	//匹配
 	unsigned __int32 val;
 	for (int x = rc.x1; x < rc.x2; ++x) {
 		val = 0;
 		for (int y = rc.y1, id = 31; y < rc.y2; ++y, --id) {
-			if (binary.at<uchar>(y, x) == 0)
+			if (binary.at(y, x) == 0)
 				SET_BIT(val, id);
 		}
 		if (lines[x - rc.x1] != val)
@@ -177,14 +176,14 @@ inline int full_match(const cv::Mat& binary, rect_t& rc, const word_t::cline_t* 
 	return 1;
 }
 
-inline int part_match(const cv::Mat& binary, rect_t& rc, int max_error, const word_t::cline_t* lines) {
+inline int part_match(const ImageBin& binary, rect_t& rc, int max_error, const word_t::cline_t* lines) {
 	//匹配
 	unsigned __int32 sval, wval;
 	int error_ct = 0;
 	for (int x = rc.x1; x < rc.x2; ++x) {
 		wval = lines[x - rc.x1];
 		for (int y = rc.y1, id = 31; y < rc.y2; ++y, --id) {
-			sval = binary.at<uchar>(y, x);
+			sval = binary.at(y, x);
 			if ((sval & 1) == GET_BIT(wval, id))
 				++error_ct;
 			if (error_ct > max_error)
@@ -194,17 +193,17 @@ inline int part_match(const cv::Mat& binary, rect_t& rc, int max_error, const wo
 	return 1;
 }
 
-inline void fill_rect(cv::Mat& record, const rect_t& rc) {
-	//匹配
+inline void fill_rect(ImageBin& record, const rect_t& rc) {
+	
 	int w = rc.width();
 	for (int y = rc.y1; y < rc.y2; ++y) {
-		uchar* p = record.ptr<uchar>(y) + rc.x1;
+		uchar* p = record.ptr(y) + rc.x1;
 		memset(p, 1, sizeof(uchar)*w);
 	}
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps) {
+void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps) {
 	int i, j, y;
 	//outstr.clear();
 	//给定下一个区
@@ -215,7 +214,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 	for (i = rc.y1; i < rc.y2; ++i) {
 		//遍历列
 		for (j = rc.x1; j < rc.x2; ++j) {
-			if (record.at<uchar>(i, j))
+			if (record.at(i, j))
 				continue;
 			point_t pt;
 			pt.x = j; pt.y = i;
@@ -236,7 +235,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
 					{
 						for (y = crc.y1; y < crc.y2; ++y)
-							if (binary.at<uchar>(y, crc.x2) == 0)
+							if (binary.at(y, crc.x2) == 0)
 								break;
 						if (y == crc.y2) {
 							//outstr.append(it.info._char);
@@ -268,7 +267,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 
 }
 
-void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dict& dict, int *max_error, std::map<point_t, std::wstring>& ps) {
+void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const Dict& dict, int *max_error, std::map<point_t, std::wstring>& ps) {
 	int i, j, y;
 	if (rc.width() <= 0 || rc.height() <= 0)
 		return;
@@ -276,7 +275,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 	for (i = rc.y1; i < rc.y2; ++i) {
 		//遍历列
 		for (j = rc.x1; j < rc.x2; ++j) {
-			if (record.at<uchar>(i, j))
+			if (record.at(i, j))
 				continue;
 			point_t pt;
 			pt.x = j; pt.y = i;
@@ -300,7 +299,7 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
 					{
 						for (y = crc.y1; y < crc.y2; ++y)
-							if (binary.at<uchar>(y, crc.x2) == 0)
+							if (binary.at(y, crc.x2) == 0)
 								break;
 						if (y == crc.y2) {
 							//outstr.append(it.info._char);
@@ -333,17 +332,17 @@ void _bin_ocr(const cv::Mat& binary, cv::Mat& record, const rect_t&rc, const Dic
 }
 
 
-void bin_ocr(const cv::Mat& binary, cv::Mat& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps) {
+void bin_ocr(const ImageBin& binary, ImageBin& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps) {
 	std::vector<rect_t> out_y, out_x;
 	ps.clear();
 	if (dict.words.empty())return;
-	if (binary.cols == 0 || binary.rows == 0)
+	if (binary.empty())
 		return;
-	record.create(binary.size(), CV_8UC1);
-	memset(record.data, 0, sizeof(uchar)*record.rows*record.cols);
+	record.create(binary.width,binary.height);
+	memset(record.data(), 0, sizeof(uchar)*record.width*record.height);
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
-	rc.x2 = binary.cols; rc.y2 = binary.rows;
+	rc.x2 = binary.height; rc.y2 = binary.width;
 	std::vector<rect_t> vrcx, vrcy;
 	binshadowy(binary, rc, vrcy);
 	/*

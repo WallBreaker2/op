@@ -33,7 +33,7 @@ long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std
 		return 1;
 	}
 	out.clear();
-	out = curr_path + L"/" + file;
+	out = curr_path + L"\\" + file;
 	if (::PathFileExistsW(out.c_str())) {
 		return 1;
 	}

@@ -3,9 +3,10 @@
 #define __DICT_H_
 #include <vector>
 #include <string>
-#include <math.h>
-#include "../op/include/bitfunc.h"
-#include <opencv2/core/mat.hpp>
+#include <algorithm>
+#include "bitfunc.h"
+#include "Image.hpp"
+
 //#define SET_BIT(x, idx) x |= 1u << (idx)
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
@@ -49,12 +50,12 @@ struct word_t {
 		return true;
 	}
 	void set_chars(const std::wstring&s) {
-		memcpy(info._char, s.c_str(), std::min<int>(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
+		memcpy(info._char, s.c_str(), min(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
 	}
 	/*从 dm 字库中 的一个点阵转化为op的点阵*/
 	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
 		int bin[50] = { 0 };
-		ct = std::min<int>(ct, 88);
+		ct = min(ct, 88);
 		int i = 0;
 		auto hex2bin = [](wchar_t c) {
 			return c <= L'9' ? c - L'0' : c - L'A'+10;
@@ -149,14 +150,14 @@ struct Dict {
 		file.write((char*)&words[0], sizeof(word_t)*info._word_count);
 		file.close();
 	}
-	void add_word(const cv::Mat& binary, const rect_t& rc) {
-		int x2 = std::min<int>(rc.x1 + 32, rc.x2);
-		int y2 = std::min<int>(rc.y1 + 32, rc.y2);
+	void add_word(const ImageBin& binary, const rect_t& rc) {
+		int x2 = min(rc.x1 + 32, rc.x2);
+		int y2 = min(rc.y1 + 32, rc.y2);
 		word_t word;
 		for (int j = rc.x1; j < x2; ++j) {
 			unsigned __int32 x = 0, val;
 			for (int i = rc.y1, id = 0; i < y2; ++i, ++id) {
-				val = binary.at<uchar>(i, j);
+				val = binary.at(i, j);
 				if (val == 0) {
 					SET_BIT(x, 31 - id);
 					++word.info.bit_count;
