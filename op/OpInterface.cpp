@@ -108,6 +108,11 @@ STDMETHODIMP OpInterface::EnablePicCache(LONG enable, LONG* ret) {
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::CapturePre(BSTR file, LONG* ret) {
+	*ret = _image_proc.Capture(file);
+	return S_OK;
+}
+
 STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disable_points, LONG beginX, LONG beginY, LONG endX, LONG endY, BSTR* path) {
 	AStar as;
 	vector<Vector2i>walls;

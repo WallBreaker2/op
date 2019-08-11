@@ -18,9 +18,8 @@ ImageProc::~ImageProc()
 long ImageProc::Capture(const std::wstring& file) {
 	wstring fpath = file;
 	if (fpath.find(L'\\') == -1)
-		return cv::imwrite(_ws2string(_curr_path + L"\\" + fpath), _src);
-	else
-		return cv::imwrite(_ws2string(fpath), _src);
+		fpath = _curr_path + L"\\" + fpath;
+	return _src.write(fpath.data());
 }
 
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
@@ -90,7 +89,7 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 }
 //Í¼ÐÎ¶¨Î»
 long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long &y) {
-	vector<cv::Mat*>vpic;
+	vector<Image*>vpic;
 	//vector<color_t> vcolor;
 	color_t dfcolor;
 	files2mats(files, vpic);
@@ -105,7 +104,7 @@ long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, 
 }
 //
 long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr) {
-	vector<cv::Mat*>vpic;
+	vector<Image*>vpic;
 	//vector<color_t> vcolor;
 	color_t dfcolor;
 	files2mats(files, vpic);
@@ -192,9 +191,9 @@ void ImageProc::str2colors(const wstring& color, std::vector<color_t>& vcolor) {
 	}
 }
 
-void ImageProc::files2mats(const wstring& files, std::vector<cv::Mat*>& vpic) {
+void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic) {
 	std::vector<wstring>vstr, vstr2;
-	cv::Mat* pm;
+	Image* pm;
 	vpic.clear();
 	split(files, vstr, L"|");
 	wstring tp;
@@ -207,7 +206,7 @@ void ImageProc::files2mats(const wstring& files, std::vector<cv::Mat*>& vpic) {
 			pm = &_pic_cache[tp];
 		}
 		else {
-			_pic_cache[tp] = cv::imread(_ws2string(tp));
+			_pic_cache[tp].read(tp.data());
 			pm = &_pic_cache[tp];
 		}
 		vpic.push_back(pm);
@@ -264,7 +263,7 @@ long ImageProc::OcrFromFile(const wstring& files, const wstring& color, double s
 	vector<color_df_t> colors;
 	str2colordfs(color, colors);
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
-		_src = cv::imread(_ws2string(fullpath));
+		_src.read(fullpath.data());
 		
 		ImageBase::bgr2binary(colors);
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
@@ -279,7 +278,7 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 	wstring fullpath;
 
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
-		_src = cv::imread(_ws2string(fullpath));
+		_src.read(fullpath.data());
 		ImageBase::auto2binary();
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}

@@ -66,13 +66,14 @@ public:
 	//当前目录
 	wstring _curr_path;
 	//图片缓存
-	std::map<wstring, cv::Mat> _pic_cache;
+	std::map<wstring, Image> _pic_cache;
 	//是否使用图片缓存，默认开启
 	int _enable_cache;
+	
 	
 private:
 	void str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
 	void str2colors(const wstring& color, std::vector<color_t>& vcolor);
-	void files2mats(const wstring& files, std::vector<cv::Mat*>& vpic);
+	void files2mats(const wstring& files, std::vector<Image*>& vpic);
 };
 
