@@ -91,12 +91,15 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${BLACKBONE_LIB})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${minhook_lib})
 #target_link_libraries(${PROJECT_NAME} ${OPENCV_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME}  ${OpenCV_LIBS})
 target_link_libraries(${PROJECT_NAME} msvcrt.lib)
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
 
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
+
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION bin)
+
 
 
 

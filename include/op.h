@@ -110,7 +110,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE InjectDll( 
-            BSTR process_name,
+            /* [in] */ BSTR process_name,
             BSTR dll_name,
             LONG *ret) = 0;
         
@@ -573,6 +573,10 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CapturePre( 
+            /* [in] */ BSTR filename,
+            /* [retval][out] */ LONG *ret) = 0;
+        
     };
     
     
@@ -660,7 +664,7 @@ EXTERN_C const IID IID_IOpInterface;
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *InjectDll )( 
             IOpInterface * This,
-            BSTR process_name,
+            /* [in] */ BSTR process_name,
             BSTR dll_name,
             LONG *ret);
         
@@ -1205,6 +1209,11 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CapturePre )( 
+            IOpInterface * This,
+            /* [in] */ BSTR filename,
+            /* [retval][out] */ LONG *ret);
+        
         END_INTERFACE
     } IOpInterfaceVtbl;
 
@@ -1507,6 +1516,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
+
+#define IOpInterface_CapturePre(This,filename,ret)	\
+    ( (This)->lpVtbl -> CapturePre(This,filename,ret) ) 
 
 #endif /* COBJMACROS */
 

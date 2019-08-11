@@ -120,11 +120,11 @@ long bkgdi::updata_screen() {
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 	
 	if (_render_type == RDT_GDI)
-		::PrintWindow(_hwnd, _hmdc, 0);
+		::PrintWindow(_hwnd, _hdc, 0);
 	else if (_render_type == RDT_GDI2) {
 		::UpdateWindow(_hwnd);
 		::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-		::PrintWindow(_hwnd, _hmdc, 0);
+		::PrintWindow(_hwnd, _hdc, 0);
 	}
 	int x1 = 0, y1 = 0;
 	if (_render_type == RDT_NORMAL) {
@@ -147,7 +147,7 @@ long bkgdi::updata_screen() {
 	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
-	if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
+	//if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
 	return 1;
 
 }

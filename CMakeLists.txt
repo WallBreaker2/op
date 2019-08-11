@@ -7,7 +7,9 @@ cmake_minimum_required (VERSION 3.0)
 #SET(CMAKE_TOOLCHAIN_FILE "E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmake")
 SET(VCPKG_TARGET_TRIPLET x86-windows-static)
 #SET(VcpkgConfiguration release)
-message(warning ${VCPKG_TARGET_TRIPLET})
+set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+
+message(warning ${VCPKG_INSTALL_PREFIX})
 
 #FIND_PACKAGE(Opencv REQUIRED)
 

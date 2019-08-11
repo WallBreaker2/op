@@ -10,7 +10,7 @@
 #include "Injecter.h"
 #include "Tool.h"
 #include "AStar.hpp"
-#include <filesystem>
+
 // OpInterface
 
 op::op() {
@@ -66,15 +66,33 @@ long  op::Ver(std::wstring& ret) {
 }
 
 long  op::SetPath(const wchar_t* path, long* ret) {
-	std::filesystem::path p = path;
-	auto fullpath = std::filesystem::absolute(p);
-	_curr_path = fullpath.generic_wstring();
-	_image_proc->_curr_path = _curr_path;
-	*ret = 1;
+	wstring fpath = path;
+	if ( fpath.find(L'\\')!=-1&&::PathFileExistsW(path)) {
+		_curr_path = path;
+		_image_proc->_curr_path = _curr_path;
+		*ret = 1;
+	}
+	else {
+		
+		if (!fpath.empty() && fpath[0] != L'\\')
+			fpath = _curr_path + L'\\' + fpath;
+		else
+			fpath = _curr_path + fpath;
+		if (::PathFileExistsW(fpath.data())) {
+			_curr_path = path;
+			_image_proc->_curr_path = _curr_path;
+			*ret = 1;
+		}
+		else
+			*ret = 0;
+	}
+	
+	
 	return S_OK;
 }
 
 long  op::GetPath(std::wstring& path) {
+	path = _curr_path;
 	return S_OK;
 }
 
