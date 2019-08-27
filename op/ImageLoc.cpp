@@ -163,10 +163,10 @@ template<bool nodfcolor>
 long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int max_error) {
 	int err_ct = 0, k;
 	if (nodfcolor) {
-		for (int i = 0; i < timg->width; ++i) {
+		for (int i = 0; i < timg->height; ++i) {
 			auto p1 = _src.ptr<uint>(i + y) + x;
 			auto p2 = timg->ptr<uint>(i);
-			for (int j = 0; j < timg->height; ++j) {
+			for (int j = 0; j < timg->width; ++j) {
 				if (*p1++!=*p2++)
 					++err_ct;
 				if (err_ct > max_error)
@@ -175,10 +175,10 @@ long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int m
 		}
 	}
 	else {
-		for (int i = 0; i < timg->width; ++i) {
+		for (int i = 0; i < timg->height; ++i) {
 			auto p1 = _src.ptr<uchar>(i + y) + x * 4;
 			auto p2 = timg->ptr<uchar>(i);
-			for (int j = 0; j < timg->height; ++j) {
+			for (int j = 0; j < timg->width; ++j) {
 				if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
 					++err_ct;
 				if (err_ct > max_error)
