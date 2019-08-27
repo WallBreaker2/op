@@ -251,8 +251,8 @@ long ImageProc::OcrAuto(double sim, std::wstring& retstr) {
 	
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	/*ImageBase::auto2binary();
-	return ImageBase::Ocr(_dicts[_curr_idx], sim,retstr);*/
+	ImageBase::auto2binary();
+	return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	//_tes.SetImage(_src.pdata, _src.width, _src.height, 4, _src.width * 4);
 	//_tes.gette
 	return 0;
