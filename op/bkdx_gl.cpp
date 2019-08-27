@@ -2,7 +2,8 @@
 #include "stdafx.h"
 
 #include "bkdx_gl.h"
-#include "Tool.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include <exception>
 #include "3rd_party/include/BlackBone/Process/Process.h"
 #include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"

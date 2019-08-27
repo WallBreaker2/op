@@ -3,7 +3,7 @@
 #include <Tlhelp32.h> 
 #include <psapi.h>
 #pragma comment ( lib, "psapi.lib" )
-#include "Tool.h"
+
 
 
 WinApi::WinApi(void)

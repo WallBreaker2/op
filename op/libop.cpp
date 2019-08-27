@@ -2,13 +2,15 @@
 
 #include "stdafx.h"
 #include "libop.h"
-#include "Common.h"
+#include "optype.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include "WinApi.h"
 #include "BKbase.h"
 #include "ImageProc.h"
 #include "Cmder.h"
 #include "Injecter.h"
-#include "Tool.h"
+
 #include "AStar.hpp"
 
 // OpInterface
@@ -131,18 +133,24 @@ long  op::EnablePicCache(long enable, long* ret) {
 	return S_OK;
 }
 
+long  op::CapturePre(BSTR file, LONG* ret) {
+	*ret = _image_proc->Capture(file);
+	return S_OK;
+}
+
 long  op::AStarFindPath(long mapWidth, long mapHeight, const wchar_t* disable_points, long beginX, long beginY, long endX, long endY, std::wstring& path) {
 	AStar as;
-	vector<Vector2i>walls;
+	using Vec2i = AStar::Vec2i;
+	vector<Vec2i>walls;
 	vector<wstring> vstr;
-	Vector2i tp;
+	Vec2i tp;
 	split(disable_points, vstr, L"|");
 	for (auto&it : vstr) {
-		if (swscanf(it.c_str(), L"%d,%d", &tp[0], &tp[1]) != 2)
+		if (swscanf(it.c_str(), L"%d,%d", &tp.x, &tp.y) != 2)
 			break;
 		walls.push_back(tp);
 	}
-	list<Vector2i> paths;
+	list<Vec2i> paths;
 	
 	as.set_map( mapWidth, mapHeight , walls);
 	as.findpath(beginX,beginY , endX,endY , paths);
@@ -150,7 +158,7 @@ long  op::AStarFindPath(long mapWidth, long mapHeight, const wchar_t* disable_po
 	wchar_t buf[20];
 	for (auto it = paths.rbegin(); it != paths.rend(); ++it) {
 		auto v = *it;
-		wsprintf(buf, L"%d,%d", v[0], v[1]);
+		wsprintf(buf, L"%d,%d", v.x, v.y);
 		pathstr += buf;
 		pathstr.push_back(L'|');
 	}

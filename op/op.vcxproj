@@ -261,7 +261,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
-    <ClCompile Include="common.cpp" />
+    <ClCompile Include="globalVar.cpp" />
     <ClCompile Include="compreg.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -308,7 +308,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Tool.cpp" />
+    <ClCompile Include="helpfunc.cpp" />
     <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -328,6 +328,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="include\Dict.h" />
     <ClInclude Include="libop.h" />
     <ClInclude Include="query_api.h" />
+    <ClInclude Include="optype.h" />
     <ClInclude Include="xhook.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="ImageProc.h" />
@@ -339,8 +340,8 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="Tool.h" />
+    <ClInclude Include="globalVar.h" />
+    <ClInclude Include="helpfunc.h" />
     <ClInclude Include="WinApi.h" />
   </ItemGroup>
   <ItemGroup>

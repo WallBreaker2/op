@@ -123,7 +123,7 @@ void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
 	std::vector<int>v;
 
 	int i, j;
-	v.resize(binary.width);
+	v.resize(binary.height);
 	for (auto&it : v)it = 0;
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
@@ -140,7 +140,7 @@ void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
 			break;
 		}
 	//´¹Ö±²Ã¼ô
-	v.resize(binary.height);
+	v.resize(binary.width);
 	for (auto&it : v)it = 0;
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
@@ -342,7 +342,7 @@ void bin_ocr(const ImageBin& binary, ImageBin& record, const Dict& dict, double 
 	memset(record.data(), 0, sizeof(uchar)*record.width*record.height);
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
-	rc.x2 = binary.height; rc.y2 = binary.width;
+	rc.x2 = binary.width; rc.y2 = binary.height;
 	std::vector<rect_t> vrcx, vrcy;
 	binshadowy(binary, rc, vrcy);
 	/*

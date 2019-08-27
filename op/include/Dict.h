@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include "bitfunc.h"
 #include "Image.hpp"
 
@@ -95,6 +96,8 @@ struct Dict {
 	Dict() {}
 	std::vector<word_t>words;
 	void read_dict(const std::string&s) {
+		if (s.find(".txt") != -1)
+			return read_dict_dm(s);
 		clear();
 		std::fstream file;
 		file.open(s, std::ios::in | std::ios::binary);

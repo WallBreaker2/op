@@ -109,9 +109,6 @@
     <ClCompile Include="Bkmouse.cpp">
       <Filter>Background\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="common.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="ImageLoc.cpp">
       <Filter>Algorithm</Filter>
     </ClCompile>
@@ -136,9 +133,6 @@
     <ClCompile Include="ocr.cpp">
       <Filter>Algorithm</Filter>
     </ClCompile>
-    <ClCompile Include="Tool.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="xhook.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
@@ -153,6 +147,12 @@
     </ClCompile>
     <ClCompile Include="libop.cpp">
       <Filter>libop</Filter>
+    </ClCompile>
+    <ClCompile Include="globalVar.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="helpfunc.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -186,9 +186,6 @@
     <ClInclude Include="Cmder.h">
       <Filter>Cmd</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Bkmouse.h">
       <Filter>Background\Mouse</Filter>
     </ClInclude>
@@ -216,9 +213,6 @@
     <ClInclude Include="ocr.h">
       <Filter>Algorithm</Filter>
     </ClInclude>
-    <ClInclude Include="Tool.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="xhook.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
@@ -245,6 +239,15 @@
     </ClInclude>
     <ClInclude Include="libop.h">
       <Filter>libop</Filter>
+    </ClInclude>
+    <ClInclude Include="optype.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="globalVar.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="helpfunc.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

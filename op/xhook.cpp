@@ -14,7 +14,8 @@
 #include "3rd_party/include/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include "Tool.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include "query_api.h"
 #include <wingdi.h>
 

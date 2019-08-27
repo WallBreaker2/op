@@ -1,22 +1,30 @@
 #pragma once
 
 #include<list>
-#include<Eigen/Dense>
 #include <set>
 #include <algorithm>
 #include <list>
 #include <vector>
 
 using std::list;
-using namespace Eigen;
+
 using std::set;
 using std::list;
 using std::vector;
 class AStar {
 public:
+	struct Vec2i { 
+		int x, y;
+		bool operator==(const Vec2i& rhs)const {
+			return x == rhs.x&&y == rhs.y;
+		}
+		Vec2i operator+(const Vec2i& rhs)const {
+			return Vec2i{ x + rhs.x,y + rhs.y };
+		}
+	};
 	struct Node {
 		int F, G;
-		Vector2i pos;
+		Vec2i pos;
 		Node* parent;
 		//Node(int)
 		Node() :F(0), G(0), parent{ nullptr }{
@@ -35,43 +43,43 @@ public:
 	struct Nodeless
 	{
 		bool operator()(const Node& lhs, const Node& rhs) const {
-			return lhs.pos[0] < rhs.pos[0] || (lhs.pos[0] == rhs.pos[0] && lhs.pos[1] < rhs.pos[1]);
+			return lhs.pos.x < rhs.pos.y || (lhs.pos.x == rhs.pos.x && lhs.pos.y < rhs.pos.y);
 		}
 	};
 	struct Vec2less {
-		bool operator()(const Vector2i& lhs, const Vector2i& rhs) const {
-			return lhs[0] < rhs[0] || (lhs[0] == rhs[0] && lhs[1] < rhs[1]);
+		bool operator()(const Vec2i& lhs, const Vec2i& rhs) const {
+			return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
 		}
 	};
 	AStar() {
-		_start[0] = _start[1] = 0;
-		_end[0] = _end[1] = 0;
+		_start.x = _start.y = 0;
+		_end.x = _end.y = 0;
 		//_start < _end;
 
 	}
-	bool outside(Vector2i pos) {
-		return pos[0]<0 || pos[0]>_mapSize[0] || pos[1]<0 || pos[1]>_mapSize[1];
+	bool outside(Vec2i pos) {
+		return pos.x<0 || pos.x>_mapSize.x || pos.y<0 || pos.y>_mapSize.y;
 	}
-	void set_map(int w,int h, const vector<Vector2i>& wall) {
-		_mapSize[0] = w; _mapSize[1] = h;
+	void set_map(int w,int h, const vector<Vec2i>& wall) {
+		_mapSize.x = w; _mapSize.y = h;
 		_wallset.clear();
 		for (auto&it : wall) {
 			_wallset.insert(it);
 		}
 		/*	Vector2i tp;
-			for (int i = 0; i <= mapSize[0];++i) {
+			for (int i = 0; i <= mapSize.x;++i) {
 				_wallset.insert({ i,0 });
 				_wallset.insert({ 0,i });
-				_wallset.insert({ mapSize[0],i });
-				_wallset.insert({ i,mapSize[1] });
+				_wallset.insert({ mapSize.x,i });
+				_wallset.insert({ i,mapSize.y });
 			}*/
 	}
-	void findpath(int beginX, int beginY,int endX,int endY, list<Vector2i>&path) {
+	void findpath(int beginX, int beginY,int endX,int endY, list<Vec2i>&path) {
 		_openset.clear();
 		_closedset.clear();
 		path.clear();
-		_start[0] = beginX; _start[1] = beginY;
-		_end[0] = endX; _end[1] = endY;
+		_start.x = beginX; _start.y = beginY;
+		_end.x = endX; _end.y = endY;
 		if (outside(_start) || outside(_end))
 			return;
 	
@@ -91,7 +99,7 @@ public:
 			for (int i = 0; i < 8; ++i) {
 				temp.pos = curr_node.pos + _dir4[i];
 				temp.G = curr_node.G + 1;
-				int H = std::abs(temp.pos[0] - _end[0]) + std::abs(temp.pos[1] - _end[1]);
+				int H = std::abs(temp.pos.x - _end.x) + std::abs(temp.pos.y - _end.y);
 				temp.F = temp.G + H;
 				if (_closedset.count(temp))
 					continue;
@@ -134,18 +142,18 @@ public:
 	
 private:
 	//Eigen::
-	Vector2i _start, _end;
+	Vec2i _start, _end;
 	//地图大小
-	Vector2i _mapSize;
+	Vec2i _mapSize;
 	//开放节点
 	set<Node, Nodeless> _openset;
 	set<Node, Nodeless> _closedset;
 	//墙节点
-	set<Vector2i, Vec2less> _wallset;
+	set<Vec2i, Vec2less> _wallset;
 	//路径节点
-	set<Vector2i, Vec2less> _pathset;
+	set<Vec2i, Vec2less> _pathset;
 	//方向
-	Vector2i const  _dir4[8] = { {0,1},{0,-1},{-1,0},{1,0},{1,1},{-1,1},{-1,-1},{1,-1} };
+	Vec2i const  _dir4[8] = { {0,1},{0,-1},{-1,0},{1,0},{1,1},{-1,1},{-1,-1},{1,-1} };
 private:
 };
 

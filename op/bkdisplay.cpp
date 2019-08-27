@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "bkdisplay.h"
-#include "Tool.h"
-
+#include "globalVar.h"
+#include "helpfunc.h"
 bkdisplay::bkdisplay()
 {
 	_hwnd = NULL;

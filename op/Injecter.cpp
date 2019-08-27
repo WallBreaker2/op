@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Injecter.h"
-#include "Common.h"
+
 
 Injecter::Injecter()
 {

@@ -2,6 +2,7 @@
 #include <string>
 #include "ImageLoc.h"
 #include <map>
+//#include <tesseract/baseapi.h>
 using std::wstring;
 /*
 此类为图像处理，包含以下工作
@@ -69,6 +70,8 @@ public:
 	std::map<wstring, Image> _pic_cache;
 	//是否使用图片缓存，默认开启
 	int _enable_cache;
+
+	//tesseract::TessBaseAPI _tes;
 	
 	
 private:

@@ -11,6 +11,7 @@
 #include <atlimage.h>
 struct Image
 {
+	using iterator = unsigned __int32*;
 	Image() :width(0), height(0), pdata(nullptr) {
 	}
 	Image(int w, int h) :pdata(nullptr) {
@@ -148,12 +149,23 @@ struct Image
 		return (Tp*)(pdata + y * width * 4);
 	}
 
+	iterator begin() {
+		return (iterator)pdata;
+	}
+	iterator end() {
+		return (iterator)pdata + width * height;
+	}
+
+	void fill(unsigned int val) {
+		std::fill(begin(), end(), val);
+	}
 
 	int width, height;
 	unsigned char* pdata;
 };
 //µ¥Í¨µÀÍ¼Ïñ
 struct ImageBin {
+	using iterator = unsigned char*;
 	ImageBin() :width(0), height(0) {}
 	ImageBin(const ImageBin& rhs) {
 		this->width = rhs.width;
@@ -198,7 +210,12 @@ struct ImageBin {
 			psrc += 4;
 		}
 	}
-
+	iterator begin() {
+		return pixels.data();
+	}
+	iterator end() {
+		return pixels.data() + pixels.size();
+	}
 	int width, height;
 	std::vector<unsigned char> pixels;
 };

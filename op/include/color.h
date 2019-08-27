@@ -1,17 +1,19 @@
 #pragma once
 #ifndef __COLOR_H_
 #define __COLOR_H_
-#include <string>
-#include <opencv2/core.hpp>
+#include <algorithm>
+#include "../optype.h"
 #define WORD_BKCOLOR 255
 #define WORD_COLOR 0
 //#include "../Tool.h"
 //ÑÕÉ«½á¹¹
+
 #pragma pack(push)
 #pragma pack(1)
 struct color_t {
 	uchar b, g, r, alpha;
 	color_t() :b(0), g(0), r(0), alpha(0) {}
+	color_t(int b_, int g_, int r_) :b(b_), g(g_), r(r_),alpha(0) {}
 	//absolute val
 	color_t operator-(const color_t& rhs) {
 		color_t c;
@@ -20,11 +22,14 @@ struct color_t {
 		c.r = r - rhs.r;
 		return c;
 	}
-	bool operator<=(const color_t& rhs) {
+	bool operator<=(const color_t& rhs)const {
 		return b <= rhs.b&&g <= rhs.g&&r <= rhs.r;
 	}
-	bool operator>(const color_t& rhs) {
+	bool operator>(const color_t& rhs)const {
 		return b > rhs.b || g > rhs.g || r > rhs.r;
+	}
+	bool operator==(const color_t& rhs)const {
+		return b == rhs.b&&g == rhs.g&&r == rhs.r;
 	}
 	color_t& str2color(const std::wstring&s) {
 		int r, g, b;
