@@ -2,11 +2,9 @@
 #ifndef __DXBACKGROUND_H_
 #define __DXBACKGROUND_H_
 
-#include "Common.h"
 
 #include "bkdisplay.h"
 
-using std::wstring;
 class bkdo:public bkdisplay
 {
 public:

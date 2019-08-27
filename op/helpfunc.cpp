@@ -1,6 +1,8 @@
 #include "stdafx.h"
-#include "Tool.h"
+#include "helpfunc.h"
 #include <algorithm>
+#include <fstream>
+#include "globalVar.h"
 std::wstring _s2wstring(const std::string&s) {
 	std::string strLocale = setlocale(LC_ALL, "");
 	const char* chSrc = s.c_str();

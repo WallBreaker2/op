@@ -118,6 +118,10 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG enable,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CapturePre( 
+            /* [in] */ BSTR file_name,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE AStarFindPath( 
             /* [in] */ LONG mapWidth,
             /* [in] */ LONG mapHeight,
@@ -573,10 +577,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CapturePre( 
-            /* [in] */ BSTR filename,
-            /* [retval][out] */ LONG *ret) = 0;
-        
     };
     
     
@@ -671,6 +671,11 @@ EXTERN_C const IID IID_IOpInterface;
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *EnablePicCache )( 
             IOpInterface * This,
             /* [in] */ LONG enable,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CapturePre )( 
+            IOpInterface * This,
+            /* [in] */ BSTR file_name,
             /* [retval][out] */ LONG *ret);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *AStarFindPath )( 
@@ -1209,11 +1214,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CapturePre )( 
-            IOpInterface * This,
-            /* [in] */ BSTR filename,
-            /* [retval][out] */ LONG *ret);
-        
         END_INTERFACE
     } IOpInterfaceVtbl;
 
@@ -1273,6 +1273,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_EnablePicCache(This,enable,ret)	\
     ( (This)->lpVtbl -> EnablePicCache(This,enable,ret) ) 
+
+#define IOpInterface_CapturePre(This,file_name,ret)	\
+    ( (This)->lpVtbl -> CapturePre(This,file_name,ret) ) 
 
 #define IOpInterface_AStarFindPath(This,mapWidth,mapHeight,disable_points,beginX,beginY,endX,endY,path)	\
     ( (This)->lpVtbl -> AStarFindPath(This,mapWidth,mapHeight,disable_points,beginX,beginY,endX,endY,path) ) 
@@ -1516,9 +1519,6 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
-
-#define IOpInterface_CapturePre(This,filename,ret)	\
-    ( (This)->lpVtbl -> CapturePre(This,filename,ret) ) 
 
 #endif /* COBJMACROS */
 

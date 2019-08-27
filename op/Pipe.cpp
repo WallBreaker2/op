@@ -2,7 +2,7 @@
 #include "Pipe.h"
 #include <iostream>
 #include<chrono>
-#include  "Common.h"
+#include  "globalVar.h"
 
 Pipe::Pipe()
 {

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __DX9HOOK_H_
 #define __DX9HOOK_H_
-#include "Common.h"
+#include "globalVar.h"
 
 
 namespace xhook {

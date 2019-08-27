@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __WINAPI_H_
 #define __WINAPI_JH_
-#include "Common.h"
+#include "optype.h"
 class WinApi
 {
 public:

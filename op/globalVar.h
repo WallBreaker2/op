@@ -1,11 +1,7 @@
 #pragma once
-#ifndef __COMMON_H_
-#define __COMMON_H_
-#include <string>
-#include <fstream>
-#include <vector>
-
-
+#ifndef __GLOBALVAR_H_
+#define __GLOBALVAR_H_
+#include "optype.h"
 #define SAFE_CLOSE(h)if(h) CloseHandle(h);h=NULL;
 
 #define SAFE_DELETE(ptr) if(ptr)delete ptr;ptr=nullptr
@@ -18,9 +14,7 @@
 //#define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 //#define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
-using std::wstring;
-using std::string;
-using std::vector;
+
 
 #define DLL_API extern "C" _declspec(dllexport)
 //normal windows,gdi;,dx;opengl;

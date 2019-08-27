@@ -4,7 +4,9 @@
 #include "OpInterface.h"
 #include "Cmder.h"
 #include "Injecter.h"
-#include "Tool.h"
+#include "optype.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include "AStar.hpp"
 #include <filesystem>
 // OpInterface
@@ -115,12 +117,13 @@ STDMETHODIMP OpInterface::CapturePre(BSTR file, LONG* ret) {
 
 STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disable_points, LONG beginX, LONG beginY, LONG endX, LONG endY, BSTR* path) {
 	AStar as;
+	using Vector2i = AStar::Vec2i;
 	vector<Vector2i>walls;
 	vector<wstring> vstr;
 	Vector2i tp;
 	split(disable_points, vstr, L"|");
 	for (auto&it : vstr) {
-		if (swscanf(it.c_str(), L"%d,%d", &tp[0], &tp[1]) != 2)
+		if (swscanf(it.c_str(), L"%d,%d", &tp.x, &tp.y) != 2)
 			break;
 		walls.push_back(tp);
 	}
@@ -132,7 +135,7 @@ STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disa
 	wchar_t buf[20];
 	for (auto it = paths.rbegin(); it != paths.rend(); ++it) {
 		auto v = *it;
-		wsprintf(buf, L"%d,%d", v[0], v[1]);
+		wsprintf(buf, L"%d,%d", v.x, v.y);
 		pathstr += buf;
 		pathstr.push_back(L'|');
 	}

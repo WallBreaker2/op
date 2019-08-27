@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Bkgdi.h"
-#include "Common.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include <fstream>
-#include "Tool.h"
+
 bkgdi::bkgdi() 
 {
 	_render_type = 0;

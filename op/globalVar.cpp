@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "Common.h"
+#include "optype.h"
+#include "globalVar.h"
 #include <time.h>
 
 HINSTANCE gInstance;
