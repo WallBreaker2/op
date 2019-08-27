@@ -681,14 +681,15 @@ long  op::FindColor(long x1, long y1, long x2, long y2, const wchar_t* color, DO
 }
 //查找指定区域内的所有颜色
 long  op::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, long dir, std::wstring& retstr) {
+	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
 		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
-		std::wstring str;
 		_image_proc->FindColoEx(color, sim, dir, str);
 	}
+	retstr = str;
 	return S_OK;
 }
 //根据指定的多点查找颜色坐标
@@ -714,15 +715,16 @@ long  op::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t* firs
 }
 //根据指定的多点查找所有颜色坐标
 long  op::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t* first_color, const wchar_t* offset_color, DOUBLE sim, long dir, std::wstring& retstr) {
-
+	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
 		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
-		std::wstring str;
+		
 		_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, str);
 	}
+	retstr = str;
 	return S_OK;
 }
 //查找指定区域内的图片
@@ -749,14 +751,15 @@ long  op::FindPic(long x1, long y1, long x2, long y2, const wchar_t* files, cons
 //查找多个图片
 long  op::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, DOUBLE sim, long dir, std::wstring& retstr) {
 	
+	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
 		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
-		std::wstring str;
 		_image_proc->FindPicEx(files, delta_color, sim, dir, str);
 	}
+	retstr = str;
 	return 0;
 }
 //获取(x,y)的颜色
@@ -771,7 +774,7 @@ long  op::GetColor(long x, long y, std::wstring& ret) {
 		cr = *(color_t*)p;
 	}
 	
-	auto str = cr.tostr();
+	ret = _s2wstring(cr.tostr());
 
 	return S_OK;
 }
@@ -789,7 +792,7 @@ long  op::UseDict(long idx, long* ret) {
 	return S_OK;
 }
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
-long  op::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, std::wstring& ret_str) {
+long  op::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, std::wstring& retstr) {
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
@@ -798,11 +801,11 @@ long  op::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE s
 		_bkproc->unlock_data();
 		_image_proc->OCR(color, sim, str);
 	}
-
+	retstr = str;
 	return S_OK;
 }
 //回识别到的字符串，以及每个字符的坐标.
-long  op::OcrEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, std::wstring& ret_str) {
+long  op::OcrEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, std::wstring& retstr) {
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
@@ -811,7 +814,7 @@ long  op::OcrEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE
 		_bkproc->unlock_data();
 		_image_proc->OcrEx(color, sim, str);
 	}
-
+	retstr = str;
 	return S_OK;
 }
 //在屏幕范围(x1,y1,x2,y2)内,查找string(可以是任意个字符串的组合),并返回符合color_format的坐标位置
@@ -838,7 +841,7 @@ long  op::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t* strs, con
 		_bkproc->unlock_data();
 		_image_proc->FindStrEx(strs, color, sim, str);
 	}
-
+	retstr = str;
 	return S_OK;
 }
 
@@ -851,7 +854,7 @@ long  op::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstring& 
 		_bkproc->unlock_data();
 		_image_proc->OcrAuto(sim, str);
 	}
-
+	retstr = str;
 	return S_OK;
 }
 
@@ -859,12 +862,14 @@ long  op::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstring& 
 long  op::OcrFromFile(const wchar_t* file_name, const wchar_t* color_format, DOUBLE sim, std::wstring& retstr) {
 	wstring str;
 	_image_proc->OcrFromFile(file_name, color_format, sim, str);
+	retstr = str;
 	return S_OK;
 }
 //从文件中识别图片,无需指定颜色
 long  op::OcrAutoFromFile(const wchar_t* file_name, DOUBLE sim, std::wstring& retstr){
 	wstring str;
 	_image_proc->OcrAutoFromFile(file_name, sim, str);
+	retstr = str;
 	return S_OK;
 }
 
