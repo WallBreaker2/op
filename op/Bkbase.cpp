@@ -1,9 +1,9 @@
 #include "stdafx.h"
-
-#include "Tool.h"
-
-#include "Bkbase.h"
 #include <algorithm>
+#include "globalVar.h"
+#include "helpfunc.h"
+#include "Bkbase.h"
+
 bkbase::bkbase() :_hwnd(0), _is_bind(0), _pbkdisplay(nullptr)
 {
 

@@ -3,7 +3,7 @@
 #define __IMAGELOC_H_
 
 #include <vector>
-#include "Common.h"
+#include "optype.h"
 #include <string>
 #include "include/Dict.h"
 #include "include/color.h"
@@ -67,9 +67,9 @@ public:
 	//sim:精度5-599.
 	//x,y:目标坐标
 	/*long imageloc(images_t& images, double sim, long&x, long&y);*/
-
+	template<bool nodfcolor>
 	long simple_match(long x, long y, Image* timg,color_t dfcolor,int max_error);
-
+	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor, int max_error);
 	//无偏匹配
 	/*long ndiff_match(long x, long y, Image* timg, int max_error);*/

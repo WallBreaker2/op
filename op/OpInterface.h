@@ -6,7 +6,7 @@
 
 
 #include "op_i.h"
-#include "Common.h"
+#include "optype.h"
 #include "WinApi.h"
 #include "BKbase.h"
 #include "ImageProc.h"
@@ -250,11 +250,11 @@ public:
 	STDMETHOD(FindStr)(LONG x1, LONG y1, LONG x2, LONG y2,BSTR strs, BSTR color, DOUBLE sim, VARIANT* retx,VARIANT* rety,LONG* ret);
 	//返回符合color_format的所有坐标位置
 	STDMETHOD(FindStrEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs, BSTR color, DOUBLE sim,BSTR* retstr);
-	//识别屏幕范围(x1,y1,x2,y2)内的字符串,自动二值化，而无需指定颜色
+	//识别屏幕范围(x1,y1,x2,y2)内的字符串,使用tesseract库识别
 	STDMETHOD(OcrAuto)(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim, BSTR* ret_str);
 	//从文件中识别图片
 	STDMETHOD(OcrFromFile)(BSTR file_name,BSTR color_format, DOUBLE sim, BSTR* retstr);
-	//从文件中识别图片,无需指定颜色
+	//从文件中识别图片,使用tesseract库识别
 	STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR* retstr);
 	
 

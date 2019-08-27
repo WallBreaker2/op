@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Bkmouse.h"
-
+#include "globalVar.h"
 
 bkmouse::bkmouse():_hwnd(NULL)
 {
