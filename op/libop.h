@@ -17,10 +17,10 @@ class ImageProc;
 #endif
 // libop
 
-class OP_API op{
+class OP_API libop{
 public:
-	op();
-	~op();
+	libop();
+	~libop();
 
 private:
 	//一些共用变量
@@ -57,7 +57,7 @@ public:
 	//设置是否开启或者关闭插件内部的图片缓存机制
 	long EnablePicCache(long enable, long* ret);
 	//取上次操作的图色区域，保存为file(24位位图)
-	long CapturePre(BSTR file_name, LONG* ret);
+	long CapturePre(const wchar_t* file_name, LONG* ret);
 	//---------------------algorithm-------------------------------
 	//A星算法
 	long AStarFindPath(long mapWidth,long mapHeight,const wchar_t* disable_points,long beginX,long beginY, long endX,long endY,std::wstring& path);
