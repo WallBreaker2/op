@@ -14,6 +14,7 @@ struct color_t {
 	uchar b, g, r, alpha;
 	color_t() :b(0), g(0), r(0), alpha(0) {}
 	color_t(int b_, int g_, int r_) :b(b_), g(g_), r(r_),alpha(0) {}
+	color_t(uint c) :b((c >> 24) & 0xff), g((c >> 16) & 0xff), r((c >> 8) & 0xff) {}
 	//absolute val
 	color_t operator-(const color_t& rhs) {
 		color_t c;
