@@ -156,6 +156,13 @@ struct Image
 		return (iterator)pdata + width * height;
 	}
 
+	iterator begin()const {
+		return (iterator)pdata;
+	}
+	iterator end()const {
+		return (iterator)pdata + width * height;
+	}
+
 	void fill(unsigned int val) {
 		std::fill(begin(), end(), val);
 	}

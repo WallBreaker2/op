@@ -150,3 +150,23 @@ void wstring2upper(std::wstring& s) {
 void string2upper(std::string& s) {
 	std::transform(s.begin(), s.end(), s.begin(), toupper);
 }
+
+void replacea(string& str, const string&oldval, const string& newval) {
+	size_t x0 = 0, dx = newval.length() - oldval.length() + 1;
+	size_t idx = str.find(oldval, x0);
+	while (idx != -1 && x0 >= 0) {
+		str.replace(idx, oldval.length(), newval);
+		x0 = idx + dx;
+		idx = str.find(oldval, x0);
+	}
+}
+
+void replacew(wstring& str, const wstring&oldval, const wstring& newval) {
+	size_t x0 = 0, dx = newval.length() - oldval.length() + 1;
+	size_t idx = str.find(oldval, x0);
+	while (idx != -1 && x0 >= 0) {
+		str.replace(idx, oldval.length(), newval);
+		x0 = idx + dx;
+		idx = str.find(oldval, x0);
+	}
+}

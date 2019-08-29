@@ -26,7 +26,8 @@ inline int HEX2INT(wchar_t c) {
 using images_t = std::vector<std::wstring>;
 //检查是否为透明图
 int check_transparent(Image* img);
-
+//获取匹配点
+void get_match_points(const Image& img, vector<int>&points);
 
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
@@ -70,7 +71,7 @@ public:
 	template<bool nodfcolor>
 	long simple_match(long x, long y, Image* timg,color_t dfcolor,int max_error);
 	template<bool nodfcolor>
-	long trans_match(long x, long y, Image* timg, color_t dfcolor, int max_error);
+	long trans_match(long x, long y, Image* timg, color_t dfcolor,vector<uint>points, int max_error);
 	//无偏匹配
 	/*long ndiff_match(long x, long y, Image* timg, int max_error);*/
 

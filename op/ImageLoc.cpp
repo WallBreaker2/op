@@ -14,13 +14,23 @@ int check_transparent(Image* img) {
 		c0 == img->at<uint>(img->height - 1, img->width - 1);
 	if (!x)
 		return 0;
-	
+
 	int ct = 0;
 	for (auto it : *img)
 		if (it == c0)
 			++ct;
 
 	return ct < img->height*img->width ? ct : 0;
+}
+
+void get_match_points(const Image& img, vector<uint>&points) {
+	points.clear();
+	uint cbk = *img.begin();
+	for (int i = 0; i < img.height; ++i) {
+		for (int j = 0; j < img.width; ++j)
+			if (cbk != img.at<uint>(i, j))
+				points.push_back((i << 16) | j);
+	}
 }
 
 
@@ -114,7 +124,7 @@ void ImageBase::auto2binary()
 	//获取背景颜色
 	int bkcolor = get_bk_color(_binary);
 	int n = _binary.width*_binary.height;
-	
+
 	auto pdst = _binary.data();
 	for (int i = 0; i < n; ++i) {
 		pdst[i] = (std::abs(pdst[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
@@ -167,7 +177,7 @@ long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int m
 			auto p1 = _src.ptr<uint>(i + y) + x;
 			auto p2 = timg->ptr<uint>(i);
 			for (int j = 0; j < timg->width; ++j) {
-				if (*p1++!=*p2++)
+				if (*p1++ != *p2++)
 					++err_ct;
 				if (err_ct > max_error)
 					return 0;
@@ -187,47 +197,33 @@ long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int m
 			}
 		}
 	}
-	
+
 	return 1;
 }
 template<bool nodfcolor>
-long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, int max_error) {
-	int err_ct = 0, k;
-	//background color
-	uint c0 = timg->at<uint>(0, 0);
+long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>points, int max_error) {
+	int err_ct = 0, k, dx, dy;
 	if (nodfcolor) {
-		for (int i = 0; i < timg->height; ++i) {
-			auto p1 = _src.ptr<uint>(i + y) + x;
-			auto p2 = timg->ptr<uint>(i);
-			for (int j = 0; j < timg->width; ++j) {
-				if (*p2!=c0) {//ignore background color
-					if (*p1 != *p2)
-						++err_ct;
-					if (err_ct > max_error)
-						return 0;
-				}
-
-				++p1; ++p2;
-			}
+		for (auto it : points) {
+			dy = it > 16;
+			dx = it & 0xffff;
+			if (_src.at<uint>(y + dy, x + dx) != timg->at<uint>(dy, dx))
+				++err_ct;
+			if (err_ct > max_error)
+				return 0;
 		}
 	}
 	else {
-		for (int i = 0; i < timg->height; ++i) {
-			auto p1 = _src.ptr<uchar>(i + y) + x * 4;
-			auto p2 = timg->ptr<uchar>(i);
-			for (int j = 0; j < timg->width; ++j) {
-				if (*(uint*)p2 != c0) {//ignore background color
-					if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
-						++err_ct;
-					if (err_ct > max_error)
-						return 0;
-				}
-
-				p1 += 4; p2 += 4;
-			}
+		for (auto it : points) {
+			dy = it > 16;
+			dx = it & 0xffff;
+			if (_src.at<color_t>(y + dy, x + dx) - timg->at<color_t>(dy, dx) > dfcolor)
+				++err_ct;
+			if (err_ct > max_error)
+				return 0;
 		}
 	}
-	
+
 	return 1;
 }
 
@@ -257,7 +253,7 @@ long ImageBase::GetPixel(long x, long y, color_t&cr) {
 		setlog("Invalid pos:%d %d", x, y);
 		return 0;
 	}
-		
+
 	auto p = _src.ptr<uchar>(y) + 4 * x;
 	static_assert(sizeof(color_t) == 4);
 	cr.b = p[0]; cr.g = p[1]; cr.r = p[2];
@@ -281,7 +277,7 @@ long ImageBase::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 		for (int j = 0; j < _src.width; ++j) {
 			for (auto&it : colors) {//对每个颜色描述
 				if ((*(color_t*)p - it.color) <= it.df) {
-					x = j+_x1+_dx; y = i+_y1+_dy;
+					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return 1;
 				}
 			}
@@ -300,7 +296,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 		for (int j = 0; j < _src.width; ++j) {
 			for (auto&it : colors) {//对每个颜色描述
 				if ((*(color_t*)p - it.color) <= it.df) {
-					retstr += std::to_wstring(j+_x1+_dx) + L"," + std::to_wstring(i+_y1+_dy);
+					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
 					retstr += L"|";
 					++find_ct;
 					//return 1;
@@ -336,7 +332,7 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<
 							goto _quick_break;
 					}
 					//ok
-					x = j+_x1+_dx, y = i + _y1 + _dy;
+					x = j + _x1 + _dx, y = i + _y1 + _dy;
 					return 1;
 				}
 			}
@@ -388,28 +384,31 @@ _quick_return:
 }
 
 long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, long&x, long&y) {
-	vector<int> use_ts_match(pics.size());
 	x = y = -1;
-	for (int i = 0; i < pics.size(); ++i)
-		use_ts_match[i] = check_transparent(pics[i]);
+	vector<uint> points;
 	bool nodfcolor = dfcolor == color_t(0, 0, 0);
 	int match_ret = 0;
 	//将小循环放在最外面，提高处理速度
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
 		auto pic = pics[pic_id];
+		int use_ts_match = check_transparent(pic);
+
+		if (use_ts_match)
+			get_match_points(*pic, points);
+
 		for (int i = 0; i < _src.height; ++i) {
 			for (int j = 0; j < _src.width; ++j) {
 				//step 1. 边界检查
 				if (i + pic->height > _src.height || j + pic->width > _src.width)
 					continue;
 				//step 2. 计算最大误差
-				int max_err_ct = (pic->height*pic->width - use_ts_match[pic_id])*(1.0 - sim);
+				int max_err_ct = (pic->height*pic->width - use_ts_match)*(1.0 - sim);
 				//step 3. 开始匹配
 				if (nodfcolor)
-					match_ret = (use_ts_match[pic_id] ? trans_match<true>(j, i, pic, dfcolor, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<true>(j, i, pic, dfcolor, max_err_ct));
 				else
-					match_ret = (use_ts_match[pic_id] ? trans_match<false>(j, i, pic, dfcolor, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<false>(j, i, pic, dfcolor, max_err_ct));
 				if (match_ret) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
@@ -419,36 +418,39 @@ long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, l
 			}//end for j
 		}//end for i
 	}//end for pics
-	
-	
+
+
 	return -1;
 }
 
 long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim, wstring& retstr) {
 	int obj_ct = 0;
 	retstr.clear();
-
-	vector<int> use_ts_match(pics.size());
-	for (int i = 0; i < pics.size(); ++i)
-		use_ts_match[i] = check_transparent(pics[i]);
+	vector<uint> points;
 	bool nodfcolor = dfcolor == color_t(0, 0, 0);
 	int match_ret = 0;
-	
-	for (int i = 0; i < _src.height; ++i) {
-		for (int j = 0; j < _src.width; ++j) {
-			for (int pic_id = 0; pic_id < pics.size();++pic_id) {
-				auto pic = pics[pic_id];
+
+	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
+		auto pic = pics[pic_id];
+		int use_ts_match = check_transparent(pic);
+		
+		if (use_ts_match)
+			get_match_points(*pic, points);
+
+		for (int i = 0; i < _src.height; ++i) {
+			for (int j = 0; j < _src.width; ++j) {
+
 				//step 1. 边界检查
 				if (i + pic->height > _src.height || j + pic->width > _src.width)
 					continue;
 				//step 2. 计算最大误差
-				int max_err_ct = (pic->height*pic->width - use_ts_match[pic_id])*(1.0 - sim);
+				int max_err_ct = (pic->height*pic->width - use_ts_match)*(1.0 - sim);
 				//step 3. 开始匹配
 				if (nodfcolor)
-					match_ret = (use_ts_match[pic_id] ? trans_match<true>(j, i, pic, dfcolor, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor,points, max_err_ct) :
 						simple_match<true>(j, i, pic, dfcolor, max_err_ct));
 				else
-					match_ret = (use_ts_match[pic_id] ? trans_match<false>(j, i, pic, dfcolor, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor,points, max_err_ct) :
 						simple_match<false>(j, i, pic, dfcolor, max_err_ct));
 				if (match_ret) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
@@ -459,10 +461,11 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 					else
 						break;
 				}
-			}//end for pics
 
-		}//end for j
-	}//end for i
+
+			}//end for j
+		}//end for i
+	}//end for pics
 _quick_return:
 	return obj_ct;
 }
