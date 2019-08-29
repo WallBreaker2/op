@@ -171,7 +171,7 @@ void ImageBase::auto2binary()
 //}
 template<bool nodfcolor>
 long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int max_error) {
-	int err_ct = 0, k;
+	int err_ct = 0;
 	if (nodfcolor) {
 		for (int i = 0; i < timg->height; ++i) {
 			auto p1 = _src.ptr<uint>(i + y) + x;
@@ -205,7 +205,7 @@ long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector
 	int err_ct = 0, k, dx, dy;
 	if (nodfcolor) {
 		for (auto it : points) {
-			dy = it > 16;
+			dy = it >> 16;
 			dx = it & 0xffff;
 			if (_src.at<uint>(y + dy, x + dx) != timg->at<uint>(dy, dx))
 				++err_ct;
@@ -215,7 +215,7 @@ long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector
 	}
 	else {
 		for (auto it : points) {
-			dy = it > 16;
+			dy = it >> 16;
 			dx = it & 0xffff;
 			if (_src.at<color_t>(y + dy, x + dx) - timg->at<color_t>(dy, dx) > dfcolor)
 				++err_ct;
