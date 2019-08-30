@@ -56,18 +56,20 @@ struct word_t {
 	/*从 dm 字库中 的一个点阵转化为op的点阵*/
 	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
 		int bin[50] = { 0 };
+		
 		ct = min(ct, 88);
 		int i = 0;
 		auto hex2bin = [](wchar_t c) {
 			return c <= L'9' ? c - L'0' : c - L'A'+10;
 		};
-		while (i < ct) {
+		int dct = ct & 1 ? ct - 1 : ct;
+		while (i < dct) {
 			
 			bin[i / 2] = (hex2bin(str[i]) << 4) | (hex2bin(str[i+1]));
 			i += 2;
 		}
 		int cols = (ct * 4) / 11;
-		memset(this, 0, sizeof(*this));
+		memset(this, 0x0, sizeof(*this));
 		for (int j = 0; j < cols; ++j) {
 			for (int i = 0; i < 11; ++i) {
 				int idx = j * 11 + i;
@@ -125,7 +127,7 @@ struct Dict {
 			auto idx2=ss.find(L'$',idx1+1);
 			word_t wd;
 			if (idx1 != -1&&idx2!=-1) {
-				wd.fromDm(ss.data(), idx1 + 1, ss.substr(idx1 + 1, idx2 - idx1-1));
+				wd.fromDm(ss.data(), idx1, ss.substr(idx1 + 1, idx2 - idx1-1));
 				add_word(wd);
 			}
 		}
