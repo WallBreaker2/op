@@ -105,7 +105,7 @@ struct Image
 					*pdst++ = psrc[j];
 					*pdst++ = psrc[j];
 					*pdst++ = psrc[j];
-					*pdst++ = 0;
+					*pdst++ = 0xff;
 				}
 				psrc += pitch;
 
@@ -117,7 +117,7 @@ struct Image
 					*pdst++ = psrc[j * 3 + 0];
 					*pdst++ = psrc[j * 3 + 1];
 					*pdst++ = psrc[j * 3 + 2];
-					*pdst++ = 0;
+					*pdst++ = 0xff;
 				}
 				psrc += pitch;
 
