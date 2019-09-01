@@ -12,7 +12,7 @@
 #include "Injecter.h"
 
 #include "AStar.hpp"
-
+#include "MemoryEx.h"
 // OpInterface
 
 libop::libop() {
@@ -873,3 +873,16 @@ long  libop::OcrAutoFromFile(const wchar_t* file_name, DOUBLE sim, std::wstring&
 	return S_OK;
 }
 
+long libop::WriteData(long hwnd, const wchar_t* address, const wchar_t* data, long size, long* ret) {
+	*ret = 0;
+	MemoryEx mem;
+	*ret = mem.WriteData((HWND)hwnd, address, data, size);
+	return S_OK;
+}
+//读取数据
+long libop::ReadData(long hwnd, const wchar_t* address, long size, std::wstring& retstr) {
+	MemoryEx mem;
+	retstr = mem.ReadData((HWND)hwnd, address, size);
+	
+	return S_OK;
+}

@@ -3,8 +3,9 @@
 #define __OCR_H_
 #include <fstream>
 #include<map>
+#include <vector>
 #include "include/Dict.h"
-
+#include "include/color.h"
 struct point_t {
 	int x, y;
 	bool operator<(const point_t&rhs) const {
@@ -18,9 +19,21 @@ struct point_t {
 	}
 };
 
-//垂直方向投影(x)轴
+using std::vector;
+
+int get_bk_color(inputbin bin);
+
+
+/*
+if(abs(cr-src)<=df) pixel=1;
+else pixel=0;
+*/
+void bgr2binary(inputimg src,outputbin bin, vector<color_df_t>& colors);
+//二值化 auto
+void auto2binary(inputimg src, outputbin bin);
+//垂直方向投影,投到x轴
 void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& out_put);
-//水平方向投影(y)轴
+//水平方向投影，投到(y)轴
 void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&out_put);
 //图像裁剪
 void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc);

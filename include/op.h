@@ -577,6 +577,19 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
+            /* [in] */ LONG hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ BSTR data,
+            /* [in] */ LONG size,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadData( 
+            /* [in] */ LONG hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG size,
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
     };
     
     
@@ -1214,6 +1227,21 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
+            IOpInterface * This,
+            /* [in] */ LONG hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ BSTR data,
+            /* [in] */ LONG size,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadData )( 
+            IOpInterface * This,
+            /* [in] */ LONG hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG size,
+            /* [retval][out] */ BSTR *retstr);
+        
         END_INTERFACE
     } IOpInterfaceVtbl;
 
@@ -1519,6 +1547,12 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
+
+#define IOpInterface_WriteData(This,hwnd,address,data,size,ret)	\
+    ( (This)->lpVtbl -> WriteData(This,hwnd,address,data,size,ret) ) 
+
+#define IOpInterface_ReadData(This,hwnd,address,size,retstr)	\
+    ( (This)->lpVtbl -> ReadData(This,hwnd,address,size,retstr) ) 
 
 #endif /* COBJMACROS */
 

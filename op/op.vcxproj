@@ -193,6 +193,7 @@
       <TypeLibraryName>$(IntDir)op.tlb</TypeLibraryName>
       <DllDataFileName />
       <ValidateAllParameters>true</ValidateAllParameters>
+      <OutputDirectory>./</OutputDirectory>
     </Midl>
     <ResourceCompile>
       <Culture>0x0804</Culture>
@@ -279,6 +280,10 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     </ClCompile>
     <ClCompile Include="bkdx_gl.cpp" />
     <ClCompile Include="libop.cpp" />
+    <ClCompile Include="MemoryEx.cpp" />
+    <ClCompile Include="op_i.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="query_api.cpp" />
     <ClCompile Include="xhook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
@@ -287,20 +292,6 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClCompile Include="ocr.cpp" />
     <ClCompile Include="op.cpp" />
     <ClCompile Include="OpInterface.cpp" />
-    <ClCompile Include="op_i.c">
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -327,6 +318,8 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="include\color.h" />
     <ClInclude Include="include\Dict.h" />
     <ClInclude Include="libop.h" />
+    <ClInclude Include="MemoryEx.h" />
+    <ClInclude Include="op_i.h" />
     <ClInclude Include="query_api.h" />
     <ClInclude Include="optype.h" />
     <ClInclude Include="xhook.h" />
@@ -335,7 +328,6 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="Injecter.h" />
     <ClInclude Include="ocr.h" />
     <ClInclude Include="OpInterface.h" />
-    <ClInclude Include="op_i.h" />
     <ClInclude Include="Pipe.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
