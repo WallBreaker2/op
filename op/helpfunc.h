@@ -22,7 +22,18 @@ long setlog(const wchar_t* format, ...);
 //
 long setlog(const char* format, ...);
 
+int inline hex2bin(int c) {
+	return c <= L'9' ? c - L'0' : c - L'A' + 10;
+};
 
+int inline bin2hex(int c) {
+	int ans = 0;
+	int c1 = c >> 4 & 0xf;
+	int c2 = c & 0xf;
+	ans |= c1 <= 9 ? c1 + L'0' : c1 + 'A' - 10;
+	ans |= c2 <= 9 ? c2 + L'0' : c2 + 'A' - 10;
+	return ans;
+};
 
 #endif // !__TOOL_H_
 

@@ -9,6 +9,7 @@
 #include "helpfunc.h"
 #include "AStar.hpp"
 #include <filesystem>
+#include "MemoryEx.h"
 // OpInterface
 
 OpInterface::OpInterface() {
@@ -914,6 +915,23 @@ STDMETHODIMP OpInterface::OcrAutoFromFile(BSTR file_name, DOUBLE sim, BSTR* rets
 	CComBSTR newstr;
 	wstring str;
 	_image_proc.OcrAutoFromFile(file_name, sim, str);
+	newstr.Append(str.data());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::WriteData(LONG hwnd, BSTR address, BSTR data, LONG size, LONG* ret) {
+	*ret = 0;
+	MemoryEx mem;
+	*ret = mem.WriteData((HWND)hwnd, address, data, size);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::ReadData(LONG hwnd, BSTR address,LONG size, BSTR* retstr) {
+	wstring str;
+	MemoryEx mem;
+	str = mem.ReadData((HWND)hwnd, address, size);
+	CComBSTR newstr;
 	newstr.Append(str.data());
 	newstr.CopyTo(retstr);
 	return S_OK;

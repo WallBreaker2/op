@@ -149,6 +149,11 @@ struct Image
 		return (Tp*)(pdata + y * width * 4);
 	}
 
+	template<typename Tp>
+	const Tp* ptr(int y)const {
+		return (Tp*)(pdata + y * width * 4);
+	}
+
 	iterator begin() {
 		return (iterator)pdata;
 	}
@@ -226,5 +231,12 @@ struct ImageBin {
 	int width, height;
 	std::vector<unsigned char> pixels;
 };
+
+
+using inputimg = const Image&;
+using outputimg = Image&;
+
+using inputbin = const ImageBin&;
+using outputbin = ImageBin & ;
 
 #endif

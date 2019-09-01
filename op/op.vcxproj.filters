@@ -80,6 +80,9 @@
     <Filter Include="libop">
       <UniqueIdentifier>{cfd85035-dbb8-416c-9f11-e7ebb83ee607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="memory">
+      <UniqueIdentifier>{718db8c8-b455-4ffa-95b4-99dcd3935625}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -93,9 +96,6 @@
     </ClCompile>
     <ClCompile Include="compreg.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="op_i.c">
-      <Filter>生成的文件</Filter>
     </ClCompile>
     <ClCompile Include="OpInterface.cpp">
       <Filter>Interface</Filter>
@@ -154,6 +154,12 @@
     <ClCompile Include="helpfunc.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryEx.cpp">
+      <Filter>memory</Filter>
+    </ClCompile>
+    <ClCompile Include="op_i.c">
+      <Filter>生成的文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -170,9 +176,6 @@
     </ClInclude>
     <ClInclude Include="compreg.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="op_i.h">
-      <Filter>生成的文件</Filter>
     </ClInclude>
     <ClInclude Include="OpInterface.h">
       <Filter>Interface</Filter>
@@ -248,6 +251,12 @@
     </ClInclude>
     <ClInclude Include="helpfunc.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryEx.h">
+      <Filter>memory</Filter>
+    </ClInclude>
+    <ClInclude Include="op_i.h">
+      <Filter>生成的文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

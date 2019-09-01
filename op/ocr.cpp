@@ -3,9 +3,63 @@
 #include <list>
 #include "include/color.h"
 #include "ocr.h"
+int get_bk_color(inputbin bin) {
+	int y[256] = { 0 };
+	auto ptr = bin.pixels.data();
+	int n = bin.pixels.size();
+	for (int i = 0; i < n; ++i)
+		y[ptr[i]]++;
+	//scan max
+	int m = 0;
+	for (int i = 0; i < 256; ++i) {
+		if (y[i] > y[m])m = i;
+	}
+	return m;
+}
+
+void bgr2binary(inputimg src, outputbin bin, vector<color_df_t>& colors) {
+	if (src.empty())
+		return;
+	int ncols = src.width, nrows = src.height;
+	bin.create(ncols, nrows);
+	for (int i = 0; i < nrows; ++i) {
+		auto psrc = src.ptr<color_t>(i);
+		auto pbin = bin.ptr(i);
+		for (int j = 0; j < ncols; ++j) {
+			*pbin = WORD_BKCOLOR;
+			for (auto&it : colors) {//对每个颜色描述
+				if (IN_RANGE(*psrc, it.color, it.df)) {
+					*pbin = WORD_COLOR;
+					break;
+				}
+			}
+			++pbin; ++psrc;
+		}
+	}
+	//test
+	//cv::imwrite("src.png", _src);
+	//cv::imwrite("binary.png", _binary);
+}
+
+//二值化
+void auto2binary(inputimg src, outputbin bin)
+{
+	//转为灰度图
+	bin.fromImage4(src);
+	//创建二值图
+	//_binary.create(_record.size(), CV_8UC1);
+	//获取背景颜色
+	int bkcolor = get_bk_color(bin);
+	int n = bin.width*bin.height;
+
+	auto pdst = bin.data();
+	for (int i = 0; i < n; ++i) {
+		pdst[i] = (std::abs(pdst[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
+	}
+}
 
 
-//垂直方向投影
+//垂直方向投影到x轴
 void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& out_put)
 {
 	//qDebug("in x rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
@@ -14,17 +68,16 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 	//Mat paintx(binary.size(), CV_8UC1, cv::Scalar(255)); //创建一个全白图片，用作显示
 
 	//int* blackcout = new int[binary.cols];
-	std::vector<int> ys;
-	ys.resize(binary.width);
-	memset(&ys[0], 0, binary.width * 4);
-
-	for (int i = rc.y1; i < rc.y2; i++)
+	std::vector<int> vx;
+	vx.resize(binary.width);
+	memset(&vx[0], 0, binary.width * 4);
+	for (int j = rc.x1; j < rc.x2; j++)
 	{
-		for (int j = rc.x1; j < rc.x2; j++)
+		for (int i = rc.y1; i < rc.y2; i++)
 		{
 			if (binary.at(i, j) == 0)
 			{
-				ys[j]++; //垂直投影按列在x轴进行投影
+				vx[j]++; //垂直投影按列在x轴进行投影
 			}
 		}
 	}
@@ -36,13 +89,13 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 	for (int j = rc.x1; j < rc.x2; j++)
 	{
 
-		if (!inblock&&ys[j] != 0) //进入有字符区域
+		if (!inblock&&vx[j] != 0) //进入有字符区域
 		{
 			inblock = true;
 			startindex = j;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		if (inblock&&ys[j] == 0) //进入空白区
+		if (inblock&&vx[j] == 0) //进入空白区
 		{
 			endindex = j;
 			inblock = false;
@@ -60,7 +113,7 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 	}
 
 }
-//水平方向投影并行分割
+//投影到y轴
 void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&out_put)
 {
 	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
@@ -69,9 +122,9 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 	//Mat painty(binary.size(), CV_8UC1, cv::Scalar(255)); //初始化为全白
 	//水平投影
 	//int* pointcount = new int[binary.rows]; //在二值图片中记录行中特征点的个数
-	std::vector<int> xs;
-	xs.resize(binary.height);
-	memset(&xs[0], 0, binary.height * 4);//注意这里需要进行初始化
+	std::vector<int> vy;
+	vy.resize(binary.height);
+	memset(&vy[0], 0, binary.height * 4);//注意这里需要进行初始化
 
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
@@ -79,7 +132,7 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 		{
 			if (binary.at(i, j) == WORD_COLOR)
 			{
-				xs[i]++; //记录每行中黑色点的个数 //水平投影按行在y轴上的投影
+				vy[i]++; //记录每行中黑色点的个数 //水平投影按行在y轴上的投影
 			}
 		}
 	}
@@ -93,13 +146,13 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
 
-		if (!inblock&&xs[i] != 0) //进入有字符区域
+		if (!inblock&&vy[i] != 0) //进入有字符区域
 		{
 			inblock = true;
 			startindex = i;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		if (inblock&&xs[i] == 0) //进入空白区
+		if (inblock&&vy[i] == 0) //进入空白区
 		{
 			endindex = i;
 			inblock = false;
@@ -119,43 +172,37 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 }
 
 void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
-	//水平裁剪
+	//水平裁剪，缩小高度
 	std::vector<int>v;
-
+	outrc = inrc;
 	int i, j;
 	v.resize(binary.height);
 	for (auto&it : v)it = 0;
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
-			v[i] += (binary.at(i, j) == 0 ? 1 : 0);
+			v[i] += (binary.at(i, j) == WORD_COLOR ? 1 : 0);
 	}
-	for (i = inrc.y1 + 1; i < inrc.y2; ++i)
-		if (v[i - 1] == 0 && v[i] != 0) {
-			outrc.y1 = i;
-			break;
-		}
-	for (i = inrc.y2 - 2; i >= inrc.y1; --i)
-		if (v[i + 1] == 0 && v[i] != 0) {
-			outrc.y2 = i + 1;
-			break;
-		}
-	//垂直裁剪
+	i = inrc.y1;
+	while (v[i] == 0)i++;
+	outrc.y1 = i;
+	i = inrc.y2 - 1;
+	while (v[i] == 0)i--;
+	outrc.y2 = i+1;
+	//垂直裁剪.缩小宽度
 	v.resize(binary.width);
 	for (auto&it : v)it = 0;
+	
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
 			v[j] += binary.at(i, j) == 0 ? 1 : 0;
 	}
-	for (j = inrc.x1 + 1; i < inrc.x2; ++i)
-		if (v[j - 1] == 0 && v[j] != 0) {
-			outrc.x1 = j;
-			break;
-		}
-	for (j = inrc.x2 - 2; j >= inrc.x1; --j)
-		if (v[j + 1] == 0 && v[j] != 0) {
-			outrc.x2 = j + 1;
-			break;
-		}
+	i = inrc.x1;
+	while (v[i] == 0)i++;
+	outrc.x1 = i;
+	i = inrc.x2-1;
+	while (v[i] == 0)i--;
+	outrc.x2 = i+1;
+	
 }
 
 inline int full_match(const ImageBin& binary, rect_t& rc, const word_t::cline_t* lines) {
@@ -194,7 +241,7 @@ inline int part_match(const ImageBin& binary, rect_t& rc, int max_error, const w
 }
 
 inline void fill_rect(ImageBin& record, const rect_t& rc) {
-	
+
 	int w = rc.width();
 	for (int y = rc.y1; y < rc.y2; ++y) {
 		uchar* p = record.ptr(y) + rc.x1;
@@ -221,7 +268,7 @@ void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const D
 			//遍历字库
 			//assert(i != 4 || j != 3);
 			for (auto&it : dict.words) {
-				
+
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
@@ -234,10 +281,10 @@ void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const D
 				if (matched) {
 					if (crc.x2 < rc.x2)//还有剩余部分，检查右边是否空白
 					{
-						for (y = crc.y1; y < crc.y2; ++y)
+						/*for (y = crc.y1; y < crc.y2; ++y)
 							if (binary.at(y, crc.x2) == 0)
-								break;
-						if (y == crc.y2) {
+								break;*/
+						if (/*y == crc.y2*/1) {
 							//outstr.append(it.info._char);
 							ps[pt] = it.info._char;
 							//设置下一个查找区域 分别为右边和下方
@@ -283,7 +330,7 @@ void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const D
 			//assert(i != 4 || j != 3);
 			int k = 0;
 			for (auto&it : dict.words) {
-				
+
 				rect_t crc;
 				crc.x1 = j; crc.y1 = i;
 				crc.x2 = j + it.info.width; crc.y2 = i + it.info.height;
@@ -301,7 +348,7 @@ void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const D
 						for (y = crc.y1; y < crc.y2; ++y)
 							if (binary.at(y, crc.x2) == 0)
 								break;
-						if (y == crc.y2) {
+						if (/*y == crc.y2*/1) {
 							//outstr.append(it.info._char);
 							ps[pt] = it.info._char;
 							//设置下一个查找区域 分别为右边和下方
@@ -338,7 +385,7 @@ void bin_ocr(const ImageBin& binary, ImageBin& record, const Dict& dict, double 
 	if (dict.words.empty())return;
 	if (binary.empty())
 		return;
-	record.create(binary.width,binary.height);
+	record.create(binary.width, binary.height);
 	memset(record.data(), 0, sizeof(uchar)*record.width*record.height);
 	rect_t rc;
 	rc.x1 = rc.y1 = 0;
