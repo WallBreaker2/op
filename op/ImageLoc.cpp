@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ImageLoc.h"
-#include "ocr.h"
 #include "helpfunc.h"
 
 using std::to_wstring;
@@ -75,61 +74,6 @@ void ImageBase::set_offset(int dx, int dy) {
 	_dy = -dy;
 }
 
-int ImageBase::get_bk_color(const ImageBin& input) {
-	int y[256] = { 0 };
-	auto ptr = input.pixels.data();
-	int n = input.width * input.height;
-	for (int i = 0; i < n; ++i)
-		y[ptr[i]]++;
-	//scan max
-	int m = 0;
-	for (int i = 0; i < 256; ++i) {
-		if (y[i] > y[m])m = i;
-	}
-	return m;
-}
-
-void ImageBase::bgr2binary(vector<color_df_t>& colors) {
-	if (_src.empty())
-		return;
-	int ncols = _src.width, nrows = _src.height;
-	_binary.create(ncols, nrows);
-	for (int i = 0; i < nrows; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
-		uchar* p2 = _binary.ptr(i);
-		for (int j = 0; j < ncols; ++j) {
-			*p2 = WORD_BKCOLOR;
-			for (auto&it : colors) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
-					*p2 = WORD_COLOR;
-					break;
-				}
-			}
-			++p2;
-			p += 4;
-		}
-	}
-	//test
-	//cv::imwrite("src.png", _src);
-	//cv::imwrite("binary.png", _binary);
-}
-
-//二值化
-void ImageBase::auto2binary()
-{
-	//转为灰度图
-	_binary.fromImage4(_src);
-	//创建二值图
-	//_binary.create(_record.size(), CV_8UC1);
-	//获取背景颜色
-	int bkcolor = get_bk_color(_binary);
-	int n = _binary.width*_binary.height;
-
-	auto pdst = _binary.data();
-	for (int i = 0; i < n; ++i) {
-		pdst[i] = (std::abs(pdst[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
-	}
-}
 
 //long ImageBase::imageloc(images_t& images, double sim, long&x, long&y) {
 //	x = y = -1;
@@ -186,14 +130,14 @@ long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int m
 	}
 	else {
 		for (int i = 0; i < timg->height; ++i) {
-			auto p1 = _src.ptr<uchar>(i + y) + x * 4;
-			auto p2 = timg->ptr<uchar>(i);
+			auto p1 = _src.ptr<color_t>(i + y) + x * 4;
+			auto p2 = timg->ptr<color_t>(i);
 			for (int j = 0; j < timg->width; ++j) {
-				if (*(color_t*)p1 - *(color_t*)p2 > dfcolor)
+				if (!IN_RANGE(*p1,*p2, dfcolor))
 					++err_ct;
 				if (err_ct > max_error)
 					return 0;
-				p1 += 4; p2 += 4;
+				p1++; p2++;
 			}
 		}
 	}
@@ -217,7 +161,9 @@ long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector
 		for (auto it : points) {
 			dy = it >> 16;
 			dx = it & 0xffff;
-			if (_src.at<color_t>(y + dy, x + dx) - timg->at<color_t>(dy, dx) > dfcolor)
+			auto cr1 = _src.at<color_t>(y + dy, x + dx);
+			auto cr2 = timg->at<color_t>(dy, dx);
+			if (!IN_RANGE(cr1,cr2,dfcolor))
 				++err_ct;
 			if (err_ct > max_error)
 				return 0;
@@ -264,7 +210,7 @@ long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>&colors, double 
 	color_t cr;
 	if (GetPixel(x, y, cr)) {
 		for (auto&it : colors) {
-			if (it.color - cr <= it.df)
+			if (IN_RANGE(cr,it.color,it.df))
 				return 1;
 		}
 	}
@@ -273,15 +219,15 @@ long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>&colors, double 
 
 long ImageBase::FindColor(vector<color_df_t>& colors, long&x, long&y) {
 	for (int i = 0; i < _src.height; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
+		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			for (auto&it : colors) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
+				if (IN_RANGE(*p, it.color, it.df)) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return 1;
 				}
 			}
-			p += 4;
+			p++;
 		}
 	}
 	x = y = -1;
@@ -292,10 +238,10 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 	retstr.clear();
 	int find_ct = 0;
 	for (int i = 0; i < _src.height; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
+		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			for (auto&it : colors) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
+				if (IN_RANGE(*p, it.color, it.df)) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
 					retstr += L"|";
 					++find_ct;
@@ -305,7 +251,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 					break;
 				}
 			}
-			p += 4;
+			p++;
 		}
 	}
 _quick_break:
@@ -318,11 +264,11 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<
 	int max_err_ct = offset_color.size()*(1. - sim);
 	int err_ct;
 	for (int i = 0; i < _src.height; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
+		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			//step 1. find first color
 			for (auto&it : first_color) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
+				if (IN_RANGE(*p, it.color, it.df)) {
 					//匹配其他坐标
 					err_ct = 0;
 					for (auto&off_cr : offset_color) {
@@ -337,7 +283,7 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>&first_color, std::vector<
 				}
 			}
 		_quick_break:
-			p += 4;
+			p++;
 		}
 	}
 	x = y = -1;
@@ -349,11 +295,11 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vecto
 	int err_ct;
 	int find_ct = 0;
 	for (int i = 0; i < _src.height; ++i) {
-		uchar* p = _src.ptr<uchar>(i);
+		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			//step 1. find first color
 			for (auto&it : first_color) {//对每个颜色描述
-				if ((*(color_t*)p - it.color) <= it.df) {
+				if (IN_RANGE(*p, it.color, it.df)) {
 					//匹配其他坐标
 					err_ct = 0;
 					for (auto&off_cr : offset_color) {
@@ -373,7 +319,7 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>&first_color, std::vecto
 				}
 			}
 		_quick_break:
-			p += 4;
+			p++;
 		}
 	}
 _quick_return:
@@ -386,7 +332,7 @@ _quick_return:
 long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, long&x, long&y) {
 	x = y = -1;
 	vector<uint> points;
-	bool nodfcolor = dfcolor == color_t(0, 0, 0);
+	bool nodfcolor = color2uint(dfcolor) == 0;
 	int match_ret = 0;
 	//将小循环放在最外面，提高处理速度
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
@@ -427,7 +373,7 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 	int obj_ct = 0;
 	retstr.clear();
 	vector<uint> points;
-	bool nodfcolor = dfcolor == color_t(0, 0, 0);
+	bool nodfcolor = color2uint(dfcolor) == 0;
 	int match_ret = 0;
 
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {

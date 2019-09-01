@@ -7,7 +7,7 @@
 #include <fstream>
 #include "bitfunc.h"
 #include "Image.hpp"
-
+#include "helpfunc.h"
 //#define SET_BIT(x, idx) x |= 1u << (idx)
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
@@ -62,8 +62,7 @@ struct word_t {
 		auto hex2bin = [](wchar_t c) {
 			return c <= L'9' ? c - L'0' : c - L'A'+10;
 		};
-		int dct = ct & 1 ? ct - 1 : ct;
-		while (i < dct) {
+		while (i < ct) {
 			
 			bin[i / 2] = (hex2bin(str[i]) << 4) | (hex2bin(str[i+1]));
 			i += 2;
@@ -116,17 +115,20 @@ struct Dict {
 	}
 	void read_dict_dm(const std::string&s) {
 		clear();
-		std::wfstream file;
+		std::fstream file;
 		file.open(s, std::ios::in);
 		if (!file.is_open())
 			return;
 		//¶ÁÈ¡ÐÅÏ¢
 		std::wstring ss;
-		while (std::getline(file, ss)) {
+		std::string str;
+		while (std::getline(file, str)) {
+			ss = _s2wstring(str);
 			size_t idx1 = ss.find(L'$');
 			auto idx2=ss.find(L'$',idx1+1);
 			word_t wd;
 			if (idx1 != -1&&idx2!=-1) {
+				ss[idx1] = L'0';
 				wd.fromDm(ss.data(), idx1, ss.substr(idx1 + 1, idx2 - idx1-1));
 				add_word(wd);
 			}

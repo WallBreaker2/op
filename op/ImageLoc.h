@@ -7,7 +7,7 @@
 #include <string>
 #include "include/Dict.h"
 #include "include/color.h"
-
+#include "ocr.h"
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')
 		return c - L'0';
@@ -23,7 +23,7 @@ inline int HEX2INT(wchar_t c) {
 
 #define GET_BIT(x, idx) (x >> (idx)) & 1u
 
-using images_t = std::vector<std::wstring>;
+using img_names = std::vector<std::wstring>;
 //检查是否为透明图
 int check_transparent(Image* img);
 //获取匹配点
@@ -54,15 +54,9 @@ public:
 
 	void set_offset(int dx, int dy);
 
-	int get_bk_color(const ImageBin& input);
-	/*
-	if(abs(cr-src)<=df) pixel=1;
-	else pixel=0;
-	*/
-	void bgr2binary(vector<color_df_t>& colors);
 
-	//二值化 auto
-	void auto2binary();
+
+	
 	//brief:图像定位
 	//images:图像文件名，可以为多个
 	//sim:精度5-599.
