@@ -171,6 +171,12 @@ struct Image
 	void fill(unsigned int val) {
 		std::fill(begin(), end(), val);
 	}
+	void fill(int row,int col,int h,int w,unsigned int val) {
+		for (int i = 0; i < h; ++i) {
+			auto p = ptr<unsigned int>(row + i)+col;
+			std::fill(p,p + w,val);
+		}
+	}
 
 	int width, height;
 	unsigned char* pdata;
