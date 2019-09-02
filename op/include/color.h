@@ -6,8 +6,14 @@
 #define WORD_BKCOLOR 255
 #define WORD_COLOR 0
 //#include "../Tool.h"
+#include <math.h>
 #define color2uint(color) (*(uint*)&color)
-#define IN_RANGE(lhs,rhs,df)((lhs).b-(rhs).b<=df.b&&(lhs).g-(rhs).g<=df.g&&(lhs).r-(rhs).r<=df.r)
+template<typename T>
+constexpr auto IN_RANGE(T lhs, T rhs, T df) { 
+	return abs(lhs.b-rhs.b)<=df.b
+		&&abs(lhs.g-rhs.g)<=df.g
+		&&abs(lhs.r-rhs.r)<=df.r;
+}
 //ÑÕÉ«½á¹¹
 
 #pragma pack(push)
@@ -40,6 +46,14 @@ struct color_t {
 		auto ss = s;
 		std::transform(ss.begin(), ss.end(), ss.begin(), ::towupper);
 		swscanf(ss.c_str(), L"%02X%02X%02X", &r, &g, &b);
+		this->b = b; this->r = r; this->g = g;
+		return *this;
+	}
+	color_t& str2color(const std::string&s) {
+		int r, g, b;
+		auto ss = s;
+		std::transform(ss.begin(), ss.end(), ss.begin(), ::towupper);
+		sscanf(ss.c_str(), "%02X%02X%02X", &r, &g, &b);
 		this->b = b; this->r = r; this->g = g;
 		return *this;
 	}
