@@ -31,68 +31,57 @@ int do_op(int a, int b, wchar_t op) {
 	return ans;
 }
 //like AA+BB+DD-CC*cc
-int stringcompute(const wstring& str) {
+int stringcompute(const wchar_t* s) {
 	int ans = 0;
+	if (!s || !*s)
+		return 0;
+	wstring num;
+	int op;
+	vector<int> ns;
+	vector<int> os;
+	while (*s || !os.empty()) {
+		if (is_op(*s) || *s == 0) {
+			int x;
+			swscanf(num.data(), L"%X", &x);
 
-	wstring numstr;
-	vector<int> num_stack;
-	vector<int> op_stack;
-	wchar_t c;
-	auto itr = str.begin();
-	wchar_t op;
-	while (*itr) {
-		c = *itr;
-		if (is_op(c)) {
-			int num;
-			swscanf(numstr.data(), L"%X", &num);
-			numstr.clear();
-			push(num_stack, num);
-			if (num_stack.empty())/*数字栈空,直接压入数据*/ {
-				push(op_stack, c);
-				++itr;
+			if (!num.empty()) {
+				push(ns, x); num.clear();
 			}
-			else if (!op_stack.empty()) {
-				op = op_stack.back();
-				if (get_op_prior(op) >= get_op_prior(c))/*进行运算*/ {
-					int num2 = pop(num_stack);
-					int num1 = pop(num_stack);
-					op = pop(op_stack);
-					int ans = do_op(num1, num2, op);
-					push(num_stack, ans);
-					push(op_stack, c);
+
+			if (ns.empty())/*数字栈空,直接压入数据*/ {
+				push(os, *s);
+				s++;
+			}
+			else if (!os.empty()) {
+				op = os.back();
+				if (*s == 0 || get_op_prior(op) >= get_op_prior(*s))/*进行运算*/ {
+					int num2 = pop(ns);
+					int num1 = pop(ns);
+					op = pop(os);
+					ans = do_op(num1, num2, op);
+					push(ns, ans);
+					//push(os, c);
 				}
 				else {/*将运算压入栈中*/
-					push(op_stack, c);
-					++itr;
+					push(os, *s);
+					s++;
 				}
 			}
 			else {
-				push(op_stack, c);
-				++itr;
+				push(os, *s);
+				s++;
 			}
 
 
 		}
 		else {
-			numstr.push_back(c);
-			++itr;
+			num.push_back(*s);
+			s++;
 		}
 
 	}
-	int num;
-	swscanf(numstr.data(), L"%X", &num);
-	numstr.clear();
-	push(num_stack, num);
-	if (num_stack.size() == 3) {
-		ans = do_op(num_stack[0], do_op(num_stack[1], num_stack[2], op_stack[1]), op_stack[0]);
-	}
-	else if (num_stack.size() == 2)
-		ans = do_op(num_stack[0], num_stack[1], op_stack[0]);
-	else if (num_stack.size() == 1)
-		ans = num_stack[0];
-	else
-		ans = 0;
-	return ans;
+
+	return ns.back();
 }
 
 MemoryEx::MemoryEx()
@@ -120,7 +109,7 @@ long MemoryEx::WriteData(HWND hwnd, const wstring& address, const wstring& data,
 		if (hr >= 0) {
 			size_t addr = str2address(address);
 			if (addr == 0)return 0;
-			return memcpy((void*)addr, (size_t)bin.data(), size);
+			return mem_write(addr, bin.data(), size);
 			
 		}
 		return 0;
@@ -128,11 +117,12 @@ long MemoryEx::WriteData(HWND hwnd, const wstring& address, const wstring& data,
 	else {
 		size_t addr = str2address(address);
 		if (addr == 0)return 0;
-		return memcpy((void*)addr, (size_t)bin.data(), size);
+		return mem_write(addr,bin.data(), size);
 	}
 	
 
 }
+
 wstring MemoryEx::ReadData(HWND hwnd, const wstring& address, LONG size) {
 	_hwnd = hwnd;
 	if (!checkaddress(address))
@@ -150,13 +140,13 @@ wstring MemoryEx::ReadData(HWND hwnd, const wstring& address, LONG size) {
 		if (hr >= 0) {
 			size_t addr = str2address(address);
 			if (addr == 0)return L"";
-			 memcpy(bin.data(), addr, size);
+			 mem_read(bin.data(), addr, size);
 		}
 	}
 	else {
 		size_t addr = str2address(address);
 		if (addr == 0)return L"";
-		memcpy(bin.data(), addr, size);
+		mem_read(bin.data(), addr, size);
 	}
 
 	bin2hexs(bin, hex);
@@ -164,7 +154,7 @@ wstring MemoryEx::ReadData(HWND hwnd, const wstring& address, LONG size) {
 
 }
 
-bool MemoryEx::memcpy(void* dst, size_t src, size_t size) {
+bool MemoryEx::mem_read(void* dst, size_t src, size_t size) {
 	if (_hwnd) {
 		return _proc.memory().Read(src, size, dst) >= 0;
 	}
@@ -173,6 +163,16 @@ bool MemoryEx::memcpy(void* dst, size_t src, size_t size) {
 		return true;
 	}
 
+}
+
+bool MemoryEx::mem_write(size_t dst, void* src, size_t size) {
+	if (_hwnd) {
+		return _proc.memory().Write(dst, size, src) >= 0;
+	}
+	else {
+		::memcpy((void*)dst, src, size);
+		return true;
+	}
 }
 
 bool MemoryEx::checkaddress(const wstring& address) {
@@ -191,6 +191,7 @@ bool MemoryEx::checkaddress(const wstring& address) {
 	}
 	return sk.empty();
 }
+
 size_t MemoryEx::str2address(const wstring& caddress) {
 	wstring address = caddress;
 	if (!checkaddress(address))
@@ -221,9 +222,9 @@ size_t MemoryEx::str2address(const wstring& caddress) {
 			idx1 = pop(sk);
 			idx2 = i;
 			auto sad = address.substr(idx1 + 1, idx2 - idx1 - 1);
-			size_t src = stringcompute(sad);
+			size_t src = stringcompute(sad.data());
 			size_t next;
-			if (!memcpy(&next, src, sizeof(size_t)) || next == 0)
+			if (!mem_read(&next, src, sizeof(size_t)) || next == 0)
 				return 0;
 			wchar_t buff[128];
 			wsprintf(buff, L"%X", next);
@@ -232,7 +233,7 @@ size_t MemoryEx::str2address(const wstring& caddress) {
 		}
 		++i;
 	}
-	return stringcompute(address);
+	return stringcompute(address.data());
 }
 
 void MemoryEx::hex2bins(vector<uchar>&bin, const wstring& hex,size_t size) {
@@ -247,11 +248,13 @@ void MemoryEx::hex2bins(vector<uchar>&bin, const wstring& hex,size_t size) {
 }
 
 void MemoryEx::bin2hexs(const vector<uchar>&bin, wstring& hex) {
-	hex.resize(bin.size() * 2);
+	//hex.resize(bin.size() * 2);
+	hex.reserve(bin.size() * 2);
+	hex.clear();
 	for (int i = 0; i < bin.size(); ++i) {
 		int ans = bin2hex(bin[i]);
-		hex[i * 2] = ans >> 4;
-		hex[i * 2 + 1] = ans & 0xf;
+		hex.push_back(ans >> 8);
+		hex.push_back(ans & 0xff);
 	}
 }
 
