@@ -30,10 +30,18 @@ int inline bin2hex(int c) {
 	int ans = 0;
 	int c1 = c >> 4 & 0xf;
 	int c2 = c & 0xf;
-	ans |= c1 <= 9 ? c1 + L'0' : c1 + 'A' - 10;
+	ans |= (c1 <= 9 ? c1 + L'0' : c1 + 'A' - 10) << 8;
 	ans |= c2 <= 9 ? c2 + L'0' : c2 + 'A' - 10;
 	return ans;
 };
+
+constexpr int PTY(uint pt) {
+	return pt >> 16;
+}
+
+constexpr int PTX(uint pt) {
+	return pt & 0xffff;
+}
 
 #endif // !__TOOL_H_
 

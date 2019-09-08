@@ -116,60 +116,75 @@ void ImageBase::set_offset(int dx, int dy) {
 template<bool nodfcolor>
 long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int max_error) {
 	int err_ct = 0;
-	if (nodfcolor) {
-		for (int i = 0; i < timg->height; ++i) {
-			auto p1 = _src.ptr<uint>(i + y) + x;
-			auto p2 = timg->ptr<uint>(i);
-			for (int j = 0; j < timg->width; ++j) {
-				if (*p1++ != *p2++)
-					++err_ct;
-				if (err_ct > max_error)
-					return 0;
+
+
+	uint* pscreen_top, *pscreen_bottom, *pimg_top, *pimg_bottom;
+	pscreen_top = _src.ptr<uint>(y) + x;
+	pscreen_bottom = _src.ptr<uint>(y + timg->height - 1) + x;
+	pimg_top = timg->ptr<uint>(0);
+	pimg_bottom = timg->ptr<uint>(timg->height - 1);
+	while (pscreen_top <= pscreen_bottom) {
+
+		auto ps1 = pscreen_top, ps2 = pscreen_top + timg->width - 1;
+		auto ps3 = pscreen_bottom, ps4 = pscreen_bottom + timg->width - 1;
+		auto pt1 = pimg_top, pt2 = pimg_top + timg->width - 1;
+		auto pt3 = pimg_bottom, pt4 = pimg_bottom + timg->width - 1;
+		while (ps1 <= ps2) {
+			if (nodfcolor) {
+				if (*ps1++ != *pt1++)++err_ct;//top left
+				if (*ps2-- != *pt2--)++err_ct;//top right
+				if (*ps3++ != *pt3++)++err_ct;//bottom left
+				if (*ps4-- != *pt4--)++err_ct;//bottom right
 			}
-		}
-	}
-	else {
-		for (int i = 0; i < timg->height; ++i) {
-			auto p1 = _src.ptr<color_t>(i + y) + x * 4;
-			auto p2 = timg->ptr<color_t>(i);
-			for (int j = 0; j < timg->width; ++j) {
-				if (!IN_RANGE(*p1,*p2, dfcolor))
+			else {
+				if (!IN_RANGE(*(color_t*)ps1++, *(color_t*)pt1++, dfcolor))
 					++err_ct;
-				if (err_ct > max_error)
-					return 0;
-				p1++; p2++;
+				if (!IN_RANGE(*(color_t*)ps2--, *(color_t*)pt2--, dfcolor))
+					++err_ct;
+				if (!IN_RANGE(*(color_t*)ps3++, *(color_t*)pt3++, dfcolor))
+					++err_ct;
+				if (!IN_RANGE(*(color_t*)ps4--, *(color_t*)pt4--, dfcolor))
+					++err_ct;
 			}
+
+			if (err_ct > max_error)
+				return 0;
 		}
+		pscreen_top += _src.width;
+		pscreen_bottom -= _src.width;
 	}
 
 	return 1;
 }
 template<bool nodfcolor>
-long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>points, int max_error) {
+long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>pts, int max_error) {
 	int err_ct = 0, k, dx, dy;
-	if (nodfcolor) {
-		for (auto it : points) {
-			dy = it >> 16;
-			dx = it & 0xffff;
-			if (_src.at<uint>(y + dy, x + dx) != timg->at<uint>(dy, dx))
+	int left, right;
+	left = 0; right = pts.size() - 1;
+	while(left<=right){
+		auto it = pts[left];
+		if (nodfcolor) {
+			if (_src.at<uint>(y + PTY(pts[left]), x + PTX(pts[left])) != timg->at<uint>(PTY(pts[left]), PTX(pts[left])))
 				++err_ct;
-			if (err_ct > max_error)
-				return 0;
-		}
-	}
-	else {
-		for (auto it : points) {
-			dy = it >> 16;
-			dx = it & 0xffff;
-			auto cr1 = _src.at<color_t>(y + dy, x + dx);
-			auto cr2 = timg->at<color_t>(dy, dx);
-			if (!IN_RANGE(cr1,cr2,dfcolor))
+			if (_src.at<uint>(y + PTY(pts[right]), x + PTX(pts[right])) != timg->at<uint>(PTY(pts[right]), PTX(pts[right])))
 				++err_ct;
-			if (err_ct > max_error)
-				return 0;
 		}
+		else {
+			color_t cr1, cr2;
+			cr1 = _src.at<color_t>(y + PTY(pts[left]), x + PTX(pts[left]));
+			cr2 = timg->at<color_t>(PTY(pts[left]), PTX(pts[left]));
+			if (!IN_RANGE(cr1, cr2, dfcolor))
+				++err_ct;
+			cr1 = _src.at<color_t>(y + PTY(pts[right]), x + PTX(pts[right]));
+			cr2 = timg->at<color_t>(PTY(pts[right]), PTX(pts[right]));
+			if (!IN_RANGE(cr1, cr2, dfcolor))
+				++err_ct;
+		}
+		
+		++left; --right;
+		if (err_ct > max_error)
+			return 0;
 	}
-
 	return 1;
 }
 
@@ -210,7 +225,7 @@ long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>&colors, double 
 	color_t cr;
 	if (GetPixel(x, y, cr)) {
 		for (auto&it : colors) {
-			if (IN_RANGE(cr,it.color,it.df))
+			if (IN_RANGE(cr, it.color, it.df))
 				return 1;
 		}
 	}
@@ -379,7 +394,7 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
 		auto pic = pics[pic_id];
 		int use_ts_match = check_transparent(pic);
-		
+
 		if (use_ts_match)
 			get_match_points(*pic, points);
 
@@ -393,10 +408,10 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 				int max_err_ct = (pic->height*pic->width - use_ts_match)*(1.0 - sim);
 				//step 3. ¿ªÊ¼Æ¥Åä
 				if (nodfcolor)
-					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor,points, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<true>(j, i, pic, dfcolor, max_err_ct));
 				else
-					match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor,points, max_err_ct) :
+					match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<false>(j, i, pic, dfcolor, max_err_ct));
 				if (match_ret) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
