@@ -9,7 +9,7 @@
 #include <math.h>
 #define color2uint(color) (*(uint*)&color)
 template<typename T>
-constexpr auto IN_RANGE(T lhs, T rhs, T df) { 
+constexpr bool IN_RANGE(T lhs, T rhs, T df) { 
 	return abs(lhs.b-rhs.b)<=df.b
 		&&abs(lhs.g-rhs.g)<=df.g
 		&&abs(lhs.r-rhs.r)<=df.r;
