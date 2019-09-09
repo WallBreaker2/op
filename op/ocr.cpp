@@ -3,6 +3,10 @@
 #include <list>
 #include "include/color.h"
 #include "ocr.h"
+
+constexpr int MIN_CUT_W = 5;
+constexpr int MIN_CUT_H = 2;
+
 int get_bk_color(inputbin bin) {
 	int y[256] = { 0 };
 	auto ptr = bin.pixels.data();
@@ -85,7 +89,7 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 	int startindex = 0;
 	int endindex = 0;
 	bool inblock = false; //是否遍历到字符位置
-
+	rect_t roi;
 	for (int j = rc.x1; j < rc.x2; j++)
 	{
 
@@ -95,12 +99,13 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 			startindex = j;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		if (inblock&&vx[j] == 0) //进入空白区
+		//if (inblock&&vx[j] == 0) //进入空白区
+		else if(inblock&&vx[j]==0&&j-startindex>=MIN_CUT_W)//进入空白区域，且宽度不小于1
 		{
 			endindex = j;
 			inblock = false;
 			//Mat roi = binary.colRange(startindex, endindex + 1);
-			rect_t roi;
+		
 			roi.x1 = startindex; roi.y1 = rc.y1;
 			roi.x2 = endindex; roi.y2 = rc.y2;
 			//qDebug("out xrc:%d,%d,%d,%d", roi.x1, roi.y1, roi.x2, roi.y2);
@@ -109,7 +114,9 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 	}
 	//special case
 	if (inblock) {
-		out_put.push_back(rc);
+		roi.x1 = startindex; roi.y1 = rc.y1;
+		roi.x2 = rc.x2; roi.y2 = rc.y2;
+		out_put.push_back(roi);
 	}
 
 }
@@ -142,7 +149,7 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 	int startindex = 0;
 	int endindex = 0;
 	bool inblock = false; //是否遍历到字符位置
-
+	rect_t roi;
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
 
@@ -152,26 +159,27 @@ void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&ou
 			startindex = i;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		if (inblock&&vy[i] == 0) //进入空白区
+		//if (inblock&&vy[i] == 0) //进入空白区
+		if(inblock&&vy[i]==0&&i-startindex>=MIN_CUT_H)//进入空白区,且高度不小于1
 		{
 			endindex = i;
 			inblock = false;
-			//Mat roi = binary.rowRange(startindex, endindex + 1); //从而记录从开始到结束行的位置，即可进行行切分
-			rect_t roi;
+		
 			roi.x1 = rc.x1; roi.y1 = startindex;
 			roi.x2 = rc.x2; roi.y2 = endindex;
-			//qDebug("out yrc:%d,%d,%d,%d", roi.x1, roi.y1, roi.x2, roi.y2);
 			out_put.push_back(roi);
 		}
 	}
 
 	if (inblock) {
-		out_put.push_back(rc);
+		roi.x1 = rc.x1; roi.y1 = startindex;
+		roi.x2 = rc.x2; roi.y2 = rc.y2;
+		out_put.push_back(roi);
 	}
 
 }
 
-void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
+void bin_image_cut(const ImageBin& binary, int min_word_h, const rect_t&inrc, rect_t& outrc) {
 	//水平裁剪，缩小高度
 	std::vector<int>v;
 	outrc = inrc;
@@ -187,7 +195,8 @@ void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
 	outrc.y1 = i;
 	i = inrc.y2 - 1;
 	while (v[i] == 0)i--;
-	outrc.y2 = i+1;
+	if (i + 1 - outrc.y1 > min_word_h)
+		outrc.y2 = i + 1;
 	//垂直裁剪.缩小宽度
 	v.resize(binary.width);
 	for (auto&it : v)it = 0;
@@ -202,6 +211,24 @@ void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc) {
 	i = inrc.x2-1;
 	while (v[i] == 0)i--;
 	outrc.x2 = i+1;
+	
+}
+
+void get_rois(const ImageBin& bin, int min_word_h,std::vector<rect_t>& vroi) {
+	vroi.clear();
+	std::vector<rect_t> vrcx, vrcy;
+	rect_t rc;
+	rc.x1 = rc.y1 = 0;
+	rc.x2 = bin.width; rc.y2 = bin.height;
+	binshadowy(bin, rc, vrcy);
+	for (int i = 0; i < vrcy.size();++i) {
+		binshadowx(bin, vrcy[i], vrcx);
+		for (int j = 0; j < vrcx.size();j++) {
+			if (vrcx[j].width() >= min_word_h)
+				bin_image_cut(bin, min_word_h, vrcx[j], vrcx[j]);
+				vroi.push_back(vrcx[j]);
+		}
+	}
 	
 }
 
@@ -380,40 +407,37 @@ void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const D
 
 
 void bin_ocr(const ImageBin& binary, ImageBin& record, const Dict& dict, double sim, std::map<point_t, std::wstring>&ps) {
-	std::vector<rect_t> out_y, out_x;
 	ps.clear();
 	if (dict.words.empty())return;
 	if (binary.empty())
 		return;
 	record.create(binary.width, binary.height);
 	memset(record.data(), 0, sizeof(uchar)*record.width*record.height);
-	rect_t rc;
-	rc.x1 = rc.y1 = 0;
-	rc.x2 = binary.width; rc.y2 = binary.height;
-	std::vector<rect_t> vrcx, vrcy;
-	binshadowy(binary, rc, vrcy);
+
 	/*
 	计算误差
 	*/
 	sim = 0.5 + sim / 2;
 	sim = 1.0 - sim;
+	int word_h_min = 32;
 	std::vector<int> vmax_error;
 	vmax_error.resize(dict.words.size());
 	for (int i = 0; i < vmax_error.size(); ++i) {
 		vmax_error[i] = dict.words[i].info.bit_count*sim;
+		if (word_h_min > dict.words[i].info.height)
+			word_h_min = dict.words[i].info.height;
 	}
-	for (auto&ity : vrcy) {
-		binshadowx(binary, ity, vrcx);
-		for (auto&itx : vrcx) {
-			bin_image_cut(binary, itx, itx);
-			if (sim > 1.0 - 1e-5) {
-				_bin_ocr(binary, record, itx, dict, ps);
-			}
-			else {
-				_bin_ocr(binary, record, itx, dict, vmax_error.data(), ps);
-			}
-
+	vector<rect_t> vroi;
+	get_rois(binary,word_h_min, vroi);
+	for (int i = 0; i < vroi.size(); ++i) {
+		if (sim > 1.0 - 1e-5) {
+			_bin_ocr(binary, record, vroi[i], dict, ps);
 		}
-
+		else {
+			_bin_ocr(binary, record, vroi[i], dict, vmax_error.data(), ps);
+		}
 	}
+		
+
+	
 }
