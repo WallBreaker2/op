@@ -36,7 +36,9 @@ void binshadowx(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>& o
 //水平方向投影，投到(y)轴
 void binshadowy(const ImageBin& binary, const rect_t& rc, std::vector<rect_t>&out_put);
 //图像裁剪
-void bin_image_cut(const ImageBin& binary, const rect_t&inrc, rect_t& outrc);
+void bin_image_cut(const ImageBin& binary,int min_word_h, const rect_t&inrc, rect_t& outrc);
+
+void get_rois(const ImageBin& bin,int min_word_h, std::vector<rect_t>& vroi);
 //ocr in sim=1.0
 void _bin_ocr(const ImageBin& binary, ImageBin& record, const rect_t&rc, const Dict& dict, std::map<point_t, std::wstring>&ps);
 //ocr with sim<1.0
