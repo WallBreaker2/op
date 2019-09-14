@@ -13,8 +13,8 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 [op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)  
 
 ## Build  
-使用vs2017编译，除了DirectX SDK外,需要以下库支持：opencv，blackbone和minhook  
-可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速安装opencv库
+使用vs2017编译，除了DirectX SDK外,需要以下库支持：blackbone和minhook  
+可使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)快速安装MINHOOK库
 其它额外的库可自己编译，参见[3rdparty-Lib](#3rdparty-Lib),也可进群下载
 ***
 ## Fetaure
@@ -45,9 +45,8 @@ A星寻路算法
 
 ### 3rdparty-Lib  
 ---
-[1].[opencv3.4](https://opencv.org/)  
-[2].[blackbone](https://github.com/DarthTon/Blackbone.git)  
-[3].[minhook](https://github.com/TsudaKageyu/minhook.git)  
+[1].[blackbone](https://github.com/DarthTon/Blackbone.git)  
+[2].[minhook](https://github.com/TsudaKageyu/minhook.git)  
 
 ### Reference
 ---
