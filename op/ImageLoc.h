@@ -30,6 +30,13 @@ int check_transparent(Image* img);
 void get_match_points(const Image& img, vector<int>&points);
 //generate next index for kmp
 void gen_next(const Image& img, vector<int>& next);
+//sum of all pixels
+int inline sum(uchar* begin, uchar* end) {
+	int s = 0;
+	while (begin != end)
+		s += *begin++;
+	return s;
+}
 
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
@@ -61,7 +68,7 @@ public:
 	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor,vector<uint>points, int max_error);
 
-	long real_match(long x, long y, ImageBin* timg, double sim);
+	long real_match(long x, long y, ImageBin* timg,int tnorm, double sim);
 	
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.width && y < _src.height;
