@@ -43,6 +43,38 @@ constexpr int PTX(uint pt) {
 	return pt & 0xffff;
 }
 
+template<typename T>
+void nextVal(const T& t, int* next) {
+	next[0] = -1;
+	int k = -1, j = 0;
+	while (j < (int)t.size()-1) {
+		if (k == -1 || t[k] == t[j]) {
+			k++;
+			j++;
+			next[j] = k;
+		}
+		else {
+			k = next[k];
+		}
+	}
+}
+template<typename T>
+int kmp(const T& s, const T& t) {
+	vector<int> next(t.size());
+	nextVal(t, next.data());
+	int i = 0, j = 0;
+	while (i < (int)s.size() && j < (int)t.size()) {
+		if (j == -1 || s[i] == t[j]) {
+			i++;
+			j++;
+		}
+		else {
+			j = next[j];
+		}
+	}
+	return j == s.size() ? i - j : -1;
+}
+
 #endif // !__TOOL_H_
 
 

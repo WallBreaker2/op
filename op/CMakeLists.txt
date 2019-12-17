@@ -30,8 +30,8 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 
 #LINK_DIRECTORIES("/3rd_party/lib/x86")
 # 5.set environment variable
-find_package(OpenCV REQUIRED)
-include_directories(${PROJECT_NAME} ${OpenCV_INCLUDE_DIRS})
+# find_package(OpenCV REQUIRED)
+# include_directories(${PROJECT_NAME} ${OpenCV_INCLUDE_DIRS})
 
 MESSAGE(STATUS ${Opencv})
 
@@ -49,19 +49,21 @@ SET(SRC_FILES
 "bkgdi.cpp" 
 "bkkeypad.cpp" 
 "bkmouse.cpp" 
-"common.cpp" 
 "compreg.cpp"
 "dllmain.cpp"
+"globalVar.cpp"
+"helpfunc.cpp"
 "imageloc.cpp"
 "imageproc.cpp"
 "injecter.cpp"
+"libop.cpp"
+"memoryEx.cpp"
 "ocr.cpp"
 "op.cpp"
 "opinterface.cpp"
 "pipe.cpp"
 "query_api.cpp"
 "stdafx.cpp"
-"tool.cpp"
 "winapi.cpp"
 "xhook.cpp"
 "./3rd_party/src/kiero.cpp"
@@ -98,7 +100,7 @@ SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NO
 
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION bin)
+#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION bin)
 
 
 

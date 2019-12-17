@@ -28,6 +28,8 @@ using img_names = std::vector<std::wstring>;
 int check_transparent(Image* img);
 //获取匹配点
 void get_match_points(const Image& img, vector<int>&points);
+//generate next index for kmp
+void gen_next(const Image& img, vector<int>& next);
 
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
@@ -48,27 +50,19 @@ public:
 	//hegith:		h
 	//x1,y1,x2,y2 拷贝区域
 	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
-	
-
 	long input_image(byte* psrc, int cols, int height,long x1,long y1,long x2,long y2, int type = 0);
 
 	void set_offset(int dx, int dy);
 
 
-
 	
-	//brief:图像定位
-	//images:图像文件名，可以为多个
-	//sim:精度5-599.
-	//x,y:目标坐标
-	/*long imageloc(images_t& images, double sim, long&x, long&y);*/
 	template<bool nodfcolor>
 	long simple_match(long x, long y, Image* timg,color_t dfcolor,int max_error);
 	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor,vector<uint>points, int max_error);
-	//无偏匹配
-	/*long ndiff_match(long x, long y, Image* timg, int max_error);*/
 
+	long real_match(long x, long y, ImageBin* timg, double sim);
+	
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.width && y < _src.height;
 	}
@@ -97,10 +91,9 @@ public:
 
 	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
 
-	
-	
 public:
 	Image _src;
+	ImageBin _gray;
 	ImageBin _record;
 	ImageBin _binary;
 private:
