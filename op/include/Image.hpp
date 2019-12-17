@@ -2,12 +2,7 @@
 #ifndef __IMAGE_H_
 #define __IMAGE_H_
 #include <vector>
-#ifndef min
-#define min
-#endif
-#ifndef max
-#define max
-#endif
+
 #include <atlimage.h>
 struct Image
 {
@@ -196,6 +191,9 @@ struct ImageBin {
 	}
 	void clear() {
 		width = height = 0;
+	}
+	int size()const {
+		return width*height;
 	}
 	bool empty()const {
 		return width == 0;

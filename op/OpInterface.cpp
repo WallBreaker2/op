@@ -59,8 +59,9 @@ STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 
 STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 	wstring fpath = path;
+	replacew(fpath, L"/", L"\\");
 	if (fpath.find(L'\\') != -1 && ::PathFileExistsW(path)) {
-		_curr_path = path;
+		_curr_path = fpath;
 		_image_proc._curr_path = _curr_path;
 		*ret = 1;
 	}

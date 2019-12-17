@@ -101,7 +101,7 @@ long bkmouse::LeftClick() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 		
 		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
 		break;
@@ -180,7 +180,7 @@ long bkmouse::MiddleDown() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 
@@ -202,7 +202,7 @@ long bkmouse::MiddleUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 	}
@@ -229,7 +229,7 @@ long bkmouse::RightClick() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret=::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+		ret=::SendMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
 		ret=::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
@@ -314,7 +314,7 @@ long bkmouse::WheelDown() {
 		relative to the upper-left corner of the screen.
 		*/
 		//If an application processes this message, it should return zero.
-		ret = ::PostMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA,0), MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA,0), MAKELPARAM(_x, _y));
 		break;
 	}
 
@@ -338,7 +338,7 @@ long bkmouse::WheelUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
 		break;
 	}
 	}

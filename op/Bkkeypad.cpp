@@ -30,12 +30,12 @@ long bkkeypad::GetKeyState(long vk_code) {
 }
 
 long bkkeypad::KeyDown(long vk_code) {
-	auto ret=::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
+	auto ret=::SendMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
 	return ret;
 }
 
 long bkkeypad::KeyUp(long vk_code) {
-	auto ret=::PostMessageW(_hwnd, WM_KEYUP, vk_code, 1);
+	auto ret=::SendMessageW(_hwnd, WM_KEYUP, vk_code, 1);
 	return ret;
 }
 
