@@ -2,6 +2,7 @@
 #include "ImageLoc.h"
 #include "helpfunc.h"
 #include <time.h>
+#include <numeric>
 using std::to_wstring;
 //检查是否为透明图，返回透明像素个数
 int check_transparent(Image* img) {
@@ -168,17 +169,18 @@ long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector
 	return 1;
 }
 
-long ImageBase::real_match(long x, long y, ImageBin* timg, double sim) {
+long ImageBase::real_match(long x, long y, ImageBin* timg,int tnorm, double sim) {
 	int err = 0;
 	for (int i = 0; i < timg->height; i++) {
 		auto ptr = _gray.ptr(y + i) + x;
 		auto ptr2 = timg->ptr(i);
 		for (int j = 0; j < timg->width; j++) {
 			err += abs(*ptr - *ptr2);
+			ptr++; ptr2++;
 		}
 	}
 	//norm it
-	double nerr = (double)err / ((double)timg->size() * 255);
+	double nerr = (double)err / ((double)tnorm);
 	return nerr <= 1.0 - sim ? 1 : 0;
 
 }
@@ -329,6 +331,7 @@ long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, l
 	int match_ret = 0;
 	ImageBin gimg;
 	_gray.fromImage4(_src);
+	int tnorm;
 	//将小循环放在最外面，提高处理速度
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
 		auto pic = pics[pic_id];
@@ -336,8 +339,11 @@ long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, l
 		//setlog("use trans match=%d", use_ts_match);
 		if (use_ts_match)
 			get_match_points(*pic, points);
-		else
+		else {
 			gimg.fromImage4(*pic);
+			tnorm = sum(gimg.begin(), gimg.end());
+		}
+			
 		for (int i = 0; i < _src.height; ++i) {
 			for (int j = 0; j < _src.width; ++j) {
 				//step 1. 边界检查
@@ -351,7 +357,7 @@ long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, l
 				/*match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 					simple_match<false>(j, i, pic, dfcolor, max_err_ct));*/
 				match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
-					real_match(j, i, &gimg, sim));
+					real_match(j, i, &gimg,tnorm, sim));
 				if (match_ret) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return pic_id;
