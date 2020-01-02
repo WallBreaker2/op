@@ -38,6 +38,7 @@ int inline sum(uchar* begin, uchar* end) {
 	return s;
 }
 
+
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -69,6 +70,10 @@ public:
 	long trans_match(long x, long y, Image* timg, color_t dfcolor,vector<uint>points, int max_error);
 
 	long real_match(long x, long y, ImageBin* timg,int tnorm, double sim);
+
+	void record_sum();
+	//[x1,x2),[y1,y2)
+	int region_sum(int x1, int y1, int x2, int y2);
 	
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.width && y < _src.height;
@@ -103,6 +108,7 @@ public:
 	ImageBin _gray;
 	ImageBin _record;
 	ImageBin _binary;
+	Image _sum;
 private:
 	//起始点
 	int _x1, _y1;
