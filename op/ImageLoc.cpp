@@ -170,6 +170,9 @@ long ImageBase::trans_match(long x, long y, Image* timg, color_t dfcolor, vector
 }
 
 long ImageBase::real_match(long x, long y, ImageBin* timg,int tnorm, double sim) {
+	//quick check
+	if ((double)abs(tnorm - region_sum(x, y, x + timg->width, y + timg->height)) / (double)tnorm > 1.0 - sim)
+		return 0;
 	int err = 0;
 	for (int i = 0; i < timg->height; i++) {
 		auto ptr = _gray.ptr(y + i) + x;
@@ -183,6 +186,34 @@ long ImageBase::real_match(long x, long y, ImageBin* timg,int tnorm, double sim)
 	double nerr = (double)err / ((double)tnorm);
 	return nerr <= 1.0 - sim ? 1 : 0;
 
+}
+
+void ImageBase::record_sum() {
+	_sum.create(_src.width, _src.height);
+	//_sum.fill(0);
+	int m = _gray.height;
+	int n = _gray.width;
+	for (int i = 0; i < m; i++) {
+		
+		for (int j = 0; j < n; j++) {
+			int &s = _sum.at<int>(i, j);
+			if (i)
+				 s+= _sum.at<int>(i - 1, j);
+			if(j)
+				s += _sum.at<int>(i, j-1);
+			if (i&&j)
+				s -= _sum.at<int>(i - 1, j - 1);
+			s += (int)_gray.at(i, j);
+		}
+	}
+}
+
+int ImageBase::region_sum(int x1, int y1, int x2, int y2) {
+	int ans = _sum.at<int>(y2 - 1, x2 - 1);
+	if (x1)ans -= _sum.at<int>(y2-1, x1 - 1);
+	if (y1)ans -= _sum.at<int>(y1 - 1, x2-1);
+	if (x1&&y1)ans += _sum.at<int>(y1 - 1, x1 - 1);
+	return ans;
 }
 
 long ImageBase::GetPixel(long x, long y, color_t&cr) {
@@ -331,6 +362,7 @@ long ImageBase::FindPic(std::vector<Image*>&pics, color_t dfcolor, double sim, l
 	int match_ret = 0;
 	ImageBin gimg;
 	_gray.fromImage4(_src);
+	record_sum();
 	int tnorm;
 	//将小循环放在最外面，提高处理速度
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
