@@ -20,4 +20,4 @@ project ("op")
 # 包含子项目。
 add_subdirectory ("op")
 
-add_subdirectory ("example")
+# add_subdirectory ("example")

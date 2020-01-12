@@ -69,13 +69,15 @@ long  libop::Ver(std::wstring& ret) {
 
 long  libop::SetPath(const wchar_t* path, long* ret) {
 	wstring fpath = path;
-	if ( fpath.find(L'\\')!=-1&&::PathFileExistsW(path)) {
-		_curr_path = path;
+	replacew(fpath, L"/", L"\\");
+	if (fpath.find(L'\\') != -1 && ::PathFileExistsW(fpath.data())) {
+		_curr_path = fpath;
 		_image_proc->_curr_path = _curr_path;
+		_bkproc->_curr_path = _curr_path;
 		*ret = 1;
 	}
 	else {
-		
+
 		if (!fpath.empty() && fpath[0] != L'\\')
 			fpath = _curr_path + L'\\' + fpath;
 		else
@@ -83,12 +85,12 @@ long  libop::SetPath(const wchar_t* path, long* ret) {
 		if (::PathFileExistsW(fpath.data())) {
 			_curr_path = path;
 			_image_proc->_curr_path = _curr_path;
+			_bkproc->_curr_path = _curr_path;
 			*ret = 1;
 		}
 		else
 			*ret = 0;
 	}
-	
 	
 	return S_OK;
 }
@@ -777,6 +779,15 @@ long  libop::GetColor(long x, long y, std::wstring& ret) {
 	ret = _s2wstring(cr.tostr());
 
 	return S_OK;
+}
+
+long libop::SetDisplayInput(const wchar_t* mode, long* ret) {
+	*ret=_bkproc->set_display_method(mode);
+	return 0;
+}
+
+long libop::GetScreenData(long x1, long y1, long x2, long y2, std::wstring& ret) {
+	return 0;
 }
 
 

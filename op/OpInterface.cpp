@@ -60,9 +60,10 @@ STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 	wstring fpath = path;
 	replacew(fpath, L"/", L"\\");
-	if (fpath.find(L'\\') != -1 && ::PathFileExistsW(path)) {
+	if (fpath.find(L'\\') != -1 && ::PathFileExistsW(fpath.data())) {
 		_curr_path = fpath;
 		_image_proc._curr_path = _curr_path;
+		_bkproc._curr_path = _curr_path;
 		*ret = 1;
 	}
 	else {
@@ -74,6 +75,7 @@ STDMETHODIMP OpInterface::SetPath(BSTR path, LONG* ret) {
 		if (::PathFileExistsW(fpath.data())) {
 			_curr_path = path;
 			_image_proc._curr_path = _curr_path;
+			_bkproc._curr_path = _curr_path;
 			*ret = 1;
 		}
 		else
@@ -810,7 +812,22 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::SetDisplayInput(BSTR mode, LONG* ret) {
+	*ret = _bkproc.set_display_method(mode);
+	return S_OK;
+}
 
+STDMETHODIMP OpInterface::LoadPic(BSTR pic_name, LONG* ret) {
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG* ret) {
+	return S_OK;
+}
+//获取指定区域的图像,用二进制数据的方式返回
+STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, BSTR*ret) {
+	return S_OK;
+}
 
 //设置字库文件
 STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
@@ -918,6 +935,10 @@ STDMETHODIMP OpInterface::OcrAutoFromFile(BSTR file_name, DOUBLE sim, BSTR* rets
 	_image_proc.OcrAutoFromFile(file_name, sim, str);
 	newstr.Append(str.data());
 	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::UseTessOcr(BSTR info, LONG* ret) {
 	return S_OK;
 }
 

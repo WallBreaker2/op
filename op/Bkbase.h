@@ -6,7 +6,7 @@
 #include "Bkmouse.h"
 #include "Bkkeypad.h"
 #include "bkdx_gl.h"
-
+#include "include/Image.hpp"
 using std::wstring;
 
 /*
@@ -38,15 +38,20 @@ public:
 	long get_image_type();
 	//检查是否绑定或者桌面前台
 	bool check_bind();
+	const std::pair<wstring, wstring>& get_display_method()const;
+	long set_display_method(const wstring& method);
 private:
 	HWND _hwnd;
 	int _is_bind;
 	int _display;
 	int _mode;
+	std::pair<wstring,wstring> _display_method;
+	Image _pic;
 public:
 	bkdisplay* _pbkdisplay;
 	bkmouse _bkmouse;
 	bkkeypad _keypad;
+	wstring _curr_path;
 	
 };
 #endif
