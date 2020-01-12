@@ -64,7 +64,6 @@ ImageBase::~ImageBase()
 {
 }
 
-
 long ImageBase::input_image(byte* psrc, int width, int height, long x1, long y1, long x2, long y2, int type) {
 	int i, j;
 	_x1 = x1; _y1 = y1;
@@ -407,14 +406,20 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 	vector<uint> points;
 	bool nodfcolor = color2uint(dfcolor) == 0;
 	int match_ret = 0;
-
+	ImageBin gimg;
+	_gray.fromImage4(_src);
+	record_sum();
+	int tnorm;
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
 		auto pic = pics[pic_id];
 		int use_ts_match = check_transparent(pic);
 
 		if (use_ts_match)
 			get_match_points(*pic, points);
-
+		else {
+			gimg.fromImage4(*pic);
+			tnorm = sum(gimg.begin(), gimg.end());
+		}
 		for (int i = 0; i < _src.height; ++i) {
 			for (int j = 0; j < _src.width; ++j) {
 
@@ -424,12 +429,14 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 				//step 2. 计算最大误差
 				int max_err_ct = (pic->height*pic->width - use_ts_match)*(1.0 - sim);
 				//step 3. 开始匹配
-				if (nodfcolor)
+				/*if (nodfcolor)
 					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<true>(j, i, pic, dfcolor, max_err_ct));
 				else
 					match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
-						simple_match<false>(j, i, pic, dfcolor, max_err_ct));
+						simple_match<false>(j, i, pic, dfcolor, max_err_ct));*/
+				match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
+					real_match(j, i, &gimg, tnorm, sim));
 				if (match_ret) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
 					retstr += L"|";
@@ -447,7 +454,6 @@ long ImageBase::FindPicEx(std::vector<Image*>&pics, color_t dfcolor, double sim,
 _quick_return:
 	return obj_ct;
 }
-
 
 long ImageBase::Ocr(Dict& dict, double sim, wstring& retstr) {
 	retstr.clear();

@@ -509,6 +509,25 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG y,
             /* [retval][out] */ BSTR *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDisplayInput( 
+            /* [in] */ BSTR method,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE LoadPic( 
+            /* [in] */ BSTR pic_name,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FreePic( 
+            /* [in] */ BSTR Pic_name,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetScreenData( 
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [retval][out] */ BSTR *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetDict( 
             /* [in] */ LONG idx,
             /* [in] */ BSTR file_name,
@@ -576,6 +595,10 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR file_name,
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE UseTessOcr( 
+            /* [in] */ BSTR info,
+            /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
             /* [in] */ LONG hwnd,
@@ -1150,6 +1173,29 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG y,
             /* [retval][out] */ BSTR *ret);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetDisplayInput )( 
+            IOpInterface * This,
+            /* [in] */ BSTR method,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *LoadPic )( 
+            IOpInterface * This,
+            /* [in] */ BSTR pic_name,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FreePic )( 
+            IOpInterface * This,
+            /* [in] */ BSTR Pic_name,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetScreenData )( 
+            IOpInterface * This,
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [retval][out] */ BSTR *ret);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetDict )( 
             IOpInterface * This,
             /* [in] */ LONG idx,
@@ -1226,6 +1272,11 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR file_name,
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *UseTessOcr )( 
+            IOpInterface * This,
+            /* [in] */ BSTR info,
+            /* [retval][out] */ LONG *ret);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
             IOpInterface * This,
@@ -1521,6 +1572,18 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_GetColor(This,x,y,ret)	\
     ( (This)->lpVtbl -> GetColor(This,x,y,ret) ) 
 
+#define IOpInterface_SetDisplayInput(This,method,ret)	\
+    ( (This)->lpVtbl -> SetDisplayInput(This,method,ret) ) 
+
+#define IOpInterface_LoadPic(This,pic_name,ret)	\
+    ( (This)->lpVtbl -> LoadPic(This,pic_name,ret) ) 
+
+#define IOpInterface_FreePic(This,Pic_name,ret)	\
+    ( (This)->lpVtbl -> FreePic(This,Pic_name,ret) ) 
+
+#define IOpInterface_GetScreenData(This,x1,y1,x2,y2,ret)	\
+    ( (This)->lpVtbl -> GetScreenData(This,x1,y1,x2,y2,ret) ) 
+
 #define IOpInterface_SetDict(This,idx,file_name,ret)	\
     ( (This)->lpVtbl -> SetDict(This,idx,file_name,ret) ) 
 
@@ -1547,6 +1610,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
+
+#define IOpInterface_UseTessOcr(This,info,ret)	\
+    ( (This)->lpVtbl -> UseTessOcr(This,info,ret) ) 
 
 #define IOpInterface_WriteData(This,hwnd,address,data,size,ret)	\
     ( (This)->lpVtbl -> WriteData(This,hwnd,address,data,size,ret) ) 

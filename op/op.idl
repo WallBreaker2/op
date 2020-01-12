@@ -125,8 +125,10 @@ interface IOpInterface : IDispatch
 	[id(156)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(157)] HRESULT FindPicEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
 	[id(158)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
-
-
+	[id(159)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
+	[id(160)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
+	[id(161)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
+	[id(162)] HRESULT GetScreenData([in] LONG  x1,[in] LONG y1,[in] LONG x2, [in] LONG y2, [out, retval]BSTR* ret);
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);
@@ -137,8 +139,9 @@ interface IOpInterface : IDispatch
 	[id(206)] HRESULT OcrAuto([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(207)] HRESULT OcrFromFile([in] BSTR file_name, [in] BSTR color_format, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(208)] HRESULT OcrAutoFromFile([in] BSTR file_name, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(209)] HRESULT UseTessOcr([in] BSTR info,[out, retval] LONG* ret);
 
-	[id(209)] HRESULT WriteData([in] LONG hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
+	[id(250)] HRESULT WriteData([in] LONG hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
 	[id(251)] HRESULT ReadData([in] LONG hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
 	
 	
