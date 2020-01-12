@@ -70,7 +70,7 @@ constexpr int IBF_R8G8B8 = 2;
 
 #define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0,3,4,0)
+#define OP_VERSION MAKE_OP_VERSION(0,3,5,0)
 //模块句柄
 extern HINSTANCE gInstance;
 //是否显示错误信息

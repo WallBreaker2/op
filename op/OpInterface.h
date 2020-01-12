@@ -236,6 +236,12 @@ public:
 	STDMETHOD(FindPicEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir,BSTR* retstr);
 	//获取(x,y)的颜色
 	STDMETHOD(GetColor)(LONG x, LONG y, BSTR* ret);
+	//设置图像输入方式，默认窗口截图
+	STDMETHOD(SetDisplayInput)(BSTR mode, LONG* ret);
+	STDMETHOD(LoadPic)(BSTR pic_name, LONG* ret);
+	STDMETHOD(FreePic)(BSTR pic_name, LONG* ret);
+	//获取指定区域的图像,用二进制数据的方式返回
+	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR*ret);
 
 	//----------------------ocr-------------------------
 	//设置字库文件
@@ -256,6 +262,8 @@ public:
 	STDMETHOD(OcrFromFile)(BSTR file_name,BSTR color_format, DOUBLE sim, BSTR* retstr);
 	//从文件中识别图片,使用tesseract库识别
 	STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR* retstr);
+	//使用Tesseract库进行Ocr
+	STDMETHOD(UseTessOcr)(BSTR info, LONG* ret);
 	//-----------------------memory---------------------------------
 	//向某进程写入数据
 	STDMETHOD(WriteData)(LONG hwnd, BSTR address, BSTR data, LONG size, LONG* ret);

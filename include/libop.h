@@ -211,7 +211,11 @@ public:
 	long FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, double sim, long dir,std::wstring& retstr);
 	//获取(x,y)的颜色
 	long GetColor(long x, long y, std::wstring& ret);
-
+	//
+	//设置图像输入方式，默认窗口截图
+	long SetDisplayInput(const wchar_t* mode, long* ret);
+	//
+	long GetScreenData(long x1, long y1, long x2, long y2, std::wstring& ret);
 	//----------------------ocr-------------------------
 	//设置字库文件
 	long SetDict(long idx, const wchar_t* file_name, long* ret);
@@ -231,6 +235,8 @@ public:
 	long OcrFromFile(const wchar_t* file_name,const wchar_t* color_format, double sim, std::wstring& retstr);
 	//从文件中识别图片,无需指定颜色
 	long OcrAutoFromFile(const wchar_t* file_name, double sim, std::wstring& retstr);
+	//
+	
 	//向某进程写入数据
 	long WriteData(long hwnd, const wchar_t* address, const wchar_t* data, long size, long* ret);
 	//读取数据
