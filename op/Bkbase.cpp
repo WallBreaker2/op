@@ -100,8 +100,12 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
 		if (!ret) {
-			SAFE_DELETE(_pbkdisplay);
-			return 0;
+			_pbkdisplay->UnBind((HWND)hwnd);
+			ret = _pbkdisplay->Bind((HWND)hwnd, display);
+			if (!ret) {
+				SAFE_DELETE(_pbkdisplay);
+				return 0;
+			}
 		}
 		//等待线程创建好
 		Sleep(200);
@@ -160,12 +164,12 @@ byte* bkbase::GetScreenData() {
 			return (byte*)_wtoi64(get_display_method().second.data());
 #endif // 
 			return (byte*)_wtoi(get_display_method().second.data());
-			
-		}
-		return nullptr;
-	}
 
-	
+	}
+		return nullptr;
+}
+
+
 }
 
 void bkbase::lock_data() {
@@ -203,9 +207,9 @@ long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
-	
 
-	if (_pbkdisplay&&(_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
+
+	if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
 	}
@@ -253,7 +257,7 @@ bool bkbase::check_bind() {
 		}
 		return true;
 	}
-		
+
 	//绑定前台桌面
 	return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
 }

@@ -10,6 +10,7 @@ public:
 	~bkgdi();
 	//°ó¶¨
 	long Bind(HWND _hwnd, long render_type) override;
+	long UnBind(HWND hwnd);
 	//½â°ó
 	long UnBind() override;
 	
