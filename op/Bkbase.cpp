@@ -81,6 +81,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		ret = 0; _hwnd = 0;
 	}
 	else {
+		set_display_method(L"screen");
 		_mode = mode;
 		_display = display;
 		if (!_bkmouse.Bind(_hwnd, mouse))
@@ -191,7 +192,7 @@ long bkbase::get_height() {
 	return _pbkdisplay ? _pbkdisplay->get_height() : 0;
 }
 
-long bkbase::get_widht() {
+long bkbase::get_width() {
 	if (get_display_method().first == L"pic")
 		return _pic.width;
 	return _pbkdisplay ? _pbkdisplay->get_width() : 0;
@@ -210,7 +211,7 @@ long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	}
 
 
-	x2 = std::min<long>(get_widht(), x2);
+	x2 = std::min<long>(get_width(), x2);
 	y2 = std::min<long>(get_height(), y2);
 	if (x1 < 0 || y1 < 0) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);

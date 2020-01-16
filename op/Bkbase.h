@@ -33,7 +33,7 @@ public:
 	void lock_data();
 	void unlock_data();
 	long get_height();
-	long get_widht();
+	long get_width();
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
 	long get_image_type();
 	//检查是否绑定或者桌面前台
