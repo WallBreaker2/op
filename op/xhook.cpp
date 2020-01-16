@@ -506,17 +506,19 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface) {
 	return ((eglSwapBuffers_t)xhook::old_address)(dpy, surface);
 	
 }
-
+bool is_hooked = false;
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int render_type_) {
 	if (xhook::setup(hwnd_, render_type_) != 1)
 		return 0;
 	//setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
+	is_hooked = true;
 	return 1;
 }
 
 long UnXHook() {
-
+	if (!is_hooked)
+		return 0;
 	return xhook::release();
 }
 

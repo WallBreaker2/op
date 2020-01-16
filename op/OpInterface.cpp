@@ -497,8 +497,7 @@ STDMETHODIMP OpInterface::GetCmdStr(BSTR cmd, LONG millseconds, BSTR* retstr) {
 
 
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
-	if (_bkproc.IsBind())
-		_bkproc.UnBindWindow();
+	_bkproc.UnBindWindow();
 	*ret = _bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
 	if (*ret == 1) {
 		_image_proc.set_offset(_bkproc._pbkdisplay->_client_x, _bkproc._pbkdisplay->_client_y);

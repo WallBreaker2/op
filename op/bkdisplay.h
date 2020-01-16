@@ -16,6 +16,8 @@ public:
 	virtual long Bind(HWND hwnd, long flag) = 0;
 	//unbind window
 	virtual long UnBind() = 0;
+	//unbind window
+	virtual long UnBind(HWND hwnd) = 0;
 	
 	//因为各种截图方式的差异，是否成功判断较复杂，故在此实现资源的申请和释放，子类调用
 	//资源申请
