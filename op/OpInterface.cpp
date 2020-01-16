@@ -660,7 +660,7 @@ STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_
 	
 	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.Capture(file_name);
@@ -673,8 +673,8 @@ STDMETHODIMP OpInterface::CmpColor(LONG x, LONG y, BSTR color, DOUBLE sim, LONG*
 	*ret = 0;
 	if (_bkproc.check_bind()) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
-			0, 0, _bkproc.get_widht(), _bkproc.get_height(), _bkproc.get_image_type());
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
+			0, 0, _bkproc.get_width(), _bkproc.get_height(), _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.CmpColor(x, y, color, sim);
 	}
@@ -691,7 +691,7 @@ STDMETHODIMP OpInterface::FindColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 	
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 	}
@@ -704,7 +704,7 @@ STDMETHODIMP OpInterface::FindColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR c
 	CComBSTR newstr;
 	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		std::wstring str;
@@ -723,7 +723,7 @@ STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BST
 	
 	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.FindMultiColor(first_color, offset_color, sim, dir, rx, ry);
@@ -743,7 +743,7 @@ STDMETHODIMP OpInterface::FindMultiColorEx(LONG x1, LONG y1, LONG x2, LONG y2, B
 
 	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		std::wstring str;
@@ -762,7 +762,7 @@ STDMETHODIMP OpInterface::FindPic(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files
 	
 	if (_bkproc.check_bind()&& _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.FindPic(files, delta_color, sim, 0, rx, ry);
@@ -782,7 +782,7 @@ STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR fil
 	HRESULT hr;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		std::wstring str;
@@ -799,8 +799,8 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 		x += _bkproc._pbkdisplay->_client_x;
 		y += _bkproc._pbkdisplay->_client_y;
 	}
-	if (x >= 0 && y >= 0 && x < _bkproc.get_widht() && y < _bkproc.get_height()) {
-		auto p = _bkproc.GetScreenData() + (y*_bkproc.get_widht() * 4 + x * 4);
+	if (x >= 0 && y >= 0 && x < _bkproc.get_width() && y < _bkproc.get_height()) {
+		auto p = _bkproc.GetScreenData() + (y*_bkproc.get_width() * 4 + x * 4);
 		cr = *(color_t*)p;
 	}
 	
@@ -844,7 +844,7 @@ STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DO
 	wstring str;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		_image_proc.OCR(color, sim, str);
@@ -860,7 +860,7 @@ STDMETHODIMP OpInterface::OcrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, 
 	wstring str;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		_image_proc.OcrEx(color, sim, str);
@@ -878,7 +878,7 @@ STDMETHODIMP OpInterface::FindStr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR strs,
 	retx->lVal = rety->lVal = -1;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		*ret = _image_proc.FindStr(strs, color, sim, retx->lVal, rety->lVal);
@@ -891,7 +891,7 @@ STDMETHODIMP OpInterface::FindStrEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR str
 	wstring str;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		_image_proc.FindStrEx(strs, color, sim, str);
@@ -907,7 +907,7 @@ STDMETHODIMP OpInterface::OcrAuto(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE sim
 	wstring str;
 	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
 		_bkproc.lock_data();
-		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_widht(), _bkproc.get_height(),
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
 			x1, y1, x2, y2, _bkproc.get_image_type());
 		_bkproc.unlock_data();
 		_image_proc.OcrAuto(sim, str);
