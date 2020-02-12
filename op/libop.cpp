@@ -642,7 +642,7 @@ long  libop::Capture(long x1, long y1, long x2, long y2, const wchar_t* file_nam
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->Capture(file_name);
@@ -655,8 +655,8 @@ long  libop::CmpColor(long x, long y, const wchar_t* color, DOUBLE sim, long* re
 	*ret = 0;
 	if (_bkproc->check_bind()) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
-			0, 0, _bkproc->get_widht(), _bkproc->get_height(), _bkproc->get_image_type());
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
+			0, 0, _bkproc->get_width(), _bkproc->get_height(), _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->CmpColor(x, y, color, sim);
 	}
@@ -672,7 +672,7 @@ long  libop::FindColor(long x1, long y1, long x2, long y2, const wchar_t* color,
 	
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		
 		_bkproc->unlock_data();
@@ -686,7 +686,7 @@ long  libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t* colo
 	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->FindColoEx(color, sim, dir, str);
@@ -702,7 +702,7 @@ long  libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t* f
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->FindMultiColor(first_color, offset_color, sim, dir, *x, *y);
@@ -720,7 +720,7 @@ long  libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t*
 	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		
@@ -737,7 +737,7 @@ long  libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t* files, c
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->FindPic(files, delta_color, sim, 0, *x, *y);
@@ -756,7 +756,7 @@ long  libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files,
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->FindPicEx(files, delta_color, sim, dir, str);
@@ -771,8 +771,8 @@ long  libop::GetColor(long x, long y, std::wstring& ret) {
 		x += _bkproc->_pbkdisplay->_client_x;
 		y += _bkproc->_pbkdisplay->_client_y;
 	}
-	if (x >= 0 && y >= 0 && x < _bkproc->get_widht() && y < _bkproc->get_height()) {
-		auto p = _bkproc->GetScreenData() + (y*_bkproc->get_widht() * 4 + x * 4);
+	if (x >= 0 && y >= 0 && x < _bkproc->get_width() && y < _bkproc->get_height()) {
+		auto p = _bkproc->GetScreenData() + (y*_bkproc->get_width() * 4 + x * 4);
 		cr = *(color_t*)p;
 	}
 	
@@ -807,7 +807,7 @@ long  libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBL
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->OCR(color, sim, str);
@@ -820,7 +820,7 @@ long  libop::OcrEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOU
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->OcrEx(color, sim, str);
@@ -834,7 +834,7 @@ long  libop::FindStr(long x1, long y1, long x2, long y2, const wchar_t* strs, co
 	*retx = *rety = -1;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->FindStr(strs, color, sim, *retx, *rety);
@@ -847,7 +847,7 @@ long  libop::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t* strs, 
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->FindStrEx(strs, color, sim, str);
@@ -860,7 +860,7 @@ long  libop::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstrin
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		_bkproc->lock_data();
-		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_widht(), _bkproc->get_height(),
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
 			x1, y1, x2, y2, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		_image_proc->OcrAuto(sim, str);

@@ -25,11 +25,10 @@ bkdo::~bkdo()
 
 
 long bkdo::Bind(HWND hwnd, long render_type) {
-	//
+	_hwnd = hwnd;
 	if (render_type == RDT_GL_NOX)
 		return BindNox(hwnd, render_type);
 	_render_type = render_type;
-	_hwnd = hwnd;
 	RECT rc;
 	//获取客户区大小
 	::GetClientRect(hwnd, &rc);
@@ -41,7 +40,7 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 
-	
+
 
 	//attach 进程
 	blackbone::Process proc;
@@ -51,7 +50,7 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 
 	long bind_ret = 0;
 	if (NT_SUCCESS(hr)) {
-		wstring dllname=g_op_name;
+		wstring dllname = g_op_name;
 		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64) {
@@ -103,43 +102,48 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 
 	return bind_ret;
 }
+long bkdo::UnBind(HWND hwnd) {
+	_hwnd = hwnd;
+	_bind_state = 1;
+	return UnBind();
+}
 
 long bkdo::UnBind() {
+	if (!_bind_state)
+		return 0;
 
-	if (_bind_state) {
-		if (_render_type == RDT_GL_NOX)
-			return UnBindNox();
-		DWORD id;
-		::GetWindowThreadProcessId(_hwnd, &id);
+	if (_render_type == RDT_GL_NOX)
+		return UnBindNox();
+	DWORD id;
+	::GetWindowThreadProcessId(_hwnd, &id);
 
-		//attach 进程
-		blackbone::Process proc;
-		NTSTATUS hr;
+	//attach 进程s
+	blackbone::Process proc;
+	NTSTATUS hr;
 
-		hr = proc.Attach(id);
+	hr = proc.Attach(id);
 
-		if (NT_SUCCESS(hr)) {
-			wstring dllname = g_op_name;
-			//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
-			BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-			if (is64 != OP64) {
-				dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
-			}
-			using my_func_t = long(__stdcall*)(void);
-			auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
-			if (pUnXHook) {
-				pUnXHook();
-			}
-			else {
-				setlog(L"get unhook ptr false.");
-			}
+	if (NT_SUCCESS(hr)) {
+		wstring dllname = g_op_name;
+		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
+		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
+		if (is64 != OP64) {
+			dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
+		}
+		using my_func_t = long(__stdcall*)(void);
+		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
+		if (pUnXHook) {
+			pUnXHook();
 		}
 		else {
-			setlog("blackbone::MakeRemoteFunction false,errcode:%X,pid=%d,hwnd=%d", hr, id, _hwnd);
+			setlog(L"get unhook ptr false.");
 		}
-
-		proc.Detach();
 	}
+	else {
+		setlog("blackbone::MakeRemoteFunction false,errcode:%X,pid=%d,hwnd=%d", hr, id, _hwnd);
+	}
+
+	proc.Detach();
 	bind_release();
 	return 1;
 }
@@ -154,7 +158,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	_height = rc.bottom - rc.top;
 	bind_init();
 
-	
+
 
 	//attach 进程
 	blackbone::Process proc;
@@ -162,7 +166,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 
 
 	wstring dllname = L"op_x64.dll";
-	
+
 
 	hr = proc.Attach(L"NoxVMHandle.exe");
 
@@ -223,7 +227,7 @@ long bkdo::UnBindNox() {
 
 		hr = proc.Attach(L"NoxVMHandle.exe");
 		wstring dllname = L"op_x64.dll";
-		
+
 
 		if (NT_SUCCESS(hr)) {
 
