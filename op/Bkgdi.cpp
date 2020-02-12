@@ -4,10 +4,10 @@
 #include "helpfunc.h"
 #include <fstream>
 
-bkgdi::bkgdi() 
+bkgdi::bkgdi()
 {
 	_render_type = 0;
-	
+
 	//4*2^22=16*2^20=16MB
 	//_image_data = new byte[MAX_IMAGE_WIDTH*MAX_IMAGE_WIDTH * 4];
 }
@@ -26,8 +26,13 @@ long bkgdi::Bind(HWND hwnd, long render_type) {
 	return 1;
 }
 
+long bkgdi::UnBind(HWND hwnd) {
+	_hwnd = hwnd;
+	return UnBind();
+}
+
 long bkgdi::UnBind() {
-	
+
 	bkdisplay::bind_release();
 	return 1;
 }
@@ -49,14 +54,14 @@ long bkgdi::updata_screen() {
 	//step 1.判断 窗口是否存在
 	if (!::IsWindow(_hwnd))
 		return 0;
-	
-	//设备句柄
-	HDC _hdc=NULL;
 
-	HDC _hmdc=NULL;
+	//设备句柄
+	HDC _hdc = NULL;
+
+	HDC _hmdc = NULL;
 	//位图句柄
-	HBITMAP _hbmpscreen=NULL;
-	HBITMAP _hbmp_old=NULL;
+	HBITMAP _hbmpscreen = NULL;
+	HBITMAP _hbmp_old = NULL;
 	//bmp 文件头
 	BITMAPFILEHEADER _bfh = { 0 };
 	BITMAPINFOHEADER _bih = { 0 };//位图信息头
@@ -93,7 +98,7 @@ long bkgdi::updata_screen() {
 	else {
 		_client_x = _client_y = 0;
 	}
-	
+
 
 	_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 	_bfh.bfSize = _bfh.bfOffBits + _width * _height * 4;
@@ -119,7 +124,7 @@ long bkgdi::updata_screen() {
 
 
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
-	
+
 	if (_render_type == RDT_GDI)
 		::PrintWindow(_hwnd, _hdc, 0);
 	else if (_render_type == RDT_GDI2) {
@@ -132,7 +137,7 @@ long bkgdi::updata_screen() {
 		x1 = rc.left; y1 = rc.top;
 	}
 
-	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, x1, y1, CAPTUREBLT|SRCCOPY);
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, x1, y1, CAPTUREBLT | SRCCOPY);
 
 	//_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 

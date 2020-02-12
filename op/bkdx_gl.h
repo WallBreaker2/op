@@ -13,6 +13,8 @@ public:
 	//1
 	long Bind(HWND hwnd,long render_type) override;
 
+	long UnBind(HWND hwnd);
+
 	long UnBind() override;
 
 	//nox mode
