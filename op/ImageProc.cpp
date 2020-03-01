@@ -151,7 +151,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str) {
 		sim = 1.;
 
 	long s;
-	bgr2binary(_src,_binary,colors);
+	bgr2binary(colors);
 
 	s = ImageBase::Ocr(_dicts[_curr_idx], sim, out_str);
 	return s;
@@ -220,7 +220,7 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& out_str) {
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	bgr2binary(_src,_binary,colors);
+	bgr2binary(colors);
 	return ImageBase::OcrEx(_dicts[_curr_idx], sim, out_str);
 }
 
@@ -231,7 +231,7 @@ long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, lo
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	bgr2binary(_src,_binary,colors);
+	bgr2binary(colors);
 	return ImageBase::FindStr(_dicts[_curr_idx], vstr, sim, retx, rety);
 }
 
@@ -243,7 +243,7 @@ long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, 
 	str2colordfs(color, colors);
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	bgr2binary(_src, _binary, colors);
+	bgr2binary(colors);
 	return ImageBase::FindStrEx(_dicts[_curr_idx], vstr, sim, out_str);
 }
 
@@ -252,7 +252,7 @@ long ImageProc::OcrAuto(double sim, std::wstring& retstr) {
 	
 	if (sim<0. || sim>1.)
 		sim = 1.;
-	auto2binary(_src,_binary);
+	auto2binary();
 	return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	//_tes.SetImage(_src.pdata, _src.width, _src.height, 4, _src.width * 4);
 	//_tes.gette
@@ -269,7 +269,7 @@ long ImageProc::OcrFromFile(const wstring& files, const wstring& color, double s
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
 		_src.read(fullpath.data());
 		
-		bgr2binary(_src, _binary, colors);
+		bgr2binary(colors);
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}
 	return 0;
@@ -283,7 +283,7 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 
 	if (Path2GlobalPath(files, _curr_path, fullpath)) {
 		_src.read(fullpath.data());
-		auto2binary(_src, _binary);
+		auto2binary();
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}
 	return 0;

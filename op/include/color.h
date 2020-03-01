@@ -3,8 +3,8 @@
 #define __COLOR_H_
 #include <algorithm>
 #include "../optype.h"
-#define WORD_BKCOLOR 255
-#define WORD_COLOR 0
+#define WORD_BKCOLOR 0
+#define WORD_COLOR 1
 //#include "../Tool.h"
 #include <math.h>
 #define color2uint(color) (*(uint*)&color)

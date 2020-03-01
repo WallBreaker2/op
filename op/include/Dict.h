@@ -7,7 +7,7 @@
 #include <fstream>
 #include "bitfunc.h"
 #include "Image.hpp"
-#include "helpfunc.h"
+#include "../helpfunc.h"
 //#define SET_BIT(x, idx) x |= 1u << (idx)
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)

@@ -290,7 +290,6 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="ImageProc.cpp" />
     <ClCompile Include="Injecter.cpp" />
-    <ClCompile Include="ocr.cpp" />
     <ClCompile Include="op.cpp" />
     <ClCompile Include="OpInterface.cpp" />
     <ClCompile Include="Pipe.cpp" />
@@ -327,7 +326,6 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="ImageProc.h" />
     <ClInclude Include="Injecter.h" />
-    <ClInclude Include="ocr.h" />
     <ClInclude Include="OpInterface.h" />
     <ClInclude Include="Pipe.h" />
     <ClInclude Include="Resource.h" />
