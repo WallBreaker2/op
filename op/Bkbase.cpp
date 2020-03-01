@@ -6,7 +6,7 @@
 
 bkbase::bkbase() :_hwnd(0), _is_bind(0), _pbkdisplay(nullptr)
 {
-	_display_method = std::make_pair<wstring, wstring>(L"", L"");
+	_display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
 
 bkbase::~bkbase()
@@ -100,7 +100,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 
 		ret = _pbkdisplay->Bind((HWND)hwnd, display);
 		if (!ret) {
-			_pbkdisplay->UnBind((HWND)hwnd);
+			_pbkdisplay->UnBind();
 			ret = _pbkdisplay->Bind((HWND)hwnd, display);
 			if (!ret) {
 				SAFE_DELETE(_pbkdisplay);
