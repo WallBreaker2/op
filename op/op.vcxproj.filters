@@ -130,9 +130,6 @@
     <ClCompile Include="bkdisplay.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
-    <ClCompile Include="ocr.cpp">
-      <Filter>Algorithm</Filter>
-    </ClCompile>
     <ClCompile Include="xhook.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
@@ -212,9 +209,6 @@
     </ClInclude>
     <ClInclude Include="bkdisplay.h">
       <Filter>Background\Display</Filter>
-    </ClInclude>
-    <ClInclude Include="ocr.h">
-      <Filter>Algorithm</Filter>
     </ClInclude>
     <ClInclude Include="xhook.h">
       <Filter>Background\Display</Filter>
