@@ -112,6 +112,7 @@ struct Dict {
 			file.read((char*)&words[0], sizeof(word_t)*info._word_count);
 		}
 		file.close();
+		sort_dict();
 	}
 	void read_dict_dm(const std::string&s) {
 		clear();
@@ -134,6 +135,7 @@ struct Dict {
 			}
 		}
 		file.close();
+		sort_dict();
 	}
 
 	void write_dict(const std::string&s) {
@@ -189,6 +191,18 @@ struct Dict {
 		}
 
 	}
+
+	void sort_dict() {
+		//sort dict(size: big --> small ,cnt: small -->big)
+		std::stable_sort(words.begin(), words.end(),
+			[](const word_t& lhs, const word_t& rhs) {
+			int dh = lhs.info.height - rhs.info.height;
+			int dw = lhs.info.width - rhs.info.width;
+			return dh > 0 || (dh == 0 && dw > 0) ||
+				(dh == 0 && dw == 0 && lhs.info.bit_count < rhs.info.bit_count);
+		});
+	}
+
 	void add_word(const word_t&word) {
 		auto it = find(word);
 		if (words.empty()||it==words.end()) {

@@ -132,6 +132,7 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 	else {
 		setlog(L"file '%s' does not exist", file_name.c_str());
 	}
+	
 	return _dicts[idx].empty() ? 0 : 1;
 
 }

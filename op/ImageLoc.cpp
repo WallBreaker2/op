@@ -505,31 +505,29 @@ long ImageBase::real_match(long x, long y, ImageBin* timg, int tnorm, double sim
 }
 
 void ImageBase::record_sum(const ImageBin & gray) {
-	_sum.create(gray.width, gray.height);
+	//为了减少边界判断，这里多多加一行一列
+	_sum.create(gray.width + 1, gray.height + 1);
 	_sum.fill(0);
-	int m = gray.height;
-	int n = gray.width;
-	for (int i = 0; i < m; i++) {
+	int m = _sum.height;
+	int n = _sum.width;
+	for (int i = 1; i < m; i++) {
 
-		for (int j = 0; j < n; j++) {
-			int s = _sum.at<int>(i, j);
-			if (i)
-				s += _sum.at<int>(i - 1, j);
-			if (j)
-				s += _sum.at<int>(i, j - 1);
-			if (i&&j)
-				s -= _sum.at<int>(i - 1, j - 1);
-			s += (int)gray.at(i, j);
+		for (int j = 1; j < n; j++) {
+			int s = 0;
+
+			s += _sum.at<int>(i - 1, j);
+
+			s += _sum.at<int>(i, j - 1);
+
+			s -= _sum.at<int>(i - 1, j - 1);
+			s += (int)gray.at(i-1, j-1);
 			_sum.at<int>(i, j) = s;
 		}
 	}
 }
 
 int ImageBase::region_sum(int x1, int y1, int x2, int y2) {
-	int ans = _sum.at<int>(y2 - 1, x2 - 1);
-	if (x1)ans -= _sum.at<int>(y2 - 1, x1 - 1);
-	if (y1)ans -= _sum.at<int>(y1 - 1, x2 - 1);
-	if (x1&&y1)ans += _sum.at<int>(y1 - 1, x1 - 1);
+	int ans = _sum.at<int>(y2, x2) - _sum.at<int>(y2, x1) - _sum.at<int>(y1, x2) + _sum.at<int>(y1, x1);
 	return ans;
 }
 
@@ -806,6 +804,23 @@ inline void fill_rect(ImageBin& record, const rect_t& rc) {
 	}
 
 }
+
+int binarySearch(const word_t a[],int bidx, int eidx, int target)//循环实现
+{
+	int low = bidx, high = eidx, middle;
+	while (low < high)
+	{
+		middle = (low + high) / 2;
+		if (target == a[middle].info.bit_count)
+			return middle;
+		else if (target > a[middle].info.bit_count)
+			low = middle + 1;
+		else if (target < a[middle].info.bit_count)
+			high = middle;
+	}
+	return -1;
+};
+
 //完全匹配 待识别文字不能含有任何噪声
 /*
 算法
@@ -832,7 +847,7 @@ for each point in src:
 end
 */
 void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps) {
-	int px, py, y;
+	int px, py;
 	if (_binary.empty())
 		return;
 	//
@@ -851,6 +866,23 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps) {
 		h_max = max(h_max, it.info.height);
 	}
 
+	//将所有字库按照大小分成几类，对于每个大小根据像素密度查找对应的符合字库
+	auto makeinfo=[](int begin,int end,int szh,int szw){
+		return std::make_pair(begin << 16 | end, szh << 8 | szw);
+	};
+	vector<std::pair<int,int>> dict_sz;
+	auto& vword = dict.words;
+	//32 begin(8) 
+	dict_sz.push_back(makeinfo(0,0,dict.words[0].info.height,dict.words[0].info.width));
+	for (int i = 1; i < vword.size(); i++) {
+		int sz = vword[i].info.height << 8 | vword[i].info.width;
+		if (dict_sz.back().second != sz) {
+			dict_sz.back().first |= i;//fix old end
+			dict_sz.push_back(std::make_pair(i<<16,sz));//add new begin
+		}
+	}
+	dict_sz.back().first |= vword.size();
+
 	//遍历行
 	for (py = 0; py < _binary.height - h_min + 1; ++py) {
 		//遍历列
@@ -864,33 +896,42 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps) {
 				continue;
 			point_t pt;
 			pt.x = px; pt.y = py;
-			//遍历字库
-			//assert(i != 4 || j != 3);
-			for (auto&it : dict.words) {
-
+			int k = 0;
+			for (int k = 0; k < dict_sz.size(); k++) {
+				int h = dict_sz[k].second >> 8, w = dict_sz[k].second & 0xff;
 				rect_t crc;
 				crc.x1 = px; crc.y1 = py;
-				crc.x2 = px + it.info.width; crc.y2 = py + it.info.height;
+				crc.x2 = px + w; crc.y2 = py + h;
 				//边界检查
 				if (crc.y2 > _binary.height || crc.x2 > _binary.width)
 					continue;
+				
+				int fidx = dict_sz[k].first >> 16, eidx = dict_sz[k].first & 0xffff;
+				
 				//quick check
-				if (region_sum(crc.x1, crc.y1, crc.x2, crc.y2) != it.info.bit_count)
+				int cnt_src = region_sum(crc.x1, crc.y1, crc.x2, crc.y2);
+				if (cnt_src<vword[fidx].info.bit_count || cnt_src>vword[eidx-1].info.bit_count)
 					continue;
+				int tidx = binarySearch(&vword[0], fidx, eidx, cnt_src);
+				if (tidx == -1)
+					continue;
+				int tleft=tidx, tright=tidx;
+				while (tleft > 0 && vword[tleft - 1].info.bit_count == cnt_src)--tleft;
+				while (tright <eidx && vword[tright].info.bit_count == cnt_src)++tright;
+				int matched = 0;
 				//match
-				int matched = full_match(_binary, crc, it.clines);
-				if (matched) {
-					ps[pt] = it.info._char;
-					//设置下一个查找区域 分别为右边和下方
-					//右边最先查找，下方最后
-					//右
-					fill_rect(_record, crc);
-					//goto __next_y;
-					break;//words
-
-
-
+				tidx = tleft;
+				while (tidx < tright) {
+					auto &it = vword[tidx++];
+					matched = full_match(_binary, crc, it.clines);
+					if (matched) {
+						ps[pt] = it.info._char;
+						fill_rect(_record, crc);
+						//break;//words
+						break;
+					}
 				}
+				if (matched)break;
 			}//end for words
 		}//end for j
 	}//end for i
@@ -901,7 +942,7 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps) {
 void ImageBase::_bin_ocr(const Dict& dict, int *max_error, std::map<point_t, std::wstring>& ps) {
 	int px, py, y;
 	if (_binary.empty())
-		return; 
+		return;
 	//
 	record_sum(_binary);
 	//find cnt range                   
@@ -943,11 +984,11 @@ void ImageBase::_bin_ocr(const Dict& dict, int *max_error, std::map<point_t, std
 				if (crc.y2 > _binary.height || crc.x2 > _binary.width)
 					continue;
 				//quick check
-				if (abs(region_sum(crc.x1, crc.y1, crc.x2, crc.y2)-it.info.bit_count)>max_error[k])
+				if (abs(region_sum(crc.x1, crc.y1, crc.x2, crc.y2) - it.info.bit_count) > max_error[k])
 					continue;
 				//match
 				int matched = part_match(_binary, crc, max_error[k++], it.clines);
-				
+
 				if (matched) {
 					ps[pt] = it.info._char;
 					//设置下一个查找区域 分别为右边和下方
@@ -981,7 +1022,7 @@ void ImageBase::bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wst
 	/*
 	计算误差
 	*/
-	
+
 	vector<rect_t> vroi;
 
 	if (sim > 1.0 - 1e-5) {
