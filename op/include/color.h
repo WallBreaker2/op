@@ -66,6 +66,11 @@ struct color_t {
 		sprintf(buff, "%02X%02X%02X", r, g, b);
 		return buff;
 	}
+	std::wstring towstr() {
+		wchar_t buff[10];
+		wsprintf(buff, L"%02X%02X%02X", r, g, b);
+		return buff;
+	}
 };
 #pragma pack(pop)
 //颜色-偏色结构
