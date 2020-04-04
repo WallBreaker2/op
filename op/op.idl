@@ -43,7 +43,7 @@ interface IOpInterface : IDispatch
 	[id(8)] HRESULT EnablePicCache([in] LONG enable, [out, retval] LONG* ret);
 	[id(9)] HRESULT CapturePre([in]BSTR file_name, [out, retval] LONG* ret);
 	//algorithm 20-49
-	[id(20)] HRESULT AStarFindPath([in] LONG mapWidth, [in] LONG mapHeight, [in] BSTR disable_points, [in] LONG beginX, [in] LONG beginY, [in] LONG endX, [in] LONG endY, [out, retval] BSTR* path);
+	[id(11)] HRESULT AStarFindPath([in] LONG mapWidth, [in] LONG mapHeight, [in] BSTR disable_points, [in] LONG beginX, [in] LONG beginY, [in] LONG endX, [in] LONG endY, [out, retval] BSTR* path);
 	//windows api 50-99
 	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
 	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
@@ -128,7 +128,8 @@ interface IOpInterface : IDispatch
 	[id(159)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
 	[id(160)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
 	[id(161)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
-	[id(162)] HRESULT GetScreenData([in] LONG  x1,[in] LONG y1,[in] LONG x2, [in] LONG y2, [out, retval]BSTR* ret);
+	[id(162)] HRESULT GetScreenData([in] LONG  x1,[in] LONG y1,[in] LONG x2, [in] LONG y2,[out] VARIANT* data, [out, retval]LONG* ret);
+	[id(163)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size,[out, retval]LONG* ret);
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);

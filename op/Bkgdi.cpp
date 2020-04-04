@@ -22,6 +22,38 @@ long bkgdi::Bind(HWND hwnd, long render_type) {
 		return 0;
 	_hwnd = hwnd; _render_type = render_type;
 	bind_init();
+	RECT rc;
+	//step 3.获取截图区域，大小
+	::GetWindowRect(_hwnd, &rc);
+	_width = rc.right - rc.left;
+	_height = rc.bottom - rc.top;
+	//step 2.获得 设备句柄
+	_hdc = NULL;
+	if (_render_type == RDT_NORMAL) {
+		_hdc = ::GetDC(::GetDesktopWindow());
+		//hdc = ::CreateDCW(L"DISPLAY", nullptr, nullptr, nullptr);
+	}
+	else if (_render_type == RDT_GDI) {
+		_hdc = ::GetDC(_hwnd);
+	}
+	else if (_render_type == RDT_GDI2 || _render_type == RDT_GDI_DX2) {
+		_hdc = ::GetDCEx(_hwnd, NULL, DCX_PARENTCLIP);
+	}
+	
+	if (_hdc == NULL) {
+		setlog("hdc == NULL", _hdc);
+		return 0;
+	}
+	
+	
+		 //创建一个与指定设备兼容的内存设备上下文环境	
+	_hmdc = CreateCompatibleDC(_hdc);
+	if (_hmdc == NULL) {
+		setlog("CreateCompatibleDC false");
+		return -2;
+	}
+	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
+
 	updata_screen();
 	return 1;
 }
@@ -32,7 +64,12 @@ long bkgdi::UnBind(HWND hwnd) {
 }
 
 long bkgdi::UnBind() {
+	//delete[dwLen_2]hDib;
+	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
+	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
 
+	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
+	//if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
 	bkdisplay::bind_release();
 	return 1;
 }
@@ -55,33 +92,7 @@ long bkgdi::updata_screen() {
 	if (!::IsWindow(_hwnd))
 		return 0;
 
-	//设备句柄
-	HDC _hdc = NULL;
-
-	HDC _hmdc = NULL;
-	//位图句柄
-	HBITMAP _hbmpscreen = NULL;
-	HBITMAP _hbmp_old = NULL;
-	//bmp 文件头
-	BITMAPFILEHEADER _bfh = { 0 };
-	BITMAPINFOHEADER _bih = { 0 };//位图信息头
-
-	//step 2.获得 设备句柄
-
-	_hdc = NULL;
-	if (_render_type == RDT_NORMAL)
-		_hdc = ::GetDC(::GetDesktopWindow());
-	else if (_render_type == RDT_GDI) {
-		_hdc = ::GetDC(_hwnd);
-	}
-	else if (_render_type == RDT_GDI2 || _render_type == RDT_GDI_DX2) {
-		_hdc = ::GetDCEx(_hwnd, NULL, DCX_PARENTCLIP);
-	}
 	RECT rc;
-	if (_hdc == NULL) {
-		setlog("hdc == NULL", _hdc);
-		return 0;
-	}
 	//step 3.获取截图区域，大小
 	::GetWindowRect(_hwnd, &rc);
 	_width = rc.right - rc.left;
@@ -89,6 +100,8 @@ long bkgdi::updata_screen() {
 	//::MoveWindow(_hwnd, 0, 0, _width, _height, 1);
 	POINT pt;
 	pt.x = rc.left; pt.y = rc.top;
+
+	
 	if (_render_type != RDT_NORMAL) {
 		::ScreenToClient(_hwnd, &pt);
 		//设置偏移
@@ -112,16 +125,8 @@ long bkgdi::updata_screen() {
 	_bih.biSizeImage = _width * 4 * _height;//图像数据大小
 	_bih.biWidth = _width;//宽度
 
-	 //创建一个与指定设备兼容的内存设备上下文环境	
-	_hmdc = CreateCompatibleDC(_hdc);
-	if (_hmdc == NULL) {
-		setlog("CreateCompatibleDC false");
-		return -2;
-	}
-	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //创建与指定的设备环境相关的设备兼容的位图
 
 	_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
-
 
 	//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 
@@ -137,7 +142,7 @@ long bkgdi::updata_screen() {
 		x1 = rc.left; y1 = rc.top;
 	}
 
-	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, x1, y1, CAPTUREBLT | SRCCOPY);
+	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, x1, y1,  SRCCOPY);
 
 	//_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen);
 
@@ -148,12 +153,7 @@ long bkgdi::updata_screen() {
 	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 	_pmutex->unlock();
 
-	//delete[dwLen_2]hDib;
-	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
-	if (_hmdc)DeleteDC(_hmdc); _hmdc = NULL;
 
-	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
-	//if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
 	return 1;
 
 }

@@ -124,7 +124,16 @@ struct Dict {
 		std::wstring ss;
 		std::string str;
 		while (std::getline(file, str)) {
-			ss = _s2wstring(str);
+			std::string strLocale = setlocale(LC_ALL, "");
+			const char* chSrc = str.c_str();
+			size_t nDestSize = mbstowcs(NULL, chSrc, 0) + 1;
+			wchar_t* wchDest = new wchar_t[nDestSize];
+			wmemset(wchDest, 0, nDestSize);
+			mbstowcs(wchDest, chSrc, nDestSize);
+			std::wstring wstrResult = wchDest;
+			delete[]wchDest;
+			setlocale(LC_ALL, strLocale.c_str());
+			ss = wstrResult;
 			size_t idx1 = ss.find(L'$');
 			auto idx2=ss.find(L'$',idx1+1);
 			word_t wd;
@@ -167,7 +176,7 @@ struct Dict {
 			unsigned __int32 x = 0, val;
 			for (int i = rc.y1, id = 0; i < y2; ++i, ++id) {
 				val = binary.at(i, j);
-				if (val == 0) {
+				if (val == 1) {
 					SET_BIT(x, 31 - id);
 					++word.info.bit_count;
 				}
