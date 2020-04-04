@@ -42,6 +42,10 @@ struct Image
 		if (pdata)free(pdata);
 		pdata = nullptr;
 	}
+
+	int size() {
+		return width * height;
+	}
 	void clear() {
 		width = height = 0;
 	}
@@ -226,6 +230,29 @@ struct ImageBin {
 			psrc += 4;
 		}
 	}
+
+	bool write(LPCTSTR file) {
+		if (empty())
+			return false;
+		ATL::CImage img;
+
+		img.Create(width, height, 32);
+		auto pdst = (unsigned char*)img.GetBits();
+		auto psrc = pixels.data();
+		int pitch = img.GetPitch();
+		for (int i = 0; i < height; ++i) {
+			for (int j = 0; j < width; ++j) {
+				//((int*)pdst)[j] = ((int*)psrc)[j];
+				pdst[j*4] = pdst[j*4 + 1] = pdst[j*4 + 2] = psrc[j];
+				pdst[j * 4 + 3] = 0xff;
+			
+			}
+			pdst += pitch;
+			psrc += width;
+		}
+		return img.Save(file) == S_OK;
+	}
+
 	iterator begin() {
 		return pixels.data();
 	}

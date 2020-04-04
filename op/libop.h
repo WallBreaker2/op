@@ -4,12 +4,12 @@
 
 #include <string>
 #include<map>
-
+#include<vector>
 class WinApi;
 class bkbase;
 class ImageProc;
 
-
+using bytearray = std::vector<unsigned char>;
 #if defined(OP_EXPORTS)
 #define OP_API __declspec(dllexport)
 #else
@@ -35,6 +35,8 @@ private:
 	std::wstring _curr_path;
 	
 	std::map<std::wstring, long> _vkmap;
+	bytearray _screenData;
+	bytearray _screenDataBmp;
 public:
 	//---------------基本设置/属性-------------------
 
@@ -215,7 +217,9 @@ public:
 	//设置图像输入方式，默认窗口截图
 	long SetDisplayInput(const wchar_t* mode, long* ret);
 	//
-	long GetScreenData(long x1, long y1, long x2, long y2, std::wstring& ret);
+	long GetScreenData(long x1, long y1, long x2, long y2, void** data,long* ret);
+	//
+	long GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data,long* size, long* ret);
 	//----------------------ocr-------------------------
 	//设置字库文件
 	long SetDict(long idx, const wchar_t* file_name, long* ret);

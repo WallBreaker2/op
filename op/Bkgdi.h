@@ -21,8 +21,16 @@ public:
 	
 	
 private:
-	
-	
+	//设备句柄
+	HDC _hdc = NULL;
+
+	HDC _hmdc = NULL;
+	//位图句柄
+	HBITMAP _hbmpscreen = NULL;
+	HBITMAP _hbmp_old = NULL;
+	//bmp 文件头
+	BITMAPFILEHEADER _bfh = { 0 };
+	BITMAPINFOHEADER _bih = { 0 };//位图信息头
 };
 
 #endif

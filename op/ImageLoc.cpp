@@ -577,16 +577,17 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 void ImageBase::auto2binary()
 {
 	//转为灰度图
-	_binary.fromImage4(_src);
+	_gray.fromImage4(_src);
 	//创建二值图
 	//_binary.create(_record.size(), CV_8UC1);
 	//获取背景颜色
-	int bkcolor = get_bk_color(_binary);
+	int bkcolor = get_bk_color(_gray);
 	int n = _binary.width*_binary.height;
-
+	_binary.create(_src.width, _src.height);
 	auto pdst = _binary.data();
+	auto pgray = _gray.data();
 	for (int i = 0; i < n; ++i) {
-		pdst[i] = (std::abs(pdst[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
+		pdst[i] = (std::abs(pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
 	}
 }
 
@@ -607,7 +608,7 @@ void ImageBase::binshadowx(const rect_t& rc, std::vector<rect_t>& out_put)
 	{
 		for (int i = rc.y1; i < rc.y2; i++)
 		{
-			if (_binary.at(i, j) == 0)
+			if (_binary.at(i, j) == WORD_COLOR)
 			{
 				vx[j]++; //垂直投影按列在x轴进行投影
 			}
@@ -731,7 +732,7 @@ void ImageBase::bin_image_cut(int min_word_h, const rect_t&inrc, rect_t& outrc) 
 
 	for (i = inrc.y1; i < inrc.y2; ++i) {
 		for (j = inrc.x1; j < inrc.x2; ++j)
-			v[j] += _binary.at(i, j) == 0 ? 1 : 0;
+			v[j] += _binary.at(i, j) == WORD_COLOR ? 1 : 0;
 	}
 	i = inrc.x1;
 	while (v[i] == 0)i++;
@@ -1023,7 +1024,7 @@ void ImageBase::bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wst
 	计算误差
 	*/
 
-	vector<rect_t> vroi;
+	//vector<rect_t> vroi;
 
 	if (sim > 1.0 - 1e-5) {
 		_bin_ocr(dict, ps);
