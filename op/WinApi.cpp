@@ -2,6 +2,7 @@
 #include "WinApi.h"
 #include <Tlhelp32.h> 
 #include <psapi.h>
+#include<memory>
 #pragma comment ( lib, "psapi.lib" )
 
 

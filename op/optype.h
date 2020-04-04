@@ -11,4 +11,6 @@ using std::wstring;
 using std::string;
 using std::vector;
 using std::map;
+
+using bytearray = std::vector<uchar>;
 #endif

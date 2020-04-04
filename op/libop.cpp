@@ -13,6 +13,7 @@
 
 #include "AStar.hpp"
 #include "MemoryEx.h"
+#include<fstream>
 // OpInterface
 
 libop::libop() {
@@ -786,7 +787,67 @@ long libop::SetDisplayInput(const wchar_t* mode, long* ret) {
 	return 0;
 }
 
-long libop::GetScreenData(long x1, long y1, long x2, long y2, std::wstring& ret) {
+long libop::GetScreenData(long x1, long y1, long x2, long y2, void** data, long* ret) {
+	*data = nullptr;
+	*ret = 0;
+	auto& img = _image_proc->_src;
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
+		_bkproc->lock_data();
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
+			x1, y1, x2, y2, _bkproc->get_image_type());
+		_bkproc->unlock_data();
+		_screenData.resize(img.size()*4);
+		memcpy(_screenData.data(), img.pdata, img.size()*4);
+		*data = _screenData.data(); *ret = 1;
+	}
+	return 0;
+}
+
+long libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data, long* size, long* ret) {
+	*data = 0;
+	*ret = 0;
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
+		_bkproc->lock_data();
+		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
+			x1, y1, x2, y2, _bkproc->get_image_type());
+		_bkproc->unlock_data();
+		auto& img = _image_proc->_src;
+
+		BITMAPFILEHEADER bfh = { 0 };//bmp file header
+		BITMAPINFOHEADER bih = { 0 };//bmp info header
+		const int szBfh = sizeof(BITMAPFILEHEADER);
+		const int szBih = sizeof(BITMAPINFOHEADER);
+		bfh.bfOffBits =  szBfh+szBih;
+		bfh.bfSize = bfh.bfOffBits + img.width * img.height * 4;
+		bfh.bfType = static_cast<WORD>(0x4d42);
+
+		bih.biBitCount = 32;//每个像素字节大小
+		bih.biCompression = BI_RGB;
+		bih.biHeight = -img.height;//高度
+		bih.biPlanes = 1;
+		bih.biSize = sizeof(BITMAPINFOHEADER);
+		bih.biSizeImage = img.width * 4 * img.height;//图像数据大小
+		bih.biWidth = img.width;//宽度
+
+		_screenDataBmp.resize(bfh.bfSize);
+	/*	std::ofstream f;
+		f.open("xx.bmp",std::ios::binary);
+		if (f) {
+			f.write((char*)&bfh, sizeof(bfh));
+			f.write((char*)&bih, sizeof(bih));
+			f.write((char*)img.pdata, img.size() * 4);
+		}
+		
+		f.close();*/
+		auto dst = _screenDataBmp.data();
+		
+		memcpy(dst, &bfh,sizeof(bfh));
+		memcpy(dst +sizeof(bfh), &bih, sizeof(bih));
+		memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
+		*data = dst;
+		*size = bfh.bfSize;
+		*ret = 1;
+	}
 	return 0;
 }
 

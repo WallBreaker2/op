@@ -60,6 +60,10 @@ private:
 	//image process
 	ImageProc _image_proc;
 	std::map<wstring, long> _vkmap;
+	
+	//
+	bytearray _screenData;
+	bytearray _screenDataBmp;
 public:
 	//---------------基本设置/属性-------------------
 
@@ -241,8 +245,9 @@ public:
 	STDMETHOD(LoadPic)(BSTR pic_name, LONG* ret);
 	STDMETHOD(FreePic)(BSTR pic_name, LONG* ret);
 	//获取指定区域的图像,用二进制数据的方式返回
-	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR*ret);
-
+	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT* data, LONG* ret);
+	//获取指定区域的图像,用24位位图的数据格式返回,方便二次开发.（或者可以配合SetDisplayInput的mem模式）
+	STDMETHOD(GetScreenDataBmp)(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT* data, VARIANT* size,LONG* ret);
 	//----------------------ocr-------------------------
 	//设置字库文件
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);

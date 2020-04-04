@@ -824,7 +824,84 @@ STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG* ret) {
 	return S_OK;
 }
 //获取指定区域的图像,用二进制数据的方式返回
-STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, BSTR*ret) {
+STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT* data,LONG* ret) {
+#if OP64
+	data->vt = VT_I8;
+	data->llVal = 0;
+#else
+	data->vt = VT_I4;
+	data->lVal = 0;
+#endif
+	*ret = 0;
+
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		auto& img = _image_proc._src;
+		_screenData.resize(img.size() * 4);
+		memcpy(_screenData.data(), img.pdata, img.size() * 4);
+#if OP64
+		data->llVal = (long long)_screenData.data(); 
+#else
+		data->lVal = (long)_screenData.data(); 
+#endif
+		* ret = 1;
+	}
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT* data, VARIANT* size,LONG* ret) {
+#if OP64
+	data->vt = VT_I8;
+	size->vt = VT_I8;
+	data->llVal = 0;
+	size->llVal = 0;
+#else
+	data->vt = VT_I4;
+	size->vt = VT_I4;
+	data->lVal = 0;
+	size->lVal = 0;
+#endif
+	
+	
+	*ret = 0;
+	if (_bkproc.check_bind() && _bkproc.RectConvert(x1, y1, x2, y2)) {
+		_bkproc.lock_data();
+		_image_proc.input_image(_bkproc.GetScreenData(), _bkproc.get_width(), _bkproc.get_height(),
+			x1, y1, x2, y2, _bkproc.get_image_type());
+		_bkproc.unlock_data();
+		auto& img = _image_proc._src;
+		
+		BITMAPFILEHEADER bfh = { 0 };//bmp file header
+		BITMAPINFOHEADER bih = { 0 };//bmp info header
+		const int szBfh = sizeof(BITMAPFILEHEADER);
+		const int szBih = sizeof(BITMAPINFOHEADER);
+		bfh.bfOffBits = +szBfh + szBih;
+		bfh.bfSize = bfh.bfOffBits + img.width * img.height * 4;
+		bfh.bfType = static_cast<WORD>(0x4d42);
+
+		bih.biBitCount = 32;//每个像素字节大小
+		bih.biCompression = BI_RGB;
+		bih.biHeight = -img.height;//高度
+		bih.biPlanes = 1;
+		bih.biSize = sizeof(BITMAPINFOHEADER);
+		bih.biSizeImage = img.width * 4 * img.height;//图像数据大小
+		bih.biWidth = img.width;//宽度
+
+		_screenDataBmp.resize(bfh.bfSize);
+		memcpy(_screenDataBmp.data(), &bfh, szBfh);
+		memcpy(_screenDataBmp.data() + szBfh, &bih, szBih);
+		memcpy(_screenDataBmp.data() + szBfh + szBih, img.pdata, img.size() * 4);
+#if OP64
+		data->llVal = (long long)_screenDataBmp.data();
+#else
+		data->lVal = (long)_screenDataBmp.data();
+#endif
+		size->lVal = bfh.bfSize;
+		*ret = 1;
+	}
 	return S_OK;
 }
 
