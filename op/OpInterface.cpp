@@ -799,6 +799,8 @@ STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 		y += _bkproc._pbkdisplay->_client_y;
 	}
 	if (x >= 0 && y >= 0 && x < _bkproc.get_width() && y < _bkproc.get_height()) {
+		if (_bkproc.get_image_type() == -1)
+			y = _bkproc.get_height() - y - 1;
 		auto p = _bkproc.GetScreenData() + (y*_bkproc.get_width() * 4 + x * 4);
 		cr = *(color_t*)p;
 	}
