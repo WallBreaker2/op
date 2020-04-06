@@ -127,14 +127,13 @@ private:
 	void binshadowx(const rect_t& rc, std::vector<rect_t>& out_put);
 	//水平方向投影，投到(y)轴
 	void binshadowy(const rect_t& rc, std::vector<rect_t>&out_put);
-	//图像裁剪
-	void bin_image_cut(int min_word_h, const rect_t&inrc, rect_t& outrc);
+
 
 	
 	//ocr 完全匹配模式
 	void _bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps);
 	//ocr 模糊匹配模式
-	void _bin_ocr(const Dict& dict, int *max_error, std::map<point_t, std::wstring>&ps);
+	void _bin_ocr(const Dict& dict,double sim, std::map<point_t, std::wstring>&ps);
 	//ocr wrapper
 	//template<int _type>
 	//void bin_ocr(const Image& binary, Image& record, const Dict& dict, int* max_error, std::wstring& outstr);
@@ -146,6 +145,8 @@ public:
 	void bgr2binary(vector<color_df_t>& colors);
 	//二值化 auto
 	void auto2binary();
+	//图像裁剪
+	void bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc);
 	void get_rois(int min_word_h, std::vector<rect_t>& vroi);
 	//ocr识别，返回识别到的字及对应坐标
 
