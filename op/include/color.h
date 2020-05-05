@@ -56,7 +56,7 @@ struct color_t {
 	color_t& str2color(const std::string&s) {
 		int r, g, b;
 		auto ss = s;
-		std::transform(ss.begin(), ss.end(), ss.begin(), ::towupper);
+		std::transform(ss.begin(), ss.end(), ss.begin(), ::toupper);
 		sscanf(ss.c_str(), "%02X%02X%02X", &r, &g, &b);
 		this->b = b; this->r = r; this->g = g;
 		return *this;

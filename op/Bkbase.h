@@ -35,6 +35,7 @@ public:
 	long get_height();
 	long get_width();
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
+	//0:normal;-1 reserve 1 need cut
 	long get_image_type();
 	//检查是否绑定或者桌面前台
 	bool check_bind();

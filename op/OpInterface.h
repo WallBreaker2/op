@@ -6,11 +6,11 @@
 
 
 #include "op_i.h"
-#include "optype.h"
-#include "WinApi.h"
-#include "BKbase.h"
-#include "ImageProc.h"
-
+//#include "optype.h"
+//#include "WinApi.h"
+//#include "BKbase.h"
+//#include "ImageProc.h"
+#include "libop.h"
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Windows CE 平台(如不提供完全 DCOM 支持的 Windows Mobile 平台)上无法正确支持单线程 COM 对象。定义 _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA 可强制 ATL 支持创建单线程 COM 对象实现并允许使用其单线程 COM 对象实现。rgs 文件中的线程模型已被设置为“Free”，原因是该模型是非 DCOM Windows CE 平台支持的唯一线程模型。"
 #endif
@@ -49,21 +49,22 @@ END_COM_MAP()
 	{
 	}
 private:
-	//一些共用变量
+	////一些共用变量
 
-	//1. Windows API
-	WinApi _winapi;
-	// background module
-	bkbase _bkproc;
-	// work path
-	std::wstring _curr_path;
-	//image process
-	ImageProc _image_proc;
-	std::map<wstring, long> _vkmap;
-	
+	////1. Windows API
+	//WinApi _winapi;
+	//// background module
+	//bkbase _bkproc;
+	//// work path
+	//std::wstring _curr_path;
+	////image process
+	//ImageProc _image_proc;
+	//std::map<wstring, long> _vkmap;
 	//
-	bytearray _screenData;
-	bytearray _screenDataBmp;
+	////
+	//bytearray _screenData;
+	//bytearray _screenDataBmp;
+	libop obj;
 public:
 	//---------------基本设置/属性-------------------
 
@@ -267,8 +268,7 @@ public:
 	STDMETHOD(OcrFromFile)(BSTR file_name,BSTR color_format, DOUBLE sim, BSTR* retstr);
 	//从文件中识别图片,使用tesseract库识别
 	STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR* retstr);
-	//使用Tesseract库进行Ocr
-	STDMETHOD(UseTessOcr)(BSTR info, LONG* ret);
+	
 	//-----------------------memory---------------------------------
 	//向某进程写入数据
 	STDMETHOD(WriteData)(LONG hwnd, BSTR address, BSTR data, LONG size, LONG* ret);

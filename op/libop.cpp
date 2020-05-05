@@ -653,11 +653,12 @@ long  libop::Capture(long x1, long y1, long x2, long y2, const wchar_t* file_nam
 //比较指定坐标点(x,y)的颜色
 long  libop::CmpColor(long x, long y, const wchar_t* color, DOUBLE sim, long* ret) {
 	//LONG rx = -1, ry = -1;
+	long tx = x + 1, ty = y + 1;
 	*ret = 0;
-	if (_bkproc->check_bind()) {
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
 		_bkproc->lock_data();
 		_image_proc->input_image(_bkproc->GetScreenData(), _bkproc->get_width(), _bkproc->get_height(),
-			0, 0, _bkproc->get_width(), _bkproc->get_height(), _bkproc->get_image_type());
+			0, 0, tx, ty, _bkproc->get_image_type());
 		_bkproc->unlock_data();
 		*ret = _image_proc->CmpColor(x, y, color, sim);
 	}
@@ -768,16 +769,14 @@ long  libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files,
 //获取(x,y)的颜色
 long  libop::GetColor(long x, long y, std::wstring& ret) {
 	color_t cr;
-	if (_bkproc->check_bind()) {
-		x += _bkproc->_pbkdisplay->_client_x;
-		y += _bkproc->_pbkdisplay->_client_y;
-	}
-	if (x >= 0 && y >= 0 && x < _bkproc->get_width() && y < _bkproc->get_height()) {
+	auto tx = x + 1, ty = y + 1;
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
 		if (_bkproc->get_image_type() == -1)
 			y = _bkproc->get_height() - y - 1;
-		auto p = _bkproc->GetScreenData() + (y*_bkproc->get_width() * 4 + x * 4);
+		auto p = _bkproc->GetScreenData() + (y * _bkproc->get_width() * 4 + x * 4);
 		cr = *(color_t*)p;
 	}
+	
 	
 	ret = _s2wstring(cr.tostr());
 
@@ -786,6 +785,16 @@ long  libop::GetColor(long x, long y, std::wstring& ret) {
 
 long libop::SetDisplayInput(const wchar_t* mode, long* ret) {
 	*ret=_bkproc->set_display_method(mode);
+	return 0;
+}
+
+long libop::LoadPic(const wchar_t* file_name, long* ret) {
+	*ret = 0;
+	return 0;
+}
+
+long libop::FreePic(const wchar_t* file_name, long* ret) {
+	*ret = 0;
 	return 0;
 }
 

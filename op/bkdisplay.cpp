@@ -10,6 +10,8 @@ bkdisplay::bkdisplay()
 	_bind_state = 0;
 	_width = _height = 0;
 	_client_x = _client_y = 0;
+	rect.left = rect.right = 0;
+	rect.top = rect.bottom = 0;
 }
 
 

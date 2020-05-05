@@ -57,7 +57,8 @@ public:
 	long _height;
 	//¿Í»§ÇøÆ«ÒÆ
 	int _client_x, _client_y;
-
+	//need capture rect
+	RECT rect;
 	
 };
 

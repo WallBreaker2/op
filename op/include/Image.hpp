@@ -226,7 +226,9 @@ struct ImageBin {
 		create(img4.width, img4.height);
 		auto psrc = img4.pdata;
 		for (int i = 0; i < pixels.size(); ++i) {
-			pixels[i] = (psrc[0] + psrc[1] + psrc[2]) / 3;
+			//pixels[i] = (psrc[0] + psrc[1] + psrc[2]) / 3;
+			// Gray = (R*299 + G*587 + B*114 + 500) / 1000
+			pixels[i] = (psrc[2] * 299 + psrc[1] * 587 + psrc[0] * 114 + 500) / 1000;
 			psrc += 4;
 		}
 	}
@@ -243,7 +245,8 @@ struct ImageBin {
 		for (int i = 0; i < height; ++i) {
 			for (int j = 0; j < width; ++j) {
 				//((int*)pdst)[j] = ((int*)psrc)[j];
-				pdst[j*4] = pdst[j*4 + 1] = pdst[j*4 + 2] = psrc[j];
+				uchar v = psrc[j] == 1 ? 0xff : 0;
+				pdst[j*4] = pdst[j*4 + 1] = pdst[j*4 + 2] =v;
 				pdst[j * 4 + 3] = 0xff;
 			
 			}
