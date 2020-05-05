@@ -244,13 +244,20 @@ long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 	if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
+	
 	}
-
+	
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);
 	if (x1 < 0 || y1 < 0|| x1 >= x2 || y1 >= y2) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
+	}
+	if (_pbkdisplay) {
+		_pbkdisplay->rect.left = x1;
+		_pbkdisplay->rect.top = y1;
+		_pbkdisplay->rect.right = x2;
+		_pbkdisplay->rect.bottom = y2;
 	}
 	return 1;
 }
@@ -261,7 +268,7 @@ long bkbase::get_image_type() {
 		return 0;
 	else if (_display_method.first == L"mem") {
 	
-		return 0;
+		return 1;
 	}
 	else {
 		switch (GET_RENDER_TYPE(_display))
