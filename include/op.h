@@ -7,8 +7,8 @@
 /* at Tue Jan 19 11:14:07 2038
  */
 /* Compiler settings for op.idl:
-    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
-    protocol : all , ms_ext, c_ext, robust
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0622 
+    protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
          __declspec(uuid()), __declspec(selectany), __declspec(novtable)
@@ -605,10 +605,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR file_name,
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE UseTessOcr( 
-            /* [in] */ BSTR info,
-            /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
             /* [in] */ LONG hwnd,
@@ -1294,11 +1290,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *UseTessOcr )( 
-            IOpInterface * This,
-            /* [in] */ BSTR info,
-            /* [retval][out] */ LONG *ret);
-        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
             IOpInterface * This,
             /* [in] */ LONG hwnd,
@@ -1634,9 +1625,6 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
-
-#define IOpInterface_UseTessOcr(This,info,ret)	\
-    ( (This)->lpVtbl -> UseTessOcr(This,info,ret) ) 
 
 #define IOpInterface_WriteData(This,hwnd,address,data,size,ret)	\
     ( (This)->lpVtbl -> WriteData(This,hwnd,address,data,size,ret) ) 

@@ -73,17 +73,24 @@ long ImageBase::input_image(byte* psrc, int width, int height, long x1, long y1,
 		uchar* p, * p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
-			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
+			//p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
+			p2 = psrc + (ch - i - 1) * cw * 4;
 			memcpy(p, p2, 4 * cw);
 		}
 	}
-	else {
+	else if (type == 1) {//cut
 		uchar* p, * p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
 			p2 = psrc + (i + y1) * width * 4 + x1 * 4;
 			memcpy(p, p2, 4 * cw);
 		}
+	}
+	else {
+		uchar* p, * p2;
+		p = _src.ptr<uchar>(0);
+		p2 = psrc;
+		memcpy(p, p2, 4 * cw * ch);
 	}
 	return 1;
 }
@@ -95,15 +102,13 @@ void ImageBase::set_offset(int dx, int dy) {
 
 
 
-long ImageBase::GetPixel(long x, long y, color_t& cr) {
-	if (!is_valid(x, y)) {
-		//setlog("Invalid pos:%d %d", x, y);
-		return 0;
-	}
 
-	auto p = _src.ptr<uchar>(y) + 4 * x;
+long ImageBase::GetPixel(long x, long y, color_t& cr) {
+	
+	auto p = _src.ptr<color_t>(0);
+	//setlog("%d", _src.width);
 	//static_assert(sizeof(color_t) == 4);
-	cr.b = p[0]; cr.g = p[1]; cr.r = p[2];
+	cr = *p;
 	return 1;
 }
 
@@ -119,16 +124,18 @@ long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>& colors, double
 }
 
 long ImageBase::FindColor(vector<color_df_t>& colors, long& x, long& y) {
-	for (int i = 0; i < _src.height; ++i) {
-		auto p = _src.ptr<color_t>(i);
-		for (int j = 0; j < _src.width; ++j) {
-			for (auto& it : colors) {//对每个颜色描述
-				if (IN_RANGE(*p, it.color, it.df)) {
+	for (auto& it : colors) {//对每个颜色描述
+		for (int i = 0; i < _src.height; ++i) {
+			auto p = _src.ptr<color_t>(i);
+			for (int j = 0; j < _src.width; ++j) {
+
+				if (IN_RANGE(*(p + j), it.color, it.df)) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return 1;
 				}
+
+				p++;
 			}
-			p++;
 		}
 	}
 	x = y = -1;
@@ -269,6 +276,7 @@ long ImageBase::FindPic(std::vector<Image*>& pics, color_t dfcolor, double sim, 
 					simple_match<false>(j, i, pic, dfcolor, max_err_ct));*/
 				match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 					real_match(j, i, &gimg, tnorm, sim));
+				//simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
 				if (match_ret) {
 					x = j + _x1 + _dx; y = i + _y1 + _dy;
 					return pic_id;
@@ -411,10 +419,12 @@ _quick_return:
 
 
 template<bool nodfcolor>
-long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int max_error) {
+long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int tnorm, double sim) {
 	int err_ct = 0;
-
-
+	//quick check
+	if ((double)abs(tnorm - region_sum(x, y, x + timg->width, y + timg->height)) > (double)tnorm * (1.0 - sim))
+		return 0;
+	int max_error = (1.0 - sim) * timg->size();
 	uint* pscreen_top, * pscreen_bottom, * pimg_top, * pimg_bottom;
 	pscreen_top = _src.ptr<uint>(y) + x;
 	pscreen_bottom = _src.ptr<uint>(y + timg->height - 1) + x;
@@ -498,9 +508,9 @@ long ImageBase::real_match(long x, long y, ImageBin* timg, int tnorm, double sim
 			ptr++; ptr2++;
 		}
 	}
-	//norm it
-	double nerr = (double)err / ((double)tnorm);
-	return nerr <= 1.0 - sim ? 1 : 0;
+
+
+	return err <= (1.0 - sim) * tnorm ? 1 : 0;
 
 }
 
@@ -574,21 +584,36 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 }
 
 //二值化
-void ImageBase::auto2binary()
+void ImageBase::bgr2binarybk(const vector<color_df_t>& bk_colors)
 {
-	//转为灰度图
-	_gray.fromImage4(_src);
 	//创建二值图
-	//_binary.create(_record.size(), CV_8UC1);
-	//获取背景颜色
-	int bkcolor = get_bk_color(_gray);
-	int n = _binary.width * _binary.height;
 	_binary.create(_src.width, _src.height);
+	memset(_binary.pixels.data(), WORD_BKCOLOR, _binary.size());
+	int n = _binary.size();
 	auto pdst = _binary.data();
-	auto pgray = _gray.data();
-	for (int i = 0; i < n; ++i) {
-		pdst[i] = (std::abs(pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
+	if (bk_colors.size() == 0) {//auto 
+		//转为灰度图
+		_gray.fromImage4(_src);
+
+		//获取背景颜色
+		int bkcolor = get_bk_color(_gray);
+
+		auto pgray = _gray.data();
+		for (int i = 0; i < n; ++i) {
+			pdst[i] = (std::abs(pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
+		}
 	}
+	else {
+		for (auto bk : bk_colors) {
+			for (int i = 0; i < n; ++i) {
+				auto c = (color_t*)(_src.pdata + i * 4);
+				if (!IN_RANGE(*c, bk.color, bk.df))
+					pdst[i] = WORD_COLOR;
+			}
+		}
+
+	}
+
 }
 
 
@@ -761,35 +786,34 @@ void ImageBase::get_rois(int min_word_h, std::vector<rect_t>& vroi) {
 
 }
 
-inline int full_match(const ImageBin& binary, rect_t& rc, const word_t::cline_t* lines) {
+inline int full_match(const ImageBin& binary, rect_t& rc, const uint8_t* data) {
 	//匹配
-	unsigned __int32 val;
+	int idx = 0;
 	for (int x = rc.x1; x < rc.x2; ++x) {
-		val = 0;
-		for (int y = rc.y1, id = 31; y < rc.y2; ++y, --id) {
-			if (binary.at(y, x) == WORD_COLOR)
-				SET_BIT(val, id);
+		for (int y = rc.y1; y < rc.y2; ++y) {
+			int val = GET_BIT(data[idx / 8], idx & 7);
+			if (binary.at(y, x) != val)
+				return 0;
+			idx++;
 		}
-		if (lines[x - rc.x1] != val)
-			return 0;
-		//t = QString::asprintf("%08X", x);
-		//tp += t;
-
 	}
 	return 1;
 }
 
-inline int part_match(const ImageBin& binary, rect_t& rc, int max_error, const word_t::cline_t* lines) {
+inline int part_match(const ImageBin& binary, rect_t& rc, int max_error, const uint8_t* data) {
 	//匹配
-	unsigned __int32 sval, wval;
-	int error_ct = 0;
+	//匹配
+	int err_ct = 0;
+	int idx = 0;
 	for (int x = rc.x1; x < rc.x2; ++x) {
-		wval = lines[x - rc.x1];
-		for (int y = rc.y1, id = 31; y < rc.y2; ++y, --id) {
-			if (binary.at(y, x) != GET_BIT(wval, id))
-				++error_ct;
-			if (error_ct > max_error)
-				return 0;
+		for (int y = rc.y1; y < rc.y2; ++y) {
+			int val = GET_BIT(data[idx / 8], idx & 7);
+			if (binary.at(y, x) != val) {
+				++err_ct;
+				if (err_ct > max_error)
+					return 0;
+			}
+			idx++;
 		}
 	}
 	return 1;
@@ -805,17 +829,17 @@ inline void fill_rect(ImageBin& record, const rect_t& rc) {
 
 }
 
-int binarySearch(const word_t a[], int bidx, int eidx, int target)//循环实现
+int binarySearch(const word1_t a[], int bidx, int eidx, int target)//循环实现
 {
 	int low = bidx, high = eidx, middle;
 	while (low < high)
 	{
 		middle = (low + high) / 2;
-		if (target == a[middle].info.bit_count)
+		if (target == a[middle].info.bit_cnt)
 			return middle;
-		else if (target > a[middle].info.bit_count)
+		else if (target > a[middle].info.bit_cnt)
 			low = middle + 1;
-		else if (target < a[middle].info.bit_count)
+		else if (target < a[middle].info.bit_cnt)
 			high = middle;
 	}
 	return -1;
@@ -858,12 +882,12 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 	int w_min = 32, h_min = 32;
 	int w_max = 0, h_max = 0;
 	for (auto& it : dict.words) {
-		cnt_min = min(cnt_min, it.info.bit_count);
-		cnt_max = max(cnt_max, it.info.bit_count);
-		w_min = min(w_min, it.info.width);
-		h_min = min(h_min, it.info.height);
-		w_max = max(w_max, it.info.width);
-		h_max = max(h_max, it.info.height);
+		cnt_min = min(cnt_min, it.info.bit_cnt);
+		cnt_max = max(cnt_max, it.info.bit_cnt);
+		w_min = min(w_min, it.info.w);
+		h_min = min(h_min, it.info.h);
+		w_max = max(w_max, it.info.w);
+		h_max = max(h_max, it.info.h);
 	}
 
 	//将所有字库按照大小分成几类，对于每个大小根据像素密度查找对应的符合字库
@@ -873,9 +897,9 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 	vector<std::pair<int, int>> dict_sz;
 	auto& vword = dict.words;
 	//32 begin(8) 
-	dict_sz.push_back(makeinfo(0, 0, dict.words[0].info.height, dict.words[0].info.width));
+	dict_sz.push_back(makeinfo(0, 0, dict.words[0].info.h, dict.words[0].info.w));
 	for (int i = 1; i < vword.size(); i++) {
-		int sz = vword[i].info.height << 8 | vword[i].info.width;
+		int sz = vword[i].info.h << 8 | vword[i].info.w;
 		if (dict_sz.back().second != sz) {
 			dict_sz.back().first |= i;//fix old end
 			dict_sz.push_back(std::make_pair(i << 16, sz));//add new begin
@@ -910,20 +934,20 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 
 				//quick check
 				int cnt_src = region_sum(crc.x1, crc.y1, crc.x2, crc.y2);
-				if (cnt_src<vword[fidx].info.bit_count || cnt_src>vword[eidx - 1].info.bit_count)
+				if (cnt_src<vword[fidx].info.bit_cnt || cnt_src>vword[eidx - 1].info.bit_cnt)
 					continue;
 				int tidx = binarySearch(&vword[0], fidx, eidx, cnt_src);
 				if (tidx == -1)
 					continue;
 				int tleft = tidx, tright = tidx;
-				while (tleft > 0 && vword[tleft - 1].info.bit_count == cnt_src)--tleft;
-				while (tright < eidx && vword[tright].info.bit_count == cnt_src)++tright;
+				while (tleft > 0 && vword[tleft - 1].info.bit_cnt == cnt_src)--tleft;
+				while (tright < eidx && vword[tright].info.bit_cnt == cnt_src)++tright;
 				int matched = 0;
 				//match
 				tidx = tleft;
 				while (tidx < tright) {
 					auto& it = vword[tidx++];
-					matched = full_match(_binary, crc, it.clines);
+					matched = full_match(_binary, crc, it.data.data());
 					if (matched) {
 						//final check 
 						//check right col is empty/background
@@ -932,8 +956,8 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 							for (int k = crc.y1; k < crc.y2; k++)
 								rs += _binary.at(k, crc.x2);
 						}
-						if (rs <it.info.height/2) {
-							ps[pt] = it.info._char;
+						if (rs < it.info.h / 2) {
+							ps[pt] = it.info.name;
 							fill_rect(_record, crc);
 							//break;//words
 							break;
@@ -942,7 +966,7 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 							//not matched
 							matched = 0;
 						}
-					
+
 					}
 				}
 				if (matched)break;
@@ -965,12 +989,12 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 	int w_min = 32, h_min = 32;
 	int w_max = 0, h_max = 0;
 	for (auto& it : dict.words) {
-		cnt_min = min(cnt_min, it.info.bit_count);
-		cnt_max = max(cnt_max, it.info.bit_count);
-		w_min = min(w_min, it.info.width);
-		h_min = min(h_min, it.info.height);
-		w_max = max(w_max, it.info.width);
-		h_max = max(h_max, it.info.height);
+		cnt_min = min(cnt_min, it.info.bit_cnt);
+		cnt_max = max(cnt_max, it.info.bit_cnt);
+		w_min = min(w_min, it.info.w);
+		h_min = min(h_min, it.info.h);
+		w_max = max(w_max, it.info.w);
+		h_max = max(h_max, it.info.h);
 	}
 
 	//遍历行
@@ -993,17 +1017,17 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 
 				rect_t crc;
 				crc.x1 = px; crc.y1 = py;
-				crc.x2 = px + it.info.width; crc.y2 = py + it.info.height;
+				crc.x2 = px + it.info.w; crc.y2 = py + it.info.h;
 				//边界检查
 				if (crc.y2 > _binary.height || crc.x2 > _binary.width)
 					continue;
 				//quick check
 
-				int error = (1 - sim) * it.info.width * it.info.height;
-				if (abs(region_sum(crc.x1, crc.y1, crc.x2, crc.y2) - it.info.bit_count) > error)
+				int error = (1 - sim) * it.info.w * it.info.h;
+				if (abs(region_sum(crc.x1, crc.y1, crc.x2, crc.y2) - it.info.bit_cnt) > error)
 					continue;
 				//match
-				int matched = part_match(_binary, crc, error, it.clines);
+				int matched = part_match(_binary, crc, error, it.data.data());
 
 				if (matched) {
 					//final check 
@@ -1013,8 +1037,8 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 						for (int k = crc.y1; k < crc.y2; k++)
 							rs += _binary.at(k, crc.x2);
 					}
-					if (rs <=it.info.height/2) {
-						ps[pt] = it.info._char;
+					if (rs <= it.info.h / 2) {
+						ps[pt] = it.info.name;
 						fill_rect(_record, crc);
 						//break;//words
 						break;

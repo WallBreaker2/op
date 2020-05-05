@@ -106,7 +106,7 @@ public:
 private:
 	//rgbÏñËØÆ¥Åä
 	template<bool nodfcolor>
-	long simple_match(long x, long y, Image* timg, color_t dfcolor, int max_error);
+	long simple_match(long x, long y, Image* timg, color_t dfcolor,int tnrom, double sim);
 	//Í¸Ã÷Í¼Æ¥Åä
 	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>points, int max_error);
@@ -144,7 +144,7 @@ public:
 	*/
 	void bgr2binary(vector<color_df_t>& colors);
 	//¶þÖµ»¯ auto
-	void auto2binary();
+	void bgr2binarybk(const vector<color_df_t>& bk_colors);
 	//Í¼Ïñ²Ã¼ô
 	void bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc);
 	void get_rois(int min_word_h, std::vector<rect_t>& vroi);

@@ -1,10 +1,13 @@
-﻿// OpInterface.h: OpInterface 的声明
-
+﻿// libop的声明
+/*
+所有op的开放接口都从此cpp类衍生而出
+*/
 #pragma once
 
 #include <string>
 #include<map>
 #include<vector>
+//forward declare
 class WinApi;
 class bkbase;
 class ImageProc;
@@ -216,6 +219,10 @@ public:
 	//
 	//设置图像输入方式，默认窗口截图
 	long SetDisplayInput(const wchar_t* mode, long* ret);
+
+	long LoadPic(const wchar_t* file_name, long* ret);
+
+	long FreePic(const wchar_t* file_name, long* ret);
 	//
 	long GetScreenData(long x1, long y1, long x2, long y2, void** data,long* ret);
 	//
