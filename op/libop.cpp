@@ -773,7 +773,7 @@ long  libop::GetColor(long x, long y, std::wstring& ret) {
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
 		if (_bkproc->get_image_type() == -1)
 			y = _bkproc->get_height() - y - 1;
-		auto p = _bkproc->GetScreenData() + (y * _bkproc->get_width() * 4 + x * 4);
+		auto p = _bkproc->GetScreenData() ;
 		cr = *(color_t*)p;
 	}
 	
