@@ -3,6 +3,7 @@
 #include "helpfunc.h"
 #include <time.h>
 #include <numeric>
+#include <assert.h>
 using std::to_wstring;
 //检查是否为透明图，返回透明像素个数
 int check_transparent(Image* img) {
@@ -69,28 +70,29 @@ long ImageBase::input_image(byte* psrc, int width, int height, long x1, long y1,
 	_x1 = x1; _y1 = y1;
 	int cw = x2 - x1, ch = y2 - y1;
 	_src.create(cw, ch);
-	if (type == -1) {//倒过来读
+	if (type == -2) {//倒过来读
 		uchar* p, * p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
-			//p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
 			p2 = psrc + (ch - i - 1) * cw * 4;
 			memcpy(p, p2, 4 * cw);
 		}
 	}
-	else if (type == 1) {//cut
+	else if (type == -1) {//倒过来读
+		uchar* p, * p2;
+		for (i = 0; i < ch; ++i) {
+			p = _src.ptr<uchar>(i);
+			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
+			memcpy(p, p2, 4 * cw);
+		}
+	}
+	else {//0 1
 		uchar* p, * p2;
 		for (i = 0; i < ch; ++i) {
 			p = _src.ptr<uchar>(i);
 			p2 = psrc + (i + y1) * width * 4 + x1 * 4;
 			memcpy(p, p2, 4 * cw);
 		}
-	}
-	else {
-		uchar* p, * p2;
-		p = _src.ptr<uchar>(0);
-		p2 = psrc;
-		memcpy(p, p2, 4 * cw * ch);
 	}
 	return 1;
 }
@@ -104,7 +106,7 @@ void ImageBase::set_offset(int dx, int dy) {
 
 
 long ImageBase::GetPixel(long x, long y, color_t& cr) {
-	
+
 	auto p = _src.ptr<color_t>(0);
 	//setlog("%d", _src.width);
 	//static_assert(sizeof(color_t) == 4);
@@ -123,19 +125,70 @@ long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>& colors, double
 	return 0;
 }
 
-long ImageBase::FindColor(vector<color_df_t>& colors, long& x, long& y) {
+long ImageBase::FindColor(vector<color_df_t>& colors, int dir, long& x, long& y) {
+
 	for (auto& it : colors) {//对每个颜色描述
-		for (int i = 0; i < _src.height; ++i) {
-			auto p = _src.ptr<color_t>(i);
-			for (int j = 0; j < _src.width; ++j) {
+		if (dir == 0) {//从左到右,从上到下 
 
-				if (IN_RANGE(*(p + j), it.color, it.df)) {
-					x = j + _x1 + _dx; y = i + _y1 + _dy;
-					return 1;
+			for (int i = 0; i < _src.height; ++i) {
+				auto p = _src.ptr<color_t>(i);
+				for (int j = 0; j < _src.width; ++j) {
+
+					if (IN_RANGE(*(p + j), it.color, it.df)) {
+						x = j + _x1 + _dx; y = i + _y1 + _dy;
+						return 1;
+					}
+					p++;
 				}
-
-				p++;
 			}
+		}
+		else if (dir == 4) {//从中心向外
+			//1 1 1; 1 1 1 1
+			int mx = _src.width / 2, my = _src.height / 2;
+			if (IN_RANGE(_src.at<color_t>(mx, my), it.color, it.df)) {
+				x = mx + _x1 + _dx; y = my + _y1 + _dy;
+				return 1;
+			}
+			for (int k = 1; k < min(mx, my); k++) {
+				for (int inc = 1; inc <= k; inc++) {
+					if (IN_RANGE(_src.at<color_t>(mx - inc, my - k), it.color, it.df)) {
+						x = mx - inc + _x1 + _dx; y = my - k + _y1 + _dy;
+						return 1;
+					}
+					if (IN_RANGE(_src.at<color_t>(mx + inc, my - k), it.color, it.df)) {
+						x = mx + inc + _x1 + _dx; y = my - k + _y1 + _dy;
+						return 1;
+					}
+					//b
+					if (IN_RANGE(_src.at<color_t>(mx - inc, my + k), it.color, it.df)) {
+						x = mx - inc + _x1 + _dx; y = my + k + _y1 + _dy;
+						return 1;
+					}
+					if (IN_RANGE(_src.at<color_t>(mx + inc, my + k), it.color, it.df)) {
+						x = mx + inc + _x1 + _dx; y = my + k + _y1 + _dy;
+						return 1;
+					}
+					//left
+					if (IN_RANGE(_src.at<color_t>(mx - k, my - inc), it.color, it.df)) {
+						x = mx - k + _x1 + _dx; y = my - inc + _y1 + _dy;
+						return 1;
+					}
+					if (IN_RANGE(_src.at<color_t>(mx - k, my + inc), it.color, it.df)) {
+						x = mx - k + _x1 + _dx; y = my + inc + _y1 + _dy;
+						return 1;
+					}
+					//r
+					if (IN_RANGE(_src.at<color_t>(mx + k, my - inc), it.color, it.df)) {
+						x = mx + k + _x1 + _dx; y = my - inc + _y1 + _dy;
+						return 1;
+					}
+					if (IN_RANGE(_src.at<color_t>(mx + k, my + inc), it.color, it.df)) {
+						x = mx + k + _x1 + _dx; y = my + inc + _y1 + _dy;
+						return 1;
+					}
+				}
+			}
+
 		}
 	}
 	x = y = -1;
@@ -377,39 +430,96 @@ long ImageBase::OcrEx(Dict& dict, double sim, std::wstring& retstr) {
 
 long ImageBase::FindStr(Dict& dict, const vector<wstring>& vstr, double sim, long& retx, long& rety) {
 	retx = rety = -1;
+
+
+
+
+
+	//查找字符 返回坐标
+	//step 1. 找出频幕中所有字符及其坐标信息
 	std::map<point_t, wstring> ps;
 	bin_ocr(dict, sim, ps);
-	for (auto& it : ps) {
-		for (auto& s : vstr) {
-			if (it.second == s) {
+	//step 2. 拼接字符 形成完整字符串
+	wstring str;
+	for (auto& it : ps)
+		str.append(it.second);
+	//step 3. 在完整字符中查找目标字符串，并记录 索引
+	int idx = -1;
+	for (auto& t : vstr) {
+		idx = str.find(t);
+		if (idx != -1)//find it
+			break;
+	}
+	//step 4.根据索引给出对应 坐标 并返回
+	if (idx != -1) {//locate it
+		int curr_len = 0;
+		for (auto& it : ps) {
+			curr_len += it.second.length();
+			if (curr_len < idx + 1)continue;
+			if (it.second.find(str[idx]) != -1) {
 				retx = it.first.x + _x1 + _dx;
 				rety = it.first.y + _y1 + _dy;
 				return 1;
 			}
+
 		}
+		//这里进行断言，表示不会走到这一步
+		assert(0);
 	}
+
 	return 0;
 }
 
 long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& retstr) {
+	//描述：查找屏幕指定位置的字符（或者字符串）位置，返回所有出现的坐标（注意与FindStr接口的区别）！！！
+	//----------------------步骤-----------------
+	//step 1. 获取指定位置的字符及坐标信息
+	//step 2. 拼接字符，形成完整字符串 str
+	//step 2.对每个目标字符 ti , 查找其在str中的位置，并记录 index(如果存在）
+	//step 4.根据index ,获取其坐标，并将坐标转化为字符串，拼接到返回值
+	//step 5. 回到第3步
+
 	retstr.clear();
 	std::map<point_t, wstring> ps;
+	//step 1.
 	bin_ocr(dict, sim, ps);
-	int find_ct = 0;
+	//setp 2.
+	wstring str;
 	for (auto& it : ps) {
-		for (auto& s : vstr) {
-			if (it.second == s) {
-				retstr += std::to_wstring(it.first.x + _x1 + _dx);
-				retstr += L",";
-				retstr += std::to_wstring(it.first.y + _y1 + _dy);
-				retstr += L"|";
-				++find_ct;
-				if (find_ct > _max_return_obj_ct)
-					goto _quick_return;
-				else
-					break;
+		str.append(it.second);
+	}
+	//step 3.
+	int find_ct = 0;
+	for (auto& ti : vstr) {
+		int index = -1, old = -1;
+		do {
+			index = str.find(ti,old+1);
+			if (index == -1) {//failed!!
+				break;
 			}
-		}
+			//step 4
+			int current_len = 0;
+			for (auto& it : ps) {
+				//注意 字符长度要大于index 才记录坐标
+				current_len += it.second.length();
+				if (current_len < index + 1)continue;
+				if (it.second.find(str[index]) != -1) {
+					//记录坐标
+					wchar_t buff[20] = { 0 };
+					//注意加偏移
+					wsprintf(buff, L"%d,%d|", it.first.x + _x1 + _dx, it.first.y + _y1 + _dy);
+					retstr.append(buff);
+					++find_ct;
+					if (find_ct > _max_return_obj_ct)
+						goto _quick_return;
+					else
+						break;
+					//to do 这里还需要修改
+				}
+			}//end for ps
+			old = index;
+		} while (1);
+
 	}
 _quick_return:
 	if (!retstr.empty() && retstr.back() == L'|')
@@ -878,8 +988,8 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 	record_sum(_binary);
 	//find cnt range
 	//find width and height range;
-	int cnt_min = 32 * 32, cnt_max = 0;
-	int w_min = 32, h_min = 32;
+	int cnt_min = 255 * 255, cnt_max = 0;
+	int w_min = 255, h_min = 255;
 	int w_max = 0, h_max = 0;
 	for (auto& it : dict.words) {
 		cnt_min = min(cnt_min, it.info.bit_cnt);
@@ -985,8 +1095,8 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 	record_sum(_binary);
 	//find cnt range                   
 	//find width and height range;
-	int cnt_min = 32 * 32, cnt_max = 0;
-	int w_min = 32, h_min = 32;
+	int cnt_min = 255 * 255, cnt_max = 0;
+	int w_min = 255, h_min = 255;
 	int w_max = 0, h_max = 0;
 	for (auto& it : dict.words) {
 		cnt_min = min(cnt_min, it.info.bit_cnt);
@@ -996,7 +1106,7 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 		w_max = max(w_max, it.info.w);
 		h_max = max(h_max, it.info.h);
 	}
-
+	int matched = 0;
 	//遍历行
 	for (py = 0; py < _binary.height - h_min + 1; ++py) {
 		//遍历列
@@ -1027,7 +1137,7 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 				if (abs(region_sum(crc.x1, crc.y1, crc.x2, crc.y2) - it.info.bit_cnt) > error)
 					continue;
 				//match
-				int matched = part_match(_binary, crc, error, it.data.data());
+				matched = part_match(_binary, crc, error, it.data.data());
 
 				if (matched) {
 					//final check 
@@ -1049,6 +1159,7 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 					}
 				}
 			}//end for words
+			if (matched)break;
 		}//end for j
 	}//end for i
 

@@ -2,6 +2,7 @@
 #ifndef __BKDISPLAY_H_
 #define __BKDISPLAY_H_
 #include <thread>
+#include "optype.h"
 #include "bkdisplay.h"
 class bkgdi:public bkdisplay
 {
@@ -31,6 +32,8 @@ private:
 	//bmp 文件头
 	BITMAPFILEHEADER _bfh = { 0 };
 	BITMAPINFOHEADER _bih = { 0 };//位图信息头
+	int dx_, dy_;//去除标题栏
+	bytearray temp_src;
 };
 
 #endif
