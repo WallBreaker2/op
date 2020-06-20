@@ -84,7 +84,7 @@ public:
 
 	long CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim);
 
-	long FindColor(std::vector<color_df_t>&colors, long&x, long&y);
+	long FindColor(std::vector<color_df_t>&colors,int dir, long&x, long&y);
 
 	long FindColorEx(std::vector<color_df_t>&colors, std::wstring& retstr);
 
