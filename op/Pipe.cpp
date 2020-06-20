@@ -3,7 +3,7 @@
 #include <iostream>
 #include<chrono>
 #include  "globalVar.h"
-
+#include "helpfunc.h"
 Pipe::Pipe()
 {
 	_hread = _hwrite = _hread2 = _hwrite2 = nullptr;
@@ -36,7 +36,7 @@ int Pipe::open(const string& cmd) {
 	_si.wShowWindow = SW_HIDE;
 	_si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 	char buf[0xff];
-	memcpy(buf, cmd.data(), sizeof(char)*(1 + cmd.length()));
+	memcpy(buf, cmd.data(), sizeof(char) * (1 + cmd.length()));
 	if (!CreateProcessA(NULL, buf, nullptr, nullptr, true, NULL, nullptr, nullptr, &_si, &_pi))
 		return -3;
 	_reading = 1;
@@ -47,11 +47,19 @@ int Pipe::open(const string& cmd) {
 int Pipe::close() {
 	if (_reading) {
 		_reading = 0;
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		TerminateThread(_pthread->native_handle(), -1);
+		on_write("exit");
+
+		if (::WaitForSingleObject(_pi.hProcess, 1000) == WAIT_TIMEOUT) {
+			::TerminateProcess(_pi.hProcess, 0);
+			TerminateThread(_pthread->native_handle(), -1);
+		}
+		else {
+
+		}
+
 		_pthread->join();
-		
-		
+
+
 	}
 	SAFE_DELETE(_pthread);
 	SAFE_CLOSE(_hread);
@@ -70,7 +78,7 @@ void Pipe::on_read(const string& info) {
 int Pipe::on_write(const string& info) {
 	if (_reading) {
 		unsigned long wlen = 0;
-		 
+
 		return WriteFile(_hwrite2, info.data(), info.length() * sizeof(char), &wlen, nullptr);
 	}
 	return 0;
@@ -83,7 +91,8 @@ void Pipe::reader() {
 	while (_reading) {
 		memset(buf, 0, buf_size * sizeof(char));
 		if (ReadFile(_hread, buf, buf_size - 1, &read_len, NULL)) {
-			this->on_read(buf);
+			//setlog("readed:%s", buf);
+			on_read(buf);
 		}
 		else {
 			_reading = 0;

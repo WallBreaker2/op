@@ -35,7 +35,8 @@ long ImageProc::FindColor(const wstring& color, double sim, long dir, long& x, l
 	std::vector<color_df_t>colors;
 	str2colordfs(color, colors);
 	//setlog("%s cr size=%d",colors[0].color.tostr().data(), colors.size());
-	return ImageBase::FindColor(colors, x, y);
+	//setlog("sim:,dir:%d", dir);
+	return ImageBase::FindColor(colors,dir, x, y);
 }
 
 long ImageProc::FindColoEx(const wstring& color, double sim, long dir, wstring& retstr) {

@@ -474,6 +474,7 @@ long  libop::GetCmdStr(const wchar_t* cmd, long millseconds, std::wstring& retst
 	auto strcmd = _ws2string(cmd);
 	Cmder cd;
 	auto str = cd.GetCmdStr(strcmd, millseconds <= 0 ? 5 : millseconds);
+	retstr = _s2wstring(str);
 	return 0;
 }
 
@@ -771,9 +772,21 @@ long  libop::GetColor(long x, long y, std::wstring& ret) {
 	color_t cr;
 	auto tx = x + 1, ty = y + 1;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
-		if (_bkproc->get_image_type() == -1)
+		uchar* p = nullptr;
+		p = _bkproc->GetScreenData();
+		int tp = _bkproc->get_image_type();
+		if (tp == -2) {
+			//to do
+			
+		}
+		else if(tp==-1){
 			y = _bkproc->get_height() - y - 1;
-		auto p = _bkproc->GetScreenData() ;
+			p = p + y * _bkproc->get_width() * 4 + x * 4;
+		}
+		else {
+			p = p + y * _bkproc->get_width() * 4 + x * 4;
+		}
+		
 		cr = *(color_t*)p;
 	}
 	

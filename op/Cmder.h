@@ -2,7 +2,7 @@
 #include "Pipe.h"
 class Cmder : public Pipe {
 public:
-	void on_read(const string& ss) {
+	void on_read(const string& ss)override {
 		_readed += ss;
 
 	}
@@ -11,7 +11,7 @@ public:
 		if (is_open()) {
 			auto deadline = clock()+milseconds;
 			while (is_open()&& clock()<deadline) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 			close();
 		}

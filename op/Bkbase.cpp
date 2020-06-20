@@ -254,10 +254,19 @@ long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
 		return 0;
 	}
 	if (_pbkdisplay) {
-		_pbkdisplay->rect.left = x1;
-		_pbkdisplay->rect.top = y1;
-		_pbkdisplay->rect.right = x2;
-		_pbkdisplay->rect.bottom = y2;
+		if (_display == RDT_NORMAL) {//cap rect 
+			_pbkdisplay->rect.left = x1;
+			_pbkdisplay->rect.top = y1;
+			_pbkdisplay->rect.right = x2;
+			_pbkdisplay->rect.bottom = y2;
+		}
+		else {
+			_pbkdisplay->rect.left = 0;
+			_pbkdisplay->rect.top = 0;
+			_pbkdisplay->rect.right = _pbkdisplay->get_width();
+			_pbkdisplay->rect.bottom =_pbkdisplay->get_height();
+		}
+	
 	}
 	return 1;
 }
@@ -274,7 +283,7 @@ long bkbase::get_image_type() {
 		switch (GET_RENDER_TYPE(_display))
 		{
 		case RENDER_TYPE::NORMAL:
-			return -1;
+			return -2;
 		case RENDER_TYPE::GDI:
 			return -1;
 		case RENDER_TYPE::DX:
