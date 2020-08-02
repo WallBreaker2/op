@@ -7,8 +7,8 @@
 /* at Tue Jan 19 11:14:07 2038
  */
 /* Compiler settings for op.idl:
-    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0622 
-    protocol : all , ms_ext, c_ext, robust
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0622 
+    protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
          __declspec(uuid()), __declspec(selectany), __declspec(novtable)
@@ -100,6 +100,12 @@ EXTERN_C const IID IID_IOpInterface;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetBasePath( 
             /* [retval][out] */ BSTR *path) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetID( 
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetLastError( 
+            /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetShowErrorMsg( 
             /* [in] */ LONG show_type,
@@ -693,6 +699,14 @@ EXTERN_C const IID IID_IOpInterface;
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetBasePath )( 
             IOpInterface * This,
             /* [retval][out] */ BSTR *path);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetID )( 
+            IOpInterface * This,
+            /* [retval][out] */ LONG *ret);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetLastError )( 
+            IOpInterface * This,
+            /* [retval][out] */ LONG *ret);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetShowErrorMsg )( 
             IOpInterface * This,
@@ -1352,6 +1366,12 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_GetBasePath(This,path)	\
     ( (This)->lpVtbl -> GetBasePath(This,path) ) 
+
+#define IOpInterface_GetID(This,ret)	\
+    ( (This)->lpVtbl -> GetID(This,ret) ) 
+
+#define IOpInterface_GetLastError(This,ret)	\
+    ( (This)->lpVtbl -> GetLastError(This,ret) ) 
 
 #define IOpInterface_SetShowErrorMsg(This,show_type,ret)	\
     ( (This)->lpVtbl -> SetShowErrorMsg(This,show_type,ret) ) 

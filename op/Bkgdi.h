@@ -4,6 +4,7 @@
 #include <thread>
 #include "optype.h"
 #include "bkdisplay.h"
+struct Image;
 class bkgdi:public bkdisplay
 {
 public:
@@ -16,10 +17,11 @@ public:
 	long UnBind() override;
 	
 	
-	long updata_screen();
+	//long updata_screen();
 
-	byte* get_data() override;
-	
+	//byte* get_data() override;
+
+	virtual bool requestCapture(int x1, int y1, int w, int h, Image& img)override;
 	
 private:
 	//设备句柄
@@ -33,7 +35,7 @@ private:
 	BITMAPFILEHEADER _bfh = { 0 };
 	BITMAPINFOHEADER _bih = { 0 };//位图信息头
 	int dx_, dy_;//去除标题栏
-	bytearray temp_src;
+	//bytearray temp_src;
 };
 
 #endif

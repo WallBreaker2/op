@@ -4,7 +4,7 @@
 
 
 #include "bkdisplay.h"
-
+struct Image;
 class bkdo:public bkdisplay
 {
 public:
@@ -16,6 +16,8 @@ public:
 	long UnBind(HWND hwnd);
 
 	long UnBind() override;
+
+	virtual bool requestCapture(int x1, int y1, int w, int h, Image& img)override;
 
 	//nox mode
 	long BindNox(HWND hwnd, long render_type);

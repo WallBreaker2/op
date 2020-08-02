@@ -72,9 +72,9 @@ public:
 	//hegith:		h
 	//x1,y1,x2,y2 拷贝区域
 	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
-	long input_image(byte* psrc, int cols, int height,long x1,long y1,long x2,long y2, int type = 0);
+	//long input_image(byte* psrc, int cols, int height,long x1,long y1,long x2,long y2, int type = 0);
 
-	void set_offset(int dx, int dy);
+	void set_offset(int x1, int y1);
 	
 	long is_valid(long x, long y) {
 		return x >= 0 && y >= 0 && x < _src.width && y < _src.height;
