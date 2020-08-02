@@ -29,7 +29,7 @@ public:
 	virtual long GetCursorPos(int& x, int& y);
 	
 	long GetDisplay();
-	byte* GetScreenData();
+	/*byte* GetScreenData();*/
 	void lock_data();
 	void unlock_data();
 	long get_height();
@@ -41,6 +41,8 @@ public:
 	bool check_bind();
 	const std::pair<wstring, wstring>& get_display_method()const;
 	long set_display_method(const wstring& method);
+
+	bool requestCapture(int x1,int y1,int w,int h,Image& img);
 private:
 	HWND _hwnd;
 	int _is_bind;

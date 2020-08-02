@@ -51,6 +51,10 @@ public:
 	long GetPath(std::wstring&path);
 	//获取插件目录
 	long GetBasePath(std::wstring& path);
+	//返回当前对象的ID值，这个值对于每个对象是唯一存在的。可以用来判定两个对象是否一致
+	long GetID(long* ret);
+	//
+	long GetLastError(long* ret);
 	//设置是否弹出错误信息,默认是打开 0为关闭，1为显示为信息框，2为保存到文件
 	long SetShowErrorMsg(long show_type, long* ret);
 	

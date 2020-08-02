@@ -8,9 +8,9 @@
 #include "3rd_party/include/BlackBone/Process/Process.h"
 #include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
 
+#include "./include/Image.hpp"
 
-
-
+#include "globalVar.h"
 
 bkdo::bkdo()
 {
@@ -248,5 +248,29 @@ long bkdo::UnBindNox() {
 	}
 	bind_release();
 	return 1;
+}
+
+
+
+bool bkdo::requestCapture(int x1, int y1,int w, int h, Image& img) {
+	img.create(w, h);
+	_pmutex->lock();
+	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) {//NORMAL
+		//setlog("cap1");
+		for (int i = 0; i < h; i++) {
+			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (i + y1) * 4 * w + x1 * 4, 4 * w);
+		}
+	}
+	else {
+		//setlog("cap2");
+		
+		for (int i = 0; i < h; i++) {
+			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i-y1) * 4 * w+x1*4, 4 * w);
+		}
+	}
+
+
+	_pmutex->unlock();
+	return true;
 }
 
