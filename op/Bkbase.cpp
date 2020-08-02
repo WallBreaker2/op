@@ -140,7 +140,7 @@ long bkbase::IsBind() {
 	return _pbkdisplay ? 1 : 0;
 }
 
-long bkbase::GetCursorPos(int&x, int&y) {
+long bkbase::GetCursorPos(int& x, int& y) {
 	POINT pt;
 	auto r = ::GetCursorPos(&pt);
 	x = pt.x; y = pt.y;
@@ -151,30 +151,30 @@ long bkbase::GetDisplay() {
 	return _display;
 }
 
-byte* bkbase::GetScreenData() {
-	if (get_display_method().first == L"screen") {
-		return _pbkdisplay ? _pbkdisplay->get_data() : nullptr;
-	}
-	else {
-		if (get_display_method().first == L"pic") {
-			return _pic.pdata;
-		}
-		if (get_display_method().first == L"mem") {
-			
-#if OP64==1
-			auto ptr= (byte*)_wtoi64(get_display_method().second.data());
-#else
-			auto ptr = (byte*)_wtoi(get_display_method().second.data());
-#endif // 
-			
-			auto pbfh = (BITMAPFILEHEADER*)ptr;
-			return ptr + pbfh->bfOffBits;
-	}
-		return nullptr;
-}
-
-
-}
+//byte* bkbase::GetScreenData() {
+//	if (get_display_method().first == L"screen") {
+//		return _pbkdisplay ? _pbkdisplay->get_data() : nullptr;
+//	}
+//	else {
+//		if (get_display_method().first == L"pic") {
+//			return _pic.pdata;
+//		}
+//		if (get_display_method().first == L"mem") {
+//			
+//#if OP64==1
+//			auto ptr= (byte*)_wtoi64(get_display_method().second.data());
+//#else
+//			auto ptr = (byte*)_wtoi(get_display_method().second.data());
+//#endif // 
+//			
+//			auto pbfh = (BITMAPFILEHEADER*)ptr;
+//			return ptr + pbfh->bfOffBits;
+//	}
+//		return nullptr;
+//}
+//
+//
+//}
 
 void bkbase::lock_data() {
 	if (_pbkdisplay) {
@@ -206,14 +206,14 @@ long bkbase::get_height() {
 #else
 		auto ptr = (byte*)_wtoi(strPtr.data());
 #endif // 
-		
+
 		auto bih = (BITMAPINFOHEADER*)(ptr + sizeof(BITMAPFILEHEADER));
 		return bih->biHeight < 0 ? -bih->biHeight : bih->biHeight;
 	}
 	else {
 		return _pbkdisplay ? _pbkdisplay->get_height() : 0;
 	}
-	
+
 }
 
 long bkbase::get_width() {
@@ -228,7 +228,7 @@ long bkbase::get_width() {
 #else
 		auto ptr = (byte*)_wtoi(strPtr.data());
 #endif // 
-		
+
 		auto bih = (BITMAPINFOHEADER*)(ptr + sizeof(BITMAPFILEHEADER));
 		return bih->biWidth;
 	}
@@ -238,45 +238,45 @@ long bkbase::get_width() {
 
 }
 
-long bkbase::RectConvert(long&x1, long&y1, long&x2, long&y2) {
+long bkbase::RectConvert(long& x1, long& y1, long& x2, long& y2) {
 
 
 	if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
-	
+
 	}
-	
+
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);
-	if (x1 < 0 || y1 < 0|| x1 >= x2 || y1 >= y2) {
+	if (x1 < 0 || y1 < 0 || x1 >= x2 || y1 >= y2) {
 		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
-	if (_pbkdisplay) {
-		if (_display == RDT_NORMAL) {//cap rect 
-			_pbkdisplay->rect.left = x1;
-			_pbkdisplay->rect.top = y1;
-			_pbkdisplay->rect.right = x2;
-			_pbkdisplay->rect.bottom = y2;
-		}
-		else {
-			_pbkdisplay->rect.left = 0;
-			_pbkdisplay->rect.top = 0;
-			_pbkdisplay->rect.right = _pbkdisplay->get_width();
-			_pbkdisplay->rect.bottom =_pbkdisplay->get_height();
-		}
-	
-	}
+	//if (_pbkdisplay) {
+	//	if (_display == RDT_NORMAL) {//cap rect 
+	//		_pbkdisplay->rect.left = x1;
+	//		_pbkdisplay->rect.top = y1;
+	//		_pbkdisplay->rect.right = x2;
+	//		_pbkdisplay->rect.bottom = y2;
+	//	}
+	//	else {
+	//		_pbkdisplay->rect.left = 0;
+	//		_pbkdisplay->rect.top = 0;
+	//		_pbkdisplay->rect.right = _pbkdisplay->get_width();
+	//		_pbkdisplay->rect.bottom =_pbkdisplay->get_height();
+	//	}
+	//
+	//}
 	return 1;
 }
 
 long bkbase::get_image_type() {
-	
+
 	if (_display_method.first == L"pic")
 		return 0;
 	else if (_display_method.first == L"mem") {
-	
+
 		return 1;
 	}
 	else {
@@ -294,7 +294,7 @@ long bkbase::get_image_type() {
 			return 0;
 		}
 	}
-	
+
 
 }
 
@@ -333,25 +333,73 @@ long bkbase::set_display_method(const wstring& method) {
 		if (idx != wstring::npos) {
 			_display_method.first = L"pic";
 			_display_method.second = method.substr(idx + 4);
+			_pic.read(_display_method.second.data());
 			return 1;
 		}
 		idx = method.find(L"mem:");
 		if (idx != wstring::npos) {
 			auto strPtr = method.substr(idx + 4);
 #if OP64==1
-			auto ptr= (byte*)_wtoi64(strPtr.data());
+			auto ptr = (byte*)_wtoi64(strPtr.data());
 #else
 			auto ptr = (byte*)_wtoi(strPtr.data());
 #endif // 
-			
-			if (ptr != nullptr) {
-				_display_method.first = L"mem";
-				_display_method.second = strPtr;
-				return 1;
+
+			if (ptr == nullptr) {
+				return 0;
 			}
-			
+			BITMAPFILEHEADER bfh = { 0 };//bmp file header
+			BITMAPINFOHEADER bih = { 0 };//bmp info header
+			memcpy(&bfh, ptr, sizeof(bfh));
+			memcpy(&bih, ptr + sizeof(bfh), sizeof(bih));
+
+			if (bfh.bfType != static_cast<WORD>(0x4d42))
+				return 0;
+
+			if (bih.biHeight < 0) {//正常拷贝
+				int h = -bih.biHeight;
+				_pic.create(bih.biWidth, h);
+				/*setlog("mem w=%d h=%d chk=%d", 
+					bih.biWidth, h,
+					_pic.size() * 4 == bih.biSizeImage ? 1 : 0);*/
+				memcpy(_pic.pdata, ptr + sizeof(bfh) + sizeof(bih), _pic.size()*4);
+			}
+			else {//倒过来拷贝
+				int h = bih.biHeight;
+				_pic.create(bih.biWidth, h);
+				for (int i = 0; i < h; i++) {
+					memcpy(_pic.ptr<uchar>(i),
+						ptr + sizeof(bfh) + sizeof(bih) + (h - 1 - i) * bih.biWidth * 4,
+						bih.biWidth * 4);
+				}
+
+			}
+			_display_method.first = L"mem";
+			_display_method.second = strPtr;
+
+
+			return 1;
+
+
 		}
 		return 0;
 	}
+}
+
+
+bool bkbase::requestCapture(int x1, int y1, int w, int h, Image& img) {
+	wstring method = get_display_method().first;
+	if (method == L"screen")
+		return _pbkdisplay->requestCapture(x1, y1, w, h, img);
+	else if (method == L"pic" || method == L"mem") {
+		img.create(w, h);
+		for (int i = 0; i < h; i++)
+			memcpy(img.ptr<uchar>(i), _pic.ptr<uchar>(i + y1) + x1*4, w * 4);
+		return true;
+	}
+	return false;
+
+
+
 }
 

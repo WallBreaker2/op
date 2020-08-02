@@ -10,8 +10,7 @@ bkdisplay::bkdisplay()
 	_bind_state = 0;
 	_width = _height = 0;
 	_client_x = _client_y = 0;
-	rect.left = rect.right = 0;
-	rect.top = rect.bottom = 0;
+
 }
 
 
@@ -50,7 +49,7 @@ long bkdisplay::bind_release() {
 	return 0;
 }
 
-byte* bkdisplay::get_data() {
-	return _shmem->data<byte>();
-}
+//byte* bkdisplay::get_data() {
+//	return _shmem->data<byte>();
+//}
 

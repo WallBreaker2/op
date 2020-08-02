@@ -65,41 +65,41 @@ ImageBase::~ImageBase()
 {
 }
 
-long ImageBase::input_image(byte* psrc, int width, int height, long x1, long y1, long x2, long y2, int type) {
-	int i, j;
-	_x1 = x1; _y1 = y1;
-	int cw = x2 - x1, ch = y2 - y1;
-	_src.create(cw, ch);
-	if (type == -2) {//倒过来读
-		uchar* p, * p2;
-		for (i = 0; i < ch; ++i) {
-			p = _src.ptr<uchar>(i);
-			p2 = psrc + (ch - i - 1) * cw * 4;
-			memcpy(p, p2, 4 * cw);
-		}
-	}
-	else if (type == -1) {//倒过来读
-		uchar* p, * p2;
-		for (i = 0; i < ch; ++i) {
-			p = _src.ptr<uchar>(i);
-			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
-			memcpy(p, p2, 4 * cw);
-		}
-	}
-	else {//0 1
-		uchar* p, * p2;
-		for (i = 0; i < ch; ++i) {
-			p = _src.ptr<uchar>(i);
-			p2 = psrc + (i + y1) * width * 4 + x1 * 4;
-			memcpy(p, p2, 4 * cw);
-		}
-	}
-	return 1;
-}
+//long ImageBase::input_image(byte* psrc, int width, int height, long x1, long y1, long x2, long y2, int type) {
+//	int i, j;
+//	_x1 = x1; _y1 = y1;
+//	int cw = x2 - x1, ch = y2 - y1;
+//	_src.create(cw, ch);
+//	if (type == -2) {//倒过来读
+//		uchar* p, * p2;
+//		for (i = 0; i < ch; ++i) {
+//			p = _src.ptr<uchar>(i);
+//			p2 = psrc + (ch - i - 1) * cw * 4;
+//			memcpy(p, p2, 4 * cw);
+//		}
+//	}
+//	else if (type == -1) {//倒过来读
+//		uchar* p, * p2;
+//		for (i = 0; i < ch; ++i) {
+//			p = _src.ptr<uchar>(i);
+//			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//偏移
+//			memcpy(p, p2, 4 * cw);
+//		}
+//	}
+//	else {//0 1
+//		uchar* p, * p2;
+//		for (i = 0; i < ch; ++i) {
+//			p = _src.ptr<uchar>(i);
+//			p2 = psrc + (i + y1) * width * 4 + x1 * 4;
+//			memcpy(p, p2, 4 * cw);
+//		}
+//	}
+//	return 1;
+//}
 
-void ImageBase::set_offset(int dx, int dy) {
-	_dx = -dx;
-	_dy = -dy;
+void ImageBase::set_offset(int x1, int y1) {
+	_x1 = x1;
+	_y1 = y1;
 }
 
 
@@ -115,82 +115,35 @@ long ImageBase::GetPixel(long x, long y, color_t& cr) {
 }
 
 long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>& colors, double sim) {
-	color_t cr;
-	if (GetPixel(x, y, cr)) {
-		for (auto& it : colors) {
-			if (IN_RANGE(cr, it.color, it.df))
-				return 1;
-		}
+	color_t cr = _src.at<color_t>(0, 0);
+
+	for (auto& it : colors) {
+
+
+		if (IN_RANGE(cr, it.color, it.df))
+			return 1;
 	}
+
 	return 0;
 }
 
 long ImageBase::FindColor(vector<color_df_t>& colors, int dir, long& x, long& y) {
 
 	for (auto& it : colors) {//对每个颜色描述
-		if (dir == 0) {//从左到右,从上到下 
 
-			for (int i = 0; i < _src.height; ++i) {
-				auto p = _src.ptr<color_t>(i);
-				for (int j = 0; j < _src.width; ++j) {
+		for (int i = 0; i < _src.height; ++i) {
+			auto p = _src.ptr<color_t>(i);
+			for (int j = 0; j < _src.width; ++j) {
 
-					if (IN_RANGE(*(p + j), it.color, it.df)) {
-						x = j + _x1 + _dx; y = i + _y1 + _dy;
-						return 1;
-					}
-					p++;
+				if (IN_RANGE(*(p + j), it.color, it.df)) {
+					x = j + _x1 + _dx; y = i + _y1 + _dy;
+					return 1;
 				}
+				p++;
 			}
-		}
-		else if (dir == 4) {//从中心向外
-			//1 1 1; 1 1 1 1
-			int mx = _src.width / 2, my = _src.height / 2;
-			if (IN_RANGE(_src.at<color_t>(mx, my), it.color, it.df)) {
-				x = mx + _x1 + _dx; y = my + _y1 + _dy;
-				return 1;
-			}
-			for (int k = 1; k < min(mx, my); k++) {
-				for (int inc = 1; inc <= k; inc++) {
-					if (IN_RANGE(_src.at<color_t>(mx - inc, my - k), it.color, it.df)) {
-						x = mx - inc + _x1 + _dx; y = my - k + _y1 + _dy;
-						return 1;
-					}
-					if (IN_RANGE(_src.at<color_t>(mx + inc, my - k), it.color, it.df)) {
-						x = mx + inc + _x1 + _dx; y = my - k + _y1 + _dy;
-						return 1;
-					}
-					//b
-					if (IN_RANGE(_src.at<color_t>(mx - inc, my + k), it.color, it.df)) {
-						x = mx - inc + _x1 + _dx; y = my + k + _y1 + _dy;
-						return 1;
-					}
-					if (IN_RANGE(_src.at<color_t>(mx + inc, my + k), it.color, it.df)) {
-						x = mx + inc + _x1 + _dx; y = my + k + _y1 + _dy;
-						return 1;
-					}
-					//left
-					if (IN_RANGE(_src.at<color_t>(mx - k, my - inc), it.color, it.df)) {
-						x = mx - k + _x1 + _dx; y = my - inc + _y1 + _dy;
-						return 1;
-					}
-					if (IN_RANGE(_src.at<color_t>(mx - k, my + inc), it.color, it.df)) {
-						x = mx - k + _x1 + _dx; y = my + inc + _y1 + _dy;
-						return 1;
-					}
-					//r
-					if (IN_RANGE(_src.at<color_t>(mx + k, my - inc), it.color, it.df)) {
-						x = mx + k + _x1 + _dx; y = my - inc + _y1 + _dy;
-						return 1;
-					}
-					if (IN_RANGE(_src.at<color_t>(mx + k, my + inc), it.color, it.df)) {
-						x = mx + k + _x1 + _dx; y = my + inc + _y1 + _dy;
-						return 1;
-					}
-				}
-			}
-
 		}
 	}
+
 	x = y = -1;
 	return 0;
 }
@@ -493,7 +446,7 @@ long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, s
 	for (auto& ti : vstr) {
 		int index = -1, old = -1;
 		do {
-			index = str.find(ti,old+1);
+			index = str.find(ti, old + 1);
 			if (index == -1) {//failed!!
 				break;
 			}
@@ -1159,7 +1112,7 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 					}
 				}
 			}//end for words
-			if (matched)break;
+			//if (matched)break;
 		}//end for j
 	}//end for i
 

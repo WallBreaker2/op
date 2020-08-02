@@ -55,6 +55,16 @@ STDMETHODIMP OpInterface::GetBasePath(BSTR* path) {
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::GetID(LONG* ret) {
+	obj.GetID(ret);
+	return S_OK;
+}
+
+STDMETHODIMP::OpInterface::GetLastError(LONG* ret) {
+	obj.GetLastError(ret);
+	return S_OK;
+}
+
 STDMETHODIMP OpInterface::SetShowErrorMsg(LONG show_type, LONG* ret) {
 	obj.SetShowErrorMsg(show_type, ret);
 
