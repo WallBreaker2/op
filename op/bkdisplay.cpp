@@ -26,6 +26,7 @@ long bkdisplay::bind_init() {
 	res_size = (rc.right - rc.left)*(rc.bottom - rc.top) * 4;
 	wsprintf(_shared_res_name, SHARED_RES_NAME_FORMAT, _hwnd);
 	wsprintf(_mutex_name, MUTEX_NAME_FORMAT, _hwnd);
+	//setlog(L"mem=%s mutex=%s", _shared_res_name, _mutex_name);
 	//bind_release();
 	try {
 		_shmem = new sharedmem();

@@ -382,7 +382,7 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 		mutex.unlock();
 	}
 	else {
-		setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
+		setlog("!mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
 	}
 	context->Unmap(textDst, 0);
 	SAFE_RELEASE(backbufferptr);
@@ -435,7 +435,7 @@ long gl_capture() {
 	}
 	else {
 		is_capture = 0;
-		setlog("!mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)");
+		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
 	}
 	//setlog("gl screen ok");
 	return 0;
@@ -473,7 +473,7 @@ long egl_capture() {
 	auto pglReadPixels = (glReadPixels_t)query_api("libglesv2.dll", "glReadPixels");
 	if (!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels) {
 		is_capture = 0;
-		setlog("error.!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels");
+		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
 		return 0;
 	}
 	RECT rc;
@@ -493,7 +493,7 @@ long egl_capture() {
 	}
 	else {
 		is_capture = 0;
-		setlog("!mem.open(xhook::shared_res_name)&&mutex.open(xhook::mutex_name)");
+		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
 	}
 	//setlog("gl screen ok");
 	return 0;

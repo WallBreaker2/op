@@ -604,7 +604,9 @@ long  libop::KeyDownChar(const wchar_t* vk_code, long* ret) {
 	auto nlen = wcslen(vk_code);
 	*ret = 0;
 	if (nlen > 0) {
-		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		wstring s = vk_code;
+		wstring2lower(s);
+		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
 		*ret = _bkproc->_keypad.KeyDown(vk);
 	}
 	
@@ -620,7 +622,9 @@ long  libop::KeyUpChar(const wchar_t* vk_code, long* ret) {
 	auto nlen = wcslen(vk_code);
 	*ret = 0;
 	if (nlen > 0) {
-		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		wstring s = vk_code;
+		wstring2lower(s);
+		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
 		*ret = _bkproc->_keypad.KeyUp(vk);
 	}
 	return S_OK;
@@ -643,7 +647,9 @@ long  libop::KeyPressChar(const wchar_t* vk_code, long* ret) {
 	auto nlen = wcslen(vk_code);
 	*ret = 0;
 	if (nlen > 0) {
-		long vk = _vkmap.count(vk_code) ? _vkmap[vk_code] : vk_code[0];
+		wstring s = vk_code;
+		wstring2lower(s);
+		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
 		*ret = _bkproc->_keypad.KeyPress(vk);
 	}
 	return S_OK;

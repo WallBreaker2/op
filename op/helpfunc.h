@@ -13,6 +13,9 @@ void split(const std::string& s, std::vector<std::string>& v, const std::string&
 void wstring2upper(std::wstring& s);
 void string2upper(std::string& s);
 
+void wstring2lower(std::wstring& s);
+void string2lower(std::string& s);
+
 void replacea(string& str, const string&oldval, const string& newval);
 void replacew(wstring& str, const wstring&oldval, const wstring& newval);
 
