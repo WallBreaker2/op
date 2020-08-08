@@ -134,6 +134,8 @@ long bkdo::UnBind() {
 		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 		if (pUnXHook) {
 			pUnXHook();
+			proc.modules().RemoveManualModule(dllname,
+				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);
 		}
 		else {
 			setlog(L"get unhook ptr false.");

@@ -151,6 +151,14 @@ void string2upper(std::string& s) {
 	std::transform(s.begin(), s.end(), s.begin(), toupper);
 }
 
+void wstring2lower(std::wstring& s) {
+	std::transform(s.begin(), s.end(), s.begin(), towlower);
+}
+
+void string2lower(std::string& s) {
+	std::transform(s.begin(), s.end(), s.begin(), tolower);
+}
+
 void replacea(string& str, const string&oldval, const string& newval) {
 	size_t x0 = 0, dx = newval.length() - oldval.length() + 1;
 	size_t idx = str.find(oldval, x0);
