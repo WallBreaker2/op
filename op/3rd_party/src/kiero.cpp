@@ -736,8 +736,9 @@ int kiero::unbind() {
 	int ret = -1;
 	if (g_renderType > 0)
 	{
+		MH_DisableHook(MH_ALL_HOOKS);
 		ret = MH_RemoveHook(MH_ALL_HOOKS);
-
+		
 		kiero::shutdown();
 		//MessageBoxA(NULL, MH_StatusToString((MH_STATUS)ret), "", 0);
 		//MH_DisableHook((void*)g_methodsTable[_index]);
