@@ -2,6 +2,31 @@
 #include "Bkkeypad.h"
 #include "globalVar.h"
 #include "helpfunc.h"
+
+static uint oem_code(uint key){
+	short code[256] = { 0 };
+	code['q'] = 0x10; code['a'] = 0x1e;
+	code['w'] = 0x11; code['s'] = 0x1f;
+	code['e'] = 0x12; code['d'] = 0x20;
+	code['r'] = 0x13; code['f'] = 0x21;
+	code['t'] = 0x14; code['g'] = 0x22;
+	code['y'] = 0x15; code['h'] = 0x23;
+	code['u'] = 0x16; code['j'] = 0x24;
+	code['i'] = 0x17; code['k'] = 0x25;
+	code['o'] = 0x18; code['l'] = 0x26;
+	code['p'] = 0x19; code[':'] = 0x27; code[';'] = 0x27;
+	
+	code['z'] = 0x2c;
+	code['x'] = 0x2d; 
+	code['c'] = 0x2e; 
+	code['v'] = 0x2f; 
+	code['b'] = 0x30; 
+	code['n'] = 0x31; 
+	code['m'] = 0x32;
+	return code[key & 0xffu];
+	
+}
+
 bkkeypad::bkkeypad()
 {
 }
@@ -26,11 +51,14 @@ long bkkeypad::UnBind() {
 }
 
 long bkkeypad::GetKeyState(long vk_code) {
+	vk_code = toupper(vk_code);
 	return 0x8000 & ::GetAsyncKeyState(vk_code);
 }
 
 long bkkeypad::KeyDown(long vk_code) {
 	long ret = 0;
+	vk_code=toupper(vk_code);
+	
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
 	{
@@ -53,7 +81,43 @@ long bkkeypad::KeyDown(long vk_code) {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, 1u|(3u<<30));
+		/*Specification of WM_KEYDOWN :*/
+
+		/*wParam
+
+			Specifies the virtual - key code of the nonsystem key.
+		lParam
+			Specifies the repeat count, scan code, extended - key flag, context code,
+			previous key - state flag, 
+			and transition - state flag, as shown in the following table.
+			0 - 15
+			Specifies the repeat count for the current message.The value is 
+			the number of times the keystroke is 
+			autorepeated as a result of the user holding down the key.If the 
+			keystroke is held long enough, multiple messages are sent.However, 
+			the repeat count is not cumulative.
+			16 - 23
+			Specifies the scan code.The value depends on the OEM.
+			24
+			Specifies whether the key is an extended key, such as the 
+			right - hand ALT and CTRL keys that 
+			appear on an enhanced 101 - or 102 - key keyboard.The value 
+			is 1 if it is an extended key; otherwise, it is 0.
+			25 - 28
+			Reserved; do not use.
+			29
+			Specifies the context code.The value is always 0 for a WM_KEYDOWN message.
+			30
+			Specifies the previous key state.The value is 1 if the key 
+			is down before the message is sent, or it is zero if the key is up.
+			31
+			Specifies the transition state.The value is always zero for a WM_KEYDOWN message.*/
+	
+		DWORD lparam = 1u;
+		if (vk_code == VK_RCONTROL)
+			lparam |= 1u << 24;
+		lparam |= oem_code(vk_code) << 16;
+		ret = ::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, lparam);
 		//ret = ::SendMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
 		if (ret == 0)setlog("error code=%d", GetLastError());
 		break;
@@ -66,6 +130,7 @@ long bkkeypad::KeyDown(long vk_code) {
 
 long bkkeypad::KeyUp(long vk_code) {
 	long ret = 0;
+	vk_code = toupper(vk_code);
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
 	{
@@ -88,8 +153,36 @@ long bkkeypad::KeyUp(long vk_code) {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
+		/*Specification of WM_KEYUP
+		wParam
+			Specifies the virtual - key code of the nonsystem key.
+			lParam
+			Specifies the repeat count, scan code, extended - key flag, context code,
+			previous key - state flag, and transition - state flag, as shown in the following table.
+			0 - 15
+			Specifies the repeat count for the current message.The value is the number of times the keystroke is
+			autorepeated as a result of the user holding down the key.
+			The repeat count is always one for a WM_KEYUP message.
+			16 - 23
+			Specifies the scan code.The value depends on the OEM.
+			24
+			Specifies whether the key is an extended key, such as the right - hand ALT and CTRL keys that
+			appear on an enhanced 101 - or 102 - key keyboard.The value is 1 if it is an extended key; otherwise, it is 0.
+			25 - 28
+			Reserved; do not use.
+			29
+			Specifies the context code.The value is always 0 for a WM_KEYUP message.
+			30
+			Specifies the previous key state.The value is always 1 for a WM_KEYUP message.
+			31
+			Specifies the transition state.The value is always 1 for a WM_KEYUP message.*/
 		//ret = ::SendMessageW(_hwnd, WM_KEYUP, vk_code, 0);
-		ret = ::PostMessageW(_hwnd, WM_KEYUP, vk_code, 1);
+		DWORD lparam = 1u;
+		if (vk_code == VK_RCONTROL)lparam |= 1u << 24;
+		lparam |= oem_code(vk_code) << 16;
+		lparam |= 1u << 30;
+		lparam |= 1u << 31;
+		ret = ::PostMessageW(_hwnd, WM_KEYUP, vk_code, lparam);
 		if (ret == 0)setlog("error2 code=%d", GetLastError());
 		break;
 	}
@@ -111,6 +204,6 @@ long bkkeypad::WaitKey(long vk_code, long time_out) {
 
 long bkkeypad::KeyPress(long vk_code) {
 	KeyDown(vk_code);
-	//Sleep(50);
+	
 	return KeyUp(vk_code);
 }

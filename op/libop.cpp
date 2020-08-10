@@ -647,6 +647,7 @@ long  libop::KeyPressChar(const wchar_t* vk_code, long* ret) {
 	auto nlen = wcslen(vk_code);
 	*ret = 0;
 	if (nlen > 0) {
+		//setlog(vk_code);
 		wstring s = vk_code;
 		wstring2lower(s);
 		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];

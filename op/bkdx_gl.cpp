@@ -134,8 +134,10 @@ long bkdo::UnBind() {
 		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 		if (pUnXHook) {
 			pUnXHook();
-			proc.modules().RemoveManualModule(dllname,
-				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);
+			BOOL fret=::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+			if (!fret)setlog("fret=%d", fret);
+			/*proc.modules().RemoveManualModule(dllname,
+				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);*/
 		}
 		else {
 			setlog(L"get unhook ptr false.");
@@ -237,6 +239,8 @@ long bkdo::UnBindNox() {
 			auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 			if (pUnXHook) {
 				pUnXHook();
+				BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+				if (!fret)setlog("fret=%d", fret);
 			}
 			else {
 				setlog(L"get unhook ptr false.");
@@ -260,14 +264,14 @@ bool bkdo::requestCapture(int x1, int y1,int w, int h, Image& img) {
 	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) {//NORMAL
 		//setlog("cap1");
 		for (int i = 0; i < h; i++) {
-			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (i + y1) * 4 * w + x1 * 4, 4 * w);
+			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (i + y1) * 4 * _width + x1 * 4, 4 * w);
 		}
 	}
 	else {
 		//setlog("cap2");
 		
 		for (int i = 0; i < h; i++) {
-			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i-y1) * 4 * w+x1*4, 4 * w);
+			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
 		}
 	}
 
