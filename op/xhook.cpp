@@ -18,7 +18,7 @@
 #include "helpfunc.h"
 #include "query_api.h"
 #include <wingdi.h>
-
+#define DEBUG_HOOK 0
 HWND xhook::render_hwnd = NULL;
 int xhook::render_type = 0;
 wchar_t xhook::shared_res_name[256];
@@ -271,7 +271,11 @@ void dx10_capture(IDXGISwapChain* pswapchain) {
 		mutex.unlock();
 	}
 	else {
+
+#if DEBUG_HOOK
 		setlog("mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)");
+#endif // DEBUG_HOOK
+
 	}
 	//release
 	SAFE_RELEASE(textDst);
@@ -382,7 +386,11 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 		mutex.unlock();
 	}
 	else {
+		is_capture = 0;
+#if DEBUG_HOOK
 		setlog("!mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
+#endif // DEBUG_HOOK
+
 	}
 	context->Unmap(textDst, 0);
 	SAFE_RELEASE(backbufferptr);
@@ -415,7 +423,10 @@ long gl_capture() {
 	auto pglReadPixels = (glReadPixels_t)query_api("opengl32.dll", "glReadPixels");
 	if (!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels) {
 		is_capture = 0;
+#if DEBUG_HOOK
 		setlog("error.!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels");
+#endif // DEBUG_HOOK
+
 		return 0;
 	}
 	RECT rc;
@@ -435,7 +446,10 @@ long gl_capture() {
 	}
 	else {
 		is_capture = 0;
+#if DEBUG_HOOK
 		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
+#endif // DEBUG_HOOK
+
 	}
 	//setlog("gl screen ok");
 	return 0;
@@ -472,8 +486,11 @@ long egl_capture() {
 	auto pglGetIntegerv = (glGetIntegerv_t)query_api("libglesv2.dll", "glGetIntegerv");
 	auto pglReadPixels = (glReadPixels_t)query_api("libglesv2.dll", "glReadPixels");
 	if (!pglPixelStorei || !pglReadBuffer || !pglGetIntegerv || !pglReadPixels) {
-		is_capture = 0;
+		//is_capture = 0;
+#if DEBUG_HOOK
 		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
+#endif // DEBUG_HOOK
+
 		return 0;
 	}
 	RECT rc;
@@ -493,7 +510,10 @@ long egl_capture() {
 	}
 	else {
 		is_capture = 0;
+#if DEBUG_HOOK
 		setlog(L"egl !mem.open(xhook::%s)&&mutex.open(xhook::%s)", xhook::shared_res_name, xhook::mutex_name);
+#endif // DEBUG_HOOK
+
 	}
 	//setlog("gl screen ok");
 	return 0;
@@ -509,6 +529,10 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface) {
 bool is_hooked = false;
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int render_type_) {
+	if (is_hooked) {
+		is_capture = 1;
+		return 2;
+	}
 	if (xhook::setup(hwnd_, render_type_) != 1)
 		return 0;
 	//setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
@@ -519,6 +543,9 @@ long SetXHook(HWND hwnd_, int render_type_) {
 long UnXHook() {
 	if (!is_hooked)
 		return 0;
-	return xhook::release();
+	is_hooked = false;
+	int ret = xhook::release();
+	::FreeLibraryAndExitThread(gInstance,ret);
+	return ret;
 }
 
