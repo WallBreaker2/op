@@ -92,6 +92,7 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 	}
 	proc.Detach();
 	if (bind_ret) {
+		//setlog("result code=%d", bind_ret);
 		_bind_state = 1;
 
 	}
@@ -135,7 +136,7 @@ long bkdo::UnBind() {
 		if (pUnXHook) {
 			pUnXHook();
 			BOOL fret=::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
-			if (!fret)setlog("fret=%d", fret);
+			//if (!fret)setlog("fret=%d", fret);
 			/*proc.modules().RemoveManualModule(dllname,
 				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);*/
 		}
@@ -212,6 +213,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	}
 	proc.Detach();
 	if (bind_ret) {
+		//setlog("result code=%d", bind_ret);
 		_bind_state = 1;
 
 	}
@@ -239,8 +241,9 @@ long bkdo::UnBindNox() {
 			auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 			if (pUnXHook) {
 				pUnXHook();
-				BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
-				if (!fret)setlog("fret=%d", fret);
+				
+				/*BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+				if (!fret)setlog("fret=%d", fret);*/
 			}
 			else {
 				setlog(L"get unhook ptr false.");
