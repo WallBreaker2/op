@@ -3,15 +3,15 @@
 #include "globalVar.h"
 #include "helpfunc.h"
 #include "Bkbase.h"
-
-bkbase::bkbase() :_hwnd(0), _is_bind(0), _pbkdisplay(nullptr)
+#include "winkeypad.h"
+bkbase::bkbase() :_hwnd(0), _is_bind(0), _pbkdisplay(nullptr),_keypad(new winkeypad)
 {
 	_display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
 
 bkbase::~bkbase()
 {
-	_hwnd = NULL;
+	/*_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
 	_bkmouse.UnBind();
@@ -19,7 +19,8 @@ bkbase::~bkbase()
 		_pbkdisplay->UnBind();
 		delete _pbkdisplay;
 		_pbkdisplay = nullptr;
-	}
+	}*/
+	UnBindWindow();
 }
 
 long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
@@ -84,10 +85,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		set_display_method(L"screen");
 		_mode = mode;
 		_display = display;
-		if (!_bkmouse.Bind(_hwnd, mouse))
-			return 0;
-		if (!_keypad.Bind(_hwnd, keypad))
-			return 0;
+		
 
 		if (display == RDT_NORMAL || GET_RENDER_TYPE(display) == RENDER_TYPE::GDI) {
 			_pbkdisplay = new bkgdi();
@@ -107,6 +105,13 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 				return 0;
 			}
 		}
+		
+		if (!_bkmouse.Bind(_hwnd, mouse))
+			return 0;
+	/*	if (mouse == INPUT_TYPE::IN_NORMAL || mouse == INPUT_TYPE::IN_WINDOWS)*/
+			_keypad = new winkeypad;
+		if (!_keypad->Bind(_hwnd, keypad))
+			return 0;
 		//等待线程创建好
 		Sleep(200);
 
@@ -118,6 +123,8 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 }
 
 long bkbase::UnBindWindow() {
+	//to do
+	//clear ....
 	_hwnd = NULL;
 	_is_bind = 0;
 	_mode = 0;
@@ -125,10 +132,11 @@ long bkbase::UnBindWindow() {
 	_bkmouse.UnBind();
 	if (_pbkdisplay) {
 		_pbkdisplay->UnBind();
-		delete _pbkdisplay;
-		_pbkdisplay = nullptr;
+		SAFE_DELETE(_pbkdisplay);
 	}
-
+	
+	SAFE_DELETE(_keypad);
+	
 	return 1;
 }
 
@@ -241,11 +249,11 @@ long bkbase::get_width() {
 long bkbase::RectConvert(long& x1, long& y1, long& x2, long& y2) {
 
 
-	if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
+	/*if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
 
-	}
+	}*/
 
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);

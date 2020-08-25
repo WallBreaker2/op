@@ -12,19 +12,19 @@
 
 #include "globalVar.h"
 
-bkdo::bkdo()
+bkdo::bkdo():DisplayBase()
 {
-	_render_type = 0;
 }
 
 
 bkdo::~bkdo()
 {
-
+	//do clear
+	UnBindEx();
 }
 
 
-long bkdo::Bind(HWND hwnd, long render_type) {
+long bkdo::BindEx(HWND hwnd, long render_type) {
 	_hwnd = hwnd;
 	if (render_type == RDT_GL_NOX)
 		return BindNox(hwnd, render_type);
@@ -34,7 +34,7 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
-	bind_init();
+	//bind_init();
 	if (render_type == RDT_GL_NOX) {
 	}
 	DWORD id;
@@ -91,28 +91,17 @@ long bkdo::Bind(HWND hwnd, long render_type) {
 		setlog(L"attach false.");
 	}
 	proc.Detach();
-	if (bind_ret) {
-		//setlog("result code=%d", bind_ret);
-		_bind_state = 1;
-
-	}
-	else {
-		bind_release();
-		_bind_state = 0;
-	}
 
 	return bind_ret;
 }
-long bkdo::UnBind(HWND hwnd) {
-	_hwnd = hwnd;
-	_bind_state = 1;
-	return UnBind();
-}
+//long bkdo::UnBind(HWND hwnd) {
+//	_hwnd = hwnd;
+//	_bind_state = 1;
+//	return UnBind();
+//}
 
-long bkdo::UnBind() {
-	if (!_bind_state)
-		return 0;
-
+long bkdo::UnBindEx() {
+    //setlog("bkdo::UnBindEx()");
 	if (_render_type == RDT_GL_NOX)
 		return UnBindNox();
 	DWORD id;
@@ -135,7 +124,7 @@ long bkdo::UnBind() {
 		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 		if (pUnXHook) {
 			pUnXHook();
-			BOOL fret=::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+			BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
 			//if (!fret)setlog("fret=%d", fret);
 			/*proc.modules().RemoveManualModule(dllname,
 				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);*/
@@ -149,7 +138,7 @@ long bkdo::UnBind() {
 	}
 
 	proc.Detach();
-	bind_release();
+	//bind_release();
 	return 1;
 }
 
@@ -161,7 +150,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
-	bind_init();
+	//bind_init();
 
 
 
@@ -212,56 +201,47 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 		setlog(L"attach false.");
 	}
 	proc.Detach();
-	if (bind_ret) {
-		//setlog("result code=%d", bind_ret);
-		_bind_state = 1;
 
-	}
-	else {
-		bind_release();
-		_bind_state = 0;
-	}
 
 	return bind_ret;
 }
 
 long bkdo::UnBindNox() {
-	if (_bind_state) {
-		//attach 进程
-		blackbone::Process proc;
-		NTSTATUS hr;
 
-		hr = proc.Attach(L"NoxVMHandle.exe");
-		wstring dllname = L"op_x64.dll";
+	//attach 进程
+	blackbone::Process proc;
+	NTSTATUS hr;
+
+	hr = proc.Attach(L"NoxVMHandle.exe");
+	wstring dllname = L"op_x64.dll";
 
 
-		if (NT_SUCCESS(hr)) {
+	if (NT_SUCCESS(hr)) {
 
-			using my_func_t = long(__stdcall*)(void);
-			auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
-			if (pUnXHook) {
-				pUnXHook();
-				
-				/*BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
-				if (!fret)setlog("fret=%d", fret);*/
-			}
-			else {
-				setlog(L"get unhook ptr false.");
-			}
+		using my_func_t = long(__stdcall*)(void);
+		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
+		if (pUnXHook) {
+			//pUnXHook();
+
+			/*BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+			if (!fret)setlog("fret=%d", fret);*/
 		}
 		else {
-			setlog("blackbone::MakeRemoteFunction false,errcode:%Xhwnd=%d", hr, _hwnd);
+			setlog(L"get unhook ptr false.");
 		}
-
-		proc.Detach();
 	}
-	bind_release();
+	else {
+		setlog("blackbone::MakeRemoteFunction false,errcode:%Xhwnd=%d", hr, _hwnd);
+	}
+
+	proc.Detach();
+
 	return 1;
 }
 
 
 
-bool bkdo::requestCapture(int x1, int y1,int w, int h, Image& img) {
+bool bkdo::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	img.create(w, h);
 	_pmutex->lock();
 	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) {//NORMAL
@@ -272,7 +252,7 @@ bool bkdo::requestCapture(int x1, int y1,int w, int h, Image& img) {
 	}
 	else {
 		//setlog("cap2");
-		
+
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
 		}
