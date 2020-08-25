@@ -499,7 +499,7 @@ long  libop::BindWindow(long hwnd, const wchar_t* display, const wchar_t* mouse,
 		_bkproc->UnBindWindow();
 	*ret = _bkproc->BindWindow(hwnd, display, mouse, keypad, mode);
 	if (*ret == 1) {
-		_image_proc->set_offset(_bkproc->_pbkdisplay->_client_x, _bkproc->_pbkdisplay->_client_y);
+		//_image_proc->set_offset(_bkproc->_pbkdisplay->_client_x, _bkproc->_pbkdisplay->_client_y);
 	}
 	return S_OK;
 }
@@ -591,12 +591,12 @@ long  libop::WheelUp(long* ret) {
 }
 
 long  libop::GetKeyState(long vk_code, long* ret) {
-	*ret = _bkproc->_keypad.GetKeyState(vk_code);
+	*ret = _bkproc->_keypad->GetKeyState(vk_code);
 	return S_OK;
 }
 
 long  libop::KeyDown(long vk_code, long* ret) {
-	*ret = _bkproc->_keypad.KeyDown(vk_code);
+	*ret = _bkproc->_keypad->KeyDown(vk_code);
 	return S_OK;
 }
 
@@ -607,14 +607,14 @@ long  libop::KeyDownChar(const wchar_t* vk_code, long* ret) {
 		wstring s = vk_code;
 		wstring2lower(s);
 		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad.KeyDown(vk);
+		*ret = _bkproc->_keypad->KeyDown(vk);
 	}
 	
 	return S_OK;
 }
 
 long  libop::KeyUp(long vk_code, long* ret) {
-	*ret = _bkproc->_keypad.KeyUp(vk_code);
+	*ret = _bkproc->_keypad->KeyUp(vk_code);
 	return S_OK;
 }
 
@@ -625,20 +625,20 @@ long  libop::KeyUpChar(const wchar_t* vk_code, long* ret) {
 		wstring s = vk_code;
 		wstring2lower(s);
 		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad.KeyUp(vk);
+		*ret = _bkproc->_keypad->KeyUp(vk);
 	}
 	return S_OK;
 }
 
 long  libop::WaitKey(long vk_code, long time_out, long* ret) {
 	if (time_out < 0)time_out = 0;
-	*ret = _bkproc->_keypad.WaitKey(vk_code, time_out);
+	*ret = _bkproc->_keypad->WaitKey(vk_code, time_out);
 	return S_OK;
 }
 
 long  libop::KeyPress(long vk_code, long* ret) {
 	
-		*ret = _bkproc->_keypad.KeyPress(vk_code);
+		*ret = _bkproc->_keypad->KeyPress(vk_code);
 	
 	return S_OK;
 }
@@ -651,7 +651,7 @@ long  libop::KeyPressChar(const wchar_t* vk_code, long* ret) {
 		wstring s = vk_code;
 		wstring2lower(s);
 		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad.KeyPress(vk);
+		*ret = _bkproc->_keypad->KeyPress(vk);
 	}
 	return S_OK;
 }

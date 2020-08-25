@@ -8,24 +8,19 @@
 #include "./include/promutex.h"
 #include "./include/sharedmem.h"
 struct Image;
-class bkdisplay
+class DisplayBase
 {
 public:
-	bkdisplay();
-	~bkdisplay();
+	DisplayBase();
+	 ~DisplayBase();
 	//bind window
-	virtual long Bind(HWND hwnd, long flag) = 0;
+	long Bind(HWND hwnd, long flag);
 	//unbind window
-	virtual long UnBind() = 0;
+	long UnBind();
 	//unbind window
-	virtual long UnBind(HWND hwnd) = 0;
+	//virtual long UnBind(HWND hwnd) = 0;
 	virtual bool requestCapture(int x1, int y1, int w, int h, Image& img) = 0;
-	//因为各种截图方式的差异，是否成功判断较复杂，故在此实现资源的申请和释放，子类调用
-	//资源申请
-	long bind_init();
-	//资源释放
-	long bind_release();
-	//virtual byte* get_data();
+	
 
 	promutex* get_mutex() {
 		return _pmutex;
@@ -38,7 +33,20 @@ public:
 	long get_width() {
 		return _width;
 	}
-public:
+private:
+	//因为各种截图方式的差异，是否成功判断较复杂，故在此实现资源的申请和释放，子类调用
+	//资源申请
+	long bind_init();
+	//资源释放
+	long bind_release();
+	//virtual byte* get_data();
+		//绑定状态
+	long _bind_state;
+protected:
+	virtual long BindEx(HWND hwnd, long flag) { return 0; };
+	virtual long UnBindEx() {
+		return 0;
+	};
 	//窗口句柄
 	HWND _hwnd;
 	//共享内存
@@ -49,8 +57,7 @@ public:
 	wchar_t _shared_res_name[256];
 
 	wchar_t _mutex_name[256];
-	//绑定状态
-	long _bind_state;
+
 	//
 	int _render_type;
 	//宽度

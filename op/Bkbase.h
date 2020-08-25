@@ -51,9 +51,9 @@ private:
 	std::pair<wstring,wstring> _display_method;
 	Image _pic;
 public:
-	bkdisplay* _pbkdisplay;
+	DisplayBase* _pbkdisplay;
 	bkmouse _bkmouse;
-	bkkeypad _keypad;
+	bkkeypad* _keypad;
 	wstring _curr_path;
 	
 };

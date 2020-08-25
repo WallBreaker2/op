@@ -28,7 +28,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -72,7 +72,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>.\3rd_party\include\3rd_party;$(DXSDK_DIR)Include;$(IncludePath)</IncludePath>
     <LibraryPath>.\3rd_party\lib\x86;$(LibraryPath)</LibraryPath>
-    <TargetName>op_x86d</TargetName>
+    <TargetName>op_x86</TargetName>
     <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
     <VcpkgEnabled>true</VcpkgEnabled>
     <OutDir>$(SolutionDir)bin\x86\</OutDir>
@@ -258,7 +258,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
-    <ClCompile Include="bkdisplay.cpp" />
+    <ClCompile Include="DisplayBase.cpp" />
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
@@ -284,8 +284,10 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClCompile Include="op_i.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="query_api.cpp" />
+    <ClCompile Include="winkeypad.cpp" />
     <ClCompile Include="xhook.cpp" />
     <ClCompile Include="ImageLoc.cpp" />
     <ClCompile Include="ImageProc.cpp" />
@@ -306,7 +308,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="3rd_party\include\kiero.h" />
     <ClInclude Include="AStar.hpp" />
     <ClInclude Include="Bkbase.h" />
-    <ClInclude Include="bkdisplay.h" />
+    <ClInclude Include="DisplayBase.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
@@ -322,6 +324,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="op_i.h" />
     <ClInclude Include="query_api.h" />
     <ClInclude Include="optype.h" />
+    <ClInclude Include="winkeypad.h" />
     <ClInclude Include="xhook.h" />
     <ClInclude Include="ImageLoc.h" />
     <ClInclude Include="ImageProc.h" />

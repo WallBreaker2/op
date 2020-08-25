@@ -17,12 +17,11 @@ bkgdi::~bkgdi()
 	//SAFE_DELETE_ARRAY(_image_data);
 }
 
-long bkgdi::Bind(HWND hwnd, long render_type) {
+long bkgdi::BindEx(HWND hwnd, long render_type) {
 	if (!::IsWindow(hwnd))
 		return 0;
 	_hwnd = hwnd; _render_type = render_type;
-	bind_init();
-	//
+
 	if (render_type == RDT_NORMAL) {
 		RECT rc, rc2;
 		::GetWindowRect(_hwnd, &rc);
@@ -72,12 +71,13 @@ long bkgdi::Bind(HWND hwnd, long render_type) {
 	return 1;
 }
 
-long bkgdi::UnBind(HWND hwnd) {
-	_hwnd = hwnd;
-	return UnBind();
-}
+//long bkgdi::UnBind(HWND hwnd) {
+//	_hwnd = hwnd;
+//	return UnBind();
+//}
 
-long bkgdi::UnBind() {
+long bkgdi::UnBindEx() {
+	//setlog("bkgdi::UnBindEx()");
 	_hbmpscreen = (HBITMAP)SelectObject(_hmdc, _hbmp_old);
 	//delete[dwLen_2]hDib;
 	if (_hdc)DeleteDC(_hdc); _hdc = NULL;
@@ -85,7 +85,6 @@ long bkgdi::UnBind() {
 
 	if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 	//if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
-	bkdisplay::bind_release();
 	return 1;
 }
 

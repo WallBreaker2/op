@@ -3,18 +3,18 @@
 #define __BKDISPLAY_H_
 #include <thread>
 #include "optype.h"
-#include "bkdisplay.h"
+#include "DisplayBase.h"
 struct Image;
-class bkgdi:public bkdisplay
+class bkgdi:public DisplayBase
 {
 public:
 	bkgdi();
 	~bkgdi();
 	//°ó¶¨
-	long Bind(HWND _hwnd, long render_type) override;
-	long UnBind(HWND hwnd);
+	long BindEx(HWND _hwnd, long render_type) override;
+	//long UnBind(HWND hwnd);
 	//½â°ó
-	long UnBind() override;
+	long UnBindEx() override;
 	
 	
 	//long updata_screen();
