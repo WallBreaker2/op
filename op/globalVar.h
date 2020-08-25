@@ -3,8 +3,11 @@
 #define __GLOBALVAR_H_
 #include "optype.h"
 #define SAFE_CLOSE(h)if(h) CloseHandle(h);h=NULL;
-
-#define SAFE_DELETE(ptr) if(ptr)delete ptr;ptr=nullptr
+template<class Type>
+void SAFE_DELETE(Type* &ptr) {
+	delete ptr; 
+	ptr = nullptr;
+}
 
 #define SAFE_DELETE_ARRAY(ptr) if(ptr)delete[] ptr;ptr=nullptr
 

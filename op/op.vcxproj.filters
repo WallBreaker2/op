@@ -83,6 +83,12 @@
     <Filter Include="memory">
       <UniqueIdentifier>{718db8c8-b455-4ffa-95b4-99dcd3935625}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Background\Keypad\winkeypad">
+      <UniqueIdentifier>{c7423282-1f6e-43f8-bf2e-435637f2b233}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Background\Display\Directx">
+      <UniqueIdentifier>{fb882fa3-8feb-4580-983a-05d65a8ae592}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -127,12 +133,6 @@
     <ClCompile Include="ImageProc.cpp">
       <Filter>ImageProc</Filter>
     </ClCompile>
-    <ClCompile Include="bkdisplay.cpp">
-      <Filter>Background\Display</Filter>
-    </ClCompile>
-    <ClCompile Include="xhook.cpp">
-      <Filter>Background\Display</Filter>
-    </ClCompile>
     <ClCompile Include="query_api.cpp">
       <Filter>Background\Hook</Filter>
     </ClCompile>
@@ -156,6 +156,15 @@
     </ClCompile>
     <ClCompile Include="op_i.c">
       <Filter>生成的文件</Filter>
+    </ClCompile>
+    <ClCompile Include="xhook.cpp">
+      <Filter>Background\Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="winkeypad.cpp">
+      <Filter>Background\Keypad\winkeypad</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayBase.cpp">
+      <Filter>Background\Display</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -207,12 +216,6 @@
     <ClInclude Include="ImageProc.h">
       <Filter>ImageProc</Filter>
     </ClInclude>
-    <ClInclude Include="bkdisplay.h">
-      <Filter>Background\Display</Filter>
-    </ClInclude>
-    <ClInclude Include="xhook.h">
-      <Filter>Background\Display</Filter>
-    </ClInclude>
     <ClInclude Include="include\bitfunc.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -251,6 +254,15 @@
     </ClInclude>
     <ClInclude Include="op_i.h">
       <Filter>生成的文件</Filter>
+    </ClInclude>
+    <ClInclude Include="xhook.h">
+      <Filter>Background\Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="winkeypad.h">
+      <Filter>Background\Keypad\winkeypad</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplayBase.h">
+      <Filter>Background\Display</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
