@@ -511,82 +511,82 @@ long  libop::UnBindWindow(long* ret) {
 
 long  libop::GetCursorPos(long* x, long* y, long* ret) {
 	
-	*ret = _bkproc->_bkmouse.GetCursorPos(*x, *y);
+	*ret = _bkproc->_bkmouse->GetCursorPos(*x, *y);
 	return S_OK;
 }
 
 long  libop::MoveR(long x, long y, long* ret) {
-	*ret = _bkproc->_bkmouse.MoveR(x, y);
+	*ret = _bkproc->_bkmouse->MoveR(x, y);
 	return S_OK;
 }
 //把鼠标移动到目的点(x,y)
 long  libop::MoveTo(long x, long y, long* ret) {
-	*ret = _bkproc->_bkmouse.MoveTo(x, y);
+	*ret = _bkproc->_bkmouse->MoveTo(x, y);
 	return S_OK;
 }
 
 long  libop::MoveToEx(long x, long y, long w, long h, long* ret) {
-	*ret = _bkproc->_bkmouse.MoveToEx(x, y, w, h);
+	*ret = _bkproc->_bkmouse->MoveToEx(x, y, w, h);
 	return S_OK;
 }
 
 long  libop::LeftClick(long* ret) {
-	*ret = _bkproc->_bkmouse.LeftClick();
+	*ret = _bkproc->_bkmouse->LeftClick();
 	return S_OK;
 }
 
 long  libop::LeftDoubleClick(long* ret) {
-	*ret = _bkproc->_bkmouse.LeftDoubleClick();
+	*ret = _bkproc->_bkmouse->LeftDoubleClick();
 	return S_OK;
 }
 
 long  libop::LeftDown(long* ret) {
-	*ret = _bkproc->_bkmouse.LeftDown();
+	*ret = _bkproc->_bkmouse->LeftDown();
 	return S_OK;
 }
 
 long  libop::LeftUp(long* ret) {
-	*ret = _bkproc->_bkmouse.LeftUp();
+	*ret = _bkproc->_bkmouse->LeftUp();
 	return S_OK;
 }
 
 long  libop::MiddleClick(long* ret) {
-	*ret = _bkproc->_bkmouse.MiddleClick();
+	*ret = _bkproc->_bkmouse->MiddleClick();
 	return S_OK;
 }
 
 long  libop::MiddleDown(long* ret) {
-	*ret = _bkproc->_bkmouse.MiddleDown();
+	*ret = _bkproc->_bkmouse->MiddleDown();
 	return S_OK;
 }
 
 long  libop::MiddleUp(long* ret) {
-	*ret = _bkproc->_bkmouse.MiddleUp();
+	*ret = _bkproc->_bkmouse->MiddleUp();
 	return S_OK;
 }
 
 long  libop::RightClick(long* ret) {
-	*ret = _bkproc->_bkmouse.RightClick();
+	*ret = _bkproc->_bkmouse->RightClick();
 	return S_OK;
 }
 
 long  libop::RightDown(long* ret) {
-	*ret = _bkproc->_bkmouse.RightDown();
+	*ret = _bkproc->_bkmouse->RightDown();
 	return S_OK;
 }
 
 long  libop::RightUp(long* ret) {
-	*ret = _bkproc->_bkmouse.RightUp();
+	*ret = _bkproc->_bkmouse->RightUp();
 	return S_OK;
 }
 
 long  libop::WheelDown(long* ret) {
-	*ret = _bkproc->_bkmouse.WheelDown();
+	*ret = _bkproc->_bkmouse->WheelDown();
 	return S_OK;
 }
 
 long  libop::WheelUp(long* ret) {
-	*ret = _bkproc->_bkmouse.WheelUp();
+	*ret = _bkproc->_bkmouse->WheelUp();
 	return S_OK;
 }
 
