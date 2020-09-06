@@ -12,7 +12,7 @@
 
 #include "globalVar.h"
 
-bkdo::bkdo():DisplayBase()
+bkdo::bkdo():IDisplay()
 {
 }
 

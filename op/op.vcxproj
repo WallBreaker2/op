@@ -258,7 +258,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Bkbase.cpp" />
-    <ClCompile Include="DisplayBase.cpp" />
+    <ClCompile Include="IDisplay.cpp" />
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
@@ -308,7 +308,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="3rd_party\include\kiero.h" />
     <ClInclude Include="AStar.hpp" />
     <ClInclude Include="Bkbase.h" />
-    <ClInclude Include="DisplayBase.h" />
+    <ClInclude Include="IDisplay.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />

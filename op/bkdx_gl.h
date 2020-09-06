@@ -3,9 +3,9 @@
 #define __DXBACKGROUND_H_
 
 
-#include "DisplayBase.h"
+#include "IDisplay.h"
 struct Image;
-class bkdo:public DisplayBase
+class bkdo:public IDisplay
 {
 public:
 	bkdo();

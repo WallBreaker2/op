@@ -3,9 +3,9 @@
 #define __BKDISPLAY_H_
 #include <thread>
 #include "optype.h"
-#include "DisplayBase.h"
+#include "IDisplay.h"
 struct Image;
-class bkgdi:public DisplayBase
+class bkgdi:public IDisplay
 {
 public:
 	bkgdi();

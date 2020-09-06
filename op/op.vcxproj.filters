@@ -163,7 +163,7 @@
     <ClCompile Include="winkeypad.cpp">
       <Filter>Background\Keypad\winkeypad</Filter>
     </ClCompile>
-    <ClCompile Include="DisplayBase.cpp">
+    <ClCompile Include="IDisplay.cpp">
       <Filter>Background\Display</Filter>
     </ClCompile>
   </ItemGroup>
@@ -261,7 +261,7 @@
     <ClInclude Include="winkeypad.h">
       <Filter>Background\Keypad\winkeypad</Filter>
     </ClInclude>
-    <ClInclude Include="DisplayBase.h">
+    <ClInclude Include="IDisplay.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
   </ItemGroup>
