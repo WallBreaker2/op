@@ -59,8 +59,8 @@ constexpr int IBF_R8G8B8 = 2;
 //const size_t MAX_IMAGE_WIDTH = 1<<11;
 //const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 
-#define SHARED_RES_NAME_FORMAT L"op_mutex_%d"
-#define MUTEX_NAME_FORMAT L"op_shared_mem_%d"
+constexpr auto SHARED_RES_NAME_FORMAT = L"op_mutex_%d";
+constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
 
 #ifndef _M_X64
@@ -73,7 +73,7 @@ constexpr int IBF_R8G8B8 = 2;
 
 #define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0,3,7,0)
+#define OP_VERSION MAKE_OP_VERSION(0,3,8,0)
 //模块句柄
 extern HINSTANCE gInstance;
 //是否显示错误信息

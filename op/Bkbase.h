@@ -2,11 +2,14 @@
 #ifndef __BACKBASE_H_
 #define __BACKBASE_H_
 #include <string>
-#include "bkgdi.h"
+#include "include/Image.hpp"
+
+#include "IDisplay.h"
+
 #include "Bkmouse.h"
 #include "Bkkeypad.h"
-#include "bkdx_gl.h"
-#include "include/Image.hpp"
+
+
 using std::wstring;
 
 /*
@@ -50,9 +53,13 @@ private:
 	int _mode;
 	std::pair<wstring,wstring> _display_method;
 	Image _pic;
+
+	IDisplay* createDisplay(int mode);
+	bkmouse* createMouse(int mode);
+	bkkeypad* createKeypad(int mode);
 public:
-	DisplayBase* _pbkdisplay;
-	bkmouse _bkmouse;
+	IDisplay* _pbkdisplay;
+	bkmouse* _bkmouse;
 	bkkeypad* _keypad;
 	wstring _curr_path;
 	

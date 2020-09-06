@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "DisplayBase.h"
+#include "IDisplay.h"
 #include "globalVar.h"
 #include "helpfunc.h"
-DisplayBase::DisplayBase()
+IDisplay::IDisplay()
 {
 	_hwnd = NULL;
 	_shmem = nullptr;
@@ -14,13 +14,13 @@ DisplayBase::DisplayBase()
 }
 
 
-DisplayBase::~DisplayBase()
+IDisplay::~IDisplay()
 {
 	bind_release();
 	_bind_state = 0;
 }
 
-long DisplayBase::Bind(HWND hwnd, long flag) {
+long IDisplay::Bind(HWND hwnd, long flag) {
 	//step 1 check window exists
 	if (!::IsWindow(hwnd)) {
 		return 0;
@@ -36,7 +36,7 @@ long DisplayBase::Bind(HWND hwnd, long flag) {
 
 }
 
-long DisplayBase::UnBind() {
+long IDisplay::UnBind() {
 	//setlog("UnBind(");
 	if (_bind_state) {
 		UnBindEx();
@@ -46,7 +46,7 @@ long DisplayBase::UnBind() {
 	return 1;
 }
 
-long DisplayBase::bind_init() {
+long IDisplay::bind_init() {
 	int res_size = 0;
 	RECT rc;
 	assert(::IsWindow(_hwnd));
@@ -69,7 +69,7 @@ long DisplayBase::bind_init() {
 	return 0;
 }
 
-long DisplayBase::bind_release() {
+long IDisplay::bind_release() {
 	SAFE_DELETE(_shmem);
 	SAFE_DELETE(_pmutex);
 

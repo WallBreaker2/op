@@ -63,12 +63,10 @@ long winkeypad::KeyDown(long vk_code) {
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
 	{
-		POINT pt;
-
-
+	
 		INPUT Input = { 0 };
 		Input.type = INPUT_KEYBOARD;
-		Input.ki.wVk = vk_code;
+		Input.ki.wVk = (WORD)vk_code;
 		Input.ki.dwFlags = 0;
 
 		/*The function returns the number of events that it successfully inserted into the keyboard or mouse input stream.
@@ -135,9 +133,7 @@ long winkeypad::KeyUp(long vk_code) {
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
 	{
-		POINT pt;
-
-
+		
 		INPUT Input = { 0 };
 		Input.type = INPUT_KEYBOARD;
 		Input.ki.wVk = vk_code;

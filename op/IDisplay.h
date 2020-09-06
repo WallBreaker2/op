@@ -8,11 +8,11 @@
 #include "./include/promutex.h"
 #include "./include/sharedmem.h"
 struct Image;
-class DisplayBase
+class IDisplay
 {
 public:
-	DisplayBase();
-	 ~DisplayBase();
+	IDisplay();
+	 ~IDisplay();
 	//bind window
 	long Bind(HWND hwnd, long flag);
 	//unbind window
