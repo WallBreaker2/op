@@ -18,6 +18,7 @@
 #include "helpfunc.h"
 #include "query_api.h"
 #include <wingdi.h>
+#include "frameInfo.h"
 #define DEBUG_HOOK 0
 HWND xhook::render_hwnd = NULL;
 int xhook::render_type = 0;
@@ -128,6 +129,17 @@ static DXGI_FORMAT GetDxgiFormat(DXGI_FORMAT format) {
 	return format;
 }
 
+static void formatFrameInfo(void* dst,HWND hwnd, int w, int h) {
+	static FrameInfo frameInfo = {};
+	frameInfo.hwnd = (unsigned __int64)hwnd;
+	frameInfo.frameId++;
+	frameInfo.time = ::GetTickCount();
+	frameInfo.width = w;
+	frameInfo.height = h;
+	frameInfo.fmtChk();
+	memcpy(dst, &frameInfo, sizeof(frameInfo));
+}
+
 
 //------------------------dx9-------------------------------
 //screen capture
@@ -167,7 +179,9 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
 		mutex.lock();
-		memcpy(mem.data<byte>(), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
+		uchar* pshare = mem.data<byte>();
+		formatFrameInfo(pshare,xhook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
+		memcpy(pshare + sizeof(FrameInfo), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
 		mutex.unlock();
 	}
 	pTex->UnlockRect(0);
@@ -267,7 +281,9 @@ void dx10_capture(IDXGISwapChain* pswapchain) {
 
 		mutex.lock();
 		//memcpy(mem.data<char>(), mapText.pData, textDesc.Width*textDesc.Height * 4);
-		CopyImageData(mem.data<char>(), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
+		uchar* pshare = mem.data<byte>();
+		formatFrameInfo(pshare,xhook::render_hwnd, textDesc.Width, textDesc.Height);
+		CopyImageData((char*)pshare+ sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
 		mutex.unlock();
 	}
 	else {
@@ -381,8 +397,10 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
 		mutex.lock();
-		//memcpy(mem.data<char>(), ptr + offset, bits);
-		CopyImageData(mem.data<char>(), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, fmt);
+		uchar* pshare = mem.data<byte>();
+		formatFrameInfo(pshare,xhook::render_hwnd, textDesc.Width, textDesc.Height), sizeof(FrameInfo);
+		//CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
+		CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, fmt);
 		mutex.unlock();
 	}
 	else {
@@ -441,7 +459,9 @@ long gl_capture() {
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
 		mutex.lock();
-		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		uchar* pshare = mem.data<byte>();
+		formatFrameInfo(pshare,xhook::render_hwnd, width, height);
+		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare+ sizeof(FrameInfo));
 		mutex.unlock();
 	}
 	else {
@@ -505,7 +525,10 @@ long egl_capture() {
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
 		mutex.lock();
-		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
+		uchar* pshare = mem.data<byte>();
+		formatFrameInfo(pshare,xhook::render_hwnd, width, height);
+		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
+		//pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
 		mutex.unlock();
 	}
 	else {
