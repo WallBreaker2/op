@@ -7,6 +7,7 @@
 #include <exception>
 #include "./include/promutex.h"
 #include "./include/sharedmem.h"
+#include "frameInfo.h"
 struct Image;
 class IDisplay
 {
@@ -33,6 +34,7 @@ public:
 	long get_width() {
 		return _width;
 	}
+	void getFrameInfo(FrameInfo& info);
 private:
 	//因为各种截图方式的差异，是否成功判断较复杂，故在此实现资源的申请和释放，子类调用
 	//资源申请
@@ -43,10 +45,8 @@ private:
 		//绑定状态
 	long _bind_state;
 protected:
-	virtual long BindEx(HWND hwnd, long flag) { return 0; };
-	virtual long UnBindEx() {
-		return 0;
-	};
+	virtual long BindEx(HWND hwnd, long flag)=0;
+	virtual long UnBindEx() = 0;
 	//窗口句柄
 	HWND _hwnd;
 	//共享内存

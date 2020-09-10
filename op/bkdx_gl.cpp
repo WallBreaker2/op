@@ -244,17 +244,18 @@ long bkdo::UnBindNox() {
 bool bkdo::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	img.create(w, h);
 	_pmutex->lock();
+	uchar* ppixels = _shmem->data<byte>()+sizeof(FrameInfo);
 	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) {//NORMAL
 		//setlog("cap1");
 		for (int i = 0; i < h; i++) {
-			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (i + y1) * 4 * _width + x1 * 4, 4 * w);
+			memcpy(img.ptr<uchar>(i), ppixels + (i + y1) * 4 * _width + x1 * 4, 4 * w);
 		}
 	}
 	else {
 		//setlog("cap2");
 
 		for (int i = 0; i < h; i++) {
-			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
+			memcpy(img.ptr<uchar>(i), ppixels + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
 		}
 	}
 

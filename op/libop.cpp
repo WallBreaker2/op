@@ -665,7 +665,7 @@ long  libop::Capture(long x1, long y1, long x2, long y2, const wchar_t* file_nam
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -895,6 +895,16 @@ long libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data, lo
 	return 0;
 }
 
+
+long libop::GetScreenFrameInfo(long* frame_id, long* time) {
+	FrameInfo info = {};
+	if (_bkproc->IsBind()) {
+		_bkproc->_pbkdisplay->getFrameInfo(info);
+	}
+	*frame_id = info.frameId;
+	*time = info.time;
+	return 0;
+}
 
 
 //设置字库文件
