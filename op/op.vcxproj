@@ -308,6 +308,7 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
     <ClInclude Include="3rd_party\include\kiero.h" />
     <ClInclude Include="AStar.hpp" />
     <ClInclude Include="Bkbase.h" />
+    <ClInclude Include="frameInfo.h" />
     <ClInclude Include="IDisplay.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />

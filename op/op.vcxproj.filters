@@ -264,6 +264,9 @@
     <ClInclude Include="IDisplay.h">
       <Filter>Background\Display</Filter>
     </ClInclude>
+    <ClInclude Include="frameInfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="op.rc">

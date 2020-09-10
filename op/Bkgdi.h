@@ -36,6 +36,8 @@ private:
 	BITMAPINFOHEADER _bih = { 0 };//位图信息头
 	int dx_, dy_;//去除标题栏
 	//bytearray temp_src;
+	FrameInfo m_frameInfo;
+	void fmtFrameInfo(void* dst,HWND hwnd, int w, int h);
 };
 
 #endif

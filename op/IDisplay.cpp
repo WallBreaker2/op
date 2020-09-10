@@ -51,7 +51,7 @@ long IDisplay::bind_init() {
 	RECT rc;
 	assert(::IsWindow(_hwnd));
 	::GetWindowRect(_hwnd, &rc);
-	res_size = (rc.right - rc.left) * (rc.bottom - rc.top) * 4;
+	res_size = (rc.right - rc.left) * (rc.bottom - rc.top) * 4+sizeof(FrameInfo);
 	wsprintf(_shared_res_name, SHARED_RES_NAME_FORMAT, _hwnd);
 	wsprintf(_mutex_name, MUTEX_NAME_FORMAT, _hwnd);
 	//setlog(L"mem=%s mutex=%s", _shared_res_name, _mutex_name);
@@ -76,6 +76,12 @@ long IDisplay::bind_release() {
 	_hwnd = NULL;
 	//_image_data = nullptr;
 	return 0;
+}
+
+void IDisplay::getFrameInfo(FrameInfo& info) {
+	_pmutex->lock();
+	memcpy(&info, _shmem->data<uchar>(), sizeof(FrameInfo));
+	_pmutex->unlock();
 }
 
 //byte* bkdisplay::get_data() {

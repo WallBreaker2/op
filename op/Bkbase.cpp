@@ -32,7 +32,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	UnBindWindow();
 	//step 2.check hwnd
 	if (!::IsWindow(HWND(hwnd))) {
-		setlog(L"无效的窗口句柄:%d", hwnd);
+		setlog("%s error无效的窗口句柄:%d",__FUNCTION__, hwnd);
 		return 0;
 	}
 	

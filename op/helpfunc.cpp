@@ -2,6 +2,7 @@
 #include "helpfunc.h"
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include "globalVar.h"
 std::wstring _s2wstring(const std::string&s) {
 	std::string strLocale = setlocale(LC_ALL, "");
@@ -71,6 +72,9 @@ long setlog(const wchar_t* format, ...) {
 		file << tm << buf << std::endl;
 		file.close();
 	}
+	else if (gShowError == 3) {
+		std::wcout << tm << buf << std::endl;
+	}
 	
 	return 1;
 }
@@ -103,6 +107,9 @@ long setlog(const char* format, ...) {
 			return 0;
 		file << tm << buf << std::endl;
 		file.close();
+	}
+	else if(gShowError==3){
+		std::cout << tm << buf << std::endl;
 	}
 	return 1;
 }
