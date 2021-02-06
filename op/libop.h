@@ -40,6 +40,7 @@ private:
 	std::map<std::wstring, long> _vkmap;
 	bytearray _screenData;
 	bytearray _screenDataBmp;
+	std::wstring m_opPath;
 public:
 	//---------------基本设置/属性-------------------
 

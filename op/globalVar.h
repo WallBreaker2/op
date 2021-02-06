@@ -79,7 +79,7 @@ extern HINSTANCE gInstance;
 //是否显示错误信息
 extern int gShowError;
 //op 路径
-extern wstring g_op_path;
+//extern wstring m_opPath;
 
 extern wstring g_op_name;
 
