@@ -20,7 +20,7 @@ constexpr bool IN_RANGE(T lhs, T rhs, T df) {
 }
 //颜色结构
 
-#pragma pack(push)
+//#pragma pack(push)
 #pragma pack(1)
 struct color_t {
 
@@ -72,7 +72,7 @@ struct color_t {
 		return buff;
 	}
 };
-#pragma pack(pop)
+#pragma pack()
 //颜色-偏色结构
 struct color_df_t {
 	//颜色

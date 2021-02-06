@@ -103,6 +103,8 @@ public:
 	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
 
 	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
+
+	long FindLine(double sim, std::wstring outStr);
 private:
 	//rgbœÒÀÿ∆•≈‰
 	template<bool nodfcolor>

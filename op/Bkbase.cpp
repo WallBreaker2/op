@@ -25,6 +25,8 @@ bkbase::~bkbase()
 		_pbkdisplay = nullptr;
 	}*/
 	UnBindWindow();
+	SAFE_DELETE(_bkmouse);
+	SAFE_DELETE(_keypad);
 }
 
 long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
@@ -136,7 +138,9 @@ long bkbase::UnBindWindow() {
 		_keypad->UnBind();
 		SAFE_DELETE(_keypad);
 	}
-
+	//恢复为前台(默认)
+	_bkmouse = new bkmouse;
+	_keypad = new winkeypad;
 
 	return 1;
 }
