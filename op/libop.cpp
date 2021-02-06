@@ -15,7 +15,7 @@
 #include "MemoryEx.h"
 #include<fstream>
 // OpInterface
-
+std::mutex mtx;
 libop::libop() {
 	_winapi = new WinApi;
 	_bkproc = new bkbase;
@@ -42,17 +42,20 @@ libop::libop() {
 	_vkmap[L"f9"] = VK_F9; _vkmap[L"f10"] = VK_F10;
 	_vkmap[L"f11"] = VK_F11; _vkmap[L"f12"] = VK_F12;
 	//初始化 op 路径 & name
+	
 	static bool is_init = false;
+	mtx.lock();
 	if (!is_init) {
-		g_op_path.resize(512);
-		DWORD real_size = ::GetModuleFileNameW(gInstance, g_op_path.data(), 512);
-		g_op_path.resize(real_size);
+		m_opPath.resize(512);
+		DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
+		m_opPath.resize(real_size);
 
-		g_op_name = g_op_path.substr(g_op_path.rfind(L"\\") + 1);
-		g_op_path = g_op_path.substr(0, g_op_path.rfind(L"\\"));
+		g_op_name = m_opPath.substr(m_opPath.rfind(L"\\") + 1);
+		m_opPath = m_opPath.substr(0, m_opPath.rfind(L"\\"));
 
 		is_init = true;
 	}
+	mtx.unlock();
 }
 
 libop::~libop() {
@@ -136,10 +139,15 @@ long  libop::Sleep(long millseconds, long* ret) {
 }
 
 long  libop::InjectDll(const wchar_t* process_name, const wchar_t* dll_name, long* ret) {
-	//auto proc = _wsto_string(process_name);
-	//auto dll = _wsto_string(dll_name);
-	//Injecter::EnablePrivilege(TRUE);
-	//auto h = Injecter::InjectDll(process_name, dll_name);
+	auto proc = _ws2string(process_name);
+	auto dll = _ws2string(dll_name);
+	long hwnd;
+	FindWindowByProcess(process_name, L"", L"", &hwnd);
+	long pid;
+	GetWindowProcessId(hwnd, &pid);
+	Injecter::EnablePrivilege(TRUE);
+	long error_code = 0;
+	auto h = Injecter::InjectDll(pid, dll_name,error_code);
 	*ret = 0;
 	return S_OK;
 }

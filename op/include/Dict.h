@@ -131,6 +131,8 @@ struct word1_t {
 		}
 	}
 
+
+
 	void init() {
 		data.resize((info.w * info.h + 7) / 8);
 		std::fill(data.begin(), data.end(), 0);
@@ -217,11 +219,15 @@ struct Dict {
 			auto idx2=ss.find(L'$',idx1+1);
 			word_t wd;
 			word1_t wd1;
+			wstring name;
 			if (idx1 != -1&&idx2!=-1) {
 				ss[idx1] = L'0';
-				wd.fromDm(ss.data(), idx1, ss.substr(idx1 + 1, idx2 - idx1-1));
+				name = ss.substr(idx1 + 1, idx2 - idx1 - 1);
+				wd.fromDm(ss.data(), idx1, name);
 				wd1.from_word(wd);
+				wd1.set_chars(name);
 				add_word(wd1);
+				
 			}
 		}
 		file.close();

@@ -14,6 +14,11 @@
 
 bkdo::bkdo():IDisplay()
 {
+	m_opPath.resize(512);
+	DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
+	m_opPath.resize(real_size);
+
+	m_opPath = m_opPath.substr(0, m_opPath.rfind(L"\\"));
 }
 
 
@@ -65,7 +70,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 			injected = true;
 		}
 		else {
-			auto iret = proc.modules().Inject(g_op_path + L"\\" + dllname);
+			auto iret = proc.modules().Inject(m_opPath + L"\\" + dllname);
 			injected = (iret ? true : false);
 		}
 		if (injected) {
@@ -176,7 +181,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 			injected = true;
 		}
 		else {
-			auto iret = proc.modules().Inject(g_op_path + L"\\" + dllname);
+			auto iret = proc.modules().Inject(m_opPath + L"\\" + dllname);
 			injected = (iret ? true : false);
 		}
 		if (injected) {

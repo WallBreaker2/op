@@ -7,7 +7,7 @@ HINSTANCE gInstance;
 
 int gShowError = 1;
 
-wstring g_op_path;
+//wstring m_opPath;
 
 wstring g_op_name;
 

@@ -480,6 +480,37 @@ _quick_return:
 	return find_ct;
 }
 
+long ImageBase::FindLine(double sim, std::wstring outStr) {
+	outStr.clear();
+	int h = sqrt(_binary.width * _binary.width + _binary.height * _binary.height)+1;
+	_record.create(360, h);
+	memset(_record.data(), 0, sizeof(uchar) * _record.width * _record.height);
+	for (int i = 0; _binary.height; i++) {
+		for (int j = 0; j < _binary.width; j++) {
+			for (int t = 0; t < 360; t++) {
+				int d = j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925);
+				if (d >= 0)
+					_record.at(d,t)++;
+			}
+		}
+	}
+	int maxRow = 0, maxCol = 0;
+	int maxval = -1;
+	for (int i = 0; _record.height; i++) {
+		for (int j = 0; j < _binary.width; j++) {
+			if (_record.at(i, j) > maxval) {
+				maxRow = i; maxCol = j;
+				maxval = _record.at(i, j);
+			}
+		}
+		
+	}
+	wchar_t buffer[256];
+	wsprintf(buffer,L"%d,%d,%d", maxCol, maxRow, 0);
+	outStr = buffer;
+	return maxval;
+}
+
 
 template<bool nodfcolor>
 long ImageBase::simple_match(long x, long y, Image* timg, color_t dfcolor, int tnorm, double sim) {

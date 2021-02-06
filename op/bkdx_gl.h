@@ -25,6 +25,7 @@ public:
 	long UnBindNox();
 private:
 	//blackbone::Process _process;
+	wstring m_opPath;
 
 };
 
