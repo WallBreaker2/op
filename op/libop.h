@@ -253,7 +253,8 @@ public:
 	long OcrFromFile(const wchar_t* file_name,const wchar_t* color_format, double sim, std::wstring& retstr);
 	//从文件中识别图片,无需指定颜色
 	long OcrAutoFromFile(const wchar_t* file_name, double sim, std::wstring& retstr);
-	//
+	//查找频幕中的直线
+	long FindLine(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, std::wstring& retstr);
 	
 	//向某进程写入数据
 	long WriteData(long hwnd, const wchar_t* address, const wchar_t* data, long size, long* ret);

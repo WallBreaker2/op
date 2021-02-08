@@ -844,6 +844,16 @@ STDMETHODIMP OpInterface::OcrAutoFromFile(BSTR file_name, DOUBLE sim, BSTR* rets
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::FindLine(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* retstr) {
+	wstring s;
+	obj.FindLine(x1, y1, x2, y2, color, sim, s);
+
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
 
 
 STDMETHODIMP OpInterface::WriteData(LONG hwnd, BSTR address, BSTR data, LONG size, LONG* ret) {
