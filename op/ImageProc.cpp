@@ -324,3 +324,21 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 	}
 	return 0;
 }
+
+long ImageProc::FindLine(const wstring& color, double sim, wstring& retStr) {
+	retStr.clear();
+	vector<color_df_t> colors;
+	if (str2colordfs(color, colors) == 0) {
+		bgr2binary(colors);
+	}
+	else {
+		bgr2binarybk(colors);
+	}
+	if (sim < 0. || sim>1.)
+		sim = 1.;
+	long s;
+	_src.write(L"_src.bmp");
+	_gray.write(L"gray.bmp");
+	_binary.write(L"_binary.bmp");
+	return ImageBase::FindLine(sim,retStr);
+}
