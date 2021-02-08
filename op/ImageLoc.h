@@ -103,8 +103,10 @@ public:
 	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
 
 	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
-
-	long FindLine(double sim, std::wstring outStr);
+	//描述：查找目标图像中的直线
+	//输入：精度
+	//输出：outStr:直线描述[法线角度，直线到原点的距离];ret:该直线上的点的数量
+	long FindLine(double sim, std::wstring& outStr);
 private:
 	//rgb像素匹配
 	template<bool nodfcolor>

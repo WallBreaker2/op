@@ -480,33 +480,39 @@ _quick_return:
 	return find_ct;
 }
 
-long ImageBase::FindLine(double sim, std::wstring outStr) {
+long ImageBase::FindLine(double sim, std::wstring& outStr) {
 	outStr.clear();
-	int h = sqrt(_binary.width * _binary.width + _binary.height * _binary.height)+1;
-	_record.create(360, h);
-	memset(_record.data(), 0, sizeof(uchar) * _record.width * _record.height);
-	for (int i = 0; _binary.height; i++) {
+	int h = sqrt(_binary.width * _binary.width + _binary.height * _binary.height)+2;
+	_sum.create(360, h);
+	//行：距离，列：角度
+	_sum.fill(0);
+	for (int i = 0; i<_binary.height; i++) {
 		for (int j = 0; j < _binary.width; j++) {
-			for (int t = 0; t < 360; t++) {
-				int d = j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925);
-				if (d >= 0)
-					_record.at(d,t)++;
+			if (_binary.at(i, j)==WORD_COLOR) {
+				for (int t = 0; t < 360; t++) {
+					int d = j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925);//可以优化
+					assert(d <= h);
+					if (d >= 0)
+						_sum.at<int>(d, t)++;
+				}
 			}
+			
 		}
 	}
 	int maxRow = 0, maxCol = 0;
 	int maxval = -1;
-	for (int i = 0; _record.height; i++) {
-		for (int j = 0; j < _binary.width; j++) {
-			if (_record.at(i, j) > maxval) {
+	for (int i = 0; i< _sum.height; i++) {
+		for (int j = 0; j < _sum.width; j++) {
+			if (_sum.at<int>(i, j) > maxval) {
 				maxRow = i; maxCol = j;
-				maxval = _record.at(i, j);
+				maxval = _sum.at<int>(i, j);
 			}
 		}
 		
 	}
+	setlog("degree=%d,dis=%d,val=%d", maxCol, maxRow, maxval);
 	wchar_t buffer[256];
-	wsprintf(buffer,L"%d,%d,%d", maxCol, maxRow, 0);
+	wsprintf(buffer,L"%d,%d", maxCol, maxRow);
 	outStr = buffer;
 	return maxval;
 }
@@ -647,7 +653,7 @@ int ImageBase::get_bk_color(inputbin bin) {
 		y[ptr[i]]++;
 	//scan max
 	int m = 0;
-	for (int i = 0; i < 256; ++i) {
+	for (int i = 1; i < 256; ++i) {
 		if (y[i] > y[m])m = i;
 	}
 	return m;
@@ -694,7 +700,7 @@ void ImageBase::bgr2binarybk(const vector<color_df_t>& bk_colors)
 
 		auto pgray = _gray.data();
 		for (int i = 0; i < n; ++i) {
-			pdst[i] = (std::abs(pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
+			pdst[i] = (std::abs((int)pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
 		}
 	}
 	else {

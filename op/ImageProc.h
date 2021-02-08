@@ -55,6 +55,8 @@ public:
 	long OcrFromFile(const wstring& files,const wstring& color, double sim, std::wstring& retstr);
 
 	long OcrAutoFromFile(const wstring& files, double sim, std::wstring& retstr);
+
+	long FindLine(const wstring& color, double sim, wstring& retStr);
 	
 	
 private:

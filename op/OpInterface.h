@@ -272,7 +272,9 @@ public:
 	STDMETHOD(OcrFromFile)(BSTR file_name,BSTR color_format, DOUBLE sim, BSTR* retstr);
 	//从文件中识别图片,使用tesseract库识别
 	STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR* retstr);
-	
+	//查找频幕中的直线
+	STDMETHOD(FindLine)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR* retstr);
+
 	//-----------------------memory---------------------------------
 	//向某进程写入数据
 	STDMETHOD(WriteData)(LONG hwnd, BSTR address, BSTR data, LONG size, LONG* ret);

@@ -612,6 +612,15 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindLine( 
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [in] */ BSTR color,
+            /* [in] */ DOUBLE sim,
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
             /* [in] */ LONG hwnd,
             /* [in] */ BSTR address,
@@ -1304,6 +1313,16 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindLine )( 
+            IOpInterface * This,
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [in] */ BSTR color,
+            /* [in] */ DOUBLE sim,
+            /* [retval][out] */ BSTR *retstr);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
             IOpInterface * This,
             /* [in] */ LONG hwnd,
@@ -1645,6 +1664,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_OcrAutoFromFile(This,file_name,sim,retstr)	\
     ( (This)->lpVtbl -> OcrAutoFromFile(This,file_name,sim,retstr) ) 
+
+#define IOpInterface_FindLine(This,x1,y1,x2,y2,color,sim,retstr)	\
+    ( (This)->lpVtbl -> FindLine(This,x1,y1,x2,y2,color,sim,retstr) ) 
 
 #define IOpInterface_WriteData(This,hwnd,address,data,size,ret)	\
     ( (This)->lpVtbl -> WriteData(This,hwnd,address,data,size,ret) ) 

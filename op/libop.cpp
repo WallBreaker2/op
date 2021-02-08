@@ -1012,6 +1012,20 @@ long  libop::OcrAutoFromFile(const wchar_t* file_name, DOUBLE sim, std::wstring&
 	return S_OK;
 }
 
+long libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, wstring& retstr) {
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
+		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
+			setlog("error equestCapture");
+			return S_OK;
+		}
+		_image_proc->set_offset(x1, y1);
+		_image_proc->FindLine(color, sim, retstr);
+		
+	}
+	
+	return S_OK;
+}
+
 long libop::WriteData(long hwnd, const wchar_t* address, const wchar_t* data, long size, long* ret) {
 	*ret = 0;
 	MemoryEx mem;
