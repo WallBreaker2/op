@@ -332,13 +332,12 @@ long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim
 				match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 					real_match(j, i, &gimg, tnorm, sim));
 				if (match_ret) {
-					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
-					retstr += L"|";
+					wchar_t buffer[256];
+					wsprintf(buffer, L"%d,%d,%d|", pic_id, j + _x1 + _dx, i + _y1 + _dy);
+					retstr += buffer;
 					++obj_ct;
 					if (obj_ct > _max_return_obj_ct)
 						goto _quick_return;
-					else
-						break;
 				}
 
 
@@ -346,6 +345,8 @@ long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim
 		}//end for i
 	}//end for pics
 _quick_return:
+	if (!retstr.empty())
+		retstr.pop_back();
 	return obj_ct;
 }
 
