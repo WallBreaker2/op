@@ -2,6 +2,8 @@
 #ifndef __WINAPI_H_
 #define __WINAPI_JH_
 #include "optype.h"
+#undef FindWindow
+#undef FindWindowEx
 class WinApi
 {
 public:

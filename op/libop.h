@@ -19,7 +19,8 @@ using bytearray = std::vector<unsigned char>;
 #define OP_API __declspec(dllimport)
 #endif
 // libop
-
+#undef FindWindow
+#undef FindWindowEx
 class OP_API libop{
 public:
 	libop();

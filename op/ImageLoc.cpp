@@ -511,7 +511,7 @@ long ImageBase::FindLine(double sim, std::wstring& outStr) {
 		}
 		
 	}
-	setlog("degree=%d,dis=%d,val=%d", maxCol, maxRow, maxval);
+	//setlog("degree=%d,dis=%d,val=%d", maxCol, maxRow, maxval);
 	wchar_t buffer[256];
 	wsprintf(buffer,L"%d,%d", maxCol, maxRow);
 	outStr = buffer;
