@@ -4,7 +4,8 @@
 #include "resource.h"       // 主符号
 
 
-
+#undef FindWindow
+#undef FindWindowEx
 #include "op_i.h"
 //#include "optype.h"
 //#include "WinApi.h"
