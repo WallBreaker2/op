@@ -145,10 +145,15 @@ long  libop::InjectDll(const wchar_t* process_name, const wchar_t* dll_name, lon
 	FindWindowByProcess(process_name, L"", L"", &hwnd);
 	long pid;
 	GetWindowProcessId(hwnd, &pid);
-	Injecter::EnablePrivilege(TRUE);
-	long error_code = 0;
-	auto h = Injecter::InjectDll(pid, dll_name,error_code);
 	*ret = 0;
+	if (Injecter::EnablePrivilege(TRUE)) {
+		long error_code = 0;
+		*ret = Injecter::InjectDll(pid, dll_name, error_code);
+	}
+	else {
+		setlog("EnablePrivilege false erro_code=%08X ", ::GetLastError());
+	}
+
 	return S_OK;
 }
 
