@@ -115,7 +115,7 @@ long bkdo::UnBindEx() {
 	//attach ½ø³Ìs
 	blackbone::Process proc;
 	NTSTATUS hr;
-
+	//setlog("bkdo::Attach");
 	hr = proc.Attach(id);
 
 	if (NT_SUCCESS(hr)) {
@@ -125,11 +125,13 @@ long bkdo::UnBindEx() {
 		if (is64 != OP64) {
 			dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
 		}
+		//setlog(L"bkdo::dllname=%s",dllname);
 		using my_func_t = long(__stdcall*)(void);
 		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 		if (pUnXHook) {
+			//setlog(L"bkdo::pUnXHook");
 			pUnXHook();
-			BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
+			//BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
 			//if (!fret)setlog("fret=%d", fret);
 			/*proc.modules().RemoveManualModule(dllname,
 				is64 ? blackbone::eModType::mt_mod64 : blackbone::eModType::mt_mod32);*/
@@ -141,7 +143,7 @@ long bkdo::UnBindEx() {
 	else {
 		setlog("blackbone::MakeRemoteFunction false,errcode:%X,pid=%d,hwnd=%d", hr, id, _hwnd);
 	}
-
+	//setlog(L"bkdo::Detach");
 	proc.Detach();
 	//bind_release();
 	return 1;
@@ -226,7 +228,7 @@ long bkdo::UnBindNox() {
 		using my_func_t = long(__stdcall*)(void);
 		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
 		if (pUnXHook) {
-			//pUnXHook();
+			pUnXHook();
 
 			/*BOOL fret = ::FreeLibrary((HMODULE)proc.modules().GetModule(dllname)->baseAddress);
 			if (!fret)setlog("fret=%d", fret);*/
