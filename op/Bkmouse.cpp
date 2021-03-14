@@ -61,12 +61,12 @@ long bkmouse::MoveTo(int x, int y) {
 		This function fails when it is blocked by UIPI.
 		Note that neither GetLastError nor the return value will indicate the failure was caused by UIPI blocking.
 		*/
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
 		break;
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+		ret = ::SendMessage(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y)) == 0 ? 1 : 0;
 
 		break;
 	}
@@ -217,25 +217,28 @@ long bkmouse::MiddleUp() {
 
 long bkmouse::RightClick() {
 	long ret = 0;
+	long r1, r2;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
 		INPUT Input = { 0 };
 		// left down 
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-		ret=::SendInput(1, &Input, sizeof(INPUT));
+		r1 = ::SendInput(1, &Input, sizeof(INPUT));
 
 		// left up
 		::ZeroMemory(&Input, sizeof(INPUT));
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-		ret=::SendInput(1, &Input, sizeof(INPUT));
+		r2 = ::SendInput(1, &Input, sizeof(INPUT)) ;
+		ret = r1 > 0 && r2 > 0 ? 1 : 0;
 		break;
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret=::SendMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
-		ret=::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+		r1 = ::SendMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+		r2 = ::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+		ret = r1 == 0 && r2 == 0 ? 1 : 0;
 		break;
 	}
 
@@ -251,11 +254,11 @@ long bkmouse::RightDown() {
 		// left down 
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
 		break;
 	}
 	case	INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+		ret = ::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
 		break;
 	}
 
@@ -272,7 +275,7 @@ long bkmouse::RightUp() {
 		::ZeroMemory(&Input, sizeof(INPUT));
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
 		break;
 	}
 
@@ -299,7 +302,7 @@ long bkmouse::WheelDown() {
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_WHEEL;
 		Input.mi.mouseData = -WHEEL_DELTA;
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
 		break;
 	}
 
@@ -319,7 +322,7 @@ long bkmouse::WheelDown() {
 		relative to the upper-left corner of the screen.
 		*/
 		//If an application processes this message, it should return zero.
-		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA,0), MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
 		break;
 	}
 
@@ -338,12 +341,12 @@ long bkmouse::WheelUp() {
 		Input.type = INPUT_MOUSE;
 		Input.mi.dwFlags = MOUSEEVENTF_WHEEL;
 		Input.mi.mouseData = WHEEL_DELTA;
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
 		break;
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
 		break;
 	}
 	}
