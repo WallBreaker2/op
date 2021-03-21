@@ -82,7 +82,7 @@ public:
 
 	long GetPixel(long x, long y, color_t&cr);
 
-	long CmpColor(long x, long y, std::vector<color_df_t>&colors, double sim);
+	long CmpColor(color_t color, std::vector<color_df_t>&colors, double sim);
 
 	long FindColor(std::vector<color_df_t>&colors,int dir, long&x, long&y);
 
