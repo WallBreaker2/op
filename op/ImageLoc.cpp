@@ -114,13 +114,10 @@ long ImageBase::GetPixel(long x, long y, color_t& cr) {
 	return 1;
 }
 
-long ImageBase::CmpColor(long x, long y, std::vector<color_df_t>& colors, double sim) {
-	color_t cr = _src.at<color_t>(0, 0);
+long ImageBase::CmpColor(color_t color, std::vector<color_df_t>& colors, double sim) {
 
 	for (auto& it : colors) {
-
-
-		if (IN_RANGE(cr, it.color, it.df))
+		if (IN_RANGE(color, it.color, it.df))
 			return 1;
 	}
 
@@ -186,7 +183,8 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>& first_color, std::vector
 					//匹配其他坐标
 					err_ct = 0;
 					for (auto& off_cr : offset_color) {
-						if (!CmpColor(j + off_cr.x, i + off_cr.y, off_cr.crdfs, sim))
+						color_t currentColor = _src.at<color_t>(j + off_cr.x, i + off_cr.y);
+						if (!CmpColor(currentColor, off_cr.crdfs, sim))
 							++err_ct;
 						if (err_ct > max_err_ct)
 							goto _quick_break;
@@ -217,7 +215,8 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>& first_color, std::vect
 					//匹配其他坐标
 					err_ct = 0;
 					for (auto& off_cr : offset_color) {
-						if (!CmpColor(j + off_cr.x, i + off_cr.y, off_cr.crdfs, sim))
+						color_t currentColor = _src.at<color_t>(j + off_cr.x, i + off_cr.y);
+						if (!CmpColor(currentColor, off_cr.crdfs, sim))
 							++err_ct;
 						if (err_ct > max_err_ct)
 							goto _quick_break;

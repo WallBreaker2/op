@@ -27,7 +27,7 @@ public:
 	bool GetClientSize(LONG hwnd, LONG &width, LONG &height);
 	bool GetMousePointWindow(LONG &rethwnd, LONG x = -1, LONG y = -1);
 	bool GetProcessInfo(LONG pid, wchar_t *retstring);
-	bool TSGetWindow(LONG hwnd, LONG flag, LONG &rethwnd);
+	bool GetWindow(LONG hwnd, LONG flag, LONG &rethwnd);
 	bool GetProcesspath(DWORD ProcessID, wchar_t* process_path);
 	bool GetWindowState(LONG hwnd, LONG flag);
 	bool SendPaste(LONG hwnd);

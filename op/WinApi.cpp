@@ -2993,7 +2993,7 @@ bool WinApi::GetProcesspath(DWORD ProcessID, wchar_t* process_path)
 
 	return true;
 }
-bool WinApi::TSGetWindow(LONG hwnd, LONG flag, LONG &rethwnd)
+bool WinApi::GetWindow(LONG hwnd, LONG flag, LONG &rethwnd)
 {
 	bool bret = false;
 	rethwnd = 0;
@@ -3016,7 +3016,14 @@ bool WinApi::TSGetWindow(LONG hwnd, LONG flag, LONG &rethwnd)
 	else if (flag == 6) //获取拥有者窗口
 		type = GW_OWNER;
 	else if (flag == 7) //获取顶层窗口
-		rethwnd = (LONG)::GetForegroundWindow();
+	{
+		//rethwnd = (LONG)::GetForegroundWindow();
+		HWND next = NULL,current=(HWND)hwnd;
+		while (next = ::GetParent(current)) current = next;
+		rethwnd = (long)current;
+		return ::IsWindow(current);
+	}
+		
 	if (type != -1)
 		rethwnd = (LONG)::GetWindow(wnd, (UINT)type);
 

@@ -343,7 +343,7 @@ long  libop::GetSpecialWindow(long flag, long* rethwnd)
 long  libop::GetWindow(long hwnd, long flag, long* nret)
 {
 	// TODO: 在此添加实现代码
-	_winapi->TSGetWindow(hwnd, flag, *nret);
+	_winapi->GetWindow(hwnd, flag, *nret);
 	return S_OK;
 }
 
