@@ -26,7 +26,7 @@ long ImageProc::Capture(const std::wstring& file) {
 long ImageProc::CmpColor(long x, long y, const std::wstring& scolor, double sim) {
 	std::vector<color_df_t> vcolor;
 	str2colordfs(scolor, vcolor);
-	return ImageBase::CmpColor(x, y, vcolor, sim);
+	return ImageBase::CmpColor(_src.at<color_t>(0,0), vcolor, sim);
 
 
 }
