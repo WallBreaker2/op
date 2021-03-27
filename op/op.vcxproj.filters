@@ -41,9 +41,6 @@
     <Filter Include="Background\Keypad">
       <UniqueIdentifier>{05013c1a-094a-4c58-9bba-16cb454da5c0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Common">
-      <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Process">
       <UniqueIdentifier>{1a017bf0-4f0a-4204-b494-0a9286be8cfb}</UniqueIdentifier>
     </Filter>
@@ -88,6 +85,9 @@
     </Filter>
     <Filter Include="Background\Display\Directx">
       <UniqueIdentifier>{fb882fa3-8feb-4580-983a-05d65a8ae592}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utility">
+      <UniqueIdentifier>{a6c17520-a3c3-4635-9915-db3409780610}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -146,10 +146,10 @@
       <Filter>libop</Filter>
     </ClCompile>
     <ClCompile Include="globalVar.cpp">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClCompile>
     <ClCompile Include="helpfunc.cpp">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClCompile>
     <ClCompile Include="MemoryEx.cpp">
       <Filter>memory</Filter>
@@ -241,13 +241,13 @@
       <Filter>libop</Filter>
     </ClInclude>
     <ClInclude Include="optype.h">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClInclude>
     <ClInclude Include="globalVar.h">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClInclude>
     <ClInclude Include="helpfunc.h">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClInclude>
     <ClInclude Include="MemoryEx.h">
       <Filter>memory</Filter>
@@ -265,7 +265,7 @@
       <Filter>Background\Display</Filter>
     </ClInclude>
     <ClInclude Include="frameInfo.h">
-      <Filter>Common</Filter>
+      <Filter>utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

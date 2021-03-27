@@ -726,7 +726,7 @@ int kiero::bind(uint16_t _index, void** _original, void* _function)
 		int r2 = MH_EnableHook((void*)g_methodsTable[_index]);
 
 
-		return r1 == MH_OK && r2 == MH_OK;
+		return r1 == MH_OK && r2 == MH_OK ? 1 : 0;
 	}
 	return 0;
 #endif

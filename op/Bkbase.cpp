@@ -34,7 +34,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	UnBindWindow();
 	//step 2.check hwnd
 	if (!::IsWindow(HWND(hwnd))) {
-		setlog("%s error无效的窗口句柄:%d",__FUNCTION__, hwnd);
+		setlog("无效的窗口句柄");
 		return 0;
 	}
 	
@@ -103,10 +103,9 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		return 0;
 	}
 	//step 6.try bind
-	if(!_pbkdisplay->Bind((HWND)hwnd, display)||
-		!_bkmouse->Bind((HWND)hwnd, mouse)||
-		!_keypad->Bind((HWND)hwnd, keypad)) {
-		setlog("try bind error!");
+	if (_pbkdisplay->Bind((HWND)hwnd, display) != 1 ||
+		_bkmouse->Bind((HWND)hwnd, mouse) != 1 ||
+		_keypad->Bind((HWND)hwnd, keypad) != 1) {
 		UnBindWindow();
 		return 0;
 	}

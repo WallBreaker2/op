@@ -78,6 +78,9 @@ int kmp(const T& s, const T& t) {
 	return j == s.size() ? i - j : -1;
 }
 
+
+
+
 #endif // !__TOOL_H_
 
 

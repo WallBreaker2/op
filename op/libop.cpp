@@ -108,8 +108,10 @@ long  libop::GetBasePath(std::wstring& path){
 	wchar_t basepath[1024];
 	::GetModuleFileName(gInstance, basepath, 1024);
 	path = basepath;
-	int index = path.rfind(L'\\');
-	path = path.substr(0, index);
+	size_t index = path.rfind(L'\\');
+	if (index != std::wstring::npos) {
+		path = path.substr(0, index);
+	}
 	return S_OK;
 }
 

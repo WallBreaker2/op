@@ -79,8 +79,11 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 	else {
 		render_type = kiero::RenderType::None;
 	}
-	if (kiero::init(render_type) != kiero::Status::Success)
-		return 0;
+	kiero::Status::Enum ret = kiero::init(render_type);
+	if (ret != kiero::Status::Success) {
+		return ret;
+	}
+		
 
 	is_capture = kiero::bind(idx, &old_address, address);
 	return is_capture;
@@ -556,8 +559,9 @@ long SetXHook(HWND hwnd_, int render_type_) {
 		is_capture = 1;
 		return 2;
 	}
-	if (xhook::setup(hwnd_, render_type_) != 1)
-		return 0;
+	int ret = xhook::setup(hwnd_, render_type_);
+	if (ret != 1)
+		return ret;
 	//setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
 	is_hooked = true;
 	return 1;
@@ -568,7 +572,7 @@ long UnXHook() {
 		return 0;
 	is_hooked = false;
 	int ret = xhook::release();
-	::FreeLibraryAndExitThread(gInstance,ret);
+	::FreeLibraryAndExitThread(gInstance,0);
 	return ret;
 }
 
