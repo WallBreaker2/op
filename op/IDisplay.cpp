@@ -30,7 +30,14 @@ long IDisplay::Bind(HWND hwnd, long flag) {
 	bind_init();
 	//step 3. 调用特定的绑定函数
 
-	_bind_state = BindEx(hwnd, flag) ? 1 : 0;
+	if (BindEx(hwnd, flag) == 1) {
+		_bind_state = 1;
+	}
+	else {
+		bind_release();
+		_bind_state = 0;
+	}
+		
 
 	return _bind_state;
 
