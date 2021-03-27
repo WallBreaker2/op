@@ -3,7 +3,13 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include "globalVar.h"
+#define USE_BOOST_STACK_TRACE
+#ifdef USE_BOOST_STACK_TRACE
+#include <boost/stacktrace.hpp>
+#endif
+
 std::wstring _s2wstring(const std::string&s) {
 	std::string strLocale = setlocale(LC_ALL, "");
 	const char* chSrc = s.c_str();
@@ -46,40 +52,17 @@ long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std
 long setlog(const wchar_t* format, ...) {
 	va_list args;
 	wchar_t buf[512];
-	SYSTEMTIME sys;
-	GetLocalTime(&sys);
-	wchar_t tm[128];
-	wsprintf(tm, L"[%4d/%02d/%02d %02d:%02d:%02d.%03d]",
-		sys.wYear, sys.wMonth, sys.wDay,
-		sys.wHour, sys.wMinute, sys.wSecond,
-		sys.wMilliseconds);
 	va_start(args, format);
 	vswprintf(buf, format, args);
 	va_end(args);
-	if (gShowError == 1) {
-		MessageBoxW(NULL, buf, L"error", MB_ICONERROR);
-	}
-	else if (gShowError == 2) {
-		wchar_t dll_path[MAX_PATH];
-		::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
-		wstring fname = dll_path;
-		fname = fname.substr(0, fname.rfind(L'\\'));
-		fname += L"\\op.log";
-		std::wfstream file;
-		file.open(fname, std::ios::app | std::ios::out);
-		if (!file.is_open())
-			return 0;
-		file << tm << buf << std::endl;
-		file.close();
-	}
-	else if (gShowError == 3) {
-		std::wcout << tm << buf << std::endl;
-	}
+	wstring tmpw = buf;
+	string tmps = _ws2string(tmpw);
 	
-	return 1;
+	return setlog(tmps.data());
 }
 
 long setlog(const char* format, ...) {
+	std::stringstream ss(std::wstringstream::in | std::wstringstream::out);
 	va_list args;
 	char buf[512];
 	SYSTEMTIME sys;
@@ -92,25 +75,34 @@ long setlog(const char* format, ...) {
 	va_start(args, format);
 	vsprintf(buf, format, args);
 	va_end(args);
+	ss << tm << "info: " << buf << std::endl;
+#ifdef USE_BOOST_STACK_TRACE
+	ss << "<stack>\n"
+		<< boost::stacktrace::stacktrace() << std::endl;
+#endif // USE_BOOST_STACK_TRACE
+
+	
+	string s = ss.str();
 	if (gShowError == 1) {
-		MessageBoxA(NULL, buf, "error", MB_ICONERROR);
+		MessageBoxA(NULL, s.data(), "error", MB_ICONERROR);
 	}
 	else if (gShowError == 2) {
-		wchar_t dll_path[MAX_PATH];
-		::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
-		wstring fname = dll_path;
-		fname = fname.substr(0, fname.rfind(L'\\'));
-		fname += L"\\op.log";
+		/*	wchar_t dll_path[MAX_PATH];
+			::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
+			wstring fname = dll_path;
+			fname = fname.substr(0, fname.rfind(L'\\'));
+			fname += L"\\op.log";*/
 		std::fstream file;
-		file.open(fname, std::ios::app | std::ios::out);
+		file.open("__op.log", std::ios::app | std::ios::out);
 		if (!file.is_open())
 			return 0;
-		file << tm << buf << std::endl;
+		file << s << std::endl;
 		file.close();
 	}
-	else if(gShowError==3){
-		std::cout << tm << buf << std::endl;
+	else if (gShowError == 3) {
+		std::cout << s << std::endl;
 	}
+
 	return 1;
 }
 
@@ -185,3 +177,4 @@ void replacew(wstring& str, const wstring&oldval, const wstring& newval) {
 		idx = str.find(oldval, x0);
 	}
 }
+
