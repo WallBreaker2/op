@@ -10,7 +10,7 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要特点:Window
 
 ## Usage(用法)  
 所有函数说明以及Demo可在以下链接中获得  
-[op接口说明](https://github.com/WallBreaker2/op/blob/master/doc)  
+[op接口说明](https://github.com/WallBreaker2/op/wiki)  
 
 ## Build  
 使用vs2017编译，除了DirectX SDK外,需要以下库支持：blackbone和minhook  
