@@ -82,9 +82,9 @@ interface IOpInterface : IDispatch
 	[id(90)] HRESULT SendStringIme([in] LONG hwnd, [in] BSTR str, [out, retval] LONG* ret);
 	[id(91)] HRESULT RunApp([in] BSTR cmdline, [in] LONG mode, [out, retval] LONG* ret);
 	[id(95)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
-	[id(96)] HRESULT GetCmdStr([in] BSTR cmd,[in] LONG millseconds, [out, retval] BSTR* retstr);
+	[id(96)] HRESULT GetCmdStr([in] BSTR cmd, [in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
-	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG *ret);
+	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG* ret);
 	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
 	//mouse & ketboard 120-149
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
@@ -120,18 +120,26 @@ interface IOpInterface : IDispatch
 	//image & color 150-199
 	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);
-	[id(152)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim,[in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(152)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(153)] HRESULT FindColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
-	[id(154)] HRESULT FindMultiColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color,[in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(154)] HRESULT FindMultiColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(155)] HRESULT FindMultiColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* ret);
 	[id(156)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(157)] HRESULT FindPicEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
-	[id(158)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
-	[id(159)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
-	[id(160)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
-	[id(161)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
-	[id(162)] HRESULT GetScreenData([in] LONG  x1,[in] LONG y1,[in] LONG x2, [in] LONG y2,[out] VARIANT* data, [out, retval]LONG* ret);
-	[id(163)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size,[out, retval]LONG* ret);
+	[id(158)] HRESULT FindPicExS([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	[id(159)] HRESULT FindColorBlock([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(160)] HRESULT FindColorBlockEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out, retval] BSTR* retstr);
+	[id(161)] HRESULT GetResultCount([in] BSTR str, [out, retval] LONG* ret);
+	[id(162)] HRESULT GetResultPos([in] BSTR str, [in] LONG index, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+
+	[id(163)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
+	[id(164)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
+	[id(165)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
+	[id(166)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
+	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval]LONG* ret);
+	[id(168)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size, [out, retval]LONG* ret);
+	[id(169)] HRESULT MatchPicName([in] BSTR pic_name, [out, retval] BSTR* retstr);
+
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);
@@ -146,14 +154,14 @@ interface IOpInterface : IDispatch
 
 	[id(250)] HRESULT WriteData([in] LONG hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
 	[id(251)] HRESULT ReadData([in] LONG hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
-	
-	
-	
+
+
+
 };
 [
 	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),
 	version(1.0),
-	custom(a817e7a1-43fa-11d0-9e44-00aa00b6770a,"{54ca0535-fb49-4d91-8709-786fb8725132}")
+	custom(a817e7a1-43fa-11d0-9e44-00aa00b6770a, "{54ca0535-fb49-4d91-8709-786fb8725132}")
 ]
 library opLib
 {

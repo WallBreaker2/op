@@ -684,6 +684,26 @@ STDMETHODIMP OpInterface::FindPicEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR fil
 	hr = newstr.CopyTo(retstr);
 	return hr;
 }
+// 这个函数可以查找多个图片, 并且返回所有找到的图像的坐标.此函数同FindPicEx.只是返回值不同.(file1, x, y | file2, x, y | ...)
+STDMETHODIMP OpInterface::FindPicExS(LONG x1, LONG y1, LONG x2, LONG y2, BSTR files, BSTR delta_color, DOUBLE sim, LONG dir, BSTR* retstr) {
+	return S_OK;
+}
+//查找指定区域内的颜色块,颜色格式"RRGGBB-DRDGDB",注意,和按键的颜色格式相反
+STDMETHODIMP OpInterface::FindColorBlock(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG count, LONG height, LONG width, VARIANT* x, VARIANT* y, LONG* ret) {
+	return S_OK;
+}
+//查找指定区域内的所有颜色块, 颜色格式"RRGGBB-DRDGDB", 注意, 和按键的颜色格式相反
+STDMETHODIMP OpInterface::FindColorBlockEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG count, LONG height, LONG width, BSTR* ret) {
+	return S_OK;
+}
+//对插件部分接口的返回值进行解析,并返回ret中的坐标个数
+STDMETHODIMP OpInterface::GetResultCount(BSTR  str, LONG* ret) {
+	return S_OK;
+}
+//对插件部分接口的返回值进行解析,并根据指定的第index个坐标,返回具体的值
+STDMETHODIMP OpInterface::GetResultPos(BSTR str, LONG index, VARIANT* x, VARIANT* y, LONG* ret){
+	return S_OK;
+}
 //获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR* ret) {
 	wstring s;
@@ -714,25 +734,28 @@ STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG* ret) {
 	return S_OK;
 }
 //获取指定区域的图像,用二进制数据的方式返回
-STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT* data, LONG* ret) {
-#if OP64
-	data->vt = VT_I8;
-	data->llVal = 0;
-#else
-	data->vt = VT_I4;
-	data->lVal = 0;
-#endif
+STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG* ret) {
+//#if OP64
+//	data->vt = VT_I8;
+//	data->llVal = 0;
+//#else
+//	data->vt = VT_I4;
+//	data->lVal = 0;
+//#endif
+//	* ret = 0;
+//	void* data_ = nullptr;
+//	obj.GetScreenData(x1, y1, x2, y2, &data_, ret);
+//
+//#if OP64
+//	data->llVal = (long long)data_;
+//#else
+//	data->lVal = (long)data_;
+//#endif
+//	* ret = 1;
 	* ret = 0;
 	void* data_ = nullptr;
 	obj.GetScreenData(x1, y1, x2, y2, &data_, ret);
-
-#if OP64
-	data->llVal = (long long)data_;
-#else
-	data->lVal = (long)data_;
-#endif
-	* ret = 1;
-
+	*ret = (long)data_;
 	return S_OK;
 }
 
@@ -758,6 +781,11 @@ STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, V
 #endif
 	//size->lVal = bfh.bfSize;
 
+	return S_OK;
+}
+
+//根据通配符获取文件集合. 方便用于FindPic和FindPicEx
+STDMETHODIMP OpInterface::MatchPicName(BSTR pic_name, BSTR* ret) {
 	return S_OK;
 }
 
