@@ -42,6 +42,8 @@ void __stdcall gl_hkglBegin(GLenum mode);
 void __stdcall gl_hkwglSwapBuffers(HDC hdc);
 //egl
 unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface);
+//glfinish
+void __stdcall gl_hkglFinish(void);
 
 int xhook::setup(HWND hwnd_, int render_type_) {
 	xhook::render_hwnd = hwnd_;
@@ -552,6 +554,16 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface) {
 	return ((eglSwapBuffers_t)xhook::old_address)(dpy, surface);
 	
 }
+
+
+void __stdcall gl_hkglFinish(void) {
+	using glFinish_t = decltype(glFinish)*;
+	if (is_capture)
+		gl_capture();
+	((glFinish_t)xhook::old_address)();
+}
+
+
 bool is_hooked = false;
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int render_type_) {
