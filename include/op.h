@@ -138,6 +138,13 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG endY,
             /* [retval][out] */ BSTR *path) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindNearestPos( 
+            /* [in] */ BSTR all_pos,
+            /* [in] */ LONG type,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE EnumWindow( 
             /* [in] */ LONG parent,
             /* [in] */ BSTR title,
@@ -804,6 +811,14 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG endX,
             /* [in] */ LONG endY,
             /* [retval][out] */ BSTR *path);
+        
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindNearestPos )( 
+            IOpInterface * This,
+            /* [in] */ BSTR all_pos,
+            /* [in] */ LONG type,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [retval][out] */ BSTR *retstr);
         
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *EnumWindow )( 
             IOpInterface * This,
@@ -1517,6 +1532,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_AStarFindPath(This,mapWidth,mapHeight,disable_points,beginX,beginY,endX,endY,path)	\
     ( (This)->lpVtbl -> AStarFindPath(This,mapWidth,mapHeight,disable_points,beginX,beginY,endX,endY,path) ) 
+
+#define IOpInterface_FindNearestPos(This,all_pos,type,x,y,retstr)	\
+    ( (This)->lpVtbl -> FindNearestPos(This,all_pos,type,x,y,retstr) ) 
 
 #define IOpInterface_EnumWindow(This,parent,title,class_name,filter,retstr)	\
     ( (This)->lpVtbl -> EnumWindow(This,parent,title,class_name,filter,retstr) ) 

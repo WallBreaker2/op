@@ -14,6 +14,8 @@
 #include "AStar.hpp"
 #include "MemoryEx.h"
 #include<fstream>
+#include <filesystem>
+#include <regex>
 // OpInterface
 std::mutex mtx;
 libop::libop() {
@@ -927,6 +929,37 @@ long libop::GetScreenFrameInfo(long* frame_id, long* time) {
 	*frame_id = info.frameId;
 	*time = info.time;
 	return 0;
+}
+
+long libop::MatchPicName(const wchar_t* pic_name, std::wstring& retstr) {
+	retstr.clear();
+	std::wstring s(pic_name);
+	setlog(s.data());
+	s = std::regex_replace(s, std::wregex(L"\\."), L"\\.");
+	s = std::regex_replace(s, std::wregex(L"\\*"), L".*?");
+	s = std::regex_replace(s, std::wregex(L"\\?"), L".?");
+	
+	setlog(s.data());
+	namespace fs = std::filesystem;
+	fs::path path(_curr_path);
+	if (fs::exists(path)) {
+		fs::directory_iterator iter(path);
+		std::wstring tmp;
+		std::wregex e(s);
+		for (auto& it : iter) {
+			if (it.status().type() == fs::file_type::regular) {
+				tmp = it.path().filename();
+				if (std::regex_match(tmp, e)) {
+					retstr += tmp;
+					retstr += L"|";
+				}
+				
+			}
+		}
+		if (!retstr.empty() && retstr.back() == L'|')
+			retstr.pop_back();
+	}
+
 }
 
 
