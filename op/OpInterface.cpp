@@ -121,6 +121,11 @@ STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disa
 	return S_OK;
 }
 
+//根据部分Ex接口的返回值，然后在所有坐标里找出距离指定坐标最近的那个坐标.
+STDMETHODIMP OpInterface::FindNearestPos(BSTR all_pos, LONG type, LONG x, LONG y, BSTR* retstr) {
+	return S_OK;
+}
+
 
 STDMETHODIMP OpInterface::EnumWindow(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr)
 {
@@ -786,6 +791,11 @@ STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, V
 
 //根据通配符获取文件集合. 方便用于FindPic和FindPicEx
 STDMETHODIMP OpInterface::MatchPicName(BSTR pic_name, BSTR* ret) {
+	wstring s;
+	obj.MatchPicName(pic_name, s);
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(ret);
 	return S_OK;
 }
 

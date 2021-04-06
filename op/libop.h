@@ -235,6 +235,8 @@ public:
 	long GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data,long* size, long* ret);
 	//
 	long GetScreenFrameInfo(long* frame_id, long* time);
+	//
+	long MatchPicName(const wchar_t* pic_name, std::wstring& retstr);
 	//----------------------ocr-------------------------
 	//设置字库文件
 	long SetDict(long idx, const wchar_t* file_name, long* ret);

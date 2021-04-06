@@ -96,6 +96,8 @@ public:
 	//---------------------algorithm-------------------------------
 	//A星算法
 	STDMETHOD(AStarFindPath)(LONG mapWidth,LONG mapHeight,BSTR disable_points,LONG beginX,LONG beginY, LONG endX,LONG endY,BSTR* path);
+	//根据部分Ex接口的返回值，然后在所有坐标里找出距离指定坐标最近的那个坐标.
+	STDMETHOD(FindNearestPos)(BSTR all_pos, LONG type, LONG x, LONG y, BSTR* retstr);
 	//--------------------windows api------------------------------
 	//根据指定条件,枚举系统中符合条件的窗口
 	STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR* retstr);
