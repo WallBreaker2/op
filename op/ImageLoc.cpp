@@ -293,9 +293,9 @@ long ImageBase::FindPic(std::vector<Image*>& pics, color_t dfcolor, double sim, 
 	return -1;
 }
 
-long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, wstring& retstr) {
+long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd) {
 	int obj_ct = 0;
-	retstr.clear();
+	vpd.clear();
 	vector<uint> points;
 	bool nodfcolor = color2uint(dfcolor) == 0;
 	int match_ret = 0;
@@ -331,9 +331,9 @@ long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim
 				match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
 					real_match(j, i, &gimg, tnorm, sim));
 				if (match_ret) {
-					wchar_t buffer[256];
-					wsprintf(buffer, L"%d,%d,%d|", pic_id, j + _x1 + _dx, i + _y1 + _dy);
-					retstr += buffer;
+					point_desc_t pd = { pic_id , j + _x1 + _dx, i + _y1 + _dy };
+					
+					vpd.push_back(pd);
 					++obj_ct;
 					if (obj_ct > _max_return_obj_ct)
 						goto _quick_return;
@@ -344,8 +344,7 @@ long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim
 		}//end for i
 	}//end for pics
 _quick_return:
-	if (!retstr.empty())
-		retstr.pop_back();
+
 	return obj_ct;
 }
 
