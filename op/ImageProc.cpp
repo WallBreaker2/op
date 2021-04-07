@@ -4,6 +4,7 @@
 #include <fstream>
 #include <bitset>
 #include <algorithm>
+#include <sstream>
 ImageProc::ImageProc()
 {
 	_curr_idx = 0;
@@ -95,7 +96,8 @@ long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, 
 	vector<Image*>vpic;
 	//vector<color_t> vcolor;
 	color_t dfcolor;
-	files2mats(files, vpic);
+	vector<std::wstring> vpic_name;
+	files2mats(files, vpic, vpic_name);
 	dfcolor.str2color(delta_colors);
 	//str2colors(delta_colors, vcolor);
 	sim = 0.5 + sim / 2;
@@ -106,14 +108,27 @@ long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, 
 	return ret;
 }
 //
-long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr) {
+long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr, bool returnID) {
 	vector<Image*>vpic;
+	vpoint_desc_t vpd;
 	//vector<color_t> vcolor;
 	color_t dfcolor;
-	files2mats(files, vpic);
+	vector<std::wstring> vpic_name;
+	files2mats(files, vpic,vpic_name);
 	dfcolor.str2color(delta_colors);
 	sim = 0.5 + sim / 2;
-	long ret = ImageBase::FindPicEx(vpic, dfcolor, sim, retstr);
+	long ret = ImageBase::FindPicEx(vpic, dfcolor, sim, vpd);
+	std::wstringstream ss(std::wstringstream::in);
+	if (returnID) {
+		for (auto& it : vpd) {
+			ss << it.id << L"," << it.pos << L"|";
+		}
+	}
+	else {
+		for (auto& it : vpd) {
+			ss << vpic_name[it.id] << L"," << it.pos << L"|";
+		}
+	}
 	//ÇåÀí»º´æ
 	if (!_enable_cache)
 		_pic_cache.clear();
@@ -205,8 +220,8 @@ void ImageProc::str2colors(const wstring& color, std::vector<color_t>& vcolor) {
 	}
 }
 
-void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic) {
-	std::vector<wstring>vstr, vstr2;
+void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
+	//std::vector<wstring>vstr, vstr2;
 	Image* pm;
 	vpic.clear();
 	split(files, vstr, L"|");

@@ -34,7 +34,7 @@ public:
 	//Í¼ÐÎ¶¨Î»
 	long FindPic(const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
 	//
-	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr);
+	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr, bool returnID = true);
 
 	std::wstring GetColor(long x, long y);
 
@@ -80,6 +80,6 @@ private:
 	//RETURN TYPE 0:word colors info; 1:bk color info
 	int str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
 	void str2colors(const wstring& color, std::vector<color_t>& vcolor);
-	void files2mats(const wstring& files, std::vector<Image*>& vpic);
+	void files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr);
 };
 

@@ -78,8 +78,8 @@ int kmp(const T& s, const T& t) {
 	return j == s.size() ? i - j : -1;
 }
 
-
-
+std::ostream& operator<<(std::ostream& o, point_t const& rhs);
+std::wostream& operator<<(std::wostream& o, point_t const& rhs);
 
 #endif // !__TOOL_H_
 

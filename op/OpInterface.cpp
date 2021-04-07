@@ -123,6 +123,11 @@ STDMETHODIMP OpInterface::AStarFindPath(LONG mapWidth, LONG mapHeight, BSTR disa
 
 //根据部分Ex接口的返回值，然后在所有坐标里找出距离指定坐标最近的那个坐标.
 STDMETHODIMP OpInterface::FindNearestPos(BSTR all_pos, LONG type, LONG x, LONG y, BSTR* retstr) {
+	std::wstring s;
+	obj.FindNearestPos(all_pos, type, x, y, s);
+	CComBSTR newbstr;
+	auto hr = newbstr.Append(s.data());
+	hr = newbstr.CopyTo(retstr);
 	return S_OK;
 }
 

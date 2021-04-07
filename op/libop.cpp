@@ -201,6 +201,52 @@ long  libop::AStarFindPath(long mapWidth, long mapHeight, const wchar_t* disable
 	return S_OK;
 }
 
+long libop::FindNearestPos(const wchar_t* all_pos, long type, long x, long y, std::wstring& retstr) {
+	const wchar_t* p = 0;
+	wchar_t buf[256] = { 0 };
+	wchar_t rs[256] = { 0 };
+	double old = 1e9;
+	long rx = -1, ry = -1;
+	std::wstring s = std::regex_replace(all_pos, std::wregex(L","), L" ");
+	p = s.data();
+	while (*p) {
+		long x2, y2;
+		bool ok = false;
+		if (type == 1) {
+		
+			if (swscanf(p, L"%d %d", &x2, &y2) == 2) {
+				ok = true;
+			}
+			
+		}
+		else{
+			if (swscanf(p, L"%s %d %d", buf, &x2, &y2) == 3) {
+				ok = true;
+			}
+		}
+		if (ok) {
+			double compareDis = (x - x2) * (x - x2) + (y - y2) * (y - y2);
+			if (compareDis < old) {
+				rx = x2;
+				ry = y2;
+				old = compareDis;
+				wcscpy(rs, buf);
+			}
+		}
+		while (*p && *p != L'|')++p;
+		if (*p)++p;
+	}
+	if (rs[0]) {
+		wcscpy(buf, rs);
+		wsprintf(rs, L"%s,%d,%d", buf, rx, ry);
+	}
+	else if (type == 1 && rx != -1) {
+		wsprintf(rs, L"%d,%d", rx, ry);
+	}
+	retstr = rs;
+	return 1;
+}
+
 
 long  libop::EnumWindow(long parent, const wchar_t* title, const wchar_t* class_name, long filter, std::wstring& retstr)
 {
@@ -698,7 +744,7 @@ long  libop::CmpColor(long x, long y, const wchar_t* color, DOUBLE sim, long* re
 	*ret = 0;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
 		if(!_bkproc->requestCapture(x, y, 1, 1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x, y);
@@ -716,7 +762,7 @@ long  libop::FindColor(long x1, long y1, long x2, long y2, const wchar_t* color,
 	
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if(!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -730,7 +776,7 @@ long  libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t* colo
 	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -747,7 +793,7 @@ long  libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t* f
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -766,7 +812,7 @@ long  libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t*
 	wstring str;
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -783,7 +829,7 @@ long  libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t* files, c
 	
 	if (_bkproc->check_bind()&& _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -803,7 +849,7 @@ long  libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files,
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -812,13 +858,28 @@ long  libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files,
 	retstr = str;
 	return 0;
 }
+
+long libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, double sim, long dir, std::wstring& retstr) {
+	wstring str;
+	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
+		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
+			setlog("error requestCapture");
+			return S_OK;
+		}
+		_image_proc->set_offset(x1, y1);
+		_image_proc->FindPicEx(files, delta_color, sim, dir, str,false);
+	}
+	retstr = str;
+	return 0;
+}
+
 //获取(x,y)的颜色
 long  libop::GetColor(long x, long y, std::wstring& ret) {
 	color_t cr;
 	auto tx = x + 1, ty = y + 1;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty)) {
 		if (!_bkproc->requestCapture(x, y,1, 1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x, y);
@@ -871,7 +932,7 @@ long libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data, lo
 	*ret = 0;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("rerror equestCapture");
+			setlog("rerror requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -934,8 +995,16 @@ long libop::GetScreenFrameInfo(long* frame_id, long* time) {
 long libop::MatchPicName(const wchar_t* pic_name, std::wstring& retstr) {
 	retstr.clear();
 	std::wstring s(pic_name);
-	setlog(s.data());
-	s = std::regex_replace(s, std::wregex(L"\\."), L"\\.");
+	if (s.find(L'/') != s.npos || s.find(L'\\') != s.npos) {
+		setlog("invalid pic_name");
+		return 0;
+	}
+	
+	s = std::regex_replace(s, std::wregex(L"(\\.|\\(|\\)|\\[|\\]|\\{|\\})"), L"\\$1");
+	/*s = std::regex_replace(s, std::wregex(L"\\("), L"\\(");
+	s = std::regex_replace(s, std::wregex(L"\\)"), L"\\)");
+	s = std::regex_replace(s, std::wregex(L"\\["), L"\\[");
+	s = std::regex_replace(s, std::wregex(L"\\]"), L"\\]");*/
 	s = std::regex_replace(s, std::wregex(L"\\*"), L".*?");
 	s = std::regex_replace(s, std::wregex(L"\\?"), L".?");
 	
@@ -959,7 +1028,7 @@ long libop::MatchPicName(const wchar_t* pic_name, std::wstring& retstr) {
 		if (!retstr.empty() && retstr.back() == L'|')
 			retstr.pop_back();
 	}
-
+	return 1;
 }
 
 
@@ -978,7 +1047,7 @@ long  libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBL
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -992,7 +1061,7 @@ long  libop::OcrEx(long x1, long y1, long x2, long y2, const wchar_t* color, DOU
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -1007,7 +1076,7 @@ long  libop::FindStr(long x1, long y1, long x2, long y2, const wchar_t* strs, co
 	*retx = *rety = -1;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -1021,7 +1090,7 @@ long  libop::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t* strs, 
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -1035,7 +1104,7 @@ long  libop::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstrin
 	wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
@@ -1063,7 +1132,7 @@ long  libop::OcrAutoFromFile(const wchar_t* file_name, DOUBLE sim, std::wstring&
 long libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, wstring& retstr) {
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2)) {
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src)) {
-			setlog("error equestCapture");
+			setlog("error requestCapture");
 			return S_OK;
 		}
 		_image_proc->set_offset(x1, y1);
