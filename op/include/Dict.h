@@ -12,12 +12,7 @@
 
 //#define GET_BIT(x, idx) (((x )>> (idx)) & 1u)
 const int op_dict_version = 2;
-struct rect_t {
-	int x1, y1;
-	int x2, y2;
-	int width() const { return x2 - x1; }
-	int height() const { return y2 - y1; }
-};
+
 
 /*
 µÚ 0 ´ú×Ö¿â

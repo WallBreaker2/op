@@ -41,18 +41,7 @@ int inline sum(uchar* begin, uchar* end) {
 	return s;
 }
 
-struct point_t {
-	int x, y;
-	bool operator<(const point_t&rhs) const {
-		if (std::abs(y - rhs.y) < 9)
-			return x < rhs.x;
-		else
-			return y < rhs.y;
-	}
-	bool operator==(const point_t&rhs) const {
-		return x == rhs.x&&y == rhs.y;
-	}
-};
+
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -94,7 +83,7 @@ public:
 
 	long FindPic(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
 
-	long FindPicEx(std::vector<Image*>&pics, color_t dfcolor,double sim, wstring& retstr);
+	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
 
 	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
 

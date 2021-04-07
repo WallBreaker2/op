@@ -22,10 +22,13 @@ using bytearray = std::vector<unsigned char>;
 #undef FindWindow
 #undef FindWindowEx
 class OP_API libop{
+	
 public:
 	libop();
 	~libop();
-
+	//复制构造
+	libop(libop const&) = delete;
+	libop& operator=(libop const rhs) = delete;
 private:
 	//一些共用变量
 
@@ -72,6 +75,8 @@ public:
 	//---------------------algorithm-------------------------------
 	//A星算法
 	long AStarFindPath(long mapWidth,long mapHeight,const wchar_t* disable_points,long beginX,long beginY, long endX,long endY,std::wstring& path);
+	//
+	long FindNearestPos(const wchar_t* all_pos, long type, long x, long y, std::wstring& retstr);
 	//--------------------windows api------------------------------
 	//根据指定条件,枚举系统中符合条件的窗口
 	long EnumWindow(long parent, const wchar_t* title, const wchar_t* class_name, long filter, std::wstring& retstr);
@@ -220,6 +225,9 @@ public:
 	long FindPic(long x1,long y1,long x2,long y2,const wchar_t* files, const wchar_t* delta_color,double sim,long dir,long* x,long* y,long* ret);
 	//查找多个图片
 	long FindPicEx(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, double sim, long dir,std::wstring& retstr);
+	//
+	//这个函数可以查找多个图片, 并且返回所有找到的图像的坐标.此函数同FindPicEx.只是返回值不同.(file1,x,y|file2,x,y|...)
+	long FindPicExS(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, double sim, long dir, std::wstring& retstr);
 	//获取(x,y)的颜色
 	long GetColor(long x, long y, std::wstring& ret);
 	//
@@ -263,7 +271,7 @@ public:
 	long WriteData(long hwnd, const wchar_t* address, const wchar_t* data, long size, long* ret);
 	//读取数据
 	long ReadData(long hwnd, const wchar_t* address, long size, std::wstring& retstr);
-
+		
 };
 
 

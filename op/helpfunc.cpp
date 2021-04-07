@@ -178,3 +178,14 @@ void replacew(wstring& str, const wstring&oldval, const wstring& newval) {
 	}
 }
 
+std::ostream& operator<<(std::ostream& o, point_t const& rhs) {
+	o << rhs.x << "," << rhs.y;
+	return o;
+}
+
+std::wostream& operator<<(std::wostream& o, point_t const& rhs) {
+	o << rhs.x << L"," << rhs.y;
+	return o;
+}
+
+
