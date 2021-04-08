@@ -91,7 +91,7 @@ long ImageProc::FindMultiColorEx(const wstring& first_color, const wstring& offs
 	}
 	return ImageBase::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
 }
-//Í¼ĞÎ¶¨Î»
+//å›¾å½¢å®šä½
 long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, double sim, long dir, long& x, long& y) {
 	vector<Image*>vpic;
 	//vector<color_t> vcolor;
@@ -102,7 +102,7 @@ long ImageProc::FindPic(const std::wstring& files, const wstring& delta_colors, 
 	//str2colors(delta_colors, vcolor);
 	sim = 0.5 + sim / 2;
 	long ret = ImageBase::FindPic(vpic, dfcolor, sim, x, y);
-	//ÇåÀí»º´æ
+	//æ¸…ç†ç¼“å­˜
 	if (!_enable_cache)
 		_pic_cache.clear();
 	return ret;
@@ -129,9 +129,11 @@ long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors
 			ss << vpic_name[it.id] << L"," << it.pos << L"|";
 		}
 	}
-	//ÇåÀí»º´æ
+	//æ¸…ç†ç¼“å­˜
 	if (!_enable_cache)
 		_pic_cache.clear();
+	retstr = ss.str();
+	if(vpd.size()>=2)retstr.pop_back();
 	return ret;
 }
 
@@ -227,10 +229,10 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 	split(files, vstr, L"|");
 	wstring tp;
 	for (auto& it : vstr) {
-		//Â·¾¶×ª»¯
+		//è·¯å¾„è½¬åŒ–
 		if (!Path2GlobalPath(it, _curr_path, tp))
 			continue;
-		//ÏÈÔÚ»º´æÖĞ²éÕÒ
+		//å…ˆåœ¨ç¼“å­˜ä¸­æŸ¥æ‰¾
 		if (_pic_cache.count(tp)) {
 			pm = &_pic_cache[tp];
 		}
