@@ -46,6 +46,7 @@ constexpr int RDT_GL_DEFAULT = MAKE_RENDER(OPENGL, 0);
 constexpr int RDT_GL_STD = MAKE_RENDER(OPENGL, 1);
 constexpr int RDT_GL_NOX = MAKE_RENDER(OPENGL, 2);
 constexpr int RDT_GL_ES = MAKE_RENDER(OPENGL, 3);
+constexpr int RDT_GL_FI = MAKE_RENDER(OPENGL, 4);//glFinish
 
 enum INPUT_TYPE {
 	IN_NORMAL = 0,
@@ -74,11 +75,11 @@ constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 #define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
 
 #define OP_VERSION MAKE_OP_VERSION(0,3,9,0)
-//模块句柄
+//妯″潡鍙ユ焺
 extern HINSTANCE gInstance;
-//是否显示错误信息
+//鏄惁鏄剧ず閿欒淇℃伅
 extern int gShowError;
-//op 路径
+//op 璺緞
 //extern wstring m_opPath;
 
 extern wstring g_op_name;
