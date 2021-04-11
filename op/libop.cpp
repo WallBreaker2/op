@@ -515,7 +515,7 @@ long  libop::SetWindowText(long hwnd, const wchar_t* title, long* nret)
 {
 	// TODO: 在此添加实现代码  
 	//*nret=gWindowObj.TSSetWindowState(hwnd,flag);
-	*nret = ::SetWindowText((HWND)hwnd, title);
+	*nret = ::SetWindowTextW((HWND)hwnd, title);
 	return S_OK;
 }
 

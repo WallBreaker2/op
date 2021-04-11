@@ -29,7 +29,7 @@ public:
 	virtual long UnBindWindow();
 	virtual long GetBindWindow();
 	virtual long IsBind();
-	virtual long GetCursorPos(int& x, int& y);
+	//virtual long GetCursorPos(int& x, int& y);
 	
 	long GetDisplay();
 	/*byte* GetScreenData();*/

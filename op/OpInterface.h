@@ -6,6 +6,7 @@
 
 #undef FindWindow
 #undef FindWindowEx
+#undef SetWindowText
 #include "op_i.h"
 //#include "optype.h"
 //#include "WinApi.h"

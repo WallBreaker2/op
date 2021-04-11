@@ -2,6 +2,7 @@
 #ifndef __HELPFUCN_H_
 #define __HELPFUNC_H_
 #include "optype.h"
+#include "frameInfo.h"
 std::wstring _s2wstring(const std::string&s);
 std::string _ws2string(const std::wstring&s);
 //将路径转化为全局路径
@@ -80,6 +81,9 @@ int kmp(const T& s, const T& t) {
 
 std::ostream& operator<<(std::ostream& o, point_t const& rhs);
 std::wostream& operator<<(std::wostream& o, point_t const& rhs);
+
+std::ostream& operator<<(std::ostream& o, FrameInfo const& rhs);
+std::wostream& operator<<(std::wostream& o, FrameInfo const& rhs);
 
 #endif // !__TOOL_H_
 

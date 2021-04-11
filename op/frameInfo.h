@@ -12,6 +12,7 @@ struct FrameInfo {
 	void fmtChk() {
 		chk = (hwnd >> 32) ^ (hwnd & 0xffffffffull) ^ frameId ^ time ^ width ^ height;
 	}
+	
 };
 #pragma pack()
 #endif // !__FRAME_INFO_H_

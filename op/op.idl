@@ -127,6 +127,7 @@ interface IOpInterface : IDispatch
 	[id(155)] HRESULT FindMultiColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* ret);
 	[id(156)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(157)] HRESULT FindPicEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	//new
 	[id(158)] HRESULT FindPicExS([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
 	[id(159)] HRESULT FindColorBlock([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(160)] HRESULT FindColorBlockEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out, retval] BSTR* retstr);

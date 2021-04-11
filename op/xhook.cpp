@@ -97,31 +97,78 @@ int xhook::release() {
 	return 1;
 }
 
-static void CopyImageData(char* dst_, const char* src_, int rows_, int cols_, int fmt_) {
-	if (fmt_ == IBF_B8G8R8A8) {
-		::memcpy(dst_, src_, rows_*cols_ * 4);
-	}
-	else if (fmt_ == IBF_R8G8B8A8) {
-		//pixels count
-		int n = rows_ * cols_;
-		for (int i = 0; i < n; ++i) {
-			dst_[0] = src_[2];
-			dst_[1] = src_[1];
-			dst_[2] = src_[0];
-			dst_[3] = src_[3];
-			dst_ += 4; src_ += 4;
+static void CopyImageData(char*  dst_, const char* src_, int rows_, int cols_,int rowPitch, int fmt_) {
+	assert(rowsPitch >= cols_ * 4);
+	if (rowPitch == cols_ * (fmt_ == IBF_R8G8B8 ? 3 : 4)) {
+		if (fmt_ == IBF_B8G8R8A8) {
+			::memcpy(dst_, src_, rows_ * cols_ * 4);
+		}
+		else if (fmt_ == IBF_R8G8B8A8) {
+			//pixels count
+			int n = rows_ * cols_;
+			
+			for (int i = 0; i < n; ++i) {
+				dst_[0] = src_[2];//b
+				dst_[1] = src_[1];//g
+				dst_[2] = src_[0];//r
+				dst_[3] = src_[3];//a
+				dst_ += 4; src_ += 4;
+			}
+		}
+		else {
+			//pixels count
+			int n = rows_ * cols_;
+			for (int i = 0; i < n; ++i) {
+				*dst_++ = *src_++;
+				*dst_++ = *src_++;
+				*dst_++ = *src_++;
+				*dst_++ = (char)0xff;//dst is 4 B
+			}
 		}
 	}
 	else {
-		//pixels count
-		int n = rows_ * cols_;
-		for (int i = 0; i < n; ++i) {
-			*dst_++ = *src_++;
-			*dst_++ = *src_++;
-			*dst_++ = *src_++;
-			dst_++;//dst is 4 B
+		const int dstPitch = cols_ * 4;
+		if (fmt_ == IBF_B8G8R8A8) {
+			for (int i = 0; i < rows_; ++i) {
+				::memcpy(dst_, src_, dstPitch);
+				dst_ += dstPitch;
+				src_ += rowPitch;
+			}
+			
+		}
+		else if (fmt_ == IBF_R8G8B8A8) {
+			//pixels count
+			
+			for (int i = 0; i < rows_; ++i) {
+				for (int j = 0; j < cols_; ++j) {
+					const char* p = src_ + j * 4;//offset 
+					dst_[0] = p[2];//b
+					dst_[1] = p[1];//g
+					dst_[2] = p[0];//r
+					dst_[3] = p[3];//a
+					dst_ += 4;//notirc that dst ptr is increasing
+				}
+				src_ += rowPitch;//row increase
+				
+			}
+			
+		}
+		else {
+			for (int i = 0; i < rows_; ++i) {
+				for (int j = 0; j < cols_; ++j) {
+					const char* p = src_ + j * 3;//offset 
+					dst_[0] = p[0];//b
+					dst_[1] = p[1];//g
+					dst_[2] = p[2];//r
+					dst_[3] = (char)0xff;//a
+					dst_ += 4;//notirc that dst ptr is increasing
+				}
+				src_ += rowPitch;//row increase
+
+			}
 		}
 	}
+	
 }
 
 static DXGI_FORMAT GetDxgiFormat(DXGI_FORMAT format) {
@@ -288,7 +335,7 @@ void dx10_capture(IDXGISwapChain* pswapchain) {
 		//memcpy(mem.data<char>(), mapText.pData, textDesc.Width*textDesc.Height * 4);
 		uchar* pshare = mem.data<byte>();
 		formatFrameInfo(pshare,xhook::render_hwnd, textDesc.Width, textDesc.Height);
-		CopyImageData((char*)pshare+ sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
+		CopyImageData((char*)pshare+ sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, mapText.RowPitch, fmt);
 		mutex.unlock();
 	}
 	else {
@@ -362,7 +409,9 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	textDesc.ArraySize = 1;
 	textDesc.SampleDesc.Count = 1;
 	textDesc.Usage = D3D11_USAGE_STAGING;
+	textDesc.BindFlags = 0;
 	textDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	textDesc.MiscFlags = 0;
 	hr = device->CreateTexture2D(&textDesc, nullptr, &textDst);
 	if (hr < 0) {
 		setlog("device->CreateTexture2D,error code=%d", hr);
@@ -388,6 +437,7 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 		is_capture = 0;
 		return;
 	}
+	//DXGI_FORMAT_R8G8B8A8_UNORM4
 	int fmt = IBF_R8G8B8A8;
 	if (textDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM ||
 		textDesc.Format == DXGI_FORMAT_B8G8R8X8_UNORM ||
@@ -398,14 +448,23 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	{
 		fmt = IBF_B8G8R8A8;
 	}
+
 	sharedmem mem;
 	promutex mutex;
+	static int cnt = 10;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,xhook::render_hwnd, textDesc.Width, textDesc.Height), sizeof(FrameInfo);
+		formatFrameInfo(pshare, xhook::render_hwnd, textDesc.Width, textDesc.Height);
 		//CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
-		CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, fmt);
+		static_assert(sizeof(FrameInfo) == 28);
+		/*if(--cnt>=0)
+		setlog("%08X %08X %08X  %08X",
+			((uint*)mapSubres.pData)[0],
+			((uint*)mapSubres.pData)[1],
+			((uint*)mapSubres.pData)[2],
+			((uint*)mapSubres.pData)[3]);*/
+		CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, mapSubres.RowPitch, fmt);
 		mutex.unlock();
 	}
 	else {
@@ -415,6 +474,19 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 #endif // DEBUG_HOOK
 
 	}
+	static bool first = true;
+	if (first) {
+		int tf = textDesc.Format;
+
+		setlog("textDesc.Format= %d,fmt=%d textDesc.Height=%d\n textDesc.Width=%d\n  mapSubres.DepthPitch=%d\n mapSubres.RowPitch=%d\n",
+			tf, fmt,
+			textDesc.Height,
+			textDesc.Width,
+			mapSubres.DepthPitch,
+			mapSubres.RowPitch
+		);
+		first = false;
+	}
 	context->Unmap(textDst, 0);
 	SAFE_RELEASE(backbufferptr);
 	SAFE_RELEASE(backbuffer);
@@ -423,6 +495,7 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	SAFE_RELEASE(context);
 	//if (pblob)pblob->Release();
 }
+
 //hooked present
 HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags) {
 	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
@@ -567,6 +640,7 @@ void __stdcall gl_hkglFinish(void) {
 bool is_hooked = false;
 //--------------export function--------------------------
 long SetXHook(HWND hwnd_, int render_type_) {
+	gShowError = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
 	if (is_hooked) {
 		is_capture = 1;
 		return 2;

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include "globalVar.h"
-#define USE_BOOST_STACK_TRACE
+//#define USE_BOOST_STACK_TRACE
 #ifdef USE_BOOST_STACK_TRACE
 #include <boost/stacktrace.hpp>
 #endif
@@ -75,7 +75,7 @@ long setlog(const char* format, ...) {
 	va_start(args, format);
 	vsprintf(buf, format, args);
 	va_end(args);
-	ss << tm << "info: " << buf << std::endl;
+	ss << tm << (OP64 == 1 ? "x64" : "x32") << "info: " << buf << std::endl;
 #ifdef USE_BOOST_STACK_TRACE
 	ss << "<stack>\n"
 		<< boost::stacktrace::stacktrace() << std::endl;
@@ -187,5 +187,23 @@ std::wostream& operator<<(std::wostream& o, point_t const& rhs) {
 	o << rhs.x << L"," << rhs.y;
 	return o;
 }
+
+std::ostream& operator<<(std::ostream& o, FrameInfo const& rhs) {
+	o << "hwnd:" << rhs.hwnd << std::endl
+		<< "frameId:" << rhs.frameId << std::endl
+		<< "time:" << rhs.time << std::endl
+		<< "height" << rhs.height << std::endl
+		<< "width:" << rhs.width << std::endl;
+	return o;
+}
+std::wostream& operator<<(std::wostream& o, FrameInfo const& rhs) {
+	o << L"hwnd:" << rhs.hwnd << std::endl
+		<< L"frameId:" << rhs.frameId << std::endl
+		<< L"time:" << rhs.time << std::endl
+		<< L"height" << rhs.height << std::endl
+		<< L"width:" << rhs.width << std::endl;
+	return o;
+}
+
 
 

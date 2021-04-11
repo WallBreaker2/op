@@ -60,7 +60,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_GL_DEFAULT;
 	else if (sdisplay == L"opengl.std")
 		display = RDT_GL_STD;
-	else if (sdisplay == L"opengl.nox")
+	else if (sdisplay == L"opengl.nox")     
 		display = RDT_GL_NOX;
 	else if (sdisplay == L"opengl.es")
 		display = RDT_GL_ES;
@@ -152,12 +152,12 @@ long bkbase::IsBind() {
 	return _pbkdisplay ? 1 : 0;
 }
 
-long bkbase::GetCursorPos(int& x, int& y) {
-	POINT pt;
-	auto r = ::GetCursorPos(&pt);
-	x = pt.x; y = pt.y;
-	return r;
-}
+//long bkbase::GetCursorPos(int& x, int& y) {
+//	POINT pt;
+//	auto r = ::GetCursorPos(&pt);
+//	x = pt.x; y = pt.y;
+//	return r;
+//}
 
 long bkbase::GetDisplay() {
 	return _display;

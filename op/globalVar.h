@@ -20,6 +20,14 @@ void SAFE_DELETE(Type* &ptr) {
 
 
 #define DLL_API extern "C" _declspec(dllexport)
+
+
+enum CLASS_TYPE {
+	DISPLAY = 0,
+	MOUSE = 1
+
+};
+
 //normal windows,gdi;,dx;opengl;
 enum RENDER_TYPE {
 	NORMAL = 0,
@@ -73,7 +81,7 @@ constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
 #define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0,3,9,0)
+#define OP_VERSION MAKE_OP_VERSION(0,3,9,x)
 //模块句柄
 extern HINSTANCE gInstance;
 //是否显示错误信息
