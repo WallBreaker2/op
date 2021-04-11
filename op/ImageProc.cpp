@@ -255,7 +255,7 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& out_str) {
 	}
 	if (sim < 0. || sim>1.)
 		sim = 1.;
-	long s;
+
 	return ImageBase::OcrEx(_dicts[_curr_idx], sim, out_str);
 }
 
@@ -320,7 +320,7 @@ long ImageProc::OcrFromFile(const wstring& files, const wstring& color, double s
 		}
 		if (sim < 0. || sim>1.)
 			sim = 1.;
-		long s;
+		
 		return ImageBase::Ocr(_dicts[_curr_idx], sim, retstr);
 	}
 	return 0;
@@ -353,7 +353,7 @@ long ImageProc::FindLine(const wstring& color, double sim, wstring& retStr) {
 	}
 	if (sim < 0. || sim>1.)
 		sim = 1.;
-	long s;
+	
 	_src.write(L"_src.bmp");
 	_gray.write(L"gray.bmp");
 	_binary.write(L"_binary.bmp");

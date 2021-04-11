@@ -4,6 +4,7 @@
 #include "helpfunc.h"
 #include <fstream>
 #include "./include/Image.hpp"
+
 bkgdi::bkgdi()
 {
 	_render_type = 0;

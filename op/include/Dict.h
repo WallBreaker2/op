@@ -55,7 +55,7 @@ struct word_t {
 	//从 dm 字库中 的一个点阵转化为op的点阵
 	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
 		int bin[50] = { 0 };
-		
+		constexpr int DM_DICT_HEIGTH = 11;
 		ct = min(ct, 88);
 		int i = 0;
 		auto hex2bin = [](wchar_t c) {
@@ -66,7 +66,8 @@ struct word_t {
 			bin[i / 2] = (hex2bin(str[i]) << 4) | (hex2bin(str[i+1]));
 			i += 2;
 		}
-		int cols = (ct * 4) / 11;
+		//
+		int cols = (ct * 4) / DM_DICT_HEIGTH;
 		memset(this, 0x0, sizeof(*this));
 		for (int j = 0; j < cols; ++j) {
 			for (int i = 0; i < 11; ++i) {
@@ -78,7 +79,7 @@ struct word_t {
 					
 			}
 		}
-		info.height = 11;
+		info.height = DM_DICT_HEIGTH;
 		info.width = cols;
 		set_chars(w);
 	}
@@ -98,7 +99,7 @@ struct word1_t {
 	bool operator==(const word1_t& rhs){
 		if (info.w!=rhs.info.w|| info.h != rhs.info.h||info.bit_cnt!=rhs.info.bit_cnt)
 			return false;
-		for (int i=0;i<data.size();i++)
+		for (size_t i=0;i<data.size();i++)
 			if (data[i] != rhs.data[i])
 				return false;
 		return true;
@@ -109,7 +110,7 @@ struct word1_t {
 		info.name[nlen] = L'\0';
 	}
 	void from_word(word_t& wd) {
-		info.w = wd.info.width;
+		info.w = (uint8_t)wd.info.width;
 		info.h = wd.info.height;
 		init();
 		info.bit_cnt = wd.info.bit_count;
@@ -168,7 +169,7 @@ struct Dict {
 			words.resize(info._word_count);
 			info._this_ver = 1;
 			word_t tmp;
-			for (int i = 0; i < words.size(); i++) {
+			for (size_t i = 0; i < words.size(); i++) {
 				file.read((char*)&tmp, sizeof(tmp));
 				words[i].from_word(tmp);
 			}
@@ -178,7 +179,7 @@ struct Dict {
 			//new dict format
 			words.resize(info._word_count);
 			word1_info head;
-			for (int i = 0; i < words.size(); i++) {
+			for (size_t i = 0; i < words.size(); i++) {
 				file.read((char*)&head, sizeof(head));
 			
 				words[i].info = head;

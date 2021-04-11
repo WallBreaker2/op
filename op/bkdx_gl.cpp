@@ -11,8 +11,8 @@
 #include "./include/Image.hpp"
 
 #include "globalVar.h"
-
-bkdo::bkdo():IDisplay()
+#include <sstream>
+bkdo::bkdo() :IDisplay()
 {
 	m_opPath.resize(512);
 	DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
@@ -34,7 +34,8 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 	long bind_ret = 0;
 	if (render_type == RDT_GL_NOX) {
 		bind_ret = BindNox(hwnd, render_type);
-	}else{
+	}
+	else {
 		_render_type = render_type;
 		RECT rc;
 		//获取客户区大小
@@ -102,7 +103,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 		}
 		proc.Detach();
 	}
-	
+
 	if (bind_ret == -1) {
 		setlog("UnknownError");
 	}
@@ -121,7 +122,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 //}
 
 long bkdo::UnBindEx() {
-    //setlog("bkdo::UnBindEx()");
+	//setlog("bkdo::UnBindEx()");
 	if (_render_type == RDT_GL_NOX)
 		return UnBindNox();
 	DWORD id;
@@ -272,15 +273,25 @@ long bkdo::UnBindNox() {
 bool bkdo::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	img.create(w, h);
 	_pmutex->lock();
-	uchar* ppixels = _shmem->data<byte>()+sizeof(FrameInfo);
+	uchar* const ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
+	FrameInfo* pInfo = (FrameInfo*)_shmem->data<byte>();
+	static bool first = true;
+	if (first&&(pInfo->width != _width || pInfo->height != _height)) {
+		first = false;
+		std::wstringstream ss(std::wstringstream::in | std::wstringstream::out);
+		ss << (*pInfo);
+		setlog(L"error pInfo->width != _width || pInfo->height != _height\nframe info:\n%s", ss.str().data());
+	
+	}
+
+
 	if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) {//NORMAL
-		//setlog("cap1");
+
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), ppixels + (i + y1) * 4 * _width + x1 * 4, 4 * w);
 		}
 	}
 	else {
-		//setlog("cap2");
 
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), ppixels + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
