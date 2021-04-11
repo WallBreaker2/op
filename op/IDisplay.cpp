@@ -3,13 +3,10 @@
 #include "globalVar.h"
 #include "helpfunc.h"
 IDisplay::IDisplay()
+	:_hwnd(NULL), _shmem(nullptr), _pmutex(nullptr),
+	_bind_state(0), _width(0), _height(0),
+	_client_x(0), _client_y(0)
 {
-	_hwnd = NULL;
-	_shmem = nullptr;
-	_pmutex = nullptr;
-	_bind_state = 0;
-	_width = _height = 0;
-	_client_x = _client_y = 0;
 
 }
 

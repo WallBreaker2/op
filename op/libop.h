@@ -21,6 +21,7 @@ using bytearray = std::vector<unsigned char>;
 // libop
 #undef FindWindow
 #undef FindWindowEx
+#undef SetWindowText
 class OP_API libop{
 	
 public:
