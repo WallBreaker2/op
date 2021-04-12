@@ -13,6 +13,7 @@ struct Image
 		
 		create(w, h);
 	}
+	//copy ctr
 	Image(const Image& rhs) :pdata(nullptr) {
 		
 		if (rhs.empty()) {
@@ -27,6 +28,7 @@ struct Image
 	~Image() {
 		release();
 	}
+	
 	void create(int w, int h) {
 		width = w, height = h;
 		if (!pdata) {
@@ -176,7 +178,6 @@ struct Image
 			std::fill(p,p + w,val);
 		}
 	}
-
 	int width, height;
 	unsigned char* pdata;
 };
