@@ -54,6 +54,23 @@ void gen_next(const Image& img, vector<int>& next) {
 }
 
 
+void Connectivity(const ImageBin& bin, ImageBin& rec) {
+
+}
+
+void extractConnectivity(const ImageBin& src, int threshold, std::vector<ImageBin>& out) {
+	ImageBin bin = src;
+	for (auto& it : bin) {
+		it = it > threshold ? 0xffu : 0;
+	}
+	ImageBin rec;
+	rec.create(bin.width, bin.height);
+	for (auto& it : rec) {
+		it = 0;
+	}
+
+}
+
 ImageBase::ImageBase()
 {
 	_x1 = _y1 = 0;

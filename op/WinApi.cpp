@@ -3312,7 +3312,7 @@ long WinApi::SendString(HWND hwnd, const wstring& s) {
 	if (::IsWindow(hwnd)) {
 		auto p = s.data();
 		for (int i = 0; i < s.length(); ++i) {
-			::PostMessage(hwnd, WM_CHAR, p[i], 0);
+			::PostMessageW(hwnd, WM_CHAR, p[i], 0);
 			::Sleep(5);
 		}
 		return 1;

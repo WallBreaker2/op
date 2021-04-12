@@ -41,6 +41,8 @@ int inline sum(uchar* begin, uchar* end) {
 	return s;
 }
 
+void extractConnectivity(const ImageBin& src, int threshold, std::vector<ImageBin>& out);
+
 
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等

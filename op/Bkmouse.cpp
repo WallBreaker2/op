@@ -24,10 +24,14 @@ long bkmouse::UnBind() {
 }
 
 long bkmouse::GetCursorPos(long& x, long& y) {
+	BOOL ret = FALSE;
 	POINT pt;
-	::GetCursorPos(&pt);
+	ret=::GetCursorPos(&pt);
+	if (_hwnd != ::GetDesktopWindow()) {
+		ret = ::ScreenToClient(_hwnd, &pt);
+	}
 	x = pt.x; y = pt.y;
-	return 1;
+	return ret;
 }
 
 long bkmouse::MoveR(int rx, int ry) {
