@@ -233,6 +233,49 @@ void ImageProc::str2colors(const wstring& color, std::vector<color_t>& vcolor) {
 	}
 }
 
+long ImageProc::LoadPic(const wstring& files) {
+	//std::vector<wstring>vstr, vstr2;
+	std::vector<wstring> vstr;
+	int loaded = 0;
+	split(files, vstr, L"|");
+	wstring tp;
+	for (auto& it : vstr) {
+		//路径转化
+		if (!Path2GlobalPath(it, _curr_path, tp))
+			continue;
+		//先在缓存中查找
+		if ( !_pic_cache.count(tp)) {
+			_pic_cache[tp].read(tp.data());
+		}
+		//已存在于缓存中的文件也算加载成功
+		loaded++;
+	}
+	return loaded;
+}
+
+long ImageProc::FreePic(const wstring& files) {
+	std::vector<wstring> vstr;
+	int loaded = 0;
+	split(files, vstr, L"|");
+	wstring tp;
+	for (auto& it : vstr) {
+		//看当前目录
+		auto cache_it = _pic_cache.find( it );
+		//没查到再看一下资源目录
+		if (cache_it == _pic_cache.end()) {
+			cache_it = _pic_cache.find(_curr_path + L"\\" + it);
+		}
+		//查到了就释放
+		if (cache_it != _pic_cache.end()) {
+			cache_it->second.release();
+			_pic_cache.erase(cache_it);
+			loaded++;
+		}
+	}
+	return loaded;
+}
+
+
 void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
 	//std::vector<wstring>vstr, vstr2;
 	Image* pm;
