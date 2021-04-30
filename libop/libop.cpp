@@ -903,12 +903,12 @@ long libop::SetDisplayInput(const wchar_t* mode, long* ret) {
 }
 
 long libop::LoadPic(const wchar_t* file_name, long* ret) {
-	*ret = 0;
+	*ret  = _image_proc->LoadPic(file_name);
 	return 0;
 }
 
 long libop::FreePic(const wchar_t* file_name, long* ret) {
-	*ret = 0;
+	*ret  = _image_proc->FreePic(file_name);
 	return 0;
 }
 
