@@ -34,6 +34,7 @@ static uint64_t* g_methodsTable = NULL;
 static uint32_t* g_methodsTable = NULL;
 #endif
 
+
 HMODULE GetSystemModule(const char* module) {
 	static std::string systemPath;
 	if (systemPath.empty()) {
