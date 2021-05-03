@@ -18,7 +18,7 @@ set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 project ("op")
 
 # 包含子项目。
-add_subdirectory ("op")
+add_subdirectory ("libop")
 
 
 
