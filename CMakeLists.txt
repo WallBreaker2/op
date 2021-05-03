@@ -14,10 +14,12 @@ SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 SET(PROJECT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 #FIND_PACKAGE(Opencv REQUIRED)
-
+set(UNICODE)
 project ("op")
 
 # 包含子项目。
 add_subdirectory ("op")
+
+
 
 # add_subdirectory ("example")

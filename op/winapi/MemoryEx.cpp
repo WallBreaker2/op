@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "MemoryEx.h"
-#include "helpfunc.h"
+#include "./core/helpfunc.h"
 #define push(s,x)s.push_back(x)
 #define pop(s) s.back();s.pop_back()
 
@@ -48,13 +48,13 @@ int stringcompute(const wchar_t* s) {
 				push(ns, x); num.clear();
 			}
 
-			if (ns.empty())/*Êý×ÖÕ»¿Õ,Ö±½ÓÑ¹ÈëÊý¾Ý*/ {
+			if (ns.empty())/*ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½,Ö±ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/ {
 				push(os, *s);
 				s++;
 			}
 			else if (!os.empty()) {
 				op = os.back();
-				if (*s == 0 || get_op_prior(op) >= get_op_prior(*s))/*½øÐÐÔËËã*/ {
+				if (*s == 0 || get_op_prior(op) >= get_op_prior(*s))/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/ {
 					int num2 = pop(ns);
 					int num1 = pop(ns);
 					op = pop(os);
@@ -62,7 +62,7 @@ int stringcompute(const wchar_t* s) {
 					push(ns, ans);
 					//push(os, c);
 				}
-				else {/*½«ÔËËãÑ¹ÈëÕ»ÖÐ*/
+				else {/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½Õ»ï¿½ï¿½*/
 					push(os, *s);
 					s++;
 				}

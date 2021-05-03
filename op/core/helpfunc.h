@@ -2,10 +2,10 @@
 #ifndef __HELPFUCN_H_
 #define __HELPFUNC_H_
 #include "optype.h"
-#include "frameInfo.h"
+#include "./background/frameInfo.h"
 std::wstring _s2wstring(const std::string&s);
 std::string _ws2string(const std::wstring&s);
-//将路径转化为全局路径
+//锟斤拷路锟斤拷转锟斤拷为全锟斤拷路锟斤拷
 long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out);
 
 void split(const std::wstring& s, std::vector<std::wstring>& v, const std::wstring& c);

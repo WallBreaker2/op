@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ImageProc.h"
-#include "helpfunc.h"
+#include "./core/helpfunc.h"
 #include <fstream>
 #include <bitset>
 #include <algorithm>

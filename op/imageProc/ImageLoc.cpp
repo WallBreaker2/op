@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "ImageLoc.h"
-#include "helpfunc.h"
+#include "./core/helpfunc.h"
 #include <time.h>
 #include <numeric>
 #include <assert.h>
@@ -679,14 +679,16 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 	if (_src.empty())
 		return;
 	int ncols = _src.width, nrows = _src.height;
-	_binary.create(ncols, nrows);
+	_binary.fromImage4(_src);
 	for (int i = 0; i < nrows; ++i) {
 		auto psrc = _src.ptr<color_t>(i);
+		
 		auto pbin = _binary.ptr(i);
 		for (int j = 0; j < ncols; ++j) {
+			uchar g1 =psrc->toGray();
 			*pbin = WORD_BKCOLOR;
 			for (auto& it : colors) {//对每个颜色描述
-				if (IN_RANGE(*psrc, it.color, it.df)) {
+				if (abs(g1 - it.color.toGray()) <= it.df.toGray()) {
 					*pbin = WORD_COLOR;
 					break;
 				}
@@ -694,6 +696,21 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 			++pbin; ++psrc;
 		}
 	}
+	//_binary.create(ncols, nrows);
+	//for (int i = 0; i < nrows; ++i) {
+	//	auto psrc = _src.ptr<color_t>(i);
+	//	auto pbin = _binary.ptr(i);
+	//	for (int j = 0; j < ncols; ++j) {
+	//		*pbin = WORD_BKCOLOR;
+	//		for (auto& it : colors) {//对每个颜色描述
+	//			if (IN_RANGE(*psrc, it.color, it.df)) {
+	//				*pbin = WORD_COLOR;
+	//				break;
+	//			}
+	//		}
+	//		++pbin; ++psrc;
+	//	}
+	//}
 	//test
 	//cv::imwrite("src.png", _src);
 	//cv::imwrite("binary.png", _binary);

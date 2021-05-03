@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "IDisplay.h"
-#include "globalVar.h"
-#include "helpfunc.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 IDisplay::IDisplay()
 	:_hwnd(NULL), _shmem(nullptr), _pmutex(nullptr),
 	_bind_state(0), _width(0), _height(0),
@@ -23,9 +23,9 @@ long IDisplay::Bind(HWND hwnd, long flag) {
 		return 0;
 	}
 	_hwnd = hwnd;
-	//step 2. ×¼±¸×ÊÔ´
+	//step 2. ×¼ï¿½ï¿½ï¿½ï¿½Ô´
 	bind_init();
-	//step 3. µ÷ÓÃÌØ¶¨µÄ°ó¶¨º¯Êý
+	//step 3. ï¿½ï¿½ï¿½ï¿½ï¿½Ø¶ï¿½ï¿½Ä°ó¶¨ºï¿½ï¿½ï¿½
 
 	if (BindEx(hwnd, flag) == 1) {
 		_bind_state = 1;

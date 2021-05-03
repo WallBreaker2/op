@@ -56,7 +56,7 @@ public:
 	}
 	template<typename T>
 	T& at(int idx_) {
-		assert(_hmap&&_paddress);
+		//assert(_hmap&&_paddress);
 		return (T)_paddress[idx_];
 	}
 	template<typename T>

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef __DX9HOOK_H_
 #define __DX9HOOK_H_
-#include "globalVar.h"
+#include "./core/globalVar.h"
 
 
 namespace xhook {
@@ -19,16 +19,16 @@ namespace xhook {
 
 
 };
-//ртоб╨╞йЩсцсзHOOK DX9
+//О©╫О©╫О©╫б╨О©╫О©╫О©╫О©╫О©╫О©╫О©╫HOOK DX9
 
-//╢к╨╞йЩвЖртоб╧╓вВ
+//О©╫к╨О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫б╧О©╫О©╫О©╫
 /*
-1.hookоЮ╧ь╨╞йЩ
-2.иХжц╧╡оМдз╢Ф,╩╔ЁБа©
-3.╫ьм╪(hook)жа╧╡оМдз╢Ф
+1.hookО©╫О©╫ь╨О©╫О©╫О©╫
+2.О©╫О©╫О©╫ц╧О©╫О©╫О©╫О©╫з╢О©╫,О©╫О©╫О©╫О©╫О©╫О©╫
+3.О©╫О©╫м╪(hook)О©╫О©╫О©╫О©╫О©╫О©╫О©╫з╢О©╫
 */
 
-//╥╣╩ьж╣:1 Ёи╧╕ё╛0й╖╟э
+//О©╫О©╫О©╫О©╫ж╣:1 О©╫и╧О©╫О©╫О©╫0й╖О©╫О©╫
 DLL_API long SetXHook(HWND hwnd_,int render_type_);
 
 DLL_API long UnXHook();

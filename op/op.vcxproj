@@ -257,12 +257,17 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Bkbase.cpp" />
-    <ClCompile Include="IDisplay.cpp" />
+    <ClCompile Include="background\Bkbase.cpp" />
+    <ClCompile Include="background\bkdx_gl.cpp" />
+    <ClCompile Include="background\Bkgdi.cpp" />
+    <ClCompile Include="background\Bkkeypad.cpp" />
+    <ClCompile Include="background\Bkmouse.cpp" />
+    <ClCompile Include="background\IDisplay.cpp" />
+    <ClCompile Include="background\winkeypad.cpp" />
+    <ClCompile Include="background\xhook.cpp" />
     <ClCompile Include="Bkgdi.cpp" />
     <ClCompile Include="Bkkeypad.cpp" />
     <ClCompile Include="Bkmouse.cpp" />
-    <ClCompile Include="globalVar.cpp" />
     <ClCompile Include="compreg.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -278,66 +283,47 @@ copy $(SolutionDir)op\libop.h $(SolutionDir)include\libop.h /y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="bkdx_gl.cpp" />
-    <ClCompile Include="libop.cpp" />
-    <ClCompile Include="MemoryEx.cpp" />
     <ClCompile Include="op_i.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="query_api.cpp" />
     <ClCompile Include="winkeypad.cpp" />
-    <ClCompile Include="xhook.cpp" />
-    <ClCompile Include="ImageLoc.cpp" />
-    <ClCompile Include="ImageProc.cpp" />
-    <ClCompile Include="Injecter.cpp" />
     <ClCompile Include="op.cpp" />
     <ClCompile Include="OpInterface.cpp" />
-    <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="helpfunc.cpp" />
-    <ClCompile Include="WinApi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd_party\include\kiero.h" />
-    <ClInclude Include="AStar.hpp" />
-    <ClInclude Include="Bkbase.h" />
-    <ClInclude Include="frameInfo.h" />
-    <ClInclude Include="IDisplay.h" />
+    <ClInclude Include="algorithm\AStar.hpp" />
+    <ClInclude Include="background\Bkbase.h" />
+    <ClInclude Include="background\bkdx_gl.h" />
+    <ClInclude Include="background\Bkgdi.h" />
+    <ClInclude Include="background\Bkkeypad.h" />
+    <ClInclude Include="background\Bkmouse.h" />
+    <ClInclude Include="background\frameInfo.h" />
+    <ClInclude Include="background\IDisplay.h" />
+    <ClInclude Include="background\winkeypad.h" />
+    <ClInclude Include="background\xhook.h" />
     <ClInclude Include="Bkgdi.h" />
     <ClInclude Include="Bkkeypad.h" />
     <ClInclude Include="Bkmouse.h" />
-    <ClInclude Include="Cmder.h" />
     <ClInclude Include="compreg.h" />
     <ClInclude Include="dllmain.h" />
-    <ClInclude Include="bkdx_gl.h" />
     <ClInclude Include="include\bitfunc.h" />
     <ClInclude Include="include\color.h" />
     <ClInclude Include="include\Dict.h" />
-    <ClInclude Include="libop.h" />
-    <ClInclude Include="MemoryEx.h" />
     <ClInclude Include="op_i.h" />
-    <ClInclude Include="query_api.h" />
-    <ClInclude Include="optype.h" />
     <ClInclude Include="winkeypad.h" />
-    <ClInclude Include="xhook.h" />
-    <ClInclude Include="ImageLoc.h" />
-    <ClInclude Include="ImageProc.h" />
-    <ClInclude Include="Injecter.h" />
     <ClInclude Include="OpInterface.h" />
-    <ClInclude Include="Pipe.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="globalVar.h" />
-    <ClInclude Include="helpfunc.h" />
-    <ClInclude Include="WinApi.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="op.rc" />
