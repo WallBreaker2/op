@@ -98,7 +98,7 @@ int xhook::release() {
 }
 
 static void CopyImageData(char*  dst_, const char* src_, int rows_, int cols_,int rowPitch, int fmt_) {
-	assert(rowsPitch >= cols_ * 4);
+	//assert(rowsPitch >= cols_ * 4);
 	if (rowPitch == cols_ * (fmt_ == IBF_R8G8B8 ? 3 : 4)) {
 		if (fmt_ == IBF_B8G8R8A8) {
 			::memcpy(dst_, src_, rows_ * cols_ * 4);

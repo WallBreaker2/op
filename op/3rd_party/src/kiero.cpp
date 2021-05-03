@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #ifdef KIERO_USE_MINHOOK
-#include "../include/MinHook.h"
+#include "../include/minhook.h"
 #endif
 //#include <MinHook.h>
 // Uncomment a needed graphical library (you can include all)

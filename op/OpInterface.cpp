@@ -2,14 +2,14 @@
 
 #include "stdafx.h"
 #include "OpInterface.h"
-#include "Cmder.h"
-#include "Injecter.h"
-#include "optype.h"
-#include "globalVar.h"
-#include "helpfunc.h"
-#include "AStar.hpp"
+#include "./core/cmder.h"
+#include "./winapi/injecter.h"
+#include "./core/optype.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
+#include "./algorithm/AStar.hpp"
 #include <filesystem>
-#include "MemoryEx.h"
+#include "./winapi/MemoryEx.h"
 // OpInterface
 
 OpInterface::OpInterface() {
