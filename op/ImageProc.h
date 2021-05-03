@@ -58,7 +58,9 @@ public:
 
 	long FindLine(const wstring& color, double sim, wstring& retStr);
 	
-	
+	long LoadPic(const wstring& files);
+
+	long FreePic(const wstring& files);
 private:
 	//×Ö¿â
 	Dict _dicts[_max_dict];
