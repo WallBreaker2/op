@@ -2,7 +2,7 @@
 #ifndef __COLOR_H_
 #define __COLOR_H_
 #include <algorithm>
-#include "../optype.h"
+#include "./core/optype.h"
 #define WORD_BKCOLOR 0
 #define WORD_COLOR 1
 //#include "../Tool.h"
@@ -27,24 +27,7 @@ struct color_t {
 	uchar b, g, r, alpha;
 	color_t() :b(0), g(0), r(0), alpha(0) {}
 	color_t(int b_, int g_, int r_) :b(b_), g(g_), r(r_),alpha(0xffu) {}
-	//color_t(uint c) :b((c >> 24) & 0xff), g((c >> 16) & 0xff), r((c >> 8) & 0xff) {}
-	//absolute val
-	/*color_t operator-(const color_t& rhs) {
-		color_t c;
-		c.b = b - rhs.b;
-		c.g = g - rhs.g;
-		c.r = r - rhs.r;
-		return c;
-	}*/
-	//bool operator<=(const color_t& rhs)const {
-	//	return b <= rhs.b&&g <= rhs.g&&r <= rhs.r;
-	//}
-	//bool operator>(const color_t& rhs)const {
-	//	return b > rhs.b || g > rhs.g || r > rhs.r;
-	//}
-	/*bool operator==(const color_t& rhs)const {
-		return b == rhs.b&&g == rhs.g&&r == rhs.r;
-	}*/
+	
 	color_t& str2color(const std::wstring& s) {
 		int r = 0, g = 0, b = 0;
 		std::wstring ss = s; 
@@ -70,6 +53,9 @@ struct color_t {
 		wchar_t buff[10];
 		wsprintf(buff, L"%02X%02X%02X", r, g, b);
 		return buff;
+	}
+	uchar toGray() {
+		return (r * 299 + g * 587 + b * 114 + 500) / 1000;
 	}
 };
 #pragma pack()

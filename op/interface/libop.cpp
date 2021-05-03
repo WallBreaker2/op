@@ -2,17 +2,17 @@
 
 #include "stdafx.h"
 #include "libop.h"
-#include "optype.h"
-#include "globalVar.h"
-#include "helpfunc.h"
-#include "WinApi.h"
-#include "BKbase.h"
-#include "ImageProc.h"
-#include "Cmder.h"
-#include "Injecter.h"
+#include "./core/optype.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
+#include "./winapi/WinApi.h"
+#include "./background/BKbase.h"
+#include "./ImageProc/ImageProc.h"
+#include "./core/Cmder.h"
+#include "./winapi/Injecter.h"
 
-#include "AStar.hpp"
-#include "MemoryEx.h"
+#include "./algorithm/AStar.hpp"
+#include "./winapi/MemoryEx.h"
 #include<fstream>
 #include <filesystem>
 #include <regex>

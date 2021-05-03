@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Bkgdi.h"
-#include "globalVar.h"
-#include "helpfunc.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 #include <fstream>
 #include "./include/Image.hpp"
 
@@ -61,7 +61,7 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		return 0;
 	}
 
-	//´´½¨Ò»¸öÓëÖ¸¶¨Éè±¸¼æÈÝµÄÄÚ´æÉè±¸ÉÏÏÂÎÄ»·¾³	
+	//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½Ýµï¿½ï¿½Ú´ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½	
 	_hmdc = CreateCompatibleDC(_hdc);
 	if (_hmdc == NULL) {
 		setlog("CreateCompatibleDC false");
@@ -96,36 +96,36 @@ long bkgdi::UnBindEx() {
 
 
 //byte* bkgdi::get_data() {
-//	//Ê×ÏÈ  Ë¢ÐÂÊý¾Ý
+//	//ï¿½ï¿½ï¿½ï¿½  Ë¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //	//updata_screen();
 //
 //	return _shmem->data<byte>();
 //}
 
 //long bkgdi::updata_screen() {
-//	//step 1.ÅÐ¶Ï ´°¿ÚÊÇ·ñ´æÔÚ
+//	//step 1.ï¿½Ð¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 //	if (!::IsWindow(_hwnd))
 //		return 0;
-//	if (_render_type == RDT_NORMAL) {//normal ¿½±´µÄ´óÐ¡ÎªÊµ¼ÊÐèÒªµÄ´óÐ¡
+//	if (_render_type == RDT_NORMAL) {//normal ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½Ð¡ÎªÊµï¿½ï¿½ï¿½ï¿½Òªï¿½Ä´ï¿½Ð¡
 //		//
 //		int w = rect.right - rect.left;
 //		int h = rect.bottom - rect.top;
-//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //´´½¨ÓëÖ¸¶¨µÄÉè±¸»·¾³Ïà¹ØµÄÉè±¸¼æÈÝµÄÎ»Í¼
-//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ÔñÒ»¶ÔÏóµ½Ö¸¶¨µÄÉè±¸ÉÏÏÂÎÄ»·¾³ÖÐ
+//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½è±¸ï¿½ï¿½ï¿½Ýµï¿½Î»Í¼
+//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 //		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 //		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 //		_bfh.bfType = static_cast<WORD>(0x4d42);
 //
-//		_bih.biBitCount = 32;//Ã¿¸öÏñËØ×Ö½Ú´óÐ¡
+//		_bih.biBitCount = 32;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú´ï¿½Ð¡
 //		_bih.biCompression = BI_RGB;
-//		_bih.biHeight = h;//¸ß¶È
+//		_bih.biHeight = h;//ï¿½ß¶ï¿½
 //		_bih.biPlanes = 1;
 //		_bih.biSize = sizeof(BITMAPINFOHEADER);
-//		_bih.biSizeImage = w * h * 4;//Í¼ÏñÊý¾Ý´óÐ¡
-//		_bih.biWidth = w;//¿í¶È
+//		_bih.biSizeImage = w * h * 4;//Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ð¡
+//		_bih.biWidth = w;//ï¿½ï¿½ï¿½ï¿½
 //
-//		//¶ÔÖ¸¶¨µÄÔ´Éè±¸»·¾³ÇøÓòÖÐµÄÏñËØ½øÐÐÎ»¿é£¨bit_block£©×ª»»
+//		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ô´ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½Î»ï¿½é£¨bit_blockï¿½ï¿½×ªï¿½ï¿½
 //
 //		RECT rc;
 //		::GetWindowRect(_hwnd, &rc);
@@ -140,7 +140,7 @@ long bkgdi::UnBindEx() {
 //
 //
 //
-//		//º¯Êý»ñÈ¡Ö¸¶¨¼æÈÝÎ»Í¼µÄÎ»£¬È»ºó½«Æä×÷Ò»¸öDIB¡ªÉè±¸ÎÞ¹ØÎ»Í¼£¨Device-Independent Bitmap£©Ê¹ÓÃµÄÖ¸¶¨¸ñÊ½¸´ÖÆµ½Ò»¸ö»º³åÇøÖÐ
+//		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»Í¼ï¿½ï¿½Î»ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DIBï¿½ï¿½ï¿½è±¸ï¿½Þ¹ï¿½Î»Í¼ï¿½ï¿½Device-Independent Bitmapï¿½ï¿½Ê¹ï¿½Ãµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //		_pmutex->lock();
 //		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 //
@@ -148,29 +148,29 @@ long bkgdi::UnBindEx() {
 //
 //		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 //	}
-//	else {//gdi ... ÓÉÓÚprintwindow º¯ÊýµÄÔ­Òò ½ØÈ¡´óÐ¡ÎªÊµ¼ÊµÄ´°¿Ú´óÐ¡£¬ÔÚºóÐøµÄ´¦ÀíÖÐ£¬ÐèÒª×ª»¯³É¿Í»§Çø´óÐ¡
+//	else {//gdi ... ï¿½ï¿½ï¿½ï¿½printwindow ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ ï¿½ï¿½È¡ï¿½ï¿½Ð¡ÎªÊµï¿½ÊµÄ´ï¿½ï¿½Ú´ï¿½Ð¡ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Òª×ªï¿½ï¿½ï¿½É¿Í»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 //		//
 //		RECT rc;
 //		::GetWindowRect(_hwnd, &rc);
 //		int w = rc.right - rc.left;
 //		int h = rc.bottom - rc.top;
 //		//setlog("_w w=%d %d _h h=%d %d,dx=%d dy=%d", _width, w, _height, h, dx_, dy_);
-//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //´´½¨ÓëÖ¸¶¨µÄÉè±¸»·¾³Ïà¹ØµÄÉè±¸¼æÈÝµÄÎ»Í¼
-//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ÔñÒ»¶ÔÏóµ½Ö¸¶¨µÄÉè±¸ÉÏÏÂÎÄ»·¾³ÖÐ
+//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½è±¸ï¿½ï¿½ï¿½Ýµï¿½Î»Í¼
+//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 //		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 //		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 //		_bfh.bfType = static_cast<WORD>(0x4d42);
 //
-//		_bih.biBitCount = 32;//Ã¿¸öÏñËØ×Ö½Ú´óÐ¡
+//		_bih.biBitCount = 32;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú´ï¿½Ð¡
 //		_bih.biCompression = BI_RGB;
-//		_bih.biHeight = h;//¸ß¶È
+//		_bih.biHeight = h;//ï¿½ß¶ï¿½
 //		_bih.biPlanes = 1;
 //		_bih.biSize = sizeof(BITMAPINFOHEADER);
-//		_bih.biSizeImage = w * h * 4;//Í¼ÏñÊý¾Ý´óÐ¡
-//		_bih.biWidth = w;//¿í¶È
+//		_bih.biSizeImage = w * h * 4;//Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ð¡
+//		_bih.biWidth = w;//ï¿½ï¿½ï¿½ï¿½
 //
-//		//¶ÔÖ¸¶¨µÄÔ´Éè±¸»·¾³ÇøÓòÖÐµÄÏñËØ½øÐÐÎ»¿é£¨bit_block£©×ª»»
+//		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ô´ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½Î»ï¿½é£¨bit_blockï¿½ï¿½×ªï¿½ï¿½
 //	
 //		if (_render_type == RDT_GDI) {
 //			::PrintWindow(_hwnd, _hmdc, 0);
@@ -181,7 +181,7 @@ long bkgdi::UnBindEx() {
 //			//::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 //			::PrintWindow(_hwnd, _hmdc, 0);
 //		}
-//		//º¯Êý»ñÈ¡Ö¸¶¨¼æÈÝÎ»Í¼µÄÎ»£¬È»ºó½«Æä×÷Ò»¸öDIB¡ªÉè±¸ÎÞ¹ØÎ»Í¼£¨Device-Independent Bitmap£©Ê¹ÓÃµÄÖ¸¶¨¸ñÊ½¸´ÖÆµ½Ò»¸ö»º³åÇøÖÐ
+//		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»Í¼ï¿½ï¿½Î»ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DIBï¿½ï¿½ï¿½è±¸ï¿½Þ¹ï¿½Î»Í¼ï¿½ï¿½Device-Independent Bitmapï¿½ï¿½Ê¹ï¿½Ãµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //		temp_src.resize(_bih.biSizeImage);
 //		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h, temp_src.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 //		_pmutex->lock();
@@ -202,30 +202,30 @@ long bkgdi::UnBindEx() {
 //}
 
 bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
-	//step 1.ÅÐ¶Ï ´°¿ÚÊÇ·ñ´æÔÚ
+	//step 1.ï¿½Ð¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 	if (!::IsWindow(_hwnd))
 		return 0;
 	img.create(w, h);
-	if (_render_type == RDT_NORMAL) {//normal ¿½±´µÄ´óÐ¡ÎªÊµ¼ÊÐèÒªµÄ´óÐ¡
+	if (_render_type == RDT_NORMAL) {//normal ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½Ð¡ÎªÊµï¿½ï¿½ï¿½ï¿½Òªï¿½Ä´ï¿½Ð¡
 		//
 	/*	int w = rect.right - rect.left;
 		int h = rect.bottom - rect.top;*/
-		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //´´½¨ÓëÖ¸¶¨µÄÉè±¸»·¾³Ïà¹ØµÄÉè±¸¼æÈÝµÄÎ»Í¼
-		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ÔñÒ»¶ÔÏóµ½Ö¸¶¨µÄÉè±¸ÉÏÏÂÎÄ»·¾³ÖÐ
+		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½è±¸ï¿½ï¿½ï¿½Ýµï¿½Î»Í¼
+		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 		_bfh.bfType = static_cast<WORD>(0x4d42);
 
-		_bih.biBitCount = 32;//Ã¿¸öÏñËØ×Ö½Ú´óÐ¡
+		_bih.biBitCount = 32;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú´ï¿½Ð¡
 		_bih.biCompression = BI_RGB;
-		_bih.biHeight = h;//¸ß¶È
+		_bih.biHeight = h;//ï¿½ß¶ï¿½
 		_bih.biPlanes = 1;
 		_bih.biSize = sizeof(BITMAPINFOHEADER);
-		_bih.biSizeImage = w * h * 4;//Í¼ÏñÊý¾Ý´óÐ¡
-		_bih.biWidth = w;//¿í¶È
+		_bih.biSizeImage = w * h * 4;//Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ð¡
+		_bih.biWidth = w;//ï¿½ï¿½ï¿½ï¿½
 
-		//¶ÔÖ¸¶¨µÄÔ´Éè±¸»·¾³ÇøÓòÖÐµÄÏñËØ½øÐÐÎ»¿é£¨bit_block£©×ª»»
+		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ô´ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½Î»ï¿½é£¨bit_blockï¿½ï¿½×ªï¿½ï¿½
 
 		RECT rc;
 		::GetWindowRect(_hwnd, &rc);
@@ -240,7 +240,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 
 
 
-		//º¯Êý»ñÈ¡Ö¸¶¨¼æÈÝÎ»Í¼µÄÎ»£¬È»ºó½«Æä×÷Ò»¸öDIB¡ªÉè±¸ÎÞ¹ØÎ»Í¼£¨Device-Independent Bitmap£©Ê¹ÓÃµÄÖ¸¶¨¸ñÊ½¸´ÖÆµ½Ò»¸ö»º³åÇøÖÐ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»Í¼ï¿½ï¿½Î»ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DIBï¿½ï¿½ï¿½è±¸ï¿½Þ¹ï¿½Î»Í¼ï¿½ï¿½Device-Independent Bitmapï¿½ï¿½Ê¹ï¿½Ãµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
@@ -250,35 +250,35 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
-		//½«Êý¾Ý¿½±´µ½Ä¿±ê×¢ÒâÊµ¼ÊÊý¾ÝÊÇ·´µÄ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½×¢ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½
 		
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i) * 4 * w, 4 * w);
 		}
 	}
-	else {//gdi ... ÓÉÓÚprintwindow º¯ÊýµÄÔ­Òò ½ØÈ¡´óÐ¡ÎªÊµ¼ÊµÄ´°¿Ú´óÐ¡£¬ÔÚºóÐøµÄ´¦ÀíÖÐ£¬ÐèÒª×ª»¯³É¿Í»§Çø´óÐ¡
+	else {//gdi ... ï¿½ï¿½ï¿½ï¿½printwindow ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ ï¿½ï¿½È¡ï¿½ï¿½Ð¡ÎªÊµï¿½ÊµÄ´ï¿½ï¿½Ú´ï¿½Ð¡ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Òª×ªï¿½ï¿½ï¿½É¿Í»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 		//
 		RECT rc;
 		::GetWindowRect(_hwnd, &rc);
 		int ww = rc.right - rc.left;
 		int wh = rc.bottom - rc.top;
 		//setlog("_w w=%d %d _h h=%d %d,dx=%d dy=%d", _width, w, _height, h, dx_, dy_);
-		_hbmpscreen = CreateCompatibleBitmap(_hdc, ww, wh); //´´½¨ÓëÖ¸¶¨µÄÉè±¸»·¾³Ïà¹ØµÄÉè±¸¼æÈÝµÄÎ»Í¼
-		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ÔñÒ»¶ÔÏóµ½Ö¸¶¨µÄÉè±¸ÉÏÏÂÎÄ»·¾³ÖÐ
+		_hbmpscreen = CreateCompatibleBitmap(_hdc, ww, wh); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½è±¸ï¿½ï¿½ï¿½Ýµï¿½Î»Í¼
+		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //Ñ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 		_bfh.bfSize = _bfh.bfOffBits + ww * wh * 4;
 		_bfh.bfType = static_cast<WORD>(0x4d42);
 
-		_bih.biBitCount = 32;//Ã¿¸öÏñËØ×Ö½Ú´óÐ¡
+		_bih.biBitCount = 32;//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú´ï¿½Ð¡
 		_bih.biCompression = BI_RGB;
-		_bih.biHeight = wh;//¸ß¶È
+		_bih.biHeight = wh;//ï¿½ß¶ï¿½
 		_bih.biPlanes = 1;
 		_bih.biSize = sizeof(BITMAPINFOHEADER);
-		_bih.biSizeImage = ww * wh * 4;//Í¼ÏñÊý¾Ý´óÐ¡
-		_bih.biWidth = ww;//¿í¶È
+		_bih.biSizeImage = ww * wh * 4;//Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½Ð¡
+		_bih.biWidth = ww;//ï¿½ï¿½ï¿½ï¿½
 
-		//¶ÔÖ¸¶¨µÄÔ´Éè±¸»·¾³ÇøÓòÖÐµÄÏñËØ½øÐÐÎ»¿é£¨bit_block£©×ª»»
+		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ô´ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½Î»ï¿½é£¨bit_blockï¿½ï¿½×ªï¿½ï¿½
 
 		if (_render_type == RDT_GDI) {
 			::PrintWindow(_hwnd, _hmdc, 0);
@@ -289,7 +289,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 			//::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 			::PrintWindow(_hwnd, _hmdc, 0);
 		}
-		//º¯Êý»ñÈ¡Ö¸¶¨¼æÈÝÎ»Í¼µÄÎ»£¬È»ºó½«Æä×÷Ò»¸öDIB¡ªÉè±¸ÎÞ¹ØÎ»Í¼£¨Device-Independent Bitmap£©Ê¹ÓÃµÄÖ¸¶¨¸ñÊ½¸´ÖÆµ½Ò»¸ö»º³åÇøÖÐ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»Í¼ï¿½ï¿½Î»ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½DIBï¿½ï¿½ï¿½è±¸ï¿½Þ¹ï¿½Î»Í¼ï¿½ï¿½Device-Independent Bitmapï¿½ï¿½Ê¹ï¿½Ãµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½Æµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
@@ -297,7 +297,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
-		//½«Êý¾Ý¿½±´µ½Ä¿±ê×¢ÒâÊµ¼ÊÊý¾ÝÊÇ·´µÄ(×¢ÒâÆ«ÒÆ)
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½×¢ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½(×¢ï¿½ï¿½Æ«ï¿½ï¿½)
 		auto ppixels = _shmem->data<byte>()+sizeof(FrameInfo);
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), ppixels + (wh - 1 - i - y1 - dy_) * 4 * ww + (x1 + dx_) * 4, 4 * w);

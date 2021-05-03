@@ -5,7 +5,7 @@
 #include "op_i.h"
 #include "dllmain.h"
 #include "compreg.h"
-#include "globalVar.h"
+#include "./core/globalVar.h"
 CopModule _AtlModule;
 
 // DLL 入口点

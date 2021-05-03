@@ -39,6 +39,7 @@ public:
         reset( rhs._handle );
         rhs._handle = zero_handle;
 
+
         return *this;
     }
 
@@ -81,8 +82,8 @@ private:
 };
 
 using Handle        = HandleGuard<HANDLE, &CloseHandle, nullptr>;
-using FileHandle    = HandleGuard<HANDLE, &CloseHandle,NULL>;//INVALID_HANDLE_VALUE
-using ACtxHandle    = HandleGuard<HANDLE, &ReleaseActCtx, NULL>;//INVALID_HANDLE_VALUE
+using FileHandle    = HandleGuard<HANDLE, &CloseHandle, nullptr>;//INVALID_HANDLE_VALUE
+using ACtxHandle    = HandleGuard<HANDLE, &ReleaseActCtx, nullptr>;//INVALID_HANDLE_VALUE
 using FileMapHandle = HandleGuard<void*,  &UnmapViewOfFile, nullptr>;
 using SnapHandle    = FileHandle;
 using RegHandle     = HandleGuard<HKEY,   &RegCloseKey, nullptr>;

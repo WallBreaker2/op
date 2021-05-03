@@ -2,11 +2,11 @@
 #ifndef __IMAGELOC_H_
 #define __IMAGELOC_H_
 /*
-³£¼ûµÄÍ¼ÏñËã·¨£¬ÀýÈçÍ¼Ïñ²éÕÒ£¬ÑÕÉ«ÐòÁÐÆ¥Åä£¨¶àµã×ÅÉ«£©
-ÓÉÓÚocrÓëÍ¼Ïñ²éÕÒÀàËÆ£¬¹ÊÒ²ÔÚÀàImageLocÖÐÊµÏÖ
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½Ò£ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½Æ¥ï¿½ä£¨ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ocrï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ImageLocï¿½ï¿½Êµï¿½ï¿½
 */
 #include <vector>
-#include "optype.h"
+#include "./core/optype.h"
 #include <string>
 #include "include/Dict.h"
 #include "include/color.h"
@@ -27,9 +27,9 @@ inline int HEX2INT(wchar_t c) {
 #define GET_BIT(x, idx) ((x >> (idx)) & 1u)
 
 using img_names = std::vector<std::wstring>;
-//¼ì²éÊÇ·ñÎªÍ¸Ã÷Í¼
+//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ÎªÍ¸ï¿½ï¿½Í¼
 int check_transparent(Image* img);
-//»ñÈ¡Æ¥Åäµã
+//ï¿½ï¿½È¡Æ¥ï¿½ï¿½ï¿½
 void get_match_points(const Image& img, vector<int>&points);
 //generate next index for kmp
 void gen_next(const Image& img, vector<int>& next);
@@ -45,7 +45,7 @@ void extractConnectivity(const ImageBin& src, int threshold, std::vector<ImageBi
 
 
 /*
-´ËÀàÓÃÓÚÊµÏÖÒ»Ð©Í¼Ïñ¹¦ÄÜ£¬ÈçÍ¼Ïñ¶¨Î»£¬¼òµ¥ocrµÈ
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½Ò»Ð©Í¼ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ocrï¿½ï¿½
 */
 class ImageBase
 {
@@ -57,12 +57,12 @@ public:
 
 	~ImageBase();
 
-	//brief:ÊäÈëÍ¼Ïñ£¬½¨Á¢Í¼ÐÎ¾ØÕó,ÔÚÍ¼Ïñ²Ù×÷Ç°µ÷ÓÃ
-	//image_data:	4×Ó½Ú¶ÔÆëµÄÏñËØÖ¸Õë
-	//widht:		Í¼Ïñ¿í¶È
+	//brief:ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ñ£¬½ï¿½ï¿½ï¿½Í¼ï¿½Î¾ï¿½ï¿½ï¿½,ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½
+	//image_data:	4ï¿½Ó½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+	//widht:		Í¼ï¿½ï¿½ï¿½ï¿½ï¿½
 	//hegith:		h
-	//x1,y1,x2,y2 ¿½±´ÇøÓò
-	//type:			ÊäÈëÀàÐÍ,type=0±íÊ¾Õý³£ÊäÈë£¬Îª-1Ê±±íÊ¾µ¹ÖÃÊäÈë
+	//x1,y1,x2,y2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//type:			ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,type=0ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë£¬Îª-1Ê±ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//long input_image(byte* psrc, int cols, int height,long x1,long y1,long x2,long y2, int type = 0);
 
 	void set_offset(int x1, int y1);
@@ -94,20 +94,20 @@ public:
 	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
 
 	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
-	//ÃèÊö£º²éÕÒÄ¿±êÍ¼ÏñÖÐµÄÖ±Ïß
-	//ÊäÈë£º¾«¶È
-	//Êä³ö£ºoutStr:Ö±ÏßÃèÊö[·¨Ïß½Ç¶È£¬Ö±Ïßµ½Ô­µãµÄ¾àÀë];ret:¸ÃÖ±ÏßÉÏµÄµãµÄÊýÁ¿
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Ðµï¿½Ö±ï¿½ï¿½
+	//ï¿½ï¿½ï¿½ë£ºï¿½ï¿½ï¿½ï¿½
+	//ï¿½ï¿½ï¿½ï¿½ï¿½outStr:Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ß½Ç¶È£ï¿½Ö±ï¿½ßµï¿½Ô­ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½];ret:ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ÏµÄµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	long FindLine(double sim, std::wstring& outStr);
 private:
-	//rgbÏñËØÆ¥Åä
+	//rgbï¿½ï¿½ï¿½ï¿½Æ¥ï¿½ï¿½
 	template<bool nodfcolor>
 	long simple_match(long x, long y, Image* timg, color_t dfcolor,int tnrom, double sim);
-	//Í¸Ã÷Í¼Æ¥Åä
+	//Í¸ï¿½ï¿½Í¼Æ¥ï¿½ï¿½
 	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>points, int max_error);
-	//»Ò¶ÈÆ¥Åä
+	//ï¿½Ò¶ï¿½Æ¥ï¿½ï¿½
 	long real_match(long x, long y, ImageBin* timg, int tnorm, double sim);
-	//¼ÇÂ¼ºÍ
+	//ï¿½ï¿½Â¼ï¿½ï¿½
 	void record_sum(const ImageBin & gray);
 	//[x1,x2),[y1,y2)
 	int region_sum(int x1, int y1, int x2, int y2);
@@ -118,16 +118,16 @@ private:
 
 	
 	
-	//´¹Ö±·½ÏòÍ¶Ó°,Í¶µ½xÖá
+	//ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½Í¶Ó°,Í¶ï¿½ï¿½xï¿½ï¿½
 	void binshadowx(const rect_t& rc, std::vector<rect_t>& out_put);
-	//Ë®Æ½·½ÏòÍ¶Ó°£¬Í¶µ½(y)Öá
+	//Ë®Æ½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½Í¶ï¿½ï¿½(y)ï¿½ï¿½
 	void binshadowy(const rect_t& rc, std::vector<rect_t>&out_put);
 
 
 	
-	//ocr ÍêÈ«Æ¥ÅäÄ£Ê½
+	//ocr ï¿½ï¿½È«Æ¥ï¿½ï¿½Ä£Ê½
 	void _bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps);
-	//ocr Ä£ºýÆ¥ÅäÄ£Ê½
+	//ocr Ä£ï¿½ï¿½Æ¥ï¿½ï¿½Ä£Ê½
 	void _bin_ocr(const Dict& dict,double sim, std::map<point_t, std::wstring>&ps);
 	//ocr wrapper
 	//template<int _type>
@@ -138,12 +138,12 @@ public:
 	else pixel=0;
 	*/
 	void bgr2binary(vector<color_df_t>& colors);
-	//¶þÖµ»¯ auto
+	//ï¿½ï¿½Öµï¿½ï¿½ auto
 	void bgr2binarybk(const vector<color_df_t>& bk_colors);
-	//Í¼Ïñ²Ã¼ô
+	//Í¼ï¿½ï¿½Ã¼ï¿½
 	void bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc);
 	void get_rois(int min_word_h, std::vector<rect_t>& vroi);
-	//ocrÊ¶±ð£¬·µ»ØÊ¶±ðµ½µÄ×Ö¼°¶ÔÓ¦×ø±ê
+	//ocrÊ¶ï¿½ð£¬·ï¿½ï¿½ï¿½Ê¶ï¿½ðµ½µï¿½ï¿½Ö¼ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½
 
 	void bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
 
@@ -155,9 +155,9 @@ public:
 	ImageBin _binary;
 	Image _sum;
 private:
-	//ÆðÊ¼µã
+	//ï¿½ï¿½Ê¼ï¿½ï¿½
 	int _x1, _y1;
-	//Æ«ÒÆ
+	//Æ«ï¿½ï¿½
 	int _dx, _dy;
 	
 };
