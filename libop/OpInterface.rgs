@@ -1,0 +1,26 @@
+HKCR
+{
+	op.opsoft.1 = s 'OpInterface class'
+	{
+		CLSID = s '{12bec402-a06e-4fad-a7d4-830f967374c6}'
+	}
+	op.opsoft = s 'OpInterface class'
+	{		
+		CurVer = s 'op.opsoft.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {12bec402-a06e-4fad-a7d4-830f967374c6} = s 'OpInterface class'
+		{
+			ProgID = s 'op.opsoft.1'
+			VersionIndependentProgID = s 'op.opsoft'
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			TypeLib = s '{66b9c175-82f2-45e9-af86-58ad5ded5adc}'
+			Version = s '1.0'
+		}
+	}
+}
