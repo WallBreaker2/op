@@ -3,16 +3,10 @@
 #
 cmake_minimum_required (VERSION 3.0)
 
-#SET(CMAKE_BUILD_TYPE "Release")
-
 SET(CMAKE_TOOLCHAIN_FILE "E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmake")
 SET(VCPKG_TARGET_TRIPLET x86-windows-static)
-#SET(VcpkgConfiguration release)
+
 set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
-
-
-
-#FIND_PACKAGE(Opencv REQUIRED)
 
 
 project ("op")
@@ -20,6 +14,10 @@ project ("op")
 # 包含子项目。
 add_subdirectory ("libop")
 
+add_subdirectory("com")
+add_subdirectory("python")
+add_subdirectory("lua")
 
-
+add_subdirectory("tools")
+add_subdirectory("tests")
 # add_subdirectory ("example")
