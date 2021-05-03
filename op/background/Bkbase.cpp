@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <algorithm>
-#include "globalVar.h"
-#include "helpfunc.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 #include "Bkbase.h"
 
 #include "bkgdi.h"
@@ -30,11 +30,11 @@ bkbase::~bkbase()
 }
 
 long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
-	//step 1.±ÜÃâÖØ¸´°ó¶¨
+	//step 1.ï¿½ï¿½ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½
 	UnBindWindow();
 	//step 2.check hwnd
 	if (!::IsWindow(HWND(hwnd))) {
-		setlog("ÎÞÐ§µÄ´°¿Ú¾ä±ú");
+		setlog("invalid window!");
 		return 0;
 	}
 	
@@ -65,7 +65,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (sdisplay == L"opengl.es")
 		display = RDT_GL_ES;
 	else {
-		setlog(L"´íÎóµÄdisplay:%s", sdisplay.c_str());
+		setlog(L"ï¿½ï¿½ï¿½ï¿½ï¿½display:%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
@@ -74,7 +74,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (smouse == L"windows")
 		mouse = INPUT_TYPE::IN_WINDOWS;
 	else {
-		setlog(L"´íÎómouse:%s", smouse.c_str());
+		setlog(L"ï¿½ï¿½ï¿½ï¿½mouse:%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
@@ -83,7 +83,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (skeypad == L"windows")
 		keypad = INPUT_TYPE::IN_WINDOWS;
 	else {
-		setlog(L"´íÎóµÄkeypad:%s", sdisplay.c_str());
+		setlog(L"ï¿½ï¿½ï¿½ï¿½ï¿½keypad:%s", sdisplay.c_str());
 		return 0;
 	}
 	//step 4.init
@@ -110,7 +110,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		return 0;
 	}
 
-	//µÈ´ýÏß³Ì´´½¨ºÃ
+	//ï¿½È´ï¿½ï¿½ß³Ì´ï¿½ï¿½ï¿½ï¿½ï¿½
 	Sleep(200);
 
 	_is_bind = 1;
@@ -137,7 +137,7 @@ long bkbase::UnBindWindow() {
 		_keypad->UnBind();
 		SAFE_DELETE(_keypad);
 	}
-	//»Ö¸´ÎªÇ°Ì¨(Ä¬ÈÏ)
+	//ï¿½Ö¸ï¿½ÎªÇ°Ì¨(Ä¬ï¿½ï¿½)
 	_bkmouse = new bkmouse;
 	_keypad = new winkeypad;
 
@@ -262,7 +262,7 @@ long bkbase::RectConvert(long& x1, long& y1, long& x2, long& y2) {
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);
 	if (x1 < 0 || y1 < 0 || x1 >= x2 || y1 >= y2) {
-		setlog("ÎÞÐ§µÄ´°¿Ú×ø±ê:%d %d %d %d", x1, y1, x2, y2);
+		setlog("ï¿½ï¿½Ð§ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	//if (_pbkdisplay) {
@@ -311,10 +311,10 @@ long bkbase::get_image_type() {
 }
 
 bool bkbase::check_bind() {
-	//ÒÑ°ó¶¨
+	//ï¿½Ñ°ï¿½
 	if (IsBind())
 		return true;
-	//ÏÔÊ¾Ä£Ê½·ÇÆÁÄ»
+	//ï¿½ï¿½Ê¾Ä£Ê½ï¿½ï¿½ï¿½ï¿½Ä»
 	if (get_display_method().first != L"screen") {
 		if (get_display_method().first == L"pic") {//load pic first
 			wstring fullpath;
@@ -325,7 +325,7 @@ bool bkbase::check_bind() {
 		return true;
 	}
 
-	//°ó¶¨Ç°Ì¨×ÀÃæ
+	//ï¿½ï¿½Ç°Ì¨ï¿½ï¿½ï¿½ï¿½
 	return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
 }
 
@@ -368,7 +368,7 @@ long bkbase::set_display_method(const wstring& method) {
 			if (bfh.bfType != static_cast<WORD>(0x4d42))
 				return 0;
 
-			if (bih.biHeight < 0) {//Õý³£¿½±´
+			if (bih.biHeight < 0) {//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				int h = -bih.biHeight;
 				_pic.create(bih.biWidth, h);
 				/*setlog("mem w=%d h=%d chk=%d",
@@ -376,7 +376,7 @@ long bkbase::set_display_method(const wstring& method) {
 					_pic.size() * 4 == bih.biSizeImage ? 1 : 0);*/
 				memcpy(_pic.pdata, ptr + sizeof(bfh) + sizeof(bih), _pic.size() * 4);
 			}
-			else {//µ¹¹ýÀ´¿½±´
+			else {//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				int h = bih.biHeight;
 				_pic.create(bih.biWidth, h);
 				for (int i = 0; i < h; i++) {

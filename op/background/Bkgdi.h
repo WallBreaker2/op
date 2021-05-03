@@ -2,7 +2,7 @@
 #ifndef __BKDISPLAY_H_
 #define __BKDISPLAY_H_
 #include <thread>
-#include "optype.h"
+#include "./core/optype.h"
 #include "IDisplay.h"
 struct Image;
 class bkgdi:public IDisplay
@@ -10,10 +10,10 @@ class bkgdi:public IDisplay
 public:
 	bkgdi();
 	~bkgdi();
-	//°ó¶¨
+	//ï¿½ï¿½
 	long BindEx(HWND _hwnd, long render_type) override;
 	//long UnBind(HWND hwnd);
-	//½â°ó
+	//ï¿½ï¿½ï¿½
 	long UnBindEx() override;
 	
 	
@@ -24,17 +24,17 @@ public:
 	virtual bool requestCapture(int x1, int y1, int w, int h, Image& img)override;
 	
 private:
-	//Éè±¸¾ä±ú
+	//ï¿½è±¸ï¿½ï¿½ï¿½
 	HDC _hdc = NULL;
 
 	HDC _hmdc = NULL;
-	//Î»Í¼¾ä±ú
+	//Î»Í¼ï¿½ï¿½ï¿½
 	HBITMAP _hbmpscreen = NULL;
 	HBITMAP _hbmp_old = NULL;
-	//bmp ÎÄ¼þÍ·
+	//bmp ï¿½Ä¼ï¿½Í·
 	BITMAPFILEHEADER _bfh = { 0 };
-	BITMAPINFOHEADER _bih = { 0 };//Î»Í¼ÐÅÏ¢Í·
-	int dx_, dy_;//È¥³ý±êÌâÀ¸
+	BITMAPINFOHEADER _bih = { 0 };//Î»Í¼ï¿½ï¿½Ï¢Í·
+	int dx_, dy_;//È¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//bytearray temp_src;
 	FrameInfo m_frameInfo;
 	void fmtFrameInfo(void* dst,HWND hwnd, int w, int h);

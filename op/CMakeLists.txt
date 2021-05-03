@@ -42,30 +42,42 @@ message(WARNING ${BLACKBONE_LIB})
 message(WARNING ${minhook_lib})
 
 
+
+
 SET(SRC_FILES 
-	"bkbase.cpp" 
-"bkdisplay.cpp" 
-"bkdx_gl.cpp" 
-"bkgdi.cpp" 
-"bkkeypad.cpp" 
-"bkmouse.cpp" 
-"compreg.cpp"
-"dllmain.cpp"
-"globalVar.cpp"
-"helpfunc.cpp"
-"imageloc.cpp"
-"imageproc.cpp"
-"injecter.cpp"
-"libop.cpp"
-"memoryEx.cpp"
-"ocr.cpp"
+	"./background/bkbase.cpp" 
+  "./background/bkdx_gl.cpp" 
+  "./background/bkgdi.cpp" 
+  "./background/bkkeypad.cpp" 
+  "./background/bkmouse.cpp" 
+  "./background/IDisplay.cpp" 
+  "./background/winkeypad.cpp" 
+  "./background/xhook.cpp"
+
+
+ 
+"./core/globalVar.cpp"
+"./core/helpfunc.cpp"
+"./core/pipe.cpp"
+
+
+"./imageProc/imageloc.cpp"
+"./imageProc/imageproc.cpp"
+
+"./interface/libop.cpp"
+
+"./winapi/injecter.cpp"
+"./winapi/memoryEx.cpp"
+"./winapi/query_api.cpp"
+"./winapi/winapi.cpp"
+
+
+
 "op.cpp"
 "opinterface.cpp"
-"pipe.cpp"
-"query_api.cpp"
 "stdafx.cpp"
-"winapi.cpp"
-"xhook.cpp"
+"compreg.cpp"
+"dllmain.cpp"
 "./3rd_party/src/kiero.cpp"
 "op_i.c"
 "op.def"
@@ -87,6 +99,11 @@ ADD_DEFINITIONS(-D UNICODE)
 
 # 6.add executable file
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+"${PROJECT_BINARY_DIR}"
+"${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 # 7.add link library
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${BLACKBONE_LIB})

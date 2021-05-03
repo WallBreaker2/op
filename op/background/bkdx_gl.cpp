@@ -2,15 +2,14 @@
 #include "stdafx.h"
 
 #include "bkdx_gl.h"
-#include "globalVar.h"
-#include "helpfunc.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 #include <exception>
 #include "3rd_party/include/BlackBone/Process/Process.h"
 #include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
 
 #include "./include/Image.hpp"
 
-#include "globalVar.h"
 #include <sstream>
 bkdo::bkdo() :IDisplay()
 {
@@ -38,7 +37,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 	else {
 		_render_type = render_type;
 		RECT rc;
-		//»ñÈ¡¿Í»§Çø´óÐ¡
+		//ï¿½ï¿½È¡ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 		::GetClientRect(hwnd, &rc);
 		_width = rc.right - rc.left;
 		_height = rc.bottom - rc.top;
@@ -50,7 +49,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 
 
-		//attach ½ø³Ì
+		//attach ï¿½ï¿½ï¿½ï¿½
 		blackbone::Process proc;
 		NTSTATUS hr;
 
@@ -59,14 +58,14 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 		if (NT_SUCCESS(hr)) {
 			wstring dllname = g_op_name;
-			//¼ì²éÊÇ·ñÓë²å¼þÏàÍ¬µÄ32/64Î»,Èç¹û²»Í¬£¬ÔòÊ¹ÓÃÁíÒ»ÖÖdll
+			//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½32/64Î»,ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½dll
 			BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 			if (is64 != OP64) {
 				dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
 			}
 
 			bool injected = false;
-			//ÅÐ¶ÏÊÇ·ñÒÑ¾­×¢Èë
+			//ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½×¢ï¿½ï¿½
 			auto _dllptr = proc.modules().GetModule(dllname);
 			auto mods = proc.modules().GetAllModules();
 			if (_dllptr) {
@@ -128,7 +127,7 @@ long bkdo::UnBindEx() {
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 
-	//attach ½ø³Ìs
+	//attach ï¿½ï¿½ï¿½ï¿½s
 	blackbone::Process proc;
 	NTSTATUS hr;
 	//setlog("bkdo::Attach");
@@ -136,7 +135,7 @@ long bkdo::UnBindEx() {
 
 	if (NT_SUCCESS(hr)) {
 		wstring dllname = g_op_name;
-		//¼ì²éÊÇ·ñÓë²å¼þÏàÍ¬µÄ32/64Î»,Èç¹û²»Í¬£¬ÔòÊ¹ÓÃÁíÒ»ÖÖdll
+		//ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½32/64Î»,ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64) {
 			dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
@@ -169,7 +168,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	_render_type = render_type;
 	_hwnd = hwnd;
 	RECT rc;
-	//»ñÈ¡¿Í»§Çø´óÐ¡
+	//ï¿½ï¿½È¡ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
@@ -177,7 +176,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 
 
 
-	//attach ½ø³Ì
+	//attach ï¿½ï¿½ï¿½ï¿½
 	blackbone::Process proc;
 	NTSTATUS hr = -1;
 
@@ -192,7 +191,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	if (NT_SUCCESS(hr)) {
 		/*_process.Resume();*/
 		bool injected = false;
-		//ÅÐ¶ÏÊÇ·ñÒÑ¾­×¢Èë
+		//ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½×¢ï¿½ï¿½
 		auto _dllptr = proc.modules().GetModule(dllname);
 		auto mods = proc.modules().GetAllModules();
 		if (_dllptr) {
@@ -237,7 +236,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 
 long bkdo::UnBindNox() {
 
-	//attach ½ø³Ì
+	//attach ï¿½ï¿½ï¿½ï¿½
 	blackbone::Process proc;
 	NTSTATUS hr;
 

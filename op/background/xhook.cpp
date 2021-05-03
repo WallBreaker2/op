@@ -14,9 +14,9 @@
 #include "3rd_party/include/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include "globalVar.h"
-#include "helpfunc.h"
-#include "query_api.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
+#include "./winapi/query_api.h"
 #include <wingdi.h>
 #include "frameInfo.h"
 #define DEBUG_HOOK 0
@@ -214,7 +214,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 		1,
 		0,
 		surface_Desc.Format,
-		D3DPOOL_SYSTEMMEM, //±ØÐëÎªÕâ¸ö
+		D3DPOOL_SYSTEMMEM, //ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½
 		&pTex, NULL);
 	if (hr < 0) {
 		return hr;
@@ -226,7 +226,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	D3DLOCKED_RECT lockedRect;
 
 	pTex->LockRect(0, &lockedRect, NULL, D3DLOCK_READONLY);
-	/*È¡ÏñËØ*/
+	/*È¡ï¿½ï¿½ï¿½ï¿½*/
 	sharedmem mem;
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
@@ -572,7 +572,7 @@ void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
 
 
 //---------------------OPENGL ES------------------------------
-//es ÀàËÆ opengl ½ØÍ¼£¬Ö»ÊÇÄ£¿é²»Í¬
+//es ï¿½ï¿½ï¿½ï¿½ opengl ï¿½ï¿½Í¼ï¿½ï¿½Ö»ï¿½ï¿½Ä£ï¿½é²»Í¬
 long egl_capture() {
 	using glPixelStorei_t = decltype(glPixelStorei)*;
 	using glReadBuffer_t = decltype(glReadBuffer)*;

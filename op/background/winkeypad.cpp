@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "winkeypad.h"
-#include "globalVar.h"
-#include "helpfunc.h"
+#include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 
 static uint oem_code(uint key) {
 	short code[256] = { 0 };
