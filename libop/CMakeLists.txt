@@ -99,7 +99,7 @@ ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 
 # ADD_DEFINITIONS(-D APSTUDIO_INVOKED)
-# 6.add executable file
+# 6.add lib file
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
