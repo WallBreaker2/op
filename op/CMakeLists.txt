@@ -16,12 +16,14 @@ if (MSVC_VERSION GREATER_EQUAL "1900")
     endif()
 endif()
 
-set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
 
-if(MSVC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB")
-endif()
+
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB")
+
+ 
+
+
 
 # set_target_properties(target PROPERTIES VcpkgEnabled "true")
 
@@ -37,9 +39,12 @@ MESSAGE(STATUS ${Opencv})
 
 
 find_library(BLACKBONE_LIB blackbone ./3rd_party/lib/x86 NO_DEFAULT_PATH)
+
 find_library(minhook_lib libminhook.x86 ./3rd_party/lib/x86 NO_DEFAULT_PATH)
-message(WARNING ${BLACKBONE_LIB})
-message(WARNING ${minhook_lib})
+
+#find_package(minhook CONFIG REQUIRED)
+message(STATUS ${BLACKBONE_LIB})
+#message(STATUS ${minhook_lib})
 
 
 
@@ -70,18 +75,16 @@ SET(SRC_FILES
 "./winapi/memoryEx.cpp"
 "./winapi/query_api.cpp"
 "./winapi/winapi.cpp"
-
-
-
+"./3rd_party/src/kiero.cpp"
 "op.cpp"
 "opinterface.cpp"
 "stdafx.cpp"
 "compreg.cpp"
 "dllmain.cpp"
-"./3rd_party/src/kiero.cpp"
 "op_i.c"
 "op.def"
 )
+
 
 #SET(LIBS "blackbone.lib")
 
@@ -96,7 +99,6 @@ ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 
 # ADD_DEFINITIONS(-D APSTUDIO_INVOKED)
-
 # 6.add executable file
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
 
@@ -113,11 +115,17 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${minhook_lib})
 target_link_libraries(${PROJECT_NAME}  ${OpenCV_LIBS})
 target_link_libraries(${PROJECT_NAME} msvcrt.lib)
 
+
+#target_link_libraries(${PROJECT_NAME}   minhook::minhook)
+
+
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
 
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
-#install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
+install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib")
 
 
 

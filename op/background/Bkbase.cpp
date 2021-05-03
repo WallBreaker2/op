@@ -56,6 +56,8 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_DX_D3D10;
 	else if (sdisplay == L"dx.d3d11")
 		display = RDT_DX_D3D11;
+
+		
 	else if (sdisplay == L"opengl")
 		display = RDT_GL_DEFAULT;
 	else if (sdisplay == L"opengl.std")
@@ -65,7 +67,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (sdisplay == L"opengl.es")
 		display = RDT_GL_ES;
 	else {
-		setlog(L"�����display:%s", sdisplay.c_str());
+		setlog(L"error display:%s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
@@ -74,7 +76,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (smouse == L"windows")
 		mouse = INPUT_TYPE::IN_WINDOWS;
 	else {
-		setlog(L"����mouse:%s", smouse.c_str());
+		setlog(L"error mouse:%s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
@@ -83,7 +85,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 	else if (skeypad == L"windows")
 		keypad = INPUT_TYPE::IN_WINDOWS;
 	else {
-		setlog(L"�����keypad:%s", sdisplay.c_str());
+		setlog(L"error keypad:%s", sdisplay.c_str());
 		return 0;
 	}
 	//step 4.init
