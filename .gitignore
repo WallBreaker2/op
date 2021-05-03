@@ -19,7 +19,7 @@ Build
 lib/
 bin/
 bld/
-
+out/
 [Oo]bj/
 [Ll]og/
 
@@ -281,7 +281,7 @@ __pycache__/
 /tool_ex
 !/doc/*.chm
 
-/doc
+/doc2
 
 /Ref
 
