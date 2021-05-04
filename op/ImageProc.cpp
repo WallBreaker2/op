@@ -283,7 +283,7 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 	split(files, vstr, L"|");
 	wstring tp;
 	for (auto& it : vstr) {
-		//先在缓存中查找
+		//先在缓存中查找是否已加载，包括从内存中加载的文件
 		if (_pic_cache.count(it)) {
 			pm = &_pic_cache[it];
 		}
@@ -291,8 +291,14 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 			//路径转化
 			if (!Path2GlobalPath(it, _curr_path, tp))
 				continue;
-			_pic_cache[tp].read(tp.data());
-			pm = &_pic_cache[tp];
+			//再检测一次，包括绝对路径的文件
+			if (_pic_cache.count(tp)) {
+				pm = &_pic_cache[tp];
+			}
+			else {
+				_pic_cache[tp].read(tp.data());
+				pm = &_pic_cache[tp];
+			}
 		}
 		vpic.push_back(pm);
 	}
