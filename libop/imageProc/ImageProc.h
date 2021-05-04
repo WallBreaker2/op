@@ -63,6 +63,8 @@ public:
 	long LoadPic(const wstring& files);
 
 	long FreePic(const wstring& files);
+
+	long LoadMemPic(const wstring& file_name, void* data, long size);
 private:
 	//×Ö¿â
 	Dict _dicts[_max_dict];
