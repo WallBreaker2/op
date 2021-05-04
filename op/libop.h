@@ -238,6 +238,8 @@ public:
 	long LoadPic(const wchar_t* file_name, long* ret);
 
 	long FreePic(const wchar_t* file_name, long* ret);
+	//从内存加载要查找的图片
+	long LoadMemPic(const wchar_t* file_name,void* data,long size, long* ret);
 	//
 	long GetScreenData(long x1, long y1, long x2, long y2, void** data,long* ret);
 	//
