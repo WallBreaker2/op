@@ -912,6 +912,11 @@ long libop::FreePic(const wchar_t* file_name, long* ret) {
 	return 0;
 }
 
+long libop::LoadMemPic(const wchar_t* file_name, void* data, long size, long* ret) {
+	*ret = _image_proc->LoadMemPic(file_name, data, size);
+	return 0;
+}
+
 long libop::GetScreenData(long x1, long y1, long x2, long y2, void** data, long* ret) {
 	*data = nullptr;
 	*ret = 0;
