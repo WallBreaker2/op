@@ -79,6 +79,39 @@ struct Image
 			return false;
 		}
 	}
+	bool read(void* pMemData, long  len) {
+		clear();
+		ATL::CImage img;
+		auto hGlobal =  GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, len);
+		if (hGlobal)
+		{
+			void* pData = GlobalLock(hGlobal);
+			memcpy_s(pData, len, pMemData, len);
+			GlobalUnlock(hGlobal);
+		}
+		else {
+			return false;
+		}
+		
+		IStream* pStream = NULL;
+		if (CreateStreamOnHGlobal(hGlobal, TRUE, &pStream) != S_OK) {
+			GlobalFree(hGlobal);
+			return false;
+		}
+		HRESULT hr = img.Load(pStream);
+		if (hr == S_OK) {
+			pStream->Release();
+			GlobalFree(hGlobal);
+			create(img.GetWidth(), img.GetHeight());
+			translate((unsigned char*)img.GetBits(), img.GetBPP() / 8, img.GetPitch());
+			return true;
+		}
+		else {
+			GlobalFree(hGlobal);
+			return false;
+		}
+	}
+
 	bool write(LPCTSTR file) {
 		if (empty())
 			return false;
