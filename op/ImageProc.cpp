@@ -264,6 +264,17 @@ long ImageProc::FreePic(const wstring& files) {
 	return loaded;
 }
 
+long ImageProc::LoadMemPic(const wstring& file_name, void* data, long size) {
+	try {
+		if (!_pic_cache.count(file_name)) {
+			_pic_cache[file_name].read(data, size);
+		}
+	}
+	catch (...){
+		return 0;
+	}
+	return 1;
+}
 
 void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
 	//std::vector<wstring>vstr, vstr2;
@@ -272,14 +283,14 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 	split(files, vstr, L"|");
 	wstring tp;
 	for (auto& it : vstr) {
-		//路径转化
-		if (!Path2GlobalPath(it, _curr_path, tp))
-			continue;
 		//先在缓存中查找
-		if (_pic_cache.count(tp)) {
-			pm = &_pic_cache[tp];
+		if (_pic_cache.count(it)) {
+			pm = &_pic_cache[it];
 		}
 		else {
+			//路径转化
+			if (!Path2GlobalPath(it, _curr_path, tp))
+				continue;
 			_pic_cache[tp].read(tp.data());
 			pm = &_pic_cache[tp];
 		}
