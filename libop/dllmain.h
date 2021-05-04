@@ -1,5 +1,7 @@
 ﻿// dllmain.h: 模块类的声明。
-
+#include <atlbase.h>
+#include <atlcom.h>
+#include <atlctl.h>
 class CopModule : public ATL::CAtlDllModuleT< CopModule >
 {
 public :

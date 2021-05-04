@@ -18,6 +18,7 @@
 #include "./core/helpfunc.h"
 #include "./winapi/query_api.h"
 #include <wingdi.h>
+#include <atlbase.h>
 #include "frameInfo.h"
 #define DEBUG_HOOK 0
 HWND xhook::render_hwnd = NULL;

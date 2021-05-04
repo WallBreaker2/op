@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp: DllMain 的实现。
 
-#include "stdafx.h"
+
 #include "resource.h"
 #include "op_i.h"
 #include "dllmain.h"

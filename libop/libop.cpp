@@ -1,6 +1,6 @@
 ﻿// OpInterface.cpp: OpInterface 的实现
 
-#include "stdafx.h"
+
 #include "libop.h"
 #include "./core/optype.h"
 #include "./core/globalVar.h"
@@ -16,6 +16,10 @@
 #include<fstream>
 #include <filesystem>
 #include <regex>
+
+#undef FindWindow
+#undef FindWindowEx
+#undef SetWindowText
 // OpInterface
 std::mutex mtx;
 libop::libop() {
@@ -30,7 +34,7 @@ libop::libop() {
 	_image_proc->_curr_path = _curr_path;
 	//初始化键码表
 	_vkmap[L"back"] = VK_BACK; _vkmap[L"ctrl"] = VK_CONTROL;
-	_vkmap[L"alt"] = LVKF_ALT; _vkmap[L"shift"] = VK_SHIFT;
+	_vkmap[L"alt"] = 18; _vkmap[L"shift"] = VK_SHIFT;
 	_vkmap[L"win"] = VK_LWIN;
 	_vkmap[L"space"] = L' '; _vkmap[L"tab"] = VK_TAB;
 	_vkmap[L"esc"] = VK_CANCEL;
@@ -108,7 +112,7 @@ long  libop::GetPath(std::wstring& path) {
 
 long  libop::GetBasePath(std::wstring& path){
 	wchar_t basepath[1024];
-	::GetModuleFileName(gInstance, basepath, 1024);
+	::GetModuleFileNameW(gInstance, basepath, 1024);
 	path = basepath;
 	size_t index = path.rfind(L'\\');
 	if (index != std::wstring::npos) {
@@ -454,7 +458,7 @@ long  libop::GetWindowTitle(long hwnd, std::wstring& rettitle)
 {
 	// TODO: 在此添加实现代码
 	wchar_t title[MAX_PATH] = { 0 };
-	::GetWindowText((HWND)hwnd, title, MAX_PATH);
+	::GetWindowTextW((HWND)hwnd, title, MAX_PATH);
 	//* rettitle=_bstr_t(title);
 	
 	rettitle = title;

@@ -48,7 +48,7 @@ long Injecter::InjectDll(DWORD pid, LPCTSTR dllPath,long& error_code)
 		error_code = ::GetLastError();
 		return -1;
 	}
-	DWORD dllPathSize = ((DWORD)_tcslen(dllPath) + 1) * sizeof(TCHAR);
+	DWORD dllPathSize = ((DWORD)wcslen(dllPath) + 1) * sizeof(TCHAR);
 
 	// 申请内存用来存放DLL路径
 	void* remoteMemory = VirtualAllocEx(jhandle, NULL, dllPathSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
