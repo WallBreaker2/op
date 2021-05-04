@@ -75,7 +75,7 @@ public:
 		long hwnd = 0;
 		long ret = 0;
 		op->FindWindow(L"É¨À×", L"É¨À×", &hwnd);
-		hwnd = 0x004608BC;
+		//hwnd = 0x004608BC;
 		if (hwnd) {
 			op->BindWindow(hwnd, L"dx.d3d9", L"normal", L"normal", 0, &ret);
 			if (ret) {

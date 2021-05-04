@@ -69,20 +69,14 @@ SET(SRC_FILES
 "./imageProc/imageloc.cpp"
 "./imageProc/imageproc.cpp"
 
-"./interface/libop.cpp"
+
 
 "./winapi/injecter.cpp"
 "./winapi/memoryEx.cpp"
 "./winapi/query_api.cpp"
 "./winapi/winapi.cpp"
 "./3rd_party/src/kiero.cpp"
-"op.cpp"
-"opinterface.cpp"
-"stdafx.cpp"
-"compreg.cpp"
-"dllmain.cpp"
-"op_i.c"
-"op.def"
+"libop.cpp"
 )
 
 
@@ -120,12 +114,10 @@ target_link_libraries(libop msvcrt.lib)
 
 
 
-SET_TARGET_PROPERTIES(libop PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
-
-add_custom_command(TARGET libop PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
 install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
 install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib")
+install(FILES libop.h DESTINATION "${PROJECT_SOURCE_DIR}/include")
 
 
 

@@ -4,7 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <shlwapi.h>
 #include "globalVar.h"
+
 //#define USE_BOOST_STACK_TRACE
 #ifdef USE_BOOST_STACK_TRACE
 #include <boost/stacktrace.hpp>
