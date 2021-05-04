@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <Windows.h>
 using uint = unsigned int;
 using uchar = unsigned char;
 
