@@ -743,6 +743,12 @@ STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG* ret) {
 
 	return S_OK;
 }
+
+STDMETHODIMP OpInterface::LoadMemPic(BSTR pic_name, long long data, LONG size, LONG* ret) {
+	obj.LoadMemPic(pic_name, (void*)data, size, ret);
+	return S_OK;
+}
+
 //获取指定区域的图像,用二进制数据的方式返回
 STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG* ret) {
 //#if OP64
