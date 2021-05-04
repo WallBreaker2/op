@@ -275,6 +275,17 @@ long ImageProc::FreePic(const wstring& files) {
 	return loaded;
 }
 
+long ImageProc::LoadMemPic(const wstring& file_name, void* data, long size) {
+	try {
+		if (!_pic_cache.count(file_name)) {
+			_pic_cache[file_name].read(data, size);
+		}
+	}
+	catch (...){
+		return 0;
+	}
+	return 1;
+}
 
 void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
 	//std::vector<wstring>vstr, vstr2;
