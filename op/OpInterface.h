@@ -263,6 +263,7 @@ public:
 	STDMETHOD(SetDisplayInput)(BSTR mode, LONG* ret);
 	STDMETHOD(LoadPic)(BSTR pic_name, LONG* ret);
 	STDMETHOD(FreePic)(BSTR pic_name, LONG* ret);
+	STDMETHOD(LoadMemPic)(BSTR pic_name, long long data , LONG size, LONG* ret);
 	//获取指定区域的图像,用二进制数据的方式返回
 	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2,LONG* ret);
 	//获取指定区域的图像,用24位位图的数据格式返回,方便二次开发.（或者可以配合SetDisplayInput的mem模式）
