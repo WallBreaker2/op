@@ -22,7 +22,7 @@
 #undef SetWindowText
 // OpInterface
 std::mutex mtx;
-libop::libop() {
+libop::libop(void* hinst) {
 	_winapi = new WinApi;
 	_bkproc = new bkbase;
 	_image_proc = new ImageProc;
@@ -52,6 +52,7 @@ libop::libop() {
 	static bool is_init = false;
 	mtx.lock();
 	if (!is_init) {
+		gInstance = static_cast<HINSTANCE>(hinst);
 		m_opPath.resize(512);
 		DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
 		m_opPath.resize(real_size);

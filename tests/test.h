@@ -3,7 +3,7 @@
 #define __TEST_H_
 #include <iostream>
 
-#include "../include/libop.h"
+#include "../libop/libop.h"
 #include <windows.h>
 //#ifdef _M_X64
 //#pragma comment(lib,"../bin/x86/op_x64.lib")
@@ -13,7 +13,7 @@
 using namespace std;
 class test {
 public:
-	test() :m_op(new libop){
+	test() :m_op(new libop(nullptr)){
 		
 	}
 	virtual ~test() {
