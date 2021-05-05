@@ -1,4 +1,5 @@
-#include "stdafx.h"
+//#include "stdafx.h"
+#include "core/optype.h"
 #include "query_api.h"
 
 

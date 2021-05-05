@@ -22,10 +22,12 @@ using bytearray = std::vector<unsigned char>;
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
+
+
 class OP_API libop{
 	
 public:
-	libop();
+	libop(void* hinst = nullptr);
 	~libop();
 	//复制构造
 	libop(libop const&) = delete;

@@ -12,7 +12,7 @@
 #include "./winapi/MemoryEx.h"
 // OpInterface
 
-OpInterface::OpInterface() {
+OpInterface::OpInterface():obj(gInstance) {
 
 }
 

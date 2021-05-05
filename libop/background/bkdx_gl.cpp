@@ -1,5 +1,5 @@
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #include "bkdx_gl.h"
 #include "./core/globalVar.h"

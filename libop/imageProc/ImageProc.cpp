@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "ImageProc.h"
 #include "./core/helpfunc.h"
 #include <fstream>

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "MemoryEx.h"
 #include "./core/helpfunc.h"
 #define push(s,x)s.push_back(x)

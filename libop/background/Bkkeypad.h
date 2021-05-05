@@ -1,4 +1,5 @@
 #pragma once
+#include "core/optype.h"
 class bkkeypad
 {
 public:

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Pipe.h"
 #include <iostream>
 #include<chrono>

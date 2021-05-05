@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "ImageLoc.h"
 #include "./core/helpfunc.h"
 #include <time.h>

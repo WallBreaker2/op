@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "helpfunc.h"
 #include <algorithm>
 #include <fstream>

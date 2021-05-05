@@ -35,7 +35,7 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 # find_package(OpenCV REQUIRED)
 # include_directories(libop ${OpenCV_INCLUDE_DIRS})
 
-MESSAGE(STATUS ${Opencv})
+
 
 
 find_library(BLACKBONE_LIB blackbone ./3rd_party/lib/x86 NO_DEFAULT_PATH)
@@ -66,6 +66,7 @@ SET(SRC_FILES
 "./core/pipe.cpp"
 
 
+
 "./imageProc/imageloc.cpp"
 "./imageProc/imageproc.cpp"
 
@@ -80,7 +81,7 @@ SET(SRC_FILES
 )
 
 
-#SET(LIBS "blackbone.lib")
+
 
 ADD_DEFINITIONS(-D WIN32)
 ADD_DEFINITIONS(-D _WINDOWS)
@@ -92,9 +93,9 @@ ADD_DEFINITIONS(-D _WINDLL)
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 
-# ADD_DEFINITIONS(-D APSTUDIO_INVOKED)
+
 # 6.add lib file
-add_library(libop SHARED ${SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
+add_library(libop SHARED ${SRC_FILES})
 
 target_include_directories(libop PUBLIC
 "${PROJECT_BINARY_DIR}"
@@ -104,7 +105,7 @@ target_include_directories(libop PUBLIC
 # 7.add link library
 TARGET_LINK_LIBRARIES(libop ${BLACKBONE_LIB})
 TARGET_LINK_LIBRARIES(libop ${minhook_lib})
-#target_link_libraries(libop ${OPENCV_LIBRARIES})
+
 
 target_link_libraries(libop  ${OpenCV_LIBS})
 target_link_libraries(libop msvcrt.lib)

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "optype.h"
 #include "globalVar.h"
 #include <time.h>
