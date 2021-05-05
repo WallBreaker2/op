@@ -14,3 +14,4 @@ ADD_DEFINITIONS(-D _CMAKE_BUILD)
 #add_executable(test ${SRC_FILES})
 
 #target_link_libraries(test ${OP_LIB})
+install(FILES test.py DESTINATION "${PROJECT_SOURCE_DIR}/bin")

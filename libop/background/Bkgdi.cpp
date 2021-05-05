@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Bkgdi.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"

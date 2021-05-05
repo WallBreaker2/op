@@ -18,6 +18,7 @@
 Build
 lib/
 bin/
+bin_old/
 bld/
 out/
 [Oo]bj/
