@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 #include "bitfunc.h"
 #include "Image.hpp"
 #include "../core/helpfunc.h"
@@ -229,6 +230,44 @@ struct Dict {
 		file.close();
 		sort_dict();
 	}
+
+	void read_memory_dict_dm(const char* buf,size_t size) {
+		clear();
+		std::stringstream file;
+		file.write(buf, size);
+ 
+		//∂¡»°–≈œ¢
+		std::wstring ss;
+		std::string str;
+		while (std::getline(file, str)) {
+			std::string strLocale = setlocale(LC_ALL, "");
+			const char* chSrc = str.c_str();
+			size_t nDestSize = mbstowcs(NULL, chSrc, 0) + 1;
+			wchar_t* wchDest = new wchar_t[nDestSize];
+			wmemset(wchDest, 0, nDestSize);
+			mbstowcs(wchDest, chSrc, nDestSize);
+			std::wstring wstrResult = wchDest;
+			delete[]wchDest;
+			setlocale(LC_ALL, strLocale.c_str());
+			ss = wstrResult;
+			size_t idx1 = ss.find(L'$');
+			auto idx2 = ss.find(L'$', idx1 + 1);
+			word_t wd;
+			word1_t wd1;
+			wstring name;
+			if (idx1 != -1 && idx2 != -1) {
+				ss[idx1] = L'0';
+				name = ss.substr(idx1 + 1, idx2 - idx1 - 1);
+				wd.fromDm(ss.data(), idx1, name);
+				wd1.from_word(wd);
+				wd1.set_chars(name);
+				add_word(wd1);
+
+			}
+		}
+		sort_dict();
+	}
+
 
 	void write_dict(const std::string&s) {
 		std::fstream file;
