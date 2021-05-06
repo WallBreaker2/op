@@ -156,6 +156,17 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 
 }
 
+
+long ImageProc::SetMemDict(int idx, void* data, long size) {
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+	_dicts[idx].clear();
+	_dicts[idx].read_memory_dict_dm( (const char*)data,size );
+	return _dicts[idx].empty() ? 0 : 1;
+
+}
+
+
 long ImageProc::UseDict(int idx) {
 	if (idx < 0 || idx >= _max_dict)
 		return 0;
