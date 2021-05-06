@@ -276,6 +276,8 @@ public:
 	//----------------------ocr-------------------------
 	//设置字库文件
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
+	//设置内存字库文件
+	STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG* ret);
 	//使用哪个字库文件进行识别
 	STDMETHOD(UseDict)(LONG idx,  LONG* ret);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),

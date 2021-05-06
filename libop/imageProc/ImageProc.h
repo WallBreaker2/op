@@ -38,6 +38,8 @@ public:
 
 	std::wstring GetColor(long x, long y);
 
+	long SetMemDict(int idx, void* data,long size);
+
 	long SetDict(int idx,const wstring& file);
 
 	long UseDict(int idx);
