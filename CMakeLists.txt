@@ -3,10 +3,10 @@
 #
 cmake_minimum_required (VERSION 3.0)
 
-SET(CMAKE_TOOLCHAIN_FILE "E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmake")
-SET(VCPKG_TARGET_TRIPLET x86-windows-static)
+# SET(CMAKE_TOOLCHAIN_FILE "E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmake")
+# SET(VCPKG_TARGET_TRIPLET x86-windows-static)
 
-set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+# set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 project ("op")
