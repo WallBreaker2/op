@@ -112,6 +112,11 @@ struct Image
 		}
 	}
 
+	bool read(ATL::CImage* img) {
+		translate((unsigned char*)img->GetBits(), img->GetBPP() / 8, img->GetPitch());
+		return true;
+	}
+
 	bool write(LPCTSTR file) {
 		if (empty())
 			return false;
