@@ -79,6 +79,10 @@ target_include_directories(libop PUBLIC
 "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+include_directories(
+  ./core
+)
+
 # 7.add link library
 TARGET_LINK_LIBRARIES(libop BlackBone.lib)
 TARGET_LINK_LIBRARIES(libop minhook.lib)
