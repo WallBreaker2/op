@@ -8,6 +8,11 @@ ADD_DEFINITIONS(-D _CMAKE_BUILD)
 SET(SRC_FILES "main.cpp")
 
 
+include_directories( 
+  ./
+  ../libop/3rd_party/include/3rd_party
+) 
+
 
 add_executable(tests ${SRC_FILES})
 
