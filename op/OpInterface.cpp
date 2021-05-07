@@ -816,6 +816,14 @@ STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
 
 	return S_OK;
 }
+
+//设置字库文件
+STDMETHODIMP OpInterface::SetMemDict(LONG idx, BSTR data, LONG size, LONG* ret) {
+	obj.SetMemDict(idx, data, size, ret);
+
+	return S_OK;
+}
+
 //使用哪个字库文件进行识别
 STDMETHODIMP OpInterface::UseDict(LONG idx, LONG* ret) {
 	obj.UseDict(idx, ret);

@@ -1042,6 +1042,13 @@ long  libop::SetDict(long idx, const wchar_t* file_name, long* ret) {
 	*ret = _image_proc->SetDict(idx, file_name);
 	return S_OK;
 }
+
+//设置内存字库文件
+long libop::SetMemDict(long idx, const wchar_t* data, long size, long* ret) {
+	*ret = _image_proc->SetMemDict(idx, (void *)data, size);
+	return S_OK;
+}
+
 //使用哪个字库文件进行识别
 long  libop::UseDict(long idx, long* ret) {
 	*ret = _image_proc->UseDict(idx);
