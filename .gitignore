@@ -23,7 +23,7 @@ bld/
 out/
 [Oo]bj/
 [Ll]og/
-
+.vscode/
 Tool/
 Launcher/
 optool/
