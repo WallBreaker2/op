@@ -5,7 +5,7 @@
 #include <numeric>
 #include <assert.h>
 using std::to_wstring;
-//¼ì²éÊÇ·ñÎªÍ¸Ã÷Í¼£¬·µ»ØÍ¸Ã÷ÏñËØ¸öÊı
+//æ£€æŸ¥æ˜¯å¦ä¸ºé€æ˜å›¾ï¼Œè¿”å›é€æ˜åƒç´ ä¸ªæ•°
 int check_transparent(Image* img) {
 	if (img->width < 2 || img->height < 2)
 		return 0;
@@ -87,7 +87,7 @@ ImageBase::~ImageBase()
 //	_x1 = x1; _y1 = y1;
 //	int cw = x2 - x1, ch = y2 - y1;
 //	_src.create(cw, ch);
-//	if (type == -2) {//µ¹¹ıÀ´¶Á
+//	if (type == -2) {//å€’è¿‡æ¥è¯»
 //		uchar* p, * p2;
 //		for (i = 0; i < ch; ++i) {
 //			p = _src.ptr<uchar>(i);
@@ -95,11 +95,11 @@ ImageBase::~ImageBase()
 //			memcpy(p, p2, 4 * cw);
 //		}
 //	}
-//	else if (type == -1) {//µ¹¹ıÀ´¶Á
+//	else if (type == -1) {//å€’è¿‡æ¥è¯»
 //		uchar* p, * p2;
 //		for (i = 0; i < ch; ++i) {
 //			p = _src.ptr<uchar>(i);
-//			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//Æ«ÒÆ
+//			p2 = psrc + (height - i - 1 - y1) * width * 4 + x1 * 4;//åç§»
 //			memcpy(p, p2, 4 * cw);
 //		}
 //	}
@@ -143,7 +143,7 @@ long ImageBase::CmpColor(color_t color, std::vector<color_df_t>& colors, double 
 
 long ImageBase::FindColor(vector<color_df_t>& colors, int dir, long& x, long& y) {
 
-	for (auto& it : colors) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+	for (auto& it : colors) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 
 		for (int i = 0; i < _src.height; ++i) {
 			auto p = _src.ptr<color_t>(i);
@@ -168,7 +168,7 @@ long ImageBase::FindColorEx(vector<color_df_t>& colors, std::wstring& retstr) {
 	for (int i = 0; i < _src.height; ++i) {
 		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
-			for (auto& it : colors) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+			for (auto& it : colors) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 				if (IN_RANGE(*p, it.color, it.df)) {
 					retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
 					retstr += L"|";
@@ -195,9 +195,9 @@ long ImageBase::FindMultiColor(std::vector<color_df_t>& first_color, std::vector
 		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			//step 1. find first color
-			for (auto& it : first_color) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+			for (auto& it : first_color) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 				if (IN_RANGE(*p, it.color, it.df)) {
-					//Æ¥ÅäÆäËû×ø±ê
+					//åŒ¹é…å…¶ä»–åæ ‡
 					err_ct = 0;
 					for (auto& off_cr : offset_color) {
 						color_t currentColor = _src.at<color_t>(j + off_cr.x, i + off_cr.y);
@@ -227,9 +227,9 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t>& first_color, std::vect
 		auto p = _src.ptr<color_t>(i);
 		for (int j = 0; j < _src.width; ++j) {
 			//step 1. find first color
-			for (auto& it : first_color) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+			for (auto& it : first_color) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 				if (IN_RANGE(*p, it.color, it.df)) {
-					//Æ¥ÅäÆäËû×ø±ê
+					//åŒ¹é…å…¶ä»–åæ ‡
 					err_ct = 0;
 					for (auto& off_cr : offset_color) {
 						color_t currentColor = _src.at<color_t>(j + off_cr.x, i + off_cr.y);
@@ -272,7 +272,7 @@ long ImageBase::FindPic(std::vector<Image*>& pics, color_t dfcolor, double sim, 
 	_gray.fromImage4(_src);
 	record_sum(_gray);
 	int tnorm;
-	//½«Ğ¡Ñ­»··ÅÔÚ×îÍâÃæ£¬Ìá¸ß´¦ÀíËÙ¶È
+	//å°†å°å¾ªç¯æ”¾åœ¨æœ€å¤–é¢ï¼Œæé«˜å¤„ç†é€Ÿåº¦
 	for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
 		auto pic = pics[pic_id];
 		int use_ts_match = check_transparent(pic);
@@ -286,12 +286,12 @@ long ImageBase::FindPic(std::vector<Image*>& pics, color_t dfcolor, double sim, 
 
 		for (int i = 0; i < _src.height; ++i) {
 			for (int j = 0; j < _src.width; ++j) {
-				//step 1. ±ß½ç¼ì²é
+				//step 1. è¾¹ç•Œæ£€æŸ¥
 				if (i + pic->height > _src.height || j + pic->width > _src.width)
 					continue;
-				//step 2. ¼ÆËã×î´óÎó²î
+				//step 2. è®¡ç®—æœ€å¤§è¯¯å·®
 				int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
-				//step 3. ¿ªÊ¼Æ¥Åä
+				//step 3. å¼€å§‹åŒ¹é…
 
 
 				/*match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct) :
@@ -333,12 +333,12 @@ long ImageBase::FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim
 		for (int i = 0; i < _src.height; ++i) {
 			for (int j = 0; j < _src.width; ++j) {
 
-				//step 1. ±ß½ç¼ì²é
+				//step 1. è¾¹ç•Œæ£€æŸ¥
 				if (i + pic->height > _src.height || j + pic->width > _src.width)
 					continue;
-				//step 2. ¼ÆËã×î´óÎó²î
+				//step 2. è®¡ç®—æœ€å¤§è¯¯å·®
 				int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
-				//step 3. ¿ªÊ¼Æ¥Åä
+				//step 3. å¼€å§‹åŒ¹é…
 				/*if (nodfcolor)
 					match_ret = (use_ts_match ? trans_match<true>(j, i, pic, dfcolor, points, max_err_ct) :
 						simple_match<true>(j, i, pic, dfcolor, max_err_ct));
@@ -404,22 +404,22 @@ long ImageBase::FindStr(Dict& dict, const vector<wstring>& vstr, double sim, lon
 
 
 
-	//²éÕÒ×Ö·û ·µ»Ø×ø±ê
-	//step 1. ÕÒ³öÆµÄ»ÖĞËùÓĞ×Ö·û¼°Æä×ø±êĞÅÏ¢
+	//æŸ¥æ‰¾å­—ç¬¦ è¿”å›åæ ‡
+	//step 1. æ‰¾å‡ºé¢‘å¹•ä¸­æ‰€æœ‰å­—ç¬¦åŠå…¶åæ ‡ä¿¡æ¯
 	std::map<point_t, wstring> ps;
 	bin_ocr(dict, sim, ps);
-	//step 2. Æ´½Ó×Ö·û ĞÎ³ÉÍêÕû×Ö·û´®
+	//step 2. æ‹¼æ¥å­—ç¬¦ å½¢æˆå®Œæ•´å­—ç¬¦ä¸²
 	wstring str;
 	for (auto& it : ps)
 		str.append(it.second);
-	//step 3. ÔÚÍêÕû×Ö·ûÖĞ²éÕÒÄ¿±ê×Ö·û´®£¬²¢¼ÇÂ¼ Ë÷Òı
+	//step 3. åœ¨å®Œæ•´å­—ç¬¦ä¸­æŸ¥æ‰¾ç›®æ ‡å­—ç¬¦ä¸²ï¼Œå¹¶è®°å½• ç´¢å¼•
 	int idx = -1;
 	for (auto& t : vstr) {
 		idx = str.find(t);
 		if (idx != -1)//find it
 			break;
 	}
-	//step 4.¸ù¾İË÷Òı¸ø³ö¶ÔÓ¦ ×ø±ê ²¢·µ»Ø
+	//step 4.æ ¹æ®ç´¢å¼•ç»™å‡ºå¯¹åº” åæ ‡ å¹¶è¿”å›
 	if (idx != -1) {//locate it
 		int curr_len = 0;
 		for (auto& it : ps) {
@@ -432,7 +432,7 @@ long ImageBase::FindStr(Dict& dict, const vector<wstring>& vstr, double sim, lon
 			}
 
 		}
-		//ÕâÀï½øĞĞ¶ÏÑÔ£¬±íÊ¾²»»á×ßµ½ÕâÒ»²½
+		//è¿™é‡Œè¿›è¡Œæ–­è¨€ï¼Œè¡¨ç¤ºä¸ä¼šèµ°åˆ°è¿™ä¸€æ­¥
 		assert(0);
 	}
 
@@ -440,13 +440,13 @@ long ImageBase::FindStr(Dict& dict, const vector<wstring>& vstr, double sim, lon
 }
 
 long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& retstr) {
-	//ÃèÊö£º²éÕÒÆÁÄ»Ö¸¶¨Î»ÖÃµÄ×Ö·û£¨»òÕß×Ö·û´®£©Î»ÖÃ£¬·µ»ØËùÓĞ³öÏÖµÄ×ø±ê£¨×¢ÒâÓëFindStr½Ó¿ÚµÄÇø±ğ£©£¡£¡£¡
-	//----------------------²½Öè-----------------
-	//step 1. »ñÈ¡Ö¸¶¨Î»ÖÃµÄ×Ö·û¼°×ø±êĞÅÏ¢
-	//step 2. Æ´½Ó×Ö·û£¬ĞÎ³ÉÍêÕû×Ö·û´® str
-	//step 2.¶ÔÃ¿¸öÄ¿±ê×Ö·û ti , ²éÕÒÆäÔÚstrÖĞµÄÎ»ÖÃ£¬²¢¼ÇÂ¼ index(Èç¹û´æÔÚ£©
-	//step 4.¸ù¾İindex ,»ñÈ¡Æä×ø±ê£¬²¢½«×ø±ê×ª»¯Îª×Ö·û´®£¬Æ´½Óµ½·µ»ØÖµ
-	//step 5. »Øµ½µÚ3²½
+	//æè¿°ï¼šæŸ¥æ‰¾å±å¹•æŒ‡å®šä½ç½®çš„å­—ç¬¦ï¼ˆæˆ–è€…å­—ç¬¦ä¸²ï¼‰ä½ç½®ï¼Œè¿”å›æ‰€æœ‰å‡ºç°çš„åæ ‡ï¼ˆæ³¨æ„ä¸FindStræ¥å£çš„åŒºåˆ«ï¼‰ï¼ï¼ï¼
+	//----------------------æ­¥éª¤-----------------
+	//step 1. è·å–æŒ‡å®šä½ç½®çš„å­—ç¬¦åŠåæ ‡ä¿¡æ¯
+	//step 2. æ‹¼æ¥å­—ç¬¦ï¼Œå½¢æˆå®Œæ•´å­—ç¬¦ä¸² str
+	//step 2.å¯¹æ¯ä¸ªç›®æ ‡å­—ç¬¦ ti , æŸ¥æ‰¾å…¶åœ¨strä¸­çš„ä½ç½®ï¼Œå¹¶è®°å½• index(å¦‚æœå­˜åœ¨ï¼‰
+	//step 4.æ ¹æ®index ,è·å–å…¶åæ ‡ï¼Œå¹¶å°†åæ ‡è½¬åŒ–ä¸ºå­—ç¬¦ä¸²ï¼Œæ‹¼æ¥åˆ°è¿”å›å€¼
+	//step 5. å›åˆ°ç¬¬3æ­¥
 
 	retstr.clear();
 	std::map<point_t, wstring> ps;
@@ -469,13 +469,13 @@ long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, s
 			//step 4
 			int current_len = 0;
 			for (auto& it : ps) {
-				//×¢Òâ ×Ö·û³¤¶ÈÒª´óÓÚindex ²Å¼ÇÂ¼×ø±ê
+				//æ³¨æ„ å­—ç¬¦é•¿åº¦è¦å¤§äºindex æ‰è®°å½•åæ ‡
 				current_len += it.second.length();
 				if (current_len < index + 1)continue;
 				if (it.second.find(str[index]) != -1) {
-					//¼ÇÂ¼×ø±ê
+					//è®°å½•åæ ‡
 					wchar_t buff[20] = { 0 };
-					//×¢Òâ¼ÓÆ«ÒÆ
+					//æ³¨æ„åŠ åç§»
 					wsprintf(buff, L"%d,%d|", it.first.x + _x1 + _dx, it.first.y + _y1 + _dy);
 					retstr.append(buff);
 					++find_ct;
@@ -483,7 +483,7 @@ long ImageBase::FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, s
 						goto _quick_return;
 					else
 						break;
-					//to do ÕâÀï»¹ĞèÒªĞŞ¸Ä
+					//to do è¿™é‡Œè¿˜éœ€è¦ä¿®æ”¹
 				}
 			}//end for ps
 			old = index;
@@ -500,13 +500,13 @@ long ImageBase::FindLine(double sim, std::wstring& outStr) {
 	outStr.clear();
 	int h = sqrt(_binary.width * _binary.width + _binary.height * _binary.height)+2;
 	_sum.create(360, h);
-	//ĞĞ£º¾àÀë£¬ÁĞ£º½Ç¶È
+	//è¡Œï¼šè·ç¦»ï¼Œåˆ—ï¼šè§’åº¦
 	_sum.fill(0);
 	for (int i = 0; i<_binary.height; i++) {
 		for (int j = 0; j < _binary.width; j++) {
 			if (_binary.at(i, j)==WORD_COLOR) {
 				for (int t = 0; t < 360; t++) {
-					int d = j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925);//¿ÉÒÔÓÅ»¯
+					int d = j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925);//å¯ä»¥ä¼˜åŒ–
 					assert(d <= h);
 					if (d >= 0)
 						_sum.at<int>(d, t)++;
@@ -631,7 +631,7 @@ long ImageBase::real_match(long x, long y, ImageBin* timg, int tnorm, double sim
 }
 
 void ImageBase::record_sum(const ImageBin& gray) {
-	//ÎªÁË¼õÉÙ±ß½çÅĞ¶Ï£¬ÕâÀï¶à¶à¼ÓÒ»ĞĞÒ»ÁĞ
+	//ä¸ºäº†å‡å°‘è¾¹ç•Œåˆ¤æ–­ï¼Œè¿™é‡Œå¤šå¤šåŠ ä¸€è¡Œä¸€åˆ—
 	_sum.create(gray.width + 1, gray.height + 1);
 	_sum.fill(0);
 	int m = _sum.height;
@@ -687,7 +687,7 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 		for (int j = 0; j < ncols; ++j) {
 			uchar g1 =psrc->toGray();
 			*pbin = WORD_BKCOLOR;
-			for (auto& it : colors) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+			for (auto& it : colors) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 				if (abs(g1 - it.color.toGray()) <= it.df.toGray()) {
 					*pbin = WORD_COLOR;
 					break;
@@ -702,7 +702,7 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 	//	auto pbin = _binary.ptr(i);
 	//	for (int j = 0; j < ncols; ++j) {
 	//		*pbin = WORD_BKCOLOR;
-	//		for (auto& it : colors) {//¶ÔÃ¿¸öÑÕÉ«ÃèÊö
+	//		for (auto& it : colors) {//å¯¹æ¯ä¸ªé¢œè‰²æè¿°
 	//			if (IN_RANGE(*psrc, it.color, it.df)) {
 	//				*pbin = WORD_COLOR;
 	//				break;
@@ -716,19 +716,19 @@ void ImageBase::bgr2binary(vector<color_df_t>& colors) {
 	//cv::imwrite("binary.png", _binary);
 }
 
-//¶şÖµ»¯
+//äºŒå€¼åŒ–
 void ImageBase::bgr2binarybk(const vector<color_df_t>& bk_colors)
 {
-	//´´½¨¶şÖµÍ¼
+	//åˆ›å»ºäºŒå€¼å›¾
 	_binary.create(_src.width, _src.height);
 	memset(_binary.pixels.data(), WORD_BKCOLOR, _binary.size());
 	int n = _binary.size();
 	auto pdst = _binary.data();
 	if (bk_colors.size() == 0) {//auto 
-		//×ªÎª»Ò¶ÈÍ¼
+		//è½¬ä¸ºç°åº¦å›¾
 		_gray.fromImage4(_src);
 
-		//»ñÈ¡±³¾°ÑÕÉ«
+		//è·å–èƒŒæ™¯é¢œè‰²
 		int bkcolor = get_bk_color(_gray);
 
 		auto pgray = _gray.data();
@@ -750,13 +750,13 @@ void ImageBase::bgr2binarybk(const vector<color_df_t>& bk_colors)
 }
 
 
-//´¹Ö±·½ÏòÍ¶Ó°µ½xÖá
+//å‚ç›´æ–¹å‘æŠ•å½±åˆ°xè½´
 void ImageBase::binshadowx(const rect_t& rc, std::vector<rect_t>& out_put)
 {
 	//qDebug("in x rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
 	//ys.clear();
-	//Mat paintx(binary.size(), CV_8UC1, cv::Scalar(255)); //´´½¨Ò»¸öÈ«°×Í¼Æ¬£¬ÓÃ×÷ÏÔÊ¾
+	//Mat paintx(binary.size(), CV_8UC1, cv::Scalar(255)); //åˆ›å»ºä¸€ä¸ªå…¨ç™½å›¾ç‰‡ï¼Œç”¨ä½œæ˜¾ç¤º
 
 	//int* blackcout = new int[binary.cols];
 	std::vector<int> vx;
@@ -768,26 +768,26 @@ void ImageBase::binshadowx(const rect_t& rc, std::vector<rect_t>& out_put)
 		{
 			if (_binary.at(i, j) == WORD_COLOR)
 			{
-				vx[j]++; //´¹Ö±Í¶Ó°°´ÁĞÔÚxÖá½øĞĞÍ¶Ó°
+				vx[j]++; //å‚ç›´æŠ•å½±æŒ‰åˆ—åœ¨xè½´è¿›è¡ŒæŠ•å½±
 			}
 		}
 	}
 
 	int startindex = 0;
 	int endindex = 0;
-	bool inblock = false; //ÊÇ·ñ±éÀúµ½×Ö·ûÎ»ÖÃ
+	bool inblock = false; //æ˜¯å¦éå†åˆ°å­—ç¬¦ä½ç½®
 	rect_t roi;
 	for (int j = rc.x1; j < rc.x2; j++)
 	{
 
-		if (!inblock && vx[j] != 0) //½øÈëÓĞ×Ö·ûÇøÓò
+		if (!inblock && vx[j] != 0) //è¿›å…¥æœ‰å­—ç¬¦åŒºåŸŸ
 		{
 			inblock = true;
 			startindex = j;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		//if (inblock&&vx[j] == 0) //½øÈë¿Õ°×Çø
-		else if (inblock && vx[j] == 0 && j - startindex >= MIN_CUT_W)//½øÈë¿Õ°×ÇøÓò£¬ÇÒ¿í¶È²»Ğ¡ÓÚ1
+		//if (inblock&&vx[j] == 0) //è¿›å…¥ç©ºç™½åŒº
+		else if (inblock && vx[j] == 0 && j - startindex >= MIN_CUT_W)//è¿›å…¥ç©ºç™½åŒºåŸŸï¼Œä¸”å®½åº¦ä¸å°äº1
 		{
 			endindex = j;
 			inblock = false;
@@ -807,18 +807,18 @@ void ImageBase::binshadowx(const rect_t& rc, std::vector<rect_t>& out_put)
 	}
 
 }
-//Í¶Ó°µ½yÖá
+//æŠ•å½±åˆ°yè½´
 void ImageBase::binshadowy(const rect_t& rc, std::vector<rect_t>& out_put)
 {
 	//qDebug("in y rc:%d,%d,%d,%d", rc.x1, rc.y1, rc.x2, rc.y2);
 	out_put.clear();
-	//ÊÇ·ñÎª°×É«»òÕßºÚÉ«¸ù¾İ¶şÖµÍ¼ÏñµÄ´¦ÀíµÃÀ´
-	//Mat painty(binary.size(), CV_8UC1, cv::Scalar(255)); //³õÊ¼»¯ÎªÈ«°×
-	//Ë®Æ½Í¶Ó°
-	//int* pointcount = new int[binary.rows]; //ÔÚ¶şÖµÍ¼Æ¬ÖĞ¼ÇÂ¼ĞĞÖĞÌØÕ÷µãµÄ¸öÊı
+	//æ˜¯å¦ä¸ºç™½è‰²æˆ–è€…é»‘è‰²æ ¹æ®äºŒå€¼å›¾åƒçš„å¤„ç†å¾—æ¥
+	//Mat painty(binary.size(), CV_8UC1, cv::Scalar(255)); //åˆå§‹åŒ–ä¸ºå…¨ç™½
+	//æ°´å¹³æŠ•å½±
+	//int* pointcount = new int[binary.rows]; //åœ¨äºŒå€¼å›¾ç‰‡ä¸­è®°å½•è¡Œä¸­ç‰¹å¾ç‚¹çš„ä¸ªæ•°
 	std::vector<int> vy;
 	vy.resize(_binary.height);
-	memset(&vy[0], 0, _binary.height * 4);//×¢ÒâÕâÀïĞèÒª½øĞĞ³õÊ¼»¯
+	memset(&vy[0], 0, _binary.height * 4);//æ³¨æ„è¿™é‡Œéœ€è¦è¿›è¡Œåˆå§‹åŒ–
 
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
@@ -826,7 +826,7 @@ void ImageBase::binshadowy(const rect_t& rc, std::vector<rect_t>& out_put)
 		{
 			if (_binary.at(i, j) == WORD_COLOR)
 			{
-				vy[i]++; //¼ÇÂ¼Ã¿ĞĞÖĞºÚÉ«µãµÄ¸öÊı //Ë®Æ½Í¶Ó°°´ĞĞÔÚyÖáÉÏµÄÍ¶Ó°
+				vy[i]++; //è®°å½•æ¯è¡Œä¸­é»‘è‰²ç‚¹çš„ä¸ªæ•° //æ°´å¹³æŠ•å½±æŒ‰è¡Œåœ¨yè½´ä¸Šçš„æŠ•å½±
 			}
 		}
 	}
@@ -835,19 +835,19 @@ void ImageBase::binshadowy(const rect_t& rc, std::vector<rect_t>& out_put)
 	//std::vector<Mat> result;
 	int startindex = 0;
 	int endindex = 0;
-	bool inblock = false; //ÊÇ·ñ±éÀúµ½×Ö·ûÎ»ÖÃ
+	bool inblock = false; //æ˜¯å¦éå†åˆ°å­—ç¬¦ä½ç½®
 	rect_t roi;
 	for (int i = rc.y1; i < rc.y2; i++)
 	{
 
-		if (!inblock && vy[i] != 0) //½øÈëÓĞ×Ö·ûÇøÓò
+		if (!inblock && vy[i] != 0) //è¿›å…¥æœ‰å­—ç¬¦åŒºåŸŸ
 		{
 			inblock = true;
 			startindex = i;
 			//std::cout << "startindex:" << startindex << std::endl;
 		}
-		//if (inblock&&vy[i] == 0) //½øÈë¿Õ°×Çø
-		if (inblock && vy[i] == 0 && i - startindex >= MIN_CUT_H)//½øÈë¿Õ°×Çø,ÇÒ¸ß¶È²»Ğ¡ÓÚ1
+		//if (inblock&&vy[i] == 0) //è¿›å…¥ç©ºç™½åŒº
+		if (inblock && vy[i] == 0 && i - startindex >= MIN_CUT_H)//è¿›å…¥ç©ºç™½åŒº,ä¸”é«˜åº¦ä¸å°äº1
 		{
 			endindex = i;
 			inblock = false;
@@ -867,7 +867,7 @@ void ImageBase::binshadowy(const rect_t& rc, std::vector<rect_t>& out_put)
 }
 
 void ImageBase::bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc) {
-	//Ë®Æ½²Ã¼ô£¬ËõĞ¡¸ß¶È
+	//æ°´å¹³è£å‰ªï¼Œç¼©å°é«˜åº¦
 	std::vector<int>v;
 	outrc = inrc;
 	int i, j;
@@ -884,7 +884,7 @@ void ImageBase::bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc)
 	while (v[i] == 0)i--;
 	if (i + 1 - outrc.y1 > min_word_h)
 		outrc.y2 = i + 1;
-	//´¹Ö±²Ã¼ô.ËõĞ¡¿í¶È
+	//å‚ç›´è£å‰ª.ç¼©å°å®½åº¦
 	v.resize(_binary.width);
 	for (auto& it : v)it = 0;
 
@@ -920,7 +920,7 @@ void ImageBase::get_rois(int min_word_h, std::vector<rect_t>& vroi) {
 }
 
 inline int full_match(const ImageBin& binary, rect_t& rc, const uint8_t* data) {
-	//Æ¥Åä
+	//åŒ¹é…
 	int idx = 0;
 	for (int x = rc.x1; x < rc.x2; ++x) {
 		for (int y = rc.y1; y < rc.y2; ++y) {
@@ -934,8 +934,8 @@ inline int full_match(const ImageBin& binary, rect_t& rc, const uint8_t* data) {
 }
 
 inline int part_match(const ImageBin& binary, rect_t& rc, int max_error, const uint8_t* data) {
-	//Æ¥Åä
-	//Æ¥Åä
+	//åŒ¹é…
+	//åŒ¹é…
 	int err_ct = 0;
 	int idx = 0;
 	for (int x = rc.x1; x < rc.x2; ++x) {
@@ -962,7 +962,7 @@ inline void fill_rect(ImageBin& record, const rect_t& rc) {
 
 }
 
-int binarySearch(const word1_t a[], int bidx, int eidx, int target)//Ñ­»·ÊµÏÖ
+int binarySearch(const word1_t a[], int bidx, int eidx, int target)//å¾ªç¯å®ç°
 {
 	int low = bidx, high = eidx, middle;
 	while (low < high)
@@ -978,21 +978,21 @@ int binarySearch(const word1_t a[], int bidx, int eidx, int target)//Ñ­»·ÊµÏÖ
 	return -1;
 };
 
-//ÍêÈ«Æ¥Åä ´ıÊ¶±ğÎÄ×Ö²»ÄÜº¬ÓĞÈÎºÎÔëÉù
+//å®Œå…¨åŒ¹é… å¾…è¯†åˆ«æ–‡å­—ä¸èƒ½å«æœ‰ä»»ä½•å™ªå£°
 /*
-Ëã·¨
-f(p,size) Îª´Óµãp¿ªÊ¼£¬´óĞ¡ÎªsizeµÄ¾ØĞÎ¿éÏñËØÖ®ºÍ,Õâ¸öº¯ÊıÊ¹ÓÃ²é±í·¨¿ìËÙ¼ÆËã
-×Ö¿â:D ×ÖµÄÏñËØ·¶Î§:m-M ×ÖµÄ´óĞ¡·¶Î§:size_min-size_max
-Ê¶±ğÍ¼Ïñ:src
+ç®—æ³•
+f(p,size) ä¸ºä»ç‚¹på¼€å§‹ï¼Œå¤§å°ä¸ºsizeçš„çŸ©å½¢å—åƒç´ ä¹‹å’Œ,è¿™ä¸ªå‡½æ•°ä½¿ç”¨æŸ¥è¡¨æ³•å¿«é€Ÿè®¡ç®—
+å­—åº“:D å­—çš„åƒç´ èŒƒå›´:m-M å­—çš„å¤§å°èŒƒå›´:size_min-size_max
+è¯†åˆ«å›¾åƒ:src
 for each point in src:
-	if f(p,size_max)<m //ÏñËØÌ«ÉÙ
+	if f(p,size_max)<m //åƒç´ å¤ªå°‘
 		continue;
-	if f(p,size_min)>M //ÏñËØÌ«¶à
+	if f(p,size_min)>M //åƒç´ å¤ªå¤š
 		continue;
-	//ÏñËØºÏÊÊ
+	//åƒç´ åˆé€‚
 	for each w in D
 		if f(p,w_size)==w_cnt
-			ok=match(...) //×÷×îºóµÄÆ¥Åä
+			ok=match(...) //ä½œæœ€åçš„åŒ¹é…
 			if ok
 				add w to result;
 				delete rect(p,w_size);
@@ -1023,7 +1023,7 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 		h_max = max(h_max, it.info.h);
 	}
 
-	//½«ËùÓĞ×Ö¿â°´ÕÕ´óĞ¡·Ö³É¼¸Àà£¬¶ÔÓÚÃ¿¸ö´óĞ¡¸ù¾İÏñËØÃÜ¶È²éÕÒ¶ÔÓ¦µÄ·ûºÏ×Ö¿â
+	//å°†æ‰€æœ‰å­—åº“æŒ‰ç…§å¤§å°åˆ†æˆå‡ ç±»ï¼Œå¯¹äºæ¯ä¸ªå¤§å°æ ¹æ®åƒç´ å¯†åº¦æŸ¥æ‰¾å¯¹åº”çš„ç¬¦åˆå­—åº“
 	auto makeinfo = [](int begin, int end, int szh, int szw) {
 		return std::make_pair(begin << 16 | end, szh << 8 | szw);
 	};
@@ -1040,13 +1040,13 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 	}
 	dict_sz.back().first |= vword.size();
 
-	//±éÀúĞĞ
+	//éå†è¡Œ
 	for (py = 0; py < _binary.height - h_min + 1; ++py) {
-		//±éÀúÁĞ
+		//éå†åˆ—
 		for (px = 0; px < _binary.width - w_min + 1; ++px) {
 			if (_record.at(py, px))
 				continue;
-			//¼ì²âÏñËØÃÜ¶È
+			//æ£€æµ‹åƒç´ å¯†åº¦
 			if (region_sum(px, py, min(px + w_max, _binary.width), min(py + h_max, _binary.height)) < cnt_min)//too less
 				continue;
 			if (region_sum(px, py, px + w_min, py + h_min) > cnt_max)//too much
@@ -1059,7 +1059,7 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 				rect_t crc;
 				crc.x1 = px; crc.y1 = py;
 				crc.x2 = px + w; crc.y2 = py + h;
-				//±ß½ç¼ì²é
+				//è¾¹ç•Œæ£€æŸ¥
 				if (crc.y2 > _binary.height || crc.x2 > _binary.width)
 					continue;
 
@@ -1109,7 +1109,7 @@ void ImageBase::_bin_ocr(const Dict& dict, std::map<point_t, std::wstring>& ps) 
 
 
 }
-//Ä£ºıÆ¥Åä ´ıÊ¶±ğÇøÓò¿ÉÒÔº¬ÓĞÔëÉù
+//æ¨¡ç³ŠåŒ¹é… å¾…è¯†åˆ«åŒºåŸŸå¯ä»¥å«æœ‰å™ªå£°
 void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wstring>& ps) {
 	int px, py, y;
 	if (_binary.empty())
@@ -1130,20 +1130,20 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 		h_max = max(h_max, it.info.h);
 	}
 	int matched = 0;
-	//±éÀúĞĞ
+	//éå†è¡Œ
 	for (py = 0; py < _binary.height - h_min + 1; ++py) {
-		//±éÀúÁĞ
+		//éå†åˆ—
 		for (px = 0; px < _binary.width - w_min + 1; ++px) {
 			if (_record.at(py, px))
 				continue;
-			//¼ì²âÏñËØÃÜ¶È
+			//æ£€æµ‹åƒç´ å¯†åº¦
 			if (region_sum(px, py, min(px + w_max, _binary.width), min(py + h_max, _binary.height)) < cnt_min * sim)//too less
 				continue;
 			if (region_sum(px, py, px + w_min, py + h_min) > cnt_max * (2 - sim))
 				continue;
 			point_t pt;
 			pt.x = px; pt.y = py;
-			//±éÀú×Ö¿â
+			//éå†å­—åº“
 			//assert(i != 4 || j != 3);
 			int k = 0;
 			for (auto& it : dict.words) {
@@ -1151,7 +1151,7 @@ void ImageBase::_bin_ocr(const Dict& dict, double sim, std::map<point_t, std::ws
 				rect_t crc;
 				crc.x1 = px; crc.y1 = py;
 				crc.x2 = px + it.info.w; crc.y2 = py + it.info.h;
-				//±ß½ç¼ì²é
+				//è¾¹ç•Œæ£€æŸ¥
 				if (crc.y2 > _binary.height || crc.x2 > _binary.width)
 					continue;
 				//quick check

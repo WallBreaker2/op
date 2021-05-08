@@ -5,11 +5,11 @@
 //#include <tesseract/baseapi.h>
 using std::wstring;
 /*
-´ËÀàÎªÍ¼Ïñ´¦Àí£¬°üº¬ÒÔÏÂ¹¤×÷
-1.ÏñËØ±È½Ï£¬²éÕÒ
-2.ÑÕÉ«×ª»¯
-3.Í¼Ïñ¶¨Î»
-4.¼òµ¥OCR
+æ­¤ç±»ä¸ºå›¾åƒå¤„ç†ï¼ŒåŒ…å«ä»¥ä¸‹å·¥ä½œ
+1.åƒç´ æ¯”è¾ƒï¼ŒæŸ¥æ‰¾
+2.é¢œè‰²è½¬åŒ–
+3.å›¾åƒå®šä½
+4.ç®€å•OCR
 5....
 */
 class ImageProc:public ImageBase
@@ -31,7 +31,7 @@ public:
 	long FindMultiColor(const wstring& first_color,const wstring& offset_color, double sim, long dir, long&x, long&y);
 
 	long FindMultiColorEx(const wstring& first_color, const wstring& offset_color, double sim, long dir, wstring& retstr);
-	//Í¼ĞÎ¶¨Î»
+	//å›¾å½¢å®šä½
 	long FindPic(const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
 	//
 	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr, bool returnID = true);
@@ -66,17 +66,17 @@ public:
 
 	long LoadMemPic(const wstring& file_name, void* data, long size);
 private:
-	//×Ö¿â
+	//å­—åº“
 	Dict _dicts[_max_dict];
-	//µ±Ç°×Ö¿âË÷Òı
+	//å½“å‰å­—åº“ç´¢å¼•
 	int _curr_idx;
 	
 public:
-	//µ±Ç°Ä¿Â¼
+	//å½“å‰ç›®å½•
 	wstring _curr_path;
-	//Í¼Æ¬»º´æ
+	//å›¾ç‰‡ç¼“å­˜
 	std::map<wstring, Image> _pic_cache;
-	//ÊÇ·ñÊ¹ÓÃÍ¼Æ¬»º´æ£¬Ä¬ÈÏ¿ªÆô
+	//æ˜¯å¦ä½¿ç”¨å›¾ç‰‡ç¼“å­˜ï¼Œé»˜è®¤å¼€å¯
 	int _enable_cache;
 
 	//tesseract::TessBaseAPI _tes;

@@ -16,7 +16,7 @@ const int op_dict_version = 2;
 
 
 /*
-µÚ 0 ´ú×Ö¿â
+ç¬¬ 0 ä»£å­—åº“
 */
 struct word_info_t {
 	//char of word
@@ -53,7 +53,7 @@ struct word_t {
 	void set_chars(const std::wstring&s) {
 		memcpy(info._char, s.c_str(), min(sizeof(info._char), (s.length() + 1) * sizeof(wchar_t)));
 	}
-	//´Ó dm ×Ö¿âÖĞ µÄÒ»¸öµãÕó×ª»¯ÎªopµÄµãÕó
+	//ä» dm å­—åº“ä¸­ çš„ä¸€ä¸ªç‚¹é˜µè½¬åŒ–ä¸ºopçš„ç‚¹é˜µ
 	void fromDm(const wchar_t* str, int ct,const std::wstring& w) {
 		int bin[50] = { 0 };
 		constexpr int DM_DICT_HEIGTH = 11;
@@ -86,7 +86,7 @@ struct word_t {
 	}
 };
 /*
-µÚ 1 ´ú×Ö¿â
+ç¬¬ 1 ä»£å­—åº“
 */
 struct word1_info {
 	uint8_t w, h;//max is 255 2B
@@ -161,10 +161,10 @@ struct Dict {
 		file.open(s, std::ios::in | std::ios::binary);
 		if (!file.is_open())
 			return;
-		//¶ÁÈ¡Í·ĞÅÏ¢
+		//è¯»å–å¤´ä¿¡æ¯
 		file.read((char*)&info, sizeof(info));
 		
-		//Ğ£Ñé
+		//æ ¡éªŒ
 		if (info._this_ver==0&&info._check_code == (info._this_ver^info._word_count)) {
 			//old dict format
 			words.resize(info._word_count);
@@ -198,7 +198,7 @@ struct Dict {
 		file.open(s, std::ios::in);
 		if (!file.is_open())
 			return;
-		//¶ÁÈ¡ĞÅÏ¢
+		//è¯»å–ä¿¡æ¯
 		std::wstring ss;
 		std::string str;
 		while (std::getline(file, str)) {
@@ -236,7 +236,7 @@ struct Dict {
 		std::stringstream file;
 		file.write(buf, size);
  
-		//¶ÁÈ¡ĞÅÏ¢
+		//è¯»å–ä¿¡æ¯
 		std::wstring ss;
 		std::string str;
 		while (std::getline(file, str)) {
@@ -274,7 +274,7 @@ struct Dict {
 		file.open(s, std::ios::out | std::ios::binary);
 		if (!file.is_open())
 			return;
-		//É¾³ıËùÓĞ¿ÕµÄ×Ö·û
+		//åˆ é™¤æ‰€æœ‰ç©ºçš„å­—ç¬¦
 		auto it = words.begin();
 		while (it != words.end()) {
 			if (it->info.name[0] == L'\0')
@@ -283,12 +283,12 @@ struct Dict {
 				++it;
 		}
 		info._word_count = words.size();
-		//ÉèÖÃĞ£Ñé
+		//è®¾ç½®æ ¡éªŒ
 
 		info._check_code = info._this_ver^info._word_count;
-		//Ğ´ÈëĞÅÏ¢
+		//å†™å…¥ä¿¡æ¯
 		file.write((char*)&info, sizeof(info));
-		//Ğ´ÈëÊı¾İ
+		//å†™å…¥æ•°æ®
 		for (int i = 0; i < words.size(); i++) {
 			file.write((char*)&words[i].info, sizeof(word1_info));
 			file.write((char*)words[i].data.data(), words[i].data.size());
