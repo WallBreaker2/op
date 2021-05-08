@@ -1,8 +1,9 @@
 //#include "stdafx.h"
 #include "Bkgdi.h"
-#include "./core/globalVar.h"
-#include "./core/helpfunc.h"
+#include "globalVar.h"
+#include "helpfunc.h"
 #include <fstream>
+#include <atlimage.h>
 #include "./include/Image.hpp"
 
 bkgdi::bkgdi()
@@ -50,6 +51,10 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		if (_render_type == RDT_GDI) {
 			_hdc = ::GetDC(_hwnd);
 		}
+		else if (RDT_GDI_DX2 == render_type ) {
+			_hdc = ::GetDC(_hwnd);
+			_device_caps = GetDeviceCaps(_hdc, BITSPIXEL);
+		}
 		else {
 			_hdc = ::GetDCEx(_hwnd, NULL, DCX_PARENTCLIP);
 		}
@@ -61,7 +66,7 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		return 0;
 	}
 
-	//����һ����ָ���豸���ݵ��ڴ��豸�����Ļ���	
+	//创建一个与指定设备兼容的内存设备上下文环境	
 	_hmdc = CreateCompatibleDC(_hdc);
 	if (_hmdc == NULL) {
 		setlog("CreateCompatibleDC false");
@@ -96,36 +101,36 @@ long bkgdi::UnBindEx() {
 
 
 //byte* bkgdi::get_data() {
-//	//����  ˢ������
+//	//首先  刷新数据
 //	//updata_screen();
 //
 //	return _shmem->data<byte>();
 //}
 
 //long bkgdi::updata_screen() {
-//	//step 1.�ж� �����Ƿ����
+//	//step 1.判断 窗口是否存在
 //	if (!::IsWindow(_hwnd))
 //		return 0;
-//	if (_render_type == RDT_NORMAL) {//normal �����Ĵ�СΪʵ����Ҫ�Ĵ�С
+//	if (_render_type == RDT_NORMAL) {//normal 拷贝的大小为实际需要的大小
 //		//
 //		int w = rect.right - rect.left;
 //		int h = rect.bottom - rect.top;
-//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //������ָ�����豸������ص��豸���ݵ�λͼ
-//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //ѡ��һ����ָ�����豸�����Ļ�����
+//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //创建与指定的设备环境相关的设备兼容的位图
+//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
 //
 //		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 //		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 //		_bfh.bfType = static_cast<WORD>(0x4d42);
 //
-//		_bih.biBitCount = 32;//ÿ�������ֽڴ�С
+//		_bih.biBitCount = 32;//每个像素字节大小
 //		_bih.biCompression = BI_RGB;
-//		_bih.biHeight = h;//�߶�
+//		_bih.biHeight = h;//高度
 //		_bih.biPlanes = 1;
 //		_bih.biSize = sizeof(BITMAPINFOHEADER);
-//		_bih.biSizeImage = w * h * 4;//ͼ�����ݴ�С
-//		_bih.biWidth = w;//����
+//		_bih.biSizeImage = w * h * 4;//图像数据大小
+//		_bih.biWidth = w;//宽度
 //
-//		//��ָ����Դ�豸���������е����ؽ���λ�飨bit_block��ת��
+//		//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 //
 //		RECT rc;
 //		::GetWindowRect(_hwnd, &rc);
@@ -140,7 +145,7 @@ long bkgdi::UnBindEx() {
 //
 //
 //
-//		//������ȡָ������λͼ��λ��Ȼ������һ��DIB���豸�޹�λͼ��Device-Independent Bitmap��ʹ�õ�ָ����ʽ���Ƶ�һ����������
+//		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
 //		_pmutex->lock();
 //		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h, _shmem->data<byte>(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 //
@@ -148,29 +153,29 @@ long bkgdi::UnBindEx() {
 //
 //		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 //	}
-//	else {//gdi ... ����printwindow ������ԭ�� ��ȡ��СΪʵ�ʵĴ��ڴ�С���ں����Ĵ����У���Ҫת���ɿͻ�����С
+//	else {//gdi ... 由于printwindow 函数的原因 截取大小为实际的窗口大小，在后续的处理中，需要转化成客户区大小
 //		//
 //		RECT rc;
 //		::GetWindowRect(_hwnd, &rc);
 //		int w = rc.right - rc.left;
 //		int h = rc.bottom - rc.top;
 //		//setlog("_w w=%d %d _h h=%d %d,dx=%d dy=%d", _width, w, _height, h, dx_, dy_);
-//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //������ָ�����豸������ص��豸���ݵ�λͼ
-//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //ѡ��һ����ָ�����豸�����Ļ�����
+//		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //创建与指定的设备环境相关的设备兼容的位图
+//		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
 //
 //		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 //		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 //		_bfh.bfType = static_cast<WORD>(0x4d42);
 //
-//		_bih.biBitCount = 32;//ÿ�������ֽڴ�С
+//		_bih.biBitCount = 32;//每个像素字节大小
 //		_bih.biCompression = BI_RGB;
-//		_bih.biHeight = h;//�߶�
+//		_bih.biHeight = h;//高度
 //		_bih.biPlanes = 1;
 //		_bih.biSize = sizeof(BITMAPINFOHEADER);
-//		_bih.biSizeImage = w * h * 4;//ͼ�����ݴ�С
-//		_bih.biWidth = w;//����
+//		_bih.biSizeImage = w * h * 4;//图像数据大小
+//		_bih.biWidth = w;//宽度
 //
-//		//��ָ����Դ�豸���������е����ؽ���λ�飨bit_block��ת��
+//		//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 //	
 //		if (_render_type == RDT_GDI) {
 //			::PrintWindow(_hwnd, _hmdc, 0);
@@ -181,7 +186,7 @@ long bkgdi::UnBindEx() {
 //			//::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 //			::PrintWindow(_hwnd, _hmdc, 0);
 //		}
-//		//������ȡָ������λͼ��λ��Ȼ������һ��DIB���豸�޹�λͼ��Device-Independent Bitmap��ʹ�õ�ָ����ʽ���Ƶ�һ����������
+//		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
 //		temp_src.resize(_bih.biSizeImage);
 //		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h, temp_src.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 //		_pmutex->lock();
@@ -202,30 +207,30 @@ long bkgdi::UnBindEx() {
 //}
 
 bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
-	//step 1.�ж� �����Ƿ����
+	//step 1.判断 窗口是否存在
 	if (!::IsWindow(_hwnd))
 		return 0;
 	img.create(w, h);
-	if (_render_type == RDT_NORMAL) {//normal �����Ĵ�СΪʵ����Ҫ�Ĵ�С
+	if (_render_type == RDT_NORMAL) {//normal 拷贝的大小为实际需要的大小
 		//
 	/*	int w = rect.right - rect.left;
 		int h = rect.bottom - rect.top;*/
-		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //������ָ�����豸������ص��豸���ݵ�λͼ
-		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //ѡ��һ����ָ�����豸�����Ļ�����
+		_hbmpscreen = CreateCompatibleBitmap(_hdc, w, h); //创建与指定的设备环境相关的设备兼容的位图
+		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
 
 		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 		_bfh.bfSize = _bfh.bfOffBits + w * h * 4;
 		_bfh.bfType = static_cast<WORD>(0x4d42);
 
-		_bih.biBitCount = 32;//ÿ�������ֽڴ�С
+		_bih.biBitCount = 32;//每个像素字节大小
 		_bih.biCompression = BI_RGB;
-		_bih.biHeight = h;//�߶�
+		_bih.biHeight = h;//高度
 		_bih.biPlanes = 1;
 		_bih.biSize = sizeof(BITMAPINFOHEADER);
-		_bih.biSizeImage = w * h * 4;//ͼ�����ݴ�С
-		_bih.biWidth = w;//����
+		_bih.biSizeImage = w * h * 4;//图像数据大小
+		_bih.biWidth = w;//宽度
 
-		//��ָ����Դ�豸���������е����ؽ���λ�飨bit_block��ת��
+		//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 
 		RECT rc;
 		::GetWindowRect(_hwnd, &rc);
@@ -238,47 +243,57 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 			setlog("error in bitbit");
 		}
 
-
-
-		//������ȡָ������λͼ��λ��Ȼ������һ��DIB���豸�޹�λͼ��Device-Independent Bitmap��ʹ�õ�ָ����ʽ���Ƶ�һ����������
+		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
 		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h,pshare+sizeof(FrameInfo), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 
 		//_pmutex->unlock();
-
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
-		//�����ݿ�����Ŀ��ע��ʵ�������Ƿ���
+		//将数据拷贝到目标注意实际数据是反的
 		
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i) * 4 * w, 4 * w);
 		}
+	}else if (RDT_GDI_DX2 == _render_type){
+		ATL::CImage image;
+		image.Create(w, h, _device_caps);
+		BitBlt(
+			image.GetDC(),
+			x1, y1,
+			w, h,
+			_hdc,
+			0, 0,
+			SRCCOPY
+		);
+		img.read(&image);
+		image.ReleaseDC();
 	}
-	else {//gdi ... ����printwindow ������ԭ�� ��ȡ��СΪʵ�ʵĴ��ڴ�С���ں����Ĵ����У���Ҫת���ɿͻ�����С
+	else {//gdi ... 由于printwindow 函数的原因 截取大小为实际的窗口大小，在后续的处理中，需要转化成客户区大小
 		//
 		RECT rc;
 		::GetWindowRect(_hwnd, &rc);
 		int ww = rc.right - rc.left;
 		int wh = rc.bottom - rc.top;
 		//setlog("_w w=%d %d _h h=%d %d,dx=%d dy=%d", _width, w, _height, h, dx_, dy_);
-		_hbmpscreen = CreateCompatibleBitmap(_hdc, ww, wh); //������ָ�����豸������ص��豸���ݵ�λͼ
-		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //ѡ��һ����ָ�����豸�����Ļ�����
+		_hbmpscreen = CreateCompatibleBitmap(_hdc, ww, wh); //创建与指定的设备环境相关的设备兼容的位图
+		_hbmp_old = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //选择一对象到指定的设备上下文环境中
 
 		_bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 		_bfh.bfSize = _bfh.bfOffBits + ww * wh * 4;
 		_bfh.bfType = static_cast<WORD>(0x4d42);
 
-		_bih.biBitCount = 32;//ÿ�������ֽڴ�С
+		_bih.biBitCount = 32;//每个像素字节大小
 		_bih.biCompression = BI_RGB;
-		_bih.biHeight = wh;//�߶�
+		_bih.biHeight = wh;//高度
 		_bih.biPlanes = 1;
 		_bih.biSize = sizeof(BITMAPINFOHEADER);
-		_bih.biSizeImage = ww * wh * 4;//ͼ�����ݴ�С
-		_bih.biWidth = ww;//����
+		_bih.biSizeImage = ww * wh * 4;//图像数据大小
+		_bih.biWidth = ww;//宽度
 
-		//��ָ����Դ�豸���������е����ؽ���λ�飨bit_block��ת��
+		//对指定的源设备环境区域中的像素进行位块（bit_block）转换
 
 		if (_render_type == RDT_GDI) {
 			::PrintWindow(_hwnd, _hmdc, 0);
@@ -289,7 +304,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 			//::RedrawWindow(_hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 			::PrintWindow(_hwnd, _hmdc, 0);
 		}
-		//������ȡָ������λͼ��λ��Ȼ������һ��DIB���豸�޹�λͼ��Device-Independent Bitmap��ʹ�õ�ָ����ʽ���Ƶ�һ����������
+		//函数获取指定兼容位图的位，然后将其作一个DIB—设备无关位图（Device-Independent Bitmap）使用的指定格式复制到一个缓冲区中
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
@@ -297,7 +312,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
-		//�����ݿ�����Ŀ��ע��ʵ�������Ƿ���(ע��ƫ��)
+		//将数据拷贝到目标注意实际数据是反的(注意偏移)
 		auto ppixels = _shmem->data<byte>()+sizeof(FrameInfo);
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), ppixels + (wh - 1 - i - y1 - dy_) * 4 * ww + (x1 + dx_) * 4, 4 * w);
@@ -316,8 +331,5 @@ void bkgdi::fmtFrameInfo(void* dst,HWND hwnd, int w, int h) {
 	m_frameInfo.fmtChk();
 	memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
 }
-
-
-
 
 

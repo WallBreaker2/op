@@ -240,6 +240,8 @@ public:
 	long LoadPic(const wchar_t* file_name, long* ret);
 
 	long FreePic(const wchar_t* file_name, long* ret);
+	//从内存加载要查找的图片
+	long LoadMemPic(const wchar_t* file_name,void* data,long size, long* ret);
 	//
 	long GetScreenData(long x1, long y1, long x2, long y2, void** data,long* ret);
 	//
@@ -251,6 +253,8 @@ public:
 	//----------------------ocr-------------------------
 	//设置字库文件
 	long SetDict(long idx, const wchar_t* file_name, long* ret);
+	//设置内存字库文件
+	long SetMemDict(long idx, const wchar_t* data, long size, long* ret);
 	//使用哪个字库文件进行识别
 	long UseDict(long idx,  long* ret);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
