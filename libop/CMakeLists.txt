@@ -7,12 +7,13 @@ cmake_minimum_required(VERSION 3.0.0)
 #INCLUDE_DIRECTORIES(
 #    include
 #)
-
+#set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD_REQUIRED True)
 if (MSVC_VERSION GREATER_EQUAL "1900")
     include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
+    CHECK_CXX_COMPILER_FLAG("/std:c++17" _cpp_latest_flag_supported)
     if (_cpp_latest_flag_supported)
-        add_compile_options("/std:c++latest")
+        add_compile_options("/std:c++17")
     endif()
 endif()
 
