@@ -156,6 +156,17 @@ long ImageProc::SetDict(int idx, const wstring& file_name) {
 
 }
 
+
+long ImageProc::SetMemDict(int idx, void* data, long size) {
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+	_dicts[idx].clear();
+	_dicts[idx].read_memory_dict_dm( (const char*)data,size );
+	return _dicts[idx].empty() ? 0 : 1;
+
+}
+
+
 long ImageProc::UseDict(int idx) {
 	if (idx < 0 || idx >= _max_dict)
 		return 0;
@@ -222,10 +233,10 @@ void ImageProc::str2colors(const wstring& color, std::vector<color_t>& vcolor) {
 	}
 }
 
-void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
+long ImageProc::LoadPic(const wstring& files) {
 	//std::vector<wstring>vstr, vstr2;
-	Image* pm;
-	vpic.clear();
+	std::vector<wstring> vstr;
+	int loaded = 0;
 	split(files, vstr, L"|");
 	wstring tp;
 	for (auto& it : vstr) {
@@ -233,12 +244,72 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 		if (!Path2GlobalPath(it, _curr_path, tp))
 			continue;
 		//先在缓存中查找
-		if (_pic_cache.count(tp)) {
-			pm = &_pic_cache[tp];
+		if ( !_pic_cache.count(tp)) {
+			_pic_cache[tp].read(tp.data());
+		}
+		//已存在于缓存中的文件也算加载成功
+		loaded++;
+	}
+	return loaded;
+}
+
+long ImageProc::FreePic(const wstring& files) {
+	std::vector<wstring> vstr;
+	int loaded = 0;
+	split(files, vstr, L"|");
+	wstring tp;
+	for (auto& it : vstr) {
+		//看当前目录
+		auto cache_it = _pic_cache.find( it );
+		//没查到再看一下资源目录
+		if (cache_it == _pic_cache.end()) {
+			cache_it = _pic_cache.find(_curr_path + L"\\" + it);
+		}
+		//查到了就释放
+		if (cache_it != _pic_cache.end()) {
+			cache_it->second.release();
+			_pic_cache.erase(cache_it);
+			loaded++;
+		}
+	}
+	return loaded;
+}
+
+long ImageProc::LoadMemPic(const wstring& file_name, void* data, long size) {
+	try {
+		if (!_pic_cache.count(file_name)) {
+			_pic_cache[file_name].read(data, size);
+		}
+	}
+	catch (...){
+		return 0;
+	}
+	return 1;
+}
+
+void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr) {
+	//std::vector<wstring>vstr, vstr2;
+	Image* pm;
+	vpic.clear();
+	split(files, vstr, L"|");
+	wstring tp;
+	for (auto& it : vstr) {
+		//先在缓存中查找是否已加载，包括从内存中加载的文件
+		if (_pic_cache.count(it)) {
+			pm = &_pic_cache[it];
 		}
 		else {
-			_pic_cache[tp].read(tp.data());
-			pm = &_pic_cache[tp];
+			//路径转化
+			if (!Path2GlobalPath(it, _curr_path, tp))
+				continue;
+			//再检测一次，包括绝对路径的文件
+			if (_pic_cache.count(tp)) {
+				pm = &_pic_cache[tp];
+			}
+			else {
+				_pic_cache[tp].read(tp.data());
+				pm = &_pic_cache[tp];
+			}
 		}
 		vpic.push_back(pm);
 	}

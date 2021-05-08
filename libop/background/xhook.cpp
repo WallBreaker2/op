@@ -1,6 +1,4 @@
-//#include "stdafx.h"
 #include "xhook.h"
-
 #include <d3d11.h>
 //#include <D3DX11.h>
 #include <d3d10.h>
@@ -215,7 +213,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 		1,
 		0,
 		surface_Desc.Format,
-		D3DPOOL_SYSTEMMEM, //����Ϊ���
+		D3DPOOL_SYSTEMMEM, // 必须为这个
 		&pTex, NULL);
 	if (hr < 0) {
 		return hr;
@@ -227,7 +225,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	D3DLOCKED_RECT lockedRect;
 
 	pTex->LockRect(0, &lockedRect, NULL, D3DLOCK_READONLY);
-	/*ȡ����*/
+	// 取像素
 	sharedmem mem;
 	promutex mutex;
 	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
@@ -459,12 +457,7 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 		formatFrameInfo(pshare, xhook::render_hwnd, textDesc.Width, textDesc.Height);
 		//CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
 		static_assert(sizeof(FrameInfo) == 28);
-		/*if(--cnt>=0)
-		setlog("%08X %08X %08X  %08X",
-			((uint*)mapSubres.pData)[0],
-			((uint*)mapSubres.pData)[1],
-			((uint*)mapSubres.pData)[2],
-			((uint*)mapSubres.pData)[3]);*/
+ 
 		CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapSubres.pData, textDesc.Height, textDesc.Width, mapSubres.RowPitch, fmt);
 		mutex.unlock();
 	}
@@ -573,7 +566,7 @@ void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
 
 
 //---------------------OPENGL ES------------------------------
-//es ���� opengl ��ͼ��ֻ��ģ�鲻ͬ
+//es 类似 opengl 截图，只是模块不同
 long egl_capture() {
 	using glPixelStorei_t = decltype(glPixelStorei)*;
 	using glReadBuffer_t = decltype(glReadBuffer)*;

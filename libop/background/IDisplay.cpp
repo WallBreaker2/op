@@ -23,9 +23,9 @@ long IDisplay::Bind(HWND hwnd, long flag) {
 		return 0;
 	}
 	_hwnd = hwnd;
-	//step 2. ׼����Դ
+	//step 2. 准备资源
 	bind_init();
-	//step 3. �����ض��İ󶨺���
+	//step 3. 调用特定的绑定函数
 
 	if (BindEx(hwnd, flag) == 1) {
 		_bind_state = 1;

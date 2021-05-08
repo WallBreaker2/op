@@ -48,13 +48,13 @@ int stringcompute(const wchar_t* s) {
 				push(ns, x); num.clear();
 			}
 
-			if (ns.empty())/*����ջ��,ֱ��ѹ������*/ {
+			if (ns.empty()) { /// 数字栈空,直接压入数据
 				push(os, *s);
 				s++;
 			}
 			else if (!os.empty()) {
 				op = os.back();
-				if (*s == 0 || get_op_prior(op) >= get_op_prior(*s))/*��������*/ {
+				if (*s == 0 || get_op_prior(op) >= get_op_prior(*s)) { // 进行运算
 					int num2 = pop(ns);
 					int num1 = pop(ns);
 					op = pop(os);
@@ -62,7 +62,7 @@ int stringcompute(const wchar_t* s) {
 					push(ns, ans);
 					//push(os, c);
 				}
-				else {/*������ѹ��ջ��*/
+				else {   // 将运算压入栈中
 					push(os, *s);
 					s++;
 				}
@@ -257,4 +257,3 @@ void MemoryEx::bin2hexs(const vector<uchar>&bin, wstring& hex) {
 		hex.push_back(ans & 0xff);
 	}
 }
-

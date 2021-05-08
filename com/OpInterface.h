@@ -266,6 +266,7 @@ public:
 	STDMETHOD(SetDisplayInput)(BSTR mode, LONG* ret);
 	STDMETHOD(LoadPic)(BSTR pic_name, LONG* ret);
 	STDMETHOD(FreePic)(BSTR pic_name, LONG* ret);
+	STDMETHOD(LoadMemPic)(BSTR pic_name, long long data , LONG size, LONG* ret);
 	//获取指定区域的图像,用二进制数据的方式返回
 	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2,LONG* ret);
 	//获取指定区域的图像,用24位位图的数据格式返回,方便二次开发.（或者可以配合SetDisplayInput的mem模式）
@@ -276,6 +277,8 @@ public:
 	//----------------------ocr-------------------------
 	//设置字库文件
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
+	//设置内存字库文件
+	STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG* ret);
 	//使用哪个字库文件进行识别
 	STDMETHOD(UseDict)(LONG idx,  LONG* ret);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),

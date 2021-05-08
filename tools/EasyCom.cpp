@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include "../com/op_i.h"
-#include "../libop/3rd_party/include/minhook.h""
+#include "MinHook.h"
 #include <iostream>
 #include <comdef.h>
 #include <fstream>

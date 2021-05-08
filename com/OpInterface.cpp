@@ -743,6 +743,12 @@ STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG* ret) {
 
 	return S_OK;
 }
+
+STDMETHODIMP OpInterface::LoadMemPic(BSTR pic_name, long long data, LONG size, LONG* ret) {
+	obj.LoadMemPic(pic_name, (void*)data, size, ret);
+	return S_OK;
+}
+
 //获取指定区域的图像,用二进制数据的方式返回
 STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG* ret) {
 //#if OP64
@@ -810,6 +816,14 @@ STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG* ret) {
 
 	return S_OK;
 }
+
+//设置字库文件
+STDMETHODIMP OpInterface::SetMemDict(LONG idx, BSTR data, LONG size, LONG* ret) {
+	obj.SetMemDict(idx, data, size, ret);
+
+	return S_OK;
+}
+
 //使用哪个字库文件进行识别
 STDMETHODIMP OpInterface::UseDict(LONG idx, LONG* ret) {
 	obj.UseDict(idx, ret);
