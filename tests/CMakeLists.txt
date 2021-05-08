@@ -19,4 +19,9 @@ add_executable(tests ${SRC_FILES})
 
 target_link_libraries(tests libop)
 
-install(TARGETS tests  DESTINATION "${PROJECT_SOURCE_DIR}/bin")
+
+IF(CMAKE_CL_64)
+  install(TARGETS tests  DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+ELSE(CMAKE_CL_64)
+  install(TARGETS tests  DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+ENDIF(CMAKE_CL_64)
