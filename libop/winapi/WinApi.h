@@ -44,11 +44,11 @@ public:
 private:
 	DWORD  FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, const wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);
-	int GetProcessNumber();//»ñÈ¡CPU¸öÊı
-	// Ê±¼ä¸ñÊ½×ª»»
+	int GetProcessNumber();//è·å–CPUä¸ªæ•°
+	// æ—¶é—´æ ¼å¼è½¬æ¢
 	__int64 FileTimeToInt64(const FILETIME& time);
-	double get_cpu_usage(DWORD ProcessID);	 //»ñÈ¡Ö¸¶¨½ø³ÌCPUÊ¹ÓÃÂÊ
-	DWORD GetMemoryInfo(DWORD ProcessID);  //»òÕßÖ¸¶¨½ø³ÌÄÚ´æÊ¹ÓÃÂÊ
+	double get_cpu_usage(DWORD ProcessID);	 //è·å–æŒ‡å®šè¿›ç¨‹CPUä½¿ç”¨ç‡
+	DWORD GetMemoryInfo(DWORD ProcessID);  //æˆ–è€…æŒ‡å®šè¿›ç¨‹å†…å­˜ä½¿ç”¨ç‡
 
 
 };

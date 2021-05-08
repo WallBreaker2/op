@@ -26,7 +26,7 @@ BOOL WinApi::EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type)
 {
 	if (IsEuemprosuccess == 0)
 	{
-		int nItem = 0;	// Ïî¼ÆÊı
+		int nItem = 0;	// é¡¹è®¡æ•°
 		PROCESSENTRY32 pe32 = { sizeof(PROCESSENTRY32) };
 		HANDLE hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 		if (hProcessSnap == INVALID_HANDLE_VALUE)
@@ -37,7 +37,7 @@ BOOL WinApi::EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type)
 			{
 				if (type == 1)
 				{
-					if (wcsstr(pe32.szExeFile, ExeName) != NULL) //Ä£ºıÆ¥Åä
+					if (wcsstr(pe32.szExeFile, ExeName) != NULL) //æ¨¡ç³ŠåŒ¹é…
 					{
 						npid[nItem] = pe32.th32ProcessID;
 						IsEuemprosuccess++;
@@ -79,17 +79,17 @@ DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cl
 	while (hchile != NULL)
 	{
 
-		if (isGW_OWNER)   //ÅĞ¶ÏÊÇ·ñÒªÆ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+		if (isGW_OWNER)   //åˆ¤æ–­æ˜¯å¦è¦åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 			if (::GetWindow(hchile, GW_OWNER) != 0)
 			{
-				hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+				hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 				continue;
 			}
 
-		if (isVisible)  //ÅĞ¶ÏÊÇ·ñÆ¥Åä¿ÉÊÓ´°¿Ú
+		if (isVisible)  //åˆ¤æ–­æ˜¯å¦åŒ¹é…å¯è§†çª—å£
 			if (::IsWindowVisible(hchile) == false)
 			{
-				hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+				hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 				continue;
 			}
 		if (title == NULL && classname == NULL)
@@ -135,8 +135,8 @@ DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cl
 			::GetWindowText(hchile, WindowTitle, MAX_PATH);
 			if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 			{
-				wchar_t *strfindclass = wcsstr(WindowClassName, classname);   //Ä£ºıÆ¥Åä
-				wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+				wchar_t *strfindclass = wcsstr(WindowClassName, classname);   //æ¨¡ç³ŠåŒ¹é…
+				wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfindclass&&strfindtitle)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -183,7 +183,7 @@ DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cl
 			::GetWindowText(hchile, WindowTitle, MAX_PATH);
 			if (wcslen(WindowTitle) > 1)
 			{
-				wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+				wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfind)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -229,7 +229,7 @@ DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cl
 			::GetClassName(hchile, WindowClassName, MAX_PATH);
 			if (wcslen(WindowClassName) > 1)
 			{
-				wchar_t *strfind = wcsstr(WindowClassName, classname);   //Ä£ºıÆ¥Åä
+				wchar_t *strfind = wcsstr(WindowClassName, classname);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfind)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -278,35 +278,35 @@ DWORD  WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cl
 				break;
 		}
 
-		hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+		hchile = ::GetWindow(hchile, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 	}
 	return 0;
 }
 
-//TSEnumWindow:filterÕûĞÎÊı: È¡Öµ¶¨ÒåÈçÏÂ
+//TSEnumWindow:filteræ•´å½¢æ•°: å–å€¼å®šä¹‰å¦‚ä¸‹
 //
-//1 : Æ¥Åä´°¿Ú±êÌâ,²ÎÊıtitleÓĞĞ§ 
+//1 : åŒ¹é…çª—å£æ ‡é¢˜,å‚æ•°titleæœ‰æ•ˆ 
 //
-//2 : Æ¥Åä´°¿ÚÀàÃû,²ÎÊıclass_nameÓĞĞ§.
+//2 : åŒ¹é…çª—å£ç±»å,å‚æ•°class_nameæœ‰æ•ˆ.
 //
-//4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú
+//4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£
 //
-//8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+//8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 //
-//16 : Æ¥Åä¿É¼ûµÄ´°¿Ú
+//16 : åŒ¹é…å¯è§çš„çª—å£
 //
-//32 : Æ¥Åä³öµÄ´°¿Ú°´ÕÕ´°¿Ú´ò¿ªË³ĞòÒÀ´ÎÅÅÁĞ
+//32 : åŒ¹é…å‡ºçš„çª—å£æŒ‰ç…§çª—å£æ‰“å¼€é¡ºåºä¾æ¬¡æ’åˆ—
 bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_name, LONG filter, wchar_t *retstring, const wchar_t  *process_name)
 {
 	bool bret = false;
-	bool bZwindow = false;//Æ¥Åä³öµÄ´°¿Ú°´ÕÕ´°¿Ú´ò¿ªË³ĞòÒÀ´ÎÅÅÁĞ
+	bool bZwindow = false;//åŒ¹é…å‡ºçš„çª—å£æŒ‰ç…§çª—å£æ‰“å¼€é¡ºåºä¾æ¬¡æ’åˆ—
 	if (parent == 0)
 	{
 		parent = GetDesktopWindow();
 	}
 	if (filter > 32)
 	{
-		bZwindow = true;//ËµÃ÷ÒªÅÅĞò´°¿Ú¾ä±ú
+		bZwindow = true;//è¯´æ˜è¦æ’åºçª—å£å¥æŸ„
 		filter = filter - 32;
 	}
 
@@ -326,7 +326,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 	retstringlen = 0;
 	switch (filter)
 	{
-	case 0:   //ËùÓĞÄ£Ê½
+	case 0:   //æ‰€æœ‰æ¨¡å¼
 	{
 
 		if (process_name)	 //EnumWindowByProcess
@@ -334,7 +334,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 			return false;
 		}
 
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -353,15 +353,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				FindChildWnd(hchile, NULL, NULL, retstring);
 			}
 
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 1://1 : Æ¥Åä´°¿Ú±êÌâ,²ÎÊıtitleÓĞĞ§  
+	case 1://1 : åŒ¹é…çª—å£æ ‡é¢˜,å‚æ•°titleæœ‰æ•ˆ  
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -371,7 +371,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 			::GetWindowText(p, WindowTitle, MAX_PATH);
 			if (wcslen(WindowTitle) > 1)
 			{
-				wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+				wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfind)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -407,15 +407,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 			}
 
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 2://2 : Æ¥Åä´°¿ÚÀàÃû,²ÎÊıclass_nameÓĞĞ§.
+	case 2://2 : åŒ¹é…çª—å£ç±»å,å‚æ•°class_nameæœ‰æ•ˆ.
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -425,7 +425,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 			::GetClassName(p, WindowClassName, MAX_PATH);
 			if (wcslen(WindowClassName) > 1)
 			{
-				wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+				wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfind)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -460,15 +460,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 3:   //1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû
+	case 3:   //1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -480,8 +480,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 			::GetWindowText(p, WindowTitle, MAX_PATH);
 			if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 			{
-				wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-				wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+				wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+				wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 				if (strfindclass&&strfindtitle)
 				{
 					if (process_name)//EnumWindowByProcess
@@ -517,13 +517,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 			}
 
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 4:	  //4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú
+	case 4:	  //4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -535,13 +535,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				GetWindowThreadProcessId(p, &pid);
 				if (EnumProcessbyName(pid, process_name))
 				{
-					if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+					if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 					{
 						if (indexpid < IsEuemprosuccess)
 						{
 							indexpid++;
 							processpid = pid;
-							memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+							memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 							retstringlen = 0;
 						}
 					}
@@ -573,16 +573,16 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					swprintf(retstring, L"%d", p);
 				bret = true;
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 5:	  //1.Æ¥Åä´°¿Ú±êÌâ+//4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú
+	case 5:	  //1.åŒ¹é…çª—å£æ ‡é¢˜+//4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
 
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -595,13 +595,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				GetWindowThreadProcessId(p, &pid);
 				if (EnumProcessbyName(pid, process_name))
 				{
-					if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+					if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 					{
 						if (indexpid < IsEuemprosuccess)
 						{
 							indexpid++;
 							processpid = pid;
-							memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+							memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 							retstringlen = 0;
 						}
 					}
@@ -650,15 +650,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 			}
 
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 6:	 //2 : Æ¥Åä´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú
+	case 6:	 //2 : åŒ¹é…çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -674,7 +674,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					{
 						indexpid++;
 						processpid = pid;
-						memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+						memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 						retstringlen = 0;
 					}
 				}
@@ -720,15 +720,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 7:	 //1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú
+	case 7:	 //1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -744,7 +744,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					{
 						indexpid++;
 						processpid = pid;
-						memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+						memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 						retstringlen = 0;
 					}
 				}
@@ -756,8 +756,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -784,8 +784,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				::GetWindowText(p, WindowTitle, MAX_PATH);
 				if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 				{
-					wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-					wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+					wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+					wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 					if (strfindclass&&strfindtitle)
 					{
 						if (retstringlen == 0)
@@ -799,13 +799,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 			}
 
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 8:	//8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 8:	//8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -849,15 +849,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 9:	  //1.´°¿Ú±êÌâ+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 9:	  //1.çª—å£æ ‡é¢˜+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -875,7 +875,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -900,7 +900,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -919,15 +919,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 10:	//2.´°¿ÚÀàÃû+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 10:	//2.çª—å£ç±»å+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -945,7 +945,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetClassName(p, WindowClassName, MAX_PATH);
 						if (wcslen(WindowClassName) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -970,7 +970,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -990,15 +990,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 11:	 ////1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 11:	 ////1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		if (p == NULL)
 			return false;
 		p = ::GetWindow(p, GW_HWNDFIRST);
@@ -1019,8 +1019,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfindclass&&strfindtitle)
 							{
 								if (retstringlen == 0)
@@ -1047,8 +1047,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -1067,13 +1067,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 12:	// //4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 12:	// //4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1085,13 +1085,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1124,15 +1124,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					bret = true;
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 13:	 //1.´°¿Ú±êÌâ+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 13:	 //1.çª—å£æ ‡é¢˜+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1144,13 +1144,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1160,7 +1160,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -1187,7 +1187,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1202,15 +1202,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 14:	  //2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 14:	  //2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1222,13 +1222,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1238,7 +1238,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetClassName(p, WindowClassName, MAX_PATH);
 							if (wcslen(WindowClassName) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -1265,7 +1265,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1279,15 +1279,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 15:	 ////1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú
+	case 15:	 ////1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1299,13 +1299,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1317,8 +1317,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfindclass&&strfindtitle)
 								{
 									if (retstringlen == 0)
@@ -1347,8 +1347,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -1362,14 +1362,14 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 16://Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 16://åŒ¹é…å¯è§çš„çª—å£
 	{
 		parent = GetDesktopWindow();
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1411,15 +1411,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 17:	//1.´°¿Ú±êÌâ+//Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 17:	//1.çª—å£æ ‡é¢˜+//åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1435,7 +1435,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -1460,7 +1460,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1479,15 +1479,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 18:	 //2.´°¿ÚÀàÃû+//Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 18:	 //2.çª—å£ç±»å+//åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1503,7 +1503,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetClassName(p, WindowClassName, MAX_PATH);
 						if (wcslen(WindowClassName) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -1528,7 +1528,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1547,15 +1547,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 19:	////1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 19:	////1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1573,8 +1573,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfindclass&&strfindtitle)
 							{
 								if (retstringlen == 0)
@@ -1601,8 +1601,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -1621,13 +1621,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 20:	//4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 20:	//4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+åŒ¹é…å¯è§çš„çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1639,13 +1639,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1678,15 +1678,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					bret = true;
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 21:	//1.´°¿Ú±êÌâ+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 21:	//1.çª—å£æ ‡é¢˜+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1698,13 +1698,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1714,7 +1714,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -1741,7 +1741,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1755,15 +1755,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 22://2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 22://2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1775,13 +1775,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1791,7 +1791,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetClassName(p, WindowClassName, MAX_PATH);
 							if (wcslen(WindowClassName) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -1818,7 +1818,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -1832,15 +1832,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 23://1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 23://1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1852,13 +1852,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -1870,8 +1870,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfindclass&&strfindtitle)
 								{
 									if (retstringlen == 0)
@@ -1900,8 +1900,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -1915,13 +1915,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 24://8 : Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 24://8 : åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1964,15 +1964,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 25:	//1.´°¿Ú±êÌâ+  8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 25:	//1.çª—å£æ ‡é¢˜+  8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -1988,7 +1988,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -2013,7 +2013,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -2032,15 +2032,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 26://2.´°¿ÚÀàÃû+  8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 26://2.çª—å£ç±»å+  8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2056,7 +2056,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetClassName(p, WindowClassName, MAX_PATH);
 						if (wcslen(WindowClassName) > 1)
 						{
-							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+							wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfind)
 							{
 								if (retstringlen == 0)
@@ -2081,7 +2081,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -2100,15 +2100,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 27://1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 27://1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2126,8 +2126,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if (strfindclass&&strfindtitle)
 							{
 								if (retstringlen == 0)
@@ -2154,8 +2154,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -2175,13 +2175,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 				}
 
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 28:	//4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 28:	//4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2193,13 +2193,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -2232,15 +2232,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					bret = true;
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 29:	////1.´°¿Ú±êÌâ+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 29:	////1.çª—å£æ ‡é¢˜+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2253,13 +2253,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -2269,7 +2269,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -2296,7 +2296,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -2310,15 +2310,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 30://2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 30://2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2330,13 +2330,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -2346,7 +2346,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetClassName(p, WindowClassName, MAX_PATH);
 							if (wcslen(WindowClassName) > 1)
 							{
-								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+								wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfind)
 								{
 									if (retstringlen == 0)
@@ -2373,7 +2373,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetClassName(p, WindowClassName, MAX_PATH);
 					if (wcslen(WindowClassName) > 1)
 					{
-						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
+						wchar_t *strfind = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfind)
 						{
 							if (retstringlen == 0)
@@ -2387,15 +2387,15 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
-	case 31:	//1.´°¿Ú±êÌâ+2.´°¿ÚÀàÃû+4 : Ö»Æ¥ÅäÖ¸¶¨¸¸´°¿ÚµÄµÚÒ»²ãº¢×Ó´°¿Ú+8:Æ¥ÅäËùÓĞÕß´°¿ÚÎª0µÄ´°¿Ú,¼´¶¥¼¶´°¿Ú+16.Æ¥Åä¿É¼ûµÄ´°¿Ú
+	case 31:	//1.çª—å£æ ‡é¢˜+2.çª—å£ç±»å+4 : åªåŒ¹é…æŒ‡å®šçˆ¶çª—å£çš„ç¬¬ä¸€å±‚å­©å­çª—å£+8:åŒ¹é…æ‰€æœ‰è€…çª—å£ä¸º0çš„çª—å£,å³é¡¶çº§çª—å£+16.åŒ¹é…å¯è§çš„çª—å£
 	{
 		if (wcslen(class_name) < 1 && wcslen(title) < 1)
 			return false;
-		HWND p = ::GetWindow(parent, GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(parent, GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2407,13 +2407,13 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					GetWindowThreadProcessId(p, &pid);
 					if (EnumProcessbyName(pid, process_name))
 					{
-						if (processpid != pid)  //Ö»Æ¥ÅäÖ¸¶¨Ó³ÏñµÄËù¶ÔÓ¦µÄµÚÒ»¸ö½ø³Ì. ¿ÉÄÜÓĞºÜ¶àÍ¬Ó³ÏñÃûµÄ½ø³Ì£¬Ö»Æ¥ÅäµÚÒ»¸ö½ø³ÌµÄ.
+						if (processpid != pid)  //åªåŒ¹é…æŒ‡å®šæ˜ åƒçš„æ‰€å¯¹åº”çš„ç¬¬ä¸€ä¸ªè¿›ç¨‹. å¯èƒ½æœ‰å¾ˆå¤šåŒæ˜ åƒåçš„è¿›ç¨‹ï¼ŒåªåŒ¹é…ç¬¬ä¸€ä¸ªè¿›ç¨‹çš„.
 						{
 							if (indexpid < IsEuemprosuccess)
 							{
 								indexpid++;
 								processpid = pid;
-								memset(retstring, 0, retstringlen);//Çå¿Õ·µ»Ø×Ö·û´®
+								memset(retstring, 0, retstringlen);//æ¸…ç©ºè¿”å›å­—ç¬¦ä¸²
 								retstringlen = 0;
 							}
 						}
@@ -2425,8 +2425,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 							::GetWindowText(p, WindowTitle, MAX_PATH);
 							if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 							{
-								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+								wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+								wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 								if (strfindclass&&strfindtitle)
 								{
 									if (retstringlen == 0)
@@ -2455,8 +2455,8 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					::GetWindowText(p, WindowTitle, MAX_PATH);
 					if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 					{
-						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+						wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+						wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 						if (strfindclass&&strfindtitle)
 						{
 							if (retstringlen == 0)
@@ -2470,7 +2470,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 		break;
 	}
@@ -2496,13 +2496,13 @@ bool WinApi::EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *sp
 	p = ::GetWindow(p, GW_HWNDFIRST);
 	while (p != NULL)
 	{
-		if (flag1 == 0)//0±íÊ¾spec1µÄÄÚÈİÊÇ±êÌâ
+		if (flag1 == 0)//0è¡¨ç¤ºspec1çš„å†…å®¹æ˜¯æ ‡é¢˜
 		{
 			wchar_t WindowTitle[MAX_PATH] = { 0 };
 			::GetWindowText(p, WindowTitle, MAX_PATH);
 			if (wcslen(WindowTitle) > 0)
 			{
-				if (type1 == 0)//0¾«È·ÅĞ¶Ï,1Ä£ºıÅĞ¶Ï
+				if (type1 == 0)//0ç²¾ç¡®åˆ¤æ–­,1æ¨¡ç³Šåˆ¤æ–­
 				{
 					if (wcscmp(spec1, WindowTitle) == 0)
 						bfindhwnd1 = true;
@@ -2514,20 +2514,20 @@ bool WinApi::EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *sp
 				}
 			}
 		}
-		else if (flag1 == 1)//1±íÊ¾spec1µÄÄÚÈİÊÇ³ÌĞòÃû×Ö
+		else if (flag1 == 1)//1è¡¨ç¤ºspec1çš„å†…å®¹æ˜¯ç¨‹åºåå­—
 		{
 			DWORD pid = 0;
 			::GetWindowThreadProcessId(p, &pid);
 			wchar_t proname[MAX_PATH] = { 0 };
 			GetProcesspath(pid, proname);
 		}
-		else if (flag1 == 2)//2±íÊ¾spec1µÄÄÚÈİÊÇÀàÃû
+		else if (flag1 == 2)//2è¡¨ç¤ºspec1çš„å†…å®¹æ˜¯ç±»å
 		{
 			wchar_t WindowClassName[MAX_PATH] = { 0 };
 			::GetClassName(p, WindowClassName, MAX_PATH);
 			if (wcslen(WindowClassName) > 0)
 			{
-				if (type1 == 0)//0¾«È·ÅĞ¶Ï,1Ä£ºıÅĞ¶Ï
+				if (type1 == 0)//0ç²¾ç¡®åˆ¤æ–­,1æ¨¡ç³Šåˆ¤æ–­
 				{
 					if (wcscmp(spec1, WindowClassName) == 0)
 						bfindhwnd1 = true;
@@ -2555,7 +2555,7 @@ bool WinApi::EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *sp
 		{
 			FindChildWnd(hchile, NULL, NULL, findhwnd1);
 		}
-		p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+		p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 	}
 
 	return bret;
@@ -2625,7 +2625,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 		if (EnumProcessbyName(0, process_name) == false)
 			return false;
 
-		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2649,8 +2649,8 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if ((wcslen(class_name) >= 1 && strfindclass) || (wcslen(title) >= 1 && strfindtitle))
 							{
 								rethwnd = (LONG)p;
@@ -2679,12 +2679,12 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 	}
 	else if (Pid > 0)
 	{
-		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2708,8 +2708,8 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 						::GetWindowText(p, WindowTitle, MAX_PATH);
 						if (wcslen(WindowClassName) > 1 && wcslen(WindowTitle) > 1)
 						{
-							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //Ä£ºıÆ¥Åä
-							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //Ä£ºıÆ¥Åä
+							wchar_t *strfindclass = wcsstr(WindowClassName, class_name);   //æ¨¡ç³ŠåŒ¹é…
+							wchar_t *strfindtitle = wcsstr(WindowTitle, title);   //æ¨¡ç³ŠåŒ¹é…
 							if ((wcslen(class_name) >= 1 && strfindclass) || (wcslen(title) >= 1 && strfindtitle))
 							{
 								rethwnd = (LONG)p;
@@ -2737,7 +2737,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 	}
 
@@ -2795,7 +2795,7 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y)
 	rethwnd = (DWORD)::WindowFromPoint(point);
 	if (rethwnd == NULL)
 	{
-		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //»ñÈ¡×ÀÃæ´°¿ÚµÄ×Ó´°¿Ú
+		HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); //è·å–æ¡Œé¢çª—å£çš„å­çª—å£
 		p = ::GetWindow(p, GW_HWNDFIRST);
 		while (p != NULL)
 		{
@@ -2807,8 +2807,8 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y)
 				{
 					wchar_t WindowClass[MAX_PATH] = { 0 };
 					::GetClassName(p, WindowClass, MAX_PATH);
-					//if((windowpoint.x==0||windowpoint.x<rc.left)&&wcscmp(WindowClass,L"CabinetWClass")!=0)	//IE¿ò´°ÌåÅÅ³ıÔÚÍâ
-					if (wcscmp(WindowClass, L"CabinetWClass") != 0)	//IE¿ò´°ÌåÅÅ³ıÔÚÍâ
+					//if((windowpoint.x==0||windowpoint.x<rc.left)&&wcscmp(WindowClass,L"CabinetWClass")!=0)	//IEæ¡†çª—ä½“æ’é™¤åœ¨å¤–
+					if (wcscmp(WindowClass, L"CabinetWClass") != 0)	//IEæ¡†çª—ä½“æ’é™¤åœ¨å¤–
 					{
 						rethwnd = (DWORD)p;
 						bret = true;
@@ -2816,7 +2816,7 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y)
 					}
 				}
 			}
-			p = ::GetWindow(p, GW_HWNDNEXT);   //»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+			p = ::GetWindow(p, GW_HWNDNEXT);   //è·å–ä¸‹ä¸€ä¸ªçª—å£
 		}
 	}
 	else
@@ -2825,14 +2825,14 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y)
 	return bret;
 }
 
-int WinApi::GetProcessNumber()//»ñÈ¡CPU¸öÊı
+int WinApi::GetProcessNumber()//è·å–CPUä¸ªæ•°
 {
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	return (int)info.dwNumberOfProcessors;
 }
 
-// Ê±¼ä¸ñÊ½×ª»»
+// æ—¶é—´æ ¼å¼è½¬æ¢
 __int64 WinApi::FileTimeToInt64(const FILETIME& time)
 {
 	ULARGE_INTEGER tt;
@@ -2841,11 +2841,11 @@ __int64 WinApi::FileTimeToInt64(const FILETIME& time)
 	return(tt.QuadPart);
 }
 
-double WinApi::get_cpu_usage(DWORD ProcessID)	 //»ñÈ¡Ö¸¶¨½ø³ÌCPUÊ¹ÓÃÂÊ
+double WinApi::get_cpu_usage(DWORD ProcessID)	 //è·å–æŒ‡å®šè¿›ç¨‹CPUä½¿ç”¨ç‡
 {
-	//cpuÊıÁ¿
+	//cpuæ•°é‡
 	static int processor_count_ = -1;
-	//ÉÏÒ»´ÎµÄÊ±¼ä
+	//ä¸Šä¸€æ¬¡çš„æ—¶é—´
 	static __int64 last_time_ = 0;
 	static __int64 last_system_time_ = 0;
 
@@ -2884,8 +2884,8 @@ double WinApi::get_cpu_usage(DWORD ProcessID)	 //»ñÈ¡Ö¸¶¨½ø³ÌCPUÊ¹ÓÃÂÊ
 	{
 		return -1;
 	}
-	system_time = (FileTimeToInt64(kernel_time) + FileTimeToInt64(user_time)) / processor_count_;  //CPUÊ¹ÓÃÊ±¼ä
-	time = FileTimeToInt64(now);		//ÏÖÔÚµÄÊ±¼ä
+	system_time = (FileTimeToInt64(kernel_time) + FileTimeToInt64(user_time)) / processor_count_;  //CPUä½¿ç”¨æ—¶é—´
+	time = FileTimeToInt64(now);		//ç°åœ¨çš„æ—¶é—´
 
 	last_system_time_ = system_time;
 	last_time_ = time;
@@ -2909,8 +2909,8 @@ double WinApi::get_cpu_usage(DWORD ProcessID)	 //»ñÈ¡Ö¸¶¨½ø³ÌCPUÊ¹ÓÃÂÊ
 		return -1;
 	}
 	GetSystemTimeAsFileTime(&now);
-	system_time = (FileTimeToInt64(kernel_time) + FileTimeToInt64(user_time)) / processor_count_;  //CPUÊ¹ÓÃÊ±¼ä
-	time = FileTimeToInt64(now);		//ÏÖÔÚµÄÊ±¼ä
+	system_time = (FileTimeToInt64(kernel_time) + FileTimeToInt64(user_time)) / processor_count_;  //CPUä½¿ç”¨æ—¶é—´
+	time = FileTimeToInt64(now);		//ç°åœ¨çš„æ—¶é—´
 
 	CloseHandle(hProcess);
 
@@ -2918,7 +2918,7 @@ double WinApi::get_cpu_usage(DWORD ProcessID)	 //»ñÈ¡Ö¸¶¨½ø³ÌCPUÊ¹ÓÃÂÊ
 	return cpu;
 }
 
-//»òÕßÖ¸¶¨½ø³ÌÄÚ´æÊ¹ÓÃÂÊ
+//æˆ–è€…æŒ‡å®šè¿›ç¨‹å†…å­˜ä½¿ç”¨ç‡
 DWORD  WinApi::GetMemoryInfo(DWORD ProcessID)
 {
 	PROCESS_MEMORY_COUNTERS pmc;
@@ -2932,7 +2932,7 @@ DWORD  WinApi::GetMemoryInfo(DWORD ProcessID)
 
 	if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
 	{
-		//memoryInK = pmc.WorkingSetSize/1024;		//µ¥Î»Îªk
+		//memoryInK = pmc.WorkingSetSize/1024;		//å•ä½ä¸ºk
 		memoryInK = pmc.WorkingSetSize;
 	}
 
@@ -2948,7 +2948,7 @@ bool WinApi::GetProcessInfo(LONG pid, wchar_t *retstring)
 	DWORD cpu = 0;
 	DWORD meminfo = 0;
 
-	int nItem = 0;	// Ïî¼ÆÊı
+	int nItem = 0;	// é¡¹è®¡æ•°
 	PROCESSENTRY32 pe32 = { sizeof(PROCESSENTRY32) };
 	HANDLE hProcessSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hProcessSnap == INVALID_HANDLE_VALUE)
@@ -3001,21 +3001,21 @@ bool WinApi::GetWindow(LONG hwnd, LONG flag, LONG &rethwnd)
 	if (IsWindow(wnd) == false)
 		return bret;
 	DWORD type = -1;
-	if (flag == 0)	 //0:»ñÈ¡¸¸´°¿Ú
+	if (flag == 0)	 //0:è·å–çˆ¶çª—å£
 		rethwnd = (LONG)::GetParent(wnd);
-	else if (flag == 1)//»ñÈ¡µÚÒ»¸ö¶ù×Ó´°¿Ú
+	else if (flag == 1)//è·å–ç¬¬ä¸€ä¸ªå„¿å­çª—å£
 		type = GW_CHILD;
-	else if (flag == 2)//»ñÈ¡First ´°¿Ú
+	else if (flag == 2)//è·å–First çª—å£
 		type = GW_HWNDFIRST;
-	else if (flag == 3)//»ñÈ¡Last´°¿Ú
+	else if (flag == 3)//è·å–Lastçª—å£
 		type = GW_HWNDLAST;
-	else if (flag == 4)//»ñÈ¡ÏÂÒ»¸ö´°¿Ú
+	else if (flag == 4)//è·å–ä¸‹ä¸€ä¸ªçª—å£
 		type = GW_HWNDNEXT;
-	else if (flag == 5)//»ñÈ¡ÉÏÒ»¸ö´°¿Ú
+	else if (flag == 5)//è·å–ä¸Šä¸€ä¸ªçª—å£
 		type = GW_HWNDPREV;
-	else if (flag == 6) //»ñÈ¡ÓµÓĞÕß´°¿Ú
+	else if (flag == 6) //è·å–æ‹¥æœ‰è€…çª—å£
 		type = GW_OWNER;
-	else if (flag == 7) //»ñÈ¡¶¥²ã´°¿Ú
+	else if (flag == 7) //è·å–é¡¶å±‚çª—å£
 	{
 		//rethwnd = (LONG)::GetForegroundWindow();
 		HWND next = NULL,current=(HWND)hwnd;
@@ -3038,27 +3038,27 @@ bool WinApi::GetWindowState(LONG hwnd, LONG flag)
 {
 	bool bret = false;
 	HWND wnd = (HWND)hwnd;
-	if (flag == 0)	 //0://ÅĞ¶Ï´°¿ÚÊÇ·ñ´æÔÚ
+	if (flag == 0)	 //0://åˆ¤æ–­çª—å£æ˜¯å¦å­˜åœ¨
 		bret = ::IsWindow(wnd);
-	else if (flag == 1)//ÅĞ¶Ï´°¿ÚÊÇ·ñ´¦ÓÚ¼¤»î
+	else if (flag == 1)//åˆ¤æ–­çª—å£æ˜¯å¦å¤„äºæ¿€æ´»
 	{
 		if (::GetActiveWindow() == wnd)
 			bret = true;
 	}
-	else if (flag == 2)//2 : ÅĞ¶Ï´°¿ÚÊÇ·ñ¿É¼û
+	else if (flag == 2)//2 : åˆ¤æ–­çª—å£æ˜¯å¦å¯è§
 		bret = ::IsWindowVisible(wnd);
-	else if (flag == 3)//3 : ÅĞ¶Ï´°¿ÚÊÇ·ñ×îĞ¡»¯
+	else if (flag == 3)//3 : åˆ¤æ–­çª—å£æ˜¯å¦æœ€å°åŒ–
 		bret = ::IsIconic(wnd);
-	else if (flag == 4)//4 : ÅĞ¶Ï´°¿ÚÊÇ·ñ×î´ó»¯
+	else if (flag == 4)//4 : åˆ¤æ–­çª—å£æ˜¯å¦æœ€å¤§åŒ–
 		bret = ::IsZoomed(wnd);
-	else if (flag == 5)//5 : ÅĞ¶Ï´°¿ÚÊÇ·ñÖÃ¶¥
+	else if (flag == 5)//5 : åˆ¤æ–­çª—å£æ˜¯å¦ç½®é¡¶
 	{
 		if (::GetForegroundWindow() == wnd)
 			bret = true;
 	}
-	else if (flag == 6) //6 : ÅĞ¶Ï´°¿ÚÊÇ·ñÎŞÏìÓ¦
+	else if (flag == 6) //6 : åˆ¤æ–­çª—å£æ˜¯å¦æ— å“åº”
 		bret = ::IsHungAppWindow(wnd);
-	else if (flag == 7) //ÅĞ¶Ï´°¿ÚÊÇ·ñ¿ÉÓÃ(»ÒÉ«Îª²»¿ÉÓÃ)
+	else if (flag == 7) //åˆ¤æ–­çª—å£æ˜¯å¦å¯ç”¨(ç°è‰²ä¸ºä¸å¯ç”¨)
 		bret = ::IsWindowEnabled(wnd);
 
 	return bret;
@@ -3071,21 +3071,21 @@ bool WinApi::SendPaste(LONG hwnd)
 	char *chBuffer = NULL;
 	if (OpenClipboard(NULL))
 	{
-		//´Ó¼ôÌù°åÖĞÈ¡³öÒ»¸öÄÚ´æµÄ¾ä±ú
+		//ä»å‰ªè´´æ¿ä¸­å–å‡ºä¸€ä¸ªå†…å­˜çš„å¥æŸ„
 		hClip = GetClipboardData(CF_TEXT);
-		//¶¨Òå×Ö·ûĞÍÖ¸Õë±äÁ¿ÓÃÀ´±£´æÄÚ´æ¿éÖĞµÄÊı¾İ
-		//¶ÔÄÚ´æ¿é½øĞĞ¼ÓËø£¬½«ÄÚ´æ¾ä±úÖµ×ª»¯ÎªÒ»¸öÖ¸Õë,²¢½«ÄÚ´æ¿éµÄÒıÓÃ¼ÆÊıÆ÷¼ÓÒ»£¬ÄÚ´æÖĞµÄÊı¾İÒ²·µ»Øµ½Ö¸ÕëĞÍ±äÁ¿ÖĞ
+		//å®šä¹‰å­—ç¬¦å‹æŒ‡é’ˆå˜é‡ç”¨æ¥ä¿å­˜å†…å­˜å—ä¸­çš„æ•°æ®
+		//å¯¹å†…å­˜å—è¿›è¡ŒåŠ é”ï¼Œå°†å†…å­˜å¥æŸ„å€¼è½¬åŒ–ä¸ºä¸€ä¸ªæŒ‡é’ˆ,å¹¶å°†å†…å­˜å—çš„å¼•ç”¨è®¡æ•°å™¨åŠ ä¸€ï¼Œå†…å­˜ä¸­çš„æ•°æ®ä¹Ÿè¿”å›åˆ°æŒ‡é’ˆå‹å˜é‡ä¸­
 		chBuffer = (char *)GlobalLock(hClip);
-		//½«Êı¾İ±£´æµ½×Ö·ûĞÍ±äÁ¿ÖĞ
-		//½«ÄÚ´æ¿éµÄÒıÓÃ¼ÆÊıÆ÷¼õÒ»
+		//å°†æ•°æ®ä¿å­˜åˆ°å­—ç¬¦å‹å˜é‡ä¸­
+		//å°†å†…å­˜å—çš„å¼•ç”¨è®¡æ•°å™¨å‡ä¸€
 		GlobalUnlock(hClip);
-		//¹Ø±Õ¼ôÌù°å£¬ÊÍ·Å¼ôÌù°å×ÊÔ´µÄÕ¼ÓÃÈ¨
+		//å…³é—­å‰ªè´´æ¿ï¼Œé‡Šæ”¾å‰ªè´´æ¿èµ„æºçš„å ç”¨æƒ
 		CloseClipboard();
 	}
-	//anscii ×ª unicode
+	//anscii è½¬ unicode
 	DWORD num = MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, NULL, 0);
-	wchar_t *wword = new wchar_t[num + 1];//¶¯Ì¬µÄÉêÇë¿Õ¼ä´æ×Ö
-	memset(wword, 0, (num + 1) * sizeof(wchar_t));   //³õÊ¼»¯¶¯×÷
+	wchar_t *wword = new wchar_t[num + 1];//åŠ¨æ€çš„ç”³è¯·ç©ºé—´å­˜å­—
+	memset(wword, 0, (num + 1) * sizeof(wchar_t));   //åˆå§‹åŒ–åŠ¨ä½œ
 	MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
 	int len = wcslen(wword);
@@ -3107,16 +3107,16 @@ bool WinApi::SetWindowSize(LONG hwnd, LONG width, LONG hight, int type)
 	{
 		RECT  rectProgram, rectClient;
 		HWND hWnd = (HWND)hwnd;
-		::GetWindowRect(hWnd, &rectProgram);   //»ñµÃ³ÌĞò´°¿ÚÎ»ÓÚÆÁÄ»×ø±ê
-		::GetClientRect(hWnd, &rectClient);      //»ñµÃ¿Í»§Çø×ø±ê
-		//·Ç¿Í»§Çø¿í,¸ß
+		::GetWindowRect(hWnd, &rectProgram);   //è·å¾—ç¨‹åºçª—å£ä½äºå±å¹•åæ ‡
+		::GetClientRect(hWnd, &rectClient);      //è·å¾—å®¢æˆ·åŒºåæ ‡
+		//éå®¢æˆ·åŒºå®½,é«˜
 		int nWidth = rectProgram.right - rectProgram.left - (rectClient.right - rectClient.left);
 		int nHeiht = rectProgram.bottom - rectProgram.top - (rectClient.bottom - rectClient.top);
 		nWidth += width;
 		nHeiht += hight;
 		rectProgram.right = nWidth;
 		rectProgram.bottom = nHeiht;
-		int showToScreenx = GetSystemMetrics(SM_CXSCREEN) / 2 - nWidth / 2;    //¾ÓÖĞ´¦Àí
+		int showToScreenx = GetSystemMetrics(SM_CXSCREEN) / 2 - nWidth / 2;    //å±…ä¸­å¤„ç†
 		int showToScreeny = GetSystemMetrics(SM_CYSCREEN) / 2 - nHeiht / 2;
 		bret = ::MoveWindow(hWnd, showToScreenx, showToScreeny, rectProgram.right, rectProgram.bottom, false);
 	}
@@ -3124,7 +3124,7 @@ bool WinApi::SetWindowSize(LONG hwnd, LONG width, LONG hight, int type)
 	{
 		RECT rectClient;
 		HWND hWnd = (HWND)hwnd;
-		::GetWindowRect(hWnd, &rectClient);   //»ñµÃ³ÌĞò´°¿ÚÎ»ÓÚÆÁÄ»×ø±ê
+		::GetWindowRect(hWnd, &rectClient);   //è·å¾—ç¨‹åºçª—å£ä½äºå±å¹•åæ ‡
 		bret = ::MoveWindow(hWnd, rectClient.left, rectClient.top, width, hight, false);
 	}
 	return bret;
@@ -3138,39 +3138,39 @@ bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd)
 		return bret;
 	int type = -1;
 	type = flag;
-	if (flag == 0)//¹Ø±ÕÖ¸¶¨´°¿Ú
+	if (flag == 0)//å…³é—­æŒ‡å®šçª—å£
 		::SendMessage(hWnd, WM_CLOSE, 0, 0);
-	else if (flag == 1)//¼¤»îÖ¸¶¨´°¿Ú
+	else if (flag == 1)//æ¿€æ´»æŒ‡å®šçª—å£
 	{
 		::ShowWindow(hWnd, SW_SHOW);
 		::SetForegroundWindow(hWnd);
 	}
-	else if (flag == 2)//×îĞ¡»¯Ö¸¶¨´°¿Ú,µ«²»¼¤»î
+	else if (flag == 2)//æœ€å°åŒ–æŒ‡å®šçª—å£,ä½†ä¸æ¿€æ´»
 		::ShowWindow(hWnd, SW_SHOWMINNOACTIVE);
-	else if (flag == 3)//×îĞ¡»¯Ö¸¶¨´°¿Ú,²¢ÊÍ·ÅÄÚ´æ,µ«Í¬Ê±Ò²»á¼¤»î´°¿Ú	
+	else if (flag == 3)//æœ€å°åŒ–æŒ‡å®šçª—å£,å¹¶é‡Šæ”¾å†…å­˜,ä½†åŒæ—¶ä¹Ÿä¼šæ¿€æ´»çª—å£	
 		::ShowWindow(hWnd, SW_SHOWMINIMIZED);
-	else if (flag == 4)//×î´ó»¯Ö¸¶¨´°¿Ú,Í¬Ê±¼¤»î´°¿Ú.
+	else if (flag == 4)//æœ€å¤§åŒ–æŒ‡å®šçª—å£,åŒæ—¶æ¿€æ´»çª—å£.
 		::ShowWindow(hWnd, SW_SHOWMAXIMIZED);
-	else if (flag == 5)//»Ö¸´Ö¸¶¨´°¿Ú ,µ«²»¼¤»î
+	else if (flag == 5)//æ¢å¤æŒ‡å®šçª—å£ ,ä½†ä¸æ¿€æ´»
 		::ShowWindow(hWnd, SW_SHOWNOACTIVATE);
-	else if (flag == 6)//Òş²ØÖ¸¶¨´°¿Ú
+	else if (flag == 6)//éšè—æŒ‡å®šçª—å£
 		::ShowWindow(hWnd, SW_HIDE);
-	else if (flag == 7)//ÏÔÊ¾Ö¸¶¨´°¿Ú
+	else if (flag == 7)//æ˜¾ç¤ºæŒ‡å®šçª—å£
 	{
 		::ShowWindow(hWnd, SW_SHOW);
 		::SetForegroundWindow(hWnd);
 	}
-	else if (flag == 8)//ÖÃ¶¥Ö¸¶¨´°¿Ú
-		::SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);//´°¿ÚÖÃ¶¥
-	else if (flag == 9)//9 : È¡ÏûÖÃ¶¥Ö¸¶¨´°¿Ú
+	else if (flag == 8)//ç½®é¡¶æŒ‡å®šçª—å£
+		::SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);//çª—å£ç½®é¡¶
+	else if (flag == 9)//9 : å–æ¶ˆç½®é¡¶æŒ‡å®šçª—å£
 		::SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	else if (flag == 10)//½ûÖ¹Ö¸¶¨´°¿Ú
+	else if (flag == 10)//ç¦æ­¢æŒ‡å®šçª—å£
 		::EnableWindow(hWnd, false);
-	else if (flag == 11)//È¡Ïû½ûÖ¹Ö¸¶¨´°¿Ú
+	else if (flag == 11)//å–æ¶ˆç¦æ­¢æŒ‡å®šçª—å£
 		::EnableWindow(hWnd, true);
-	else if (flag == 12)//12 : »Ö¸´²¢¼¤»îÖ¸¶¨´°¿Ú
+	else if (flag == 12)//12 : æ¢å¤å¹¶æ¿€æ´»æŒ‡å®šçª—å£
 		::ShowWindow(hWnd, SW_RESTORE);
-	else if (flag == 13)//13 : Ç¿ÖÆ½áÊø´°¿ÚËùÔÚ½ø³Ì.
+	else if (flag == 13)//13 : å¼ºåˆ¶ç»“æŸçª—å£æ‰€åœ¨è¿›ç¨‹.
 	{
 		DWORD pid = 0;
 		::GetWindowThreadProcessId(hWnd, &pid);
@@ -3181,17 +3181,17 @@ bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd)
 
 		::TerminateProcess(hprocess, 0);
 	}
-	else if (flag == 14)//14 : ÉÁË¸Ö¸¶¨µÄ´°¿Ú
+	else if (flag == 14)//14 : é—ªçƒæŒ‡å®šçš„çª—å£
 	{
 		FLASHWINFO fInfo;
 		fInfo.cbSize = sizeof(FLASHWINFO);
-		fInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;//ÕâÀïÊÇÉÁ¶¯´°±êÌâºÍÈÎÎñÀ¸°´Å¥,Ö±µ½ÓÃ»§¼¤»î´°Ìå
+		fInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;//è¿™é‡Œæ˜¯é—ªåŠ¨çª—æ ‡é¢˜å’Œä»»åŠ¡æ æŒ‰é’®,ç›´åˆ°ç”¨æˆ·æ¿€æ´»çª—ä½“
 		fInfo.dwTimeout = 0;
 		fInfo.hwnd = hWnd;
 		fInfo.uCount = 0xffffff;
 		FlashWindowEx(&fInfo);
 	}
-	else if (flag == 15)//Ê¹Ö¸¶¨µÄ´°¿Ú»ñÈ¡ÊäÈë½¹µã
+	else if (flag == 15)//ä½¿æŒ‡å®šçš„çª—å£è·å–è¾“å…¥ç„¦ç‚¹
 	{
 		::ShowWindow(hWnd, SW_SHOW);
 		::SetFocus(hWnd);
@@ -3241,26 +3241,26 @@ bool WinApi::SetClipboard(wchar_t *values)
 
 	if (OpenClipboard(NULL))
 	{
-		//½«¼ôÌù°åÄÚÈİÇå¿Õ
+		//å°†å‰ªè´´æ¿å†…å®¹æ¸…ç©º
 		EmptyClipboard();
-		//×Ö½Ú³¤¶È
+		//å­—èŠ‚é•¿åº¦
 		int leng = strlen(chcontent) + 1;
-		//ÔÚ¶ÑÉÏ·ÖÅä¿ÉÒÆ¶¯µÄÄÚ´æ¿é£¬³ÌĞò·µ»ØÒ»¸öÄÚ´æ¾ä±ú
+		//åœ¨å †ä¸Šåˆ†é…å¯ç§»åŠ¨çš„å†…å­˜å—ï¼Œç¨‹åºè¿”å›ä¸€ä¸ªå†…å­˜å¥æŸ„
 		HANDLE hClip = GlobalAlloc(GHND | GMEM_SHARE, leng);
-		//¶¨ÒåÖ¸Ïò×Ö·ûĞÍµÄÖ¸Õë±äÁ¿
+		//å®šä¹‰æŒ‡å‘å­—ç¬¦å‹çš„æŒ‡é’ˆå˜é‡
 		char * buff;
-		//¶Ô·ÖÅäµÄÄÚ´æ¿é½øĞĞ¼ÓËø£¬½«ÄÚ´æ¿é¾ä±ú×ª»¯³ÉÒ»¸öÖ¸Õë,²¢½«ÏàÓ¦µÄÒıÓÃ¼ÆÊıÆ÷¼ÓÒ»
+		//å¯¹åˆ†é…çš„å†…å­˜å—è¿›è¡ŒåŠ é”ï¼Œå°†å†…å­˜å—å¥æŸ„è½¬åŒ–æˆä¸€ä¸ªæŒ‡é’ˆ,å¹¶å°†ç›¸åº”çš„å¼•ç”¨è®¡æ•°å™¨åŠ ä¸€
 		buff = (char *)GlobalLock(hClip);
-		//½«ÓÃ»§ÊäÈëµÄÊı¾İ¿½±´µ½Ö¸Õë±äÁ¿ÖĞ£¬Êµ¼ÊÉÏ¾ÍÊÇ¿½±´µ½·ÖÅäµÄÄÚ´æ¿éÖĞ
+		//å°†ç”¨æˆ·è¾“å…¥çš„æ•°æ®æ‹·è´åˆ°æŒ‡é’ˆå˜é‡ä¸­ï¼Œå®é™…ä¸Šå°±æ˜¯æ‹·è´åˆ°åˆ†é…çš„å†…å­˜å—ä¸­
 		memcpy(buff, chcontent, leng);
 		buff[leng - 1] = 0;
-		//Êı¾İĞ´ÈëÍê±Ï£¬½øĞĞ½âËø²Ù×÷£¬²¢½«ÒıÓÃ¼ÆÊıÆ÷Êı×Ö¼õÒ»
+		//æ•°æ®å†™å…¥å®Œæ¯•ï¼Œè¿›è¡Œè§£é”æ“ä½œï¼Œå¹¶å°†å¼•ç”¨è®¡æ•°å™¨æ•°å­—å‡ä¸€
 		GlobalUnlock(hClip);
-		//½«´æ·ÅÓĞÊı¾İµÄÄÚ´æ¿é·ÅÈë¼ôÌù°åµÄ×ÊÔ´¹ÜÀíÖĞ
+		//å°†å­˜æ”¾æœ‰æ•°æ®çš„å†…å­˜å—æ”¾å…¥å‰ªè´´æ¿çš„èµ„æºç®¡ç†ä¸­
 		HANDLE help = SetClipboardData(CF_TEXT, hClip);
-		//¹Ø±Õ¼ôÌù°å£¬ÊÍ·Å¼ôÌù°å×ÊÔ´µÄÕ¼ÓÃÈ¨
+		//å…³é—­å‰ªè´´æ¿ï¼Œé‡Šæ”¾å‰ªè´´æ¿èµ„æºçš„å ç”¨æƒ
 		CloseClipboard();
-		//MessageBox(0,L"ÒÑ½«Êı¾İ´æÈë¼ôÌù°å",L"¼ôÇĞ°â",0);
+		//MessageBox(0,L"å·²å°†æ•°æ®å­˜å…¥å‰ªè´´æ¿",L"å‰ªåˆ‡æ‰³",0);
 		if (help != NULL)
 		{
 			bret = true;
@@ -3281,23 +3281,23 @@ bool WinApi::GetClipboard(wchar_t *retstr)
 	char *chBuffer = NULL;
 	if (OpenClipboard(NULL))
 	{
-		//´Ó¼ôÌù°åÖĞÈ¡³öÒ»¸öÄÚ´æµÄ¾ä±ú
+		//ä»å‰ªè´´æ¿ä¸­å–å‡ºä¸€ä¸ªå†…å­˜çš„å¥æŸ„
 		hClip = GetClipboardData(CF_TEXT);
-		//¶¨Òå×Ö·ûĞÍÖ¸Õë±äÁ¿ÓÃÀ´±£´æÄÚ´æ¿éÖĞµÄÊı¾İ
+		//å®šä¹‰å­—ç¬¦å‹æŒ‡é’ˆå˜é‡ç”¨æ¥ä¿å­˜å†…å­˜å—ä¸­çš„æ•°æ®
 
-		//¶ÔÄÚ´æ¿é½øĞĞ¼ÓËø£¬½«ÄÚ´æ¾ä±úÖµ×ª»¯ÎªÒ»¸öÖ¸Õë,²¢½«ÄÚ´æ¿éµÄÒıÓÃ¼ÆÊıÆ÷¼ÓÒ»£¬ÄÚ´æÖĞµÄÊı¾İÒ²·µ»Øµ½Ö¸ÕëĞÍ±äÁ¿ÖĞ
+		//å¯¹å†…å­˜å—è¿›è¡ŒåŠ é”ï¼Œå°†å†…å­˜å¥æŸ„å€¼è½¬åŒ–ä¸ºä¸€ä¸ªæŒ‡é’ˆ,å¹¶å°†å†…å­˜å—çš„å¼•ç”¨è®¡æ•°å™¨åŠ ä¸€ï¼Œå†…å­˜ä¸­çš„æ•°æ®ä¹Ÿè¿”å›åˆ°æŒ‡é’ˆå‹å˜é‡ä¸­
 		chBuffer = (char *)GlobalLock(hClip);
 
-		//½«Êı¾İ±£´æµ½×Ö·ûĞÍ±äÁ¿ÖĞ
-		//½«ÄÚ´æ¿éµÄÒıÓÃ¼ÆÊıÆ÷¼õÒ»
+		//å°†æ•°æ®ä¿å­˜åˆ°å­—ç¬¦å‹å˜é‡ä¸­
+		//å°†å†…å­˜å—çš„å¼•ç”¨è®¡æ•°å™¨å‡ä¸€
 		GlobalUnlock(hClip);
-		//¹Ø±Õ¼ôÌù°å£¬ÊÍ·Å¼ôÌù°å×ÊÔ´µÄÕ¼ÓÃÈ¨
+		//å…³é—­å‰ªè´´æ¿ï¼Œé‡Šæ”¾å‰ªè´´æ¿èµ„æºçš„å ç”¨æƒ
 		CloseClipboard();
 	}
 
 	DWORD num = MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, NULL, 0);
-	wchar_t *wword = new wchar_t[num + 1];//¶¯Ì¬µÄÉêÇë¿Õ¼ä´æ×Ö
-	memset(wword, 0, (num + 1) * sizeof(wchar_t));   //³õÊ¼»¯¶¯×÷
+	wchar_t *wword = new wchar_t[num + 1];//åŠ¨æ€çš„ç”³è¯·ç©ºé—´å­˜å­—
+	memset(wword, 0, (num + 1) * sizeof(wchar_t));   //åˆå§‹åŒ–åŠ¨ä½œ
 	MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
 	if (num < MAX_PATH * 4 - 1)
@@ -3363,16 +3363,16 @@ long WinApi::RunApp(const wstring& cmd, long mode) {
 		//setlog(curr_dir.c_str());
 	}
 	bret = ::CreateProcessW(
-		nullptr,//// Ó¦ÓÃ³ÌĞòÃû³Æ
-		cmdptr.get(), // ÃüÁîĞĞ×Ö·û´®
-		NULL,// ½ø³ÌµÄ°²È«ÊôĞÔ
-		NULL, // Ïß³ÌµÄ°²È«ÊôĞÔ
-		false, // ÊÇ·ñ¼Ì³Ğ¸¸½ø³ÌµÄÊôĞÔ
-		0, // ´´½¨±êÖ¾
-		nullptr,// Ö¸ÏòĞÂµÄ»·¾³¿éµÄÖ¸Õë
-		mode==1&&!curr_dir.empty()?curr_dir.c_str():nullptr,// Ö¸Ïòµ±Ç°Ä¿Â¼ÃûµÄÖ¸Õë
-		&si,// ´«µİ¸øĞÂ½ø³ÌµÄĞÅÏ¢
-		&pi// ĞÂ½ø³Ì·µ»ØµÄĞÅÏ¢  
+		nullptr,//// åº”ç”¨ç¨‹åºåç§°
+		cmdptr.get(), // å‘½ä»¤è¡Œå­—ç¬¦ä¸²
+		NULL,// è¿›ç¨‹çš„å®‰å…¨å±æ€§
+		NULL, // çº¿ç¨‹çš„å®‰å…¨å±æ€§
+		false, // æ˜¯å¦ç»§æ‰¿çˆ¶è¿›ç¨‹çš„å±æ€§
+		0, // åˆ›å»ºæ ‡å¿—
+		nullptr,// æŒ‡å‘æ–°çš„ç¯å¢ƒå—çš„æŒ‡é’ˆ
+		mode==1&&!curr_dir.empty()?curr_dir.c_str():nullptr,// æŒ‡å‘å½“å‰ç›®å½•åçš„æŒ‡é’ˆ
+		&si,// ä¼ é€’ç»™æ–°è¿›ç¨‹çš„ä¿¡æ¯
+		&pi// æ–°è¿›ç¨‹è¿”å›çš„ä¿¡æ¯  
 	);
 	if (bret) {
 		CloseHandle(pi.hProcess);

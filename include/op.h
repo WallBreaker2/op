@@ -679,6 +679,12 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetMemDict( 
+            /* [in] */ LONG idx,
+            /* [in] */ BSTR data,
+            /* [in] */ LONG size,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
             /* [in] */ LONG hwnd,
             /* [in] */ BSTR address,
@@ -1446,6 +1452,13 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetMemDict )( 
+            IOpInterface * This,
+            /* [in] */ LONG idx,
+            /* [in] */ BSTR data,
+            /* [in] */ LONG size,
+            /* [retval][out] */ LONG *ret);
+        
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
             IOpInterface * This,
             /* [in] */ LONG hwnd,
@@ -1811,6 +1824,9 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_FindLine(This,x1,y1,x2,y2,color,sim,retstr)	\
     ( (This)->lpVtbl -> FindLine(This,x1,y1,x2,y2,color,sim,retstr) ) 
+
+#define IOpInterface_SetMemDict(This,idx,data,size,ret)	\
+    ( (This)->lpVtbl -> SetMemDict(This,idx,data,size,ret) ) 
 
 #define IOpInterface_WriteData(This,hwnd,address,data,size,ret)	\
     ( (This)->lpVtbl -> WriteData(This,hwnd,address,data,size,ret) ) 

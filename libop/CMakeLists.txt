@@ -8,22 +8,9 @@ cmake_minimum_required(VERSION 3.0.0)
 #    include
 #)
 
-if (MSVC_VERSION GREATER_EQUAL "1900")
-    include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
-    if (_cpp_latest_flag_supported)
-        add_compile_options("/std:c++latest")
-    endif()
-endif()
-
-
-
-
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB")
 
  
-
-
 
 # set_target_properties(target PROPERTIES VcpkgEnabled "true")
 
@@ -36,15 +23,8 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 # include_directories(libop ${OpenCV_INCLUDE_DIRS})
 
 
-
-
-find_library(BLACKBONE_LIB blackbone ./3rd_party/lib/x86 NO_DEFAULT_PATH)
-
-find_library(minhook_lib libminhook.x86 ./3rd_party/lib/x86 NO_DEFAULT_PATH)
-
 #find_package(minhook CONFIG REQUIRED)
-message(STATUS ${BLACKBONE_LIB})
-#message(STATUS ${minhook_lib})
+ #message(STATUS ${minhook_lib})
 
 
 
@@ -70,16 +50,13 @@ SET(SRC_FILES
 "./imageProc/imageloc.cpp"
 "./imageProc/imageproc.cpp"
 
-
-
 "./winapi/injecter.cpp"
 "./winapi/memoryEx.cpp"
 "./winapi/query_api.cpp"
 "./winapi/winapi.cpp"
-"./3rd_party/src/kiero.cpp"
+"../3rd_party/src/kiero.cpp"
 "libop.cpp"
 )
-
 
 
 
@@ -92,7 +69,7 @@ ADD_DEFINITIONS(-D _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
 ADD_DEFINITIONS(-D _WINDLL)
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
-
+ 
 
 # 6.add lib file
 add_library(libop SHARED ${SRC_FILES})
@@ -102,24 +79,28 @@ target_include_directories(libop PUBLIC
 "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+include_directories(
+  ./core
+)
+
 # 7.add link library
-TARGET_LINK_LIBRARIES(libop ${BLACKBONE_LIB})
-TARGET_LINK_LIBRARIES(libop ${minhook_lib})
+TARGET_LINK_LIBRARIES(libop BlackBone.lib)
+TARGET_LINK_LIBRARIES(libop minhook.lib)
 
 
-target_link_libraries(libop  ${OpenCV_LIBS})
-target_link_libraries(libop msvcrt.lib)
+# target_link_libraries(libop  ${OpenCV_LIBS})
+# target_link_libraries(libop msvcrt.lib)
 
 
-#target_link_libraries(libop   minhook::minhook)
-
-
-
-
-install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
-install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib")
+ 
 install(FILES libop.h DESTINATION "${PROJECT_SOURCE_DIR}/include")
-
+IF(CMAKE_CL_64)
+  install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+  install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
+ELSE(CMAKE_CL_64)
+  install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+  install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
+ENDIF(CMAKE_CL_64)
 
 
 
