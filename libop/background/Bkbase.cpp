@@ -30,11 +30,11 @@ bkbase::~bkbase()
 }
 
 long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode) {
-	//step 1.�����ظ���
+	//step 1.避免重复绑定
 	UnBindWindow();
 	//step 2.check hwnd
 	if (!::IsWindow(HWND(hwnd))) {
-		setlog("invalid window!");
+		setlog("Invalid window handles");
 		return 0;
 	}
 	
@@ -56,8 +56,6 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		display = RDT_DX_D3D10;
 	else if (sdisplay == L"dx.d3d11")
 		display = RDT_DX_D3D11;
-
-		
 	else if (sdisplay == L"opengl")
 		display = RDT_GL_DEFAULT;
 	else if (sdisplay == L"opengl.std")
@@ -112,7 +110,7 @@ long bkbase::BindWindow(long hwnd, const wstring& sdisplay, const wstring& smous
 		return 0;
 	}
 
-	//�ȴ��̴߳�����
+	//等待线程创建好
 	Sleep(200);
 
 	_is_bind = 1;
@@ -139,7 +137,7 @@ long bkbase::UnBindWindow() {
 		_keypad->UnBind();
 		SAFE_DELETE(_keypad);
 	}
-	//�ָ�Ϊǰ̨(Ĭ��)
+	//恢复为前台(默认)
 	_bkmouse = new bkmouse;
 	_keypad = new winkeypad;
 
@@ -258,13 +256,12 @@ long bkbase::RectConvert(long& x1, long& y1, long& x2, long& y2) {
 	/*if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
 		x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
 		x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
-
 	}*/
 
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);
 	if (x1 < 0 || y1 < 0 || x1 >= x2 || y1 >= y2) {
-		setlog("��Ч�Ĵ�������:%d %d %d %d", x1, y1, x2, y2);
+		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	//if (_pbkdisplay) {
@@ -313,10 +310,10 @@ long bkbase::get_image_type() {
 }
 
 bool bkbase::check_bind() {
-	//�Ѱ�
+	//已绑定
 	if (IsBind())
 		return true;
-	//��ʾģʽ����Ļ
+	//显示模式非屏幕
 	if (get_display_method().first != L"screen") {
 		if (get_display_method().first == L"pic") {//load pic first
 			wstring fullpath;
@@ -327,7 +324,7 @@ bool bkbase::check_bind() {
 		return true;
 	}
 
-	//��ǰ̨����
+	//绑定前台桌面
 	return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
 }
 
@@ -370,7 +367,7 @@ long bkbase::set_display_method(const wstring& method) {
 			if (bfh.bfType != static_cast<WORD>(0x4d42))
 				return 0;
 
-			if (bih.biHeight < 0) {//��������
+			if (bih.biHeight < 0) {//正常拷贝
 				int h = -bih.biHeight;
 				_pic.create(bih.biWidth, h);
 				/*setlog("mem w=%d h=%d chk=%d",
@@ -378,7 +375,7 @@ long bkbase::set_display_method(const wstring& method) {
 					_pic.size() * 4 == bih.biSizeImage ? 1 : 0);*/
 				memcpy(_pic.pdata, ptr + sizeof(bfh) + sizeof(bih), _pic.size() * 4);
 			}
-			else {//����������
+			else {//倒过来拷贝
 				int h = bih.biHeight;
 				_pic.create(bih.biWidth, h);
 				for (int i = 0; i < h; i++) {

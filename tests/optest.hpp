@@ -37,32 +37,32 @@ optest::optest() {
 	auto path = L"C:\\Users\\wall\\Desktop";
 	locale loc("chs");
 	wcout.imbue(loc);
-	//1.°æ±¾ºÅVersion
+	//1.ç‰ˆæœ¬å·Version
 	op.Ver(str);
-	wcout << L"1.°æ±¾ºÅVersion:" << str << endl;
+	wcout << L"1.ç‰ˆæœ¬å·Version:" << str << endl;
 
-	//ÉèÖÃÄ¿Â¼
+	//è®¾ç½®ç›®å½•
 	op.SetPath(path,&lret);
-	cout << "2.ÉèÖÃÄ¿Â¼:" << lret << endl;
+	cout << "2.è®¾ç½®ç›®å½•:" << lret << endl;
 
-	//»ñÈ¡Ä¿Â¼
+	//è·å–ç›®å½•
 	op.GetPath(str);
-	wcout << L"3.»ñÈ¡Ä¿Â¼:" << str << endl;
+	wcout << L"3.è·å–ç›®å½•:" << str << endl;
 
-	//»ñÈ¡²å¼şÄ¿Â¼
+	//è·å–æ’ä»¶ç›®å½•
 	op.GetBasePath(str);
-	wcout << L"4.»ñÈ¡opÄ¿Â¼:" << str << endl;
+	wcout << L"4.è·å–opç›®å½•:" << str << endl;
 
-	//ÉèÖÃÊÇ·ñµ¯³ö´íÎóĞÅÏ¢,Ä¬ÈÏÊÇ´ò¿ª 0Îª¹Ø±Õ£¬1ÎªÏÔÊ¾ÎªĞÅÏ¢¿ò£¬2Îª±£´æµ½ÎÄ¼ş
+	//è®¾ç½®æ˜¯å¦å¼¹å‡ºé”™è¯¯ä¿¡æ¯,é»˜è®¤æ˜¯æ‰“å¼€ 0ä¸ºå…³é—­ï¼Œ1ä¸ºæ˜¾ç¤ºä¸ºä¿¡æ¯æ¡†ï¼Œ2ä¸ºä¿å­˜åˆ°æ–‡ä»¶
 	op.SetShowErrorMsg(1,&lret);
 
 	//sleep
 	//op.Sleep(1,&lret);
 	//ETEST(Sleep, 1, &lret);
 	
-	//ÉèÖÃÊÇ·ñ¿ªÆô»òÕß¹Ø±Õ²å¼şÄÚ²¿µÄÍ¼Æ¬»º´æ»úÖÆ
+	//è®¾ç½®æ˜¯å¦å¼€å¯æˆ–è€…å…³é—­æ’ä»¶å†…éƒ¨çš„å›¾ç‰‡ç¼“å­˜æœºåˆ¶
 	op.EnablePicCache(1, &lret);
-	//È¡ÉÏ´Î²Ù×÷µÄÍ¼É«ÇøÓò£¬±£´æÎªfile(24Î»Î»Í¼)
+	//å–ä¸Šæ¬¡æ“ä½œçš„å›¾è‰²åŒºåŸŸï¼Œä¿å­˜ä¸ºfile(24ä½ä½å›¾)
 
 	_TEST(FindPic, 0, 0, 2000, 2000, L"test.bmp", L"050505", 0.95, 0, &x, &y, &lret);
 	_TEST(FindPic,0, 0, 2000, 2000, L"test.bmp", L"000000", 0.95, 0, &x, &y, &lret);

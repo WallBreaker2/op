@@ -37,7 +37,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 	else {
 		_render_type = render_type;
 		RECT rc;
-		//��ȡ�ͻ�����С
+		//获取客户区大小
 		::GetClientRect(hwnd, &rc);
 		_width = rc.right - rc.left;
 		_height = rc.bottom - rc.top;
@@ -49,7 +49,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 
 
-		//attach ����
+		//attach 进程
 		blackbone::Process proc;
 		NTSTATUS hr;
 
@@ -58,14 +58,14 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 		if (NT_SUCCESS(hr)) {
 			wstring dllname = g_op_name;
-			//����Ƿ�������ͬ��32/64λ,�����ͬ����ʹ����һ��dll
+			//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 			BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 			if (is64 != OP64) {
 				dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
 			}
 
 			bool injected = false;
-			//�ж��Ƿ��Ѿ�ע��
+			//判断是否已经注入
 			auto _dllptr = proc.modules().GetModule(dllname);
 			auto mods = proc.modules().GetAllModules();
 			if (_dllptr) {
@@ -127,7 +127,7 @@ long bkdo::UnBindEx() {
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 
-	//attach ����s
+	//attach 进程s
 	blackbone::Process proc;
 	NTSTATUS hr;
 	//setlog("bkdo::Attach");
@@ -135,7 +135,7 @@ long bkdo::UnBindEx() {
 
 	if (NT_SUCCESS(hr)) {
 		wstring dllname = g_op_name;
-		//����Ƿ�������ͬ��32/64λ,�����ͬ����ʹ����һ��dll
+		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64) {
 			dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
@@ -168,7 +168,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	_render_type = render_type;
 	_hwnd = hwnd;
 	RECT rc;
-	//��ȡ�ͻ�����С
+	//获取客户区大小
 	::GetClientRect(hwnd, &rc);
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
@@ -176,7 +176,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 
 
 
-	//attach ����
+	//attach 进程
 	blackbone::Process proc;
 	NTSTATUS hr = -1;
 
@@ -191,7 +191,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 	if (NT_SUCCESS(hr)) {
 		/*_process.Resume();*/
 		bool injected = false;
-		//�ж��Ƿ��Ѿ�ע��
+		//判断是否已经注入
 		auto _dllptr = proc.modules().GetModule(dllname);
 		auto mods = proc.modules().GetAllModules();
 		if (_dllptr) {
@@ -236,7 +236,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 
 long bkdo::UnBindNox() {
 
-	//attach ����
+	//attach 进程
 	blackbone::Process proc;
 	NTSTATUS hr;
 

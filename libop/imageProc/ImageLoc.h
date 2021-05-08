@@ -2,8 +2,8 @@
 #ifndef __IMAGELOC_H_
 #define __IMAGELOC_H_
 /*
-������ͼ���㷨������ͼ����ң���ɫ����ƥ�䣨�����ɫ��
-����ocr��ͼ��������ƣ���Ҳ����ImageLoc��ʵ��
+常见的图像算法，例如图像查找，颜色序列匹配（多点着色）
+由于ocr与图像查找类似，故也在类ImageLoc中实现
 */
 #include <vector>
 #include "./core/optype.h"
@@ -27,9 +27,9 @@ inline int HEX2INT(wchar_t c) {
 #define GET_BIT(x, idx) ((x >> (idx)) & 1u)
 
 using img_names = std::vector<std::wstring>;
-//����Ƿ�Ϊ͸��ͼ
+//检查是否为透明图
 int check_transparent(Image* img);
-//��ȡƥ���
+//获取匹配点
 void get_match_points(const Image& img, vector<int>&points);
 //generate next index for kmp
 void gen_next(const Image& img, vector<int>& next);
@@ -45,7 +45,7 @@ void extractConnectivity(const ImageBin& src, int threshold, std::vector<ImageBi
 
 
 /*
-��������ʵ��һЩͼ���ܣ���ͼ��λ����ocr��
+此类用于实现一些图像功能，如图像定位，简单ocr等
 */
 class ImageBase
 {
@@ -57,12 +57,12 @@ public:
 
 	~ImageBase();
 
-	//brief:����ͼ�񣬽���ͼ�ξ���,��ͼ�����ǰ����
-	//image_data:	4�ӽڶ��������ָ��
-	//widht:		ͼ�����
+	//brief:输入图像，建立图形矩阵,在图像操作前调用
+	//image_data:	4子节对齐的像素指针
+	//widht:		图像宽度
 	//hegith:		h
-	//x1,y1,x2,y2 ��������
-	//type:			��������,type=0��ʾ�������룬Ϊ-1ʱ��ʾ��������
+	//x1,y1,x2,y2 拷贝区域
+	//type:			输入类型,type=0表示正常输入，为-1时表示倒置输入
 	//long input_image(byte* psrc, int cols, int height,long x1,long y1,long x2,long y2, int type = 0);
 
 	void set_offset(int x1, int y1);
@@ -94,20 +94,20 @@ public:
 	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
 
 	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
-	//����������Ŀ��ͼ���е�ֱ��
-	//���룺����
-	//�����outStr:ֱ������[���߽Ƕȣ�ֱ�ߵ�ԭ��ľ���];ret:��ֱ���ϵĵ������
+	//描述：查找目标图像中的直线
+	//输入：精度
+	//输出：outStr:直线描述[法线角度，直线到原点的距离];ret:该直线上的点的数量
 	long FindLine(double sim, std::wstring& outStr);
 private:
-	//rgb����ƥ��
+	//rgb像素匹配
 	template<bool nodfcolor>
 	long simple_match(long x, long y, Image* timg, color_t dfcolor,int tnrom, double sim);
-	//͸��ͼƥ��
+	//透明图匹配
 	template<bool nodfcolor>
 	long trans_match(long x, long y, Image* timg, color_t dfcolor, vector<uint>points, int max_error);
-	//�Ҷ�ƥ��
+	//灰度匹配
 	long real_match(long x, long y, ImageBin* timg, int tnorm, double sim);
-	//��¼��
+	//记录和
 	void record_sum(const ImageBin & gray);
 	//[x1,x2),[y1,y2)
 	int region_sum(int x1, int y1, int x2, int y2);
@@ -118,16 +118,16 @@ private:
 
 	
 	
-	//��ֱ����ͶӰ,Ͷ��x��
+	//垂直方向投影,投到x轴
 	void binshadowx(const rect_t& rc, std::vector<rect_t>& out_put);
-	//ˮƽ����ͶӰ��Ͷ��(y)��
+	//水平方向投影，投到(y)轴
 	void binshadowy(const rect_t& rc, std::vector<rect_t>&out_put);
 
 
 	
-	//ocr ��ȫƥ��ģʽ
+	//ocr 完全匹配模式
 	void _bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps);
-	//ocr ģ��ƥ��ģʽ
+	//ocr 模糊匹配模式
 	void _bin_ocr(const Dict& dict,double sim, std::map<point_t, std::wstring>&ps);
 	//ocr wrapper
 	//template<int _type>
@@ -138,12 +138,12 @@ public:
 	else pixel=0;
 	*/
 	void bgr2binary(vector<color_df_t>& colors);
-	//��ֵ�� auto
+	//二值化 auto
 	void bgr2binarybk(const vector<color_df_t>& bk_colors);
-	//ͼ��ü�
+	//图像裁剪
 	void bin_image_cut(int min_word_h, const rect_t& inrc, rect_t& outrc);
 	void get_rois(int min_word_h, std::vector<rect_t>& vroi);
-	//ocrʶ�𣬷���ʶ�𵽵��ּ���Ӧ����
+	//ocr识别，返回识别到的字及对应坐标
 
 	void bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
 
@@ -155,9 +155,9 @@ public:
 	ImageBin _binary;
 	Image _sum;
 private:
-	//��ʼ��
+	//起始点
 	int _x1, _y1;
-	//ƫ��
+	//偏移
 	int _dx, _dy;
 	
 };

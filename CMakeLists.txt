@@ -8,8 +8,33 @@ cmake_minimum_required (VERSION 3.0)
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 
-
+ 
 project ("op")
+
+set(CMAKE_CXX_STANDARD 20)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
+    set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MT /Zi /EHa")
+    set(CMAKE_C_FLAGS_DEBUG "/MT /Zi /EHa")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /O2  /EHa")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /O2 /EHa")
+endif()
+
+IF(CMAKE_CL_64)
+    link_directories(${CMAKE_SOURCE_DIR}/3rd_party/lib/x64)
+	MESSAGE(STATUS "----------------Platform x64----------------")
+ELSE(CMAKE_CL_64)
+    link_directories(${CMAKE_SOURCE_DIR}/3rd_party/lib/x86)
+	MESSAGE(STATUS "----------------Platform x86----------------")
+ENDIF(CMAKE_CL_64)
+
+include_directories( 
+  ./
+  ${CMAKE_SOURCE_DIR}/3rd_party/include/
+  ${CMAKE_SOURCE_DIR}/3rd_party/include/3rd_party
+) 
 
 # 包含子项目。
 add_subdirectory ("libop")

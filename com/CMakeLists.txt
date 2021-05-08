@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-if (MSVC_VERSION GREATER_EQUAL "1900")
-    include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++latest" _cpp_latest_flag_supported)
-    if (_cpp_latest_flag_supported)
-        add_compile_options("/std:c++latest")
-    endif()
-endif()
+ 
 
 ADD_DEFINITIONS(-D WIN32)
 ADD_DEFINITIONS(-D _WINDOWS)
@@ -28,14 +22,25 @@ SET(COM_SRC_FILES
 "op_i.c"
 "op.def")
 
-add_library(op SHARED ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
+IF(CMAKE_CL_64)
+    set(OUTPUT_NAME op_x64)
+ELSE(CMAKE_CL_64)
+    set(OUTPUT_NAME op_x86)
+ENDIF(CMAKE_CL_64)
 
-target_link_libraries(op libop)
+add_library(${OUTPUT_NAME} SHARED ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
 
-SET_TARGET_PROPERTIES(op PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
+target_link_libraries(${OUTPUT_NAME} libop)
 
-add_custom_command(TARGET op PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
+SET_TARGET_PROPERTIES(${OUTPUT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
+
+add_custom_command(TARGET ${OUTPUT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
-install(TARGETS op RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin")
-install(TARGETS op ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib")
+IF(CMAKE_CL_64)
+    install(TARGETS ${OUTPUT_NAME} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+    install(TARGETS ${OUTPUT_NAME} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
+ELSE(CMAKE_CL_64)
+    install(TARGETS ${OUTPUT_NAME} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+    install(TARGETS ${OUTPUT_NAME} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
+ENDIF(CMAKE_CL_64)

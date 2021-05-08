@@ -13,17 +13,17 @@ Injecter::~Injecter()
 
 BOOL Injecter::EnablePrivilege(BOOL enable)
 {
-	// µÃµ½ÁîÅÆ¾ä±ú
+	// å¾—åˆ°ä»¤ç‰Œå¥æŸ„
 	HANDLE hToken = NULL;
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY | TOKEN_READ, &hToken))
 		return FALSE;
 
-	// µÃµ½ÌØÈ¨Öµ
+	// å¾—åˆ°ç‰¹æƒå€¼
 	LUID luid;
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid))
 		return FALSE;
 
-	// ÌáÉıÁîÅÆ¾ä±úÈ¨ÏŞ
+	// æå‡ä»¤ç‰Œå¥æŸ„æƒé™
 	TOKEN_PRIVILEGES tp = {};
 	tp.PrivilegeCount = 1;
 	tp.Privileges[0].Luid = luid;
@@ -31,7 +31,7 @@ BOOL Injecter::EnablePrivilege(BOOL enable)
 	if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL))
 		return FALSE;
 
-	// ¹Ø±ÕÁîÅÆ¾ä±ú
+	// å…³é—­ä»¤ç‰Œå¥æŸ„
 	CloseHandle(hToken);
 
 	return TRUE;
@@ -50,24 +50,24 @@ long Injecter::InjectDll(DWORD pid, LPCTSTR dllPath,long& error_code)
 	}
 	DWORD dllPathSize = ((DWORD)wcslen(dllPath) + 1) * sizeof(TCHAR);
 
-	// ÉêÇëÄÚ´æÓÃÀ´´æ·ÅDLLÂ·¾¶
+	// ç”³è¯·å†…å­˜ç”¨æ¥å­˜æ”¾DLLè·¯å¾„
 	void* remoteMemory = VirtualAllocEx(jhandle, NULL, dllPathSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (remoteMemory == NULL)
 	{
-		//setlog(L"ÉêÇëÄÚ´æÊ§°Ü£¬´íÎó´úÂë£º%u\n", GetLastError());
+		//setlog(L"ç”³è¯·å†…å­˜å¤±è´¥ï¼Œé”™è¯¯ä»£ç ï¼š%u\n", GetLastError());
 		error_code = ::GetLastError();
 		return -2;
 	}
 
-	// Ğ´ÈëDLLÂ·¾¶
+	// å†™å…¥DLLè·¯å¾„
 	if (!WriteProcessMemory(jhandle, remoteMemory, dllPath, dllPathSize, NULL))
 	{
-		//setlog(L"Ğ´ÈëÄÚ´æÊ§°Ü£¬´íÎó´úÂë£º%u\n", GetLastError());
+		//setlog(L"å†™å…¥å†…å­˜å¤±è´¥ï¼Œé”™è¯¯ä»£ç ï¼š%u\n", GetLastError());
 		error_code = ::GetLastError();
 		return -3;
 	}
 
-	// ´´½¨Ô¶Ïß³Ìµ÷ÓÃLoadLibrary
+	// åˆ›å»ºè¿œçº¿ç¨‹è°ƒç”¨LoadLibrary
 	auto lpfn=GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "LoadLibraryW");
 	if (!lpfn) {
 		error_code = ::GetLastError();
@@ -76,20 +76,20 @@ long Injecter::InjectDll(DWORD pid, LPCTSTR dllPath,long& error_code)
 	HANDLE remoteThread = CreateRemoteThread(jhandle, NULL, 0, (LPTHREAD_START_ROUTINE)lpfn, remoteMemory, 0, NULL);
 	if (remoteThread == NULL)
 	{
-		//setlog(L"´´½¨Ô¶Ïß³ÌÊ§°Ü£¬´íÎó´úÂë£º%u\n", GetLastError());
+		//setlog(L"åˆ›å»ºè¿œçº¿ç¨‹å¤±è´¥ï¼Œé”™è¯¯ä»£ç ï¼š%u\n", GetLastError());
 		error_code = ::GetLastError();
 		return -5;
 	}
-	// µÈ´ıÔ¶Ïß³Ì½áÊø
+	// ç­‰å¾…è¿œçº¿ç¨‹ç»“æŸ
 	WaitForSingleObject(remoteThread, INFINITE);
-	// È¡DLLÔÚÄ¿±ê½ø³ÌµÄ¾ä±ú
+	// å–DLLåœ¨ç›®æ ‡è¿›ç¨‹çš„å¥æŸ„
 	DWORD remoteModule;
 	GetExitCodeThread(remoteThread, &remoteModule);
 
-	// »Ö¸´Ïß³Ì
+	// æ¢å¤çº¿ç¨‹
 	//ResumeThread(processInfo.hThread);
 
-	// ÊÍ·Å
+	// é‡Šæ”¾
 	CloseHandle(remoteThread);
 	VirtualFreeEx(jhandle, remoteMemory, dllPathSize, MEM_DECOMMIT);
 	CloseHandle(jhandle);
