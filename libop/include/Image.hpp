@@ -219,7 +219,7 @@ struct Image
 	int width, height;
 	unsigned char* pdata;
 };
-//µ¥Í¨µÀÍ¼Ïñ
+//å•é€šé“å›¾åƒ
 struct ImageBin {
 	using iterator = unsigned char*;
 	ImageBin() :width(0), height(0) {}
