@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-<<<<<<< HEAD
 if (MSVC_VERSION GREATER_EQUAL "1900")
     include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("/std:c++17" _cpp_latest_flag_supported)
@@ -7,10 +6,8 @@ if (MSVC_VERSION GREATER_EQUAL "1900")
         add_compile_options("/std:c++17")
     endif()
 endif()
-=======
 
  
->>>>>>> 058014ddff8f53317da31bf98806f3a189196721
 
 
 ADD_DEFINITIONS(-D WIN32)

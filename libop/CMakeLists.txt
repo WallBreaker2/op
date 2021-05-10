@@ -7,21 +7,9 @@ cmake_minimum_required(VERSION 3.0.0)
 #INCLUDE_DIRECTORIES(
 #    include
 #)
-<<<<<<< HEAD
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_STANDARD_REQUIRED True)
-if (MSVC_VERSION GREATER_EQUAL "1900")
-    include(CheckCXXCompilerFlag)
-    CHECK_CXX_COMPILER_FLAG("/std:c++17" _cpp_latest_flag_supported)
-    if (_cpp_latest_flag_supported)
-        add_compile_options("/std:c++17")
-    endif()
-endif()
 
 
 
-=======
->>>>>>> 058014ddff8f53317da31bf98806f3a189196721
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB")
 

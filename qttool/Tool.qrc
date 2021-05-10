@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/Tool">
+        <file>Resources/tool.ico</file>
+        <file>Resources/catch.bmp</file>
+    </qresource>
+</RCC>
