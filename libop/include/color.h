@@ -2,7 +2,7 @@
 #ifndef __COLOR_H_
 #define __COLOR_H_
 #include <algorithm>
-#include "./core/optype.h"
+#include "../core/optype.h"
 #define WORD_BKCOLOR 0
 #define WORD_COLOR 1
 //#include "../Tool.h"
@@ -18,7 +18,7 @@ constexpr bool IN_RANGE(T lhs, T rhs, T df) {
 		&&OP_ABS(lhs.g-rhs.g)<=df.g
 		&&OP_ABS(lhs.r-rhs.r)<=df.r;
 }
-//颜色结构
+//锟斤拷色锟结构
 
 //#pragma pack(push)
 #pragma pack(1)
@@ -59,14 +59,14 @@ struct color_t {
 	}
 };
 #pragma pack()
-//颜色-偏色结构
+//锟斤拷色-偏色锟结构
 struct color_df_t {
-	//颜色
+	//锟斤拷色
 	color_t color;
 	//偏色
 	color_t df;
 };
-//坐标-颜色-偏色结构
+//锟斤拷锟斤拷-锟斤拷色-偏色锟结构
 struct pt_cr_df_t {
 	int x, y;
 	std::vector<color_df_t> crdfs;

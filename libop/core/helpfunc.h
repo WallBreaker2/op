@@ -2,7 +2,7 @@
 #ifndef __HELPFUCN_H_
 #define __HELPFUNC_H_
 #include "optype.h"
-#include "./background/frameInfo.h"
+#include "../background/frameInfo.h"
 std::wstring _s2wstring(const std::string&s);
 std::string _ws2string(const std::wstring&s);
 //将路径转化为全局路径
