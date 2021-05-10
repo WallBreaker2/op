@@ -6,10 +6,10 @@
 由于ocr与图像查找类似，故也在类ImageLoc中实现
 */
 #include <vector>
-#include "./core/optype.h"
+#include "../core/optype.h"
 #include <string>
-#include "include/Dict.h"
-#include "include/color.h"
+#include "../include/Dict.h"
+#include "../include/color.h"
 
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')

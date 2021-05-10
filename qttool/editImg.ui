@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditImgDlg</class>
+ <widget class="QDialog" name="EditImgDlg">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>626</width>
+    <height>397</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>360</y>
+     <width>351</width>
+     <height>33</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <spacer>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>131</width>
+        <height>31</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QPushButton" name="okButton">
+      <property name="text">
+       <string>OK</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="cancelButton">
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="labelInfo">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>330</y>
+     <width>491</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>info</string>
+   </property>
+  </widget>
+  <widget class="QScrollArea" name="scrollArea">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>20</y>
+     <width>501</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="widgetResizable">
+    <bool>false</bool>
+   </property>
+   <widget class="QWidget" name="scrollAreaWidgetContents">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>499</width>
+      <height>279</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QPushButton" name="btnRoate">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>300</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>旋转</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnMagic">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>69</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>魔术棒</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnRect">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>40</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>矩形选择</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnPointer">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>11</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>指针</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnBig">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>185</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>图像放大</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnColor">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>156</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>去色器</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnPen">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>98</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>画笔</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnFill">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>127</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>油漆桶</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnSrc">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>214</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>原始图像</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnSmall">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>243</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>图像缩小</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnCut">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>272</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>自动裁剪</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
+   <receiver>EditImgDlg</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>358</x>
+     <y>335</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>EditImgDlg</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>439</x>
+     <y>335</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>179</x>
+     <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
