@@ -17,7 +17,8 @@ target_include_directories(opEx PUBLIC
 
 link_directories(opEx PUBLIC "D:\\py36\\libs")
 #find_library(OP_LIB op ../bin/Release NO_DEFAULT_PATH)
-
+set_target_properties(opEx PROPERTIES PREFIX "_")
+set_target_properties(opEx PROPERTIES SUFFIX ".pyd")
 
 
 target_link_libraries(opEx libop)

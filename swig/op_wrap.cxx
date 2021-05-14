@@ -3168,12 +3168,12 @@ SWIGINTERN PyObject *_wrap_libop_SetPath(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetPath", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetPath", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetPath" "', argument " "1"" of type '" "libop *""'"); 
@@ -3184,13 +3184,14 @@ SWIGINTERN PyObject *_wrap_libop_SetPath(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_SetPath" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SetPath" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->SetPath((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->SetPath((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -3205,27 +3206,26 @@ SWIGINTERN PyObject *_wrap_libop_GetPath(PyObject *SWIGUNUSEDPARM(self), PyObjec
   std::wstring *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  std::wstring temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetPath", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetPath" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetPath" "', argument " "2"" of type '" "std::wstring &""'"); 
+  (arg1)->GetPath(*arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetPath" "', argument " "2"" of type '" "std::wstring &""'"); 
-  }
-  arg2 = reinterpret_cast< std::wstring * >(argp2);
-  result = (long)(arg1)->GetPath(*arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3238,27 +3238,26 @@ SWIGINTERN PyObject *_wrap_libop_GetBasePath(PyObject *SWIGUNUSEDPARM(self), PyO
   std::wstring *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  std::wstring temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetBasePath", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetBasePath" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetBasePath" "', argument " "2"" of type '" "std::wstring &""'"); 
+  (arg1)->GetBasePath(*arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetBasePath" "', argument " "2"" of type '" "std::wstring &""'"); 
-  }
-  arg2 = reinterpret_cast< std::wstring * >(argp2);
-  result = (long)(arg1)->GetBasePath(*arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3271,24 +3270,26 @@ SWIGINTERN PyObject *_wrap_libop_GetID(PyObject *SWIGUNUSEDPARM(self), PyObject 
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetID", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetID" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetID" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetID(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->GetID(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3301,24 +3302,26 @@ SWIGINTERN PyObject *_wrap_libop_GetLastError(PyObject *SWIGUNUSEDPARM(self), Py
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetLastError", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetLastError" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetLastError" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetLastError(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->GetLastError(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3334,12 +3337,12 @@ SWIGINTERN PyObject *_wrap_libop_SetShowErrorMsg(PyObject *SWIGUNUSEDPARM(self),
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetShowErrorMsg", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetShowErrorMsg", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetShowErrorMsg" "', argument " "1"" of type '" "libop *""'"); 
@@ -3350,13 +3353,14 @@ SWIGINTERN PyObject *_wrap_libop_SetShowErrorMsg(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_SetShowErrorMsg" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SetShowErrorMsg" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->SetShowErrorMsg(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->SetShowErrorMsg(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3372,12 +3376,12 @@ SWIGINTERN PyObject *_wrap_libop_Sleep(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_Sleep", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_Sleep", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_Sleep" "', argument " "1"" of type '" "libop *""'"); 
@@ -3388,13 +3392,14 @@ SWIGINTERN PyObject *_wrap_libop_Sleep(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_Sleep" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_Sleep" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->Sleep(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->Sleep(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3415,12 +3420,12 @@ SWIGINTERN PyObject *_wrap_libop_InjectDll(PyObject *SWIGUNUSEDPARM(self), PyObj
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_InjectDll", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_InjectDll", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_InjectDll" "', argument " "1"" of type '" "libop *""'"); 
@@ -3436,13 +3441,14 @@ SWIGINTERN PyObject *_wrap_libop_InjectDll(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_InjectDll" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_InjectDll" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->InjectDll((wchar_t const *)arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->InjectDll((wchar_t const *)arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
@@ -3462,12 +3468,12 @@ SWIGINTERN PyObject *_wrap_libop_EnablePicCache(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_EnablePicCache", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_EnablePicCache", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_EnablePicCache" "', argument " "1"" of type '" "libop *""'"); 
@@ -3478,13 +3484,14 @@ SWIGINTERN PyObject *_wrap_libop_EnablePicCache(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_EnablePicCache" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_EnablePicCache" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->EnablePicCache(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->EnablePicCache(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3501,12 +3508,12 @@ SWIGINTERN PyObject *_wrap_libop_CapturePre(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_CapturePre", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_CapturePre", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_CapturePre" "', argument " "1"" of type '" "libop *""'"); 
@@ -3517,13 +3524,14 @@ SWIGINTERN PyObject *_wrap_libop_CapturePre(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_CapturePre" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_CapturePre" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->CapturePre((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->CapturePre((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -3560,12 +3568,12 @@ SWIGINTERN PyObject *_wrap_libop_AStarFindPath(PyObject *SWIGUNUSEDPARM(self), P
   int ecode7 = 0 ;
   long val8 ;
   int ecode8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
-  PyObject *swig_obj[9] ;
-  long result;
+  std::wstring temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_AStarFindPath", 9, 9, swig_obj)) SWIG_fail;
+  arg9 = &temp9;
+  if (!SWIG_Python_UnpackTuple(args, "libop_AStarFindPath", 8, 8, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_AStarFindPath" "', argument " "1"" of type '" "libop *""'"); 
@@ -3606,16 +3614,14 @@ SWIGINTERN PyObject *_wrap_libop_AStarFindPath(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_AStarFindPath" "', argument " "8"" of type '" "long""'");
   } 
   arg8 = static_cast< long >(val8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "libop_AStarFindPath" "', argument " "9"" of type '" "std::wstring &""'"); 
+  (arg1)->AStarFindPath(arg2,arg3,(wchar_t const *)arg4,arg5,arg6,arg7,arg8,*arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp9) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_AStarFindPath" "', argument " "9"" of type '" "std::wstring &""'"); 
-  }
-  arg9 = reinterpret_cast< std::wstring * >(argp9);
-  result = (long)(arg1)->AStarFindPath(arg2,arg3,(wchar_t const *)arg4,arg5,arg6,arg7,arg8,*arg9);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
 fail:
@@ -3643,12 +3649,12 @@ SWIGINTERN PyObject *_wrap_libop_FindNearestPos(PyObject *SWIGUNUSEDPARM(self), 
   int ecode4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  std::wstring temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindNearestPos", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindNearestPos", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindNearestPos" "', argument " "1"" of type '" "libop *""'"); 
@@ -3674,16 +3680,14 @@ SWIGINTERN PyObject *_wrap_libop_FindNearestPos(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_FindNearestPos" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_FindNearestPos" "', argument " "6"" of type '" "std::wstring &""'"); 
+  (arg1)->FindNearestPos((wchar_t const *)arg2,arg3,arg4,arg5,*arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp6) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindNearestPos" "', argument " "6"" of type '" "std::wstring &""'"); 
-  }
-  arg6 = reinterpret_cast< std::wstring * >(argp6);
-  result = (long)(arg1)->FindNearestPos((wchar_t const *)arg2,arg3,arg4,arg5,*arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -3712,12 +3716,12 @@ SWIGINTERN PyObject *_wrap_libop_EnumWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
   int alloc4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  std::wstring temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_EnumWindow", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_EnumWindow", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_EnumWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -3743,16 +3747,14 @@ SWIGINTERN PyObject *_wrap_libop_EnumWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_EnumWindow" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_EnumWindow" "', argument " "6"" of type '" "std::wstring &""'"); 
+  (arg1)->EnumWindow(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,*arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp6) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_EnumWindow" "', argument " "6"" of type '" "std::wstring &""'"); 
-  }
-  arg6 = reinterpret_cast< std::wstring * >(argp6);
-  result = (long)(arg1)->EnumWindow(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,*arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
@@ -3784,12 +3786,12 @@ SWIGINTERN PyObject *_wrap_libop_EnumWindowByProcess(PyObject *SWIGUNUSEDPARM(se
   int alloc4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  std::wstring temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_EnumWindowByProcess", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_EnumWindowByProcess", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_EnumWindowByProcess" "', argument " "1"" of type '" "libop *""'"); 
@@ -3815,16 +3817,14 @@ SWIGINTERN PyObject *_wrap_libop_EnumWindowByProcess(PyObject *SWIGUNUSEDPARM(se
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_EnumWindowByProcess" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_EnumWindowByProcess" "', argument " "6"" of type '" "std::wstring &""'"); 
+  (arg1)->EnumWindowByProcess((wchar_t const *)arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,*arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp6) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_EnumWindowByProcess" "', argument " "6"" of type '" "std::wstring &""'"); 
-  }
-  arg6 = reinterpret_cast< std::wstring * >(argp6);
-  result = (long)(arg1)->EnumWindowByProcess((wchar_t const *)arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,*arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
@@ -3847,12 +3847,12 @@ SWIGINTERN PyObject *_wrap_libop_EnumProcess(PyObject *SWIGUNUSEDPARM(self), PyO
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_EnumProcess", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_EnumProcess", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_EnumProcess" "', argument " "1"" of type '" "libop *""'"); 
@@ -3863,16 +3863,14 @@ SWIGINTERN PyObject *_wrap_libop_EnumProcess(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_EnumProcess" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_EnumProcess" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->EnumProcess((wchar_t const *)arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_EnumProcess" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->EnumProcess((wchar_t const *)arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -3892,16 +3890,18 @@ SWIGINTERN PyObject *_wrap_libop_ClientToScreen(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_ClientToScreen", 5, 5, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_ClientToScreen", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_ClientToScreen" "', argument " "1"" of type '" "libop *""'"); 
@@ -3912,23 +3912,26 @@ SWIGINTERN PyObject *_wrap_libop_ClientToScreen(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_ClientToScreen" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_ClientToScreen" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->ClientToScreen(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_ClientToScreen" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_ClientToScreen" "', argument " "5"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->ClientToScreen(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -3949,12 +3952,12 @@ SWIGINTERN PyObject *_wrap_libop_FindWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindow", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindow", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -3970,13 +3973,14 @@ SWIGINTERN PyObject *_wrap_libop_FindWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_FindWindow" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_FindWindow" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->FindWindow((wchar_t const *)arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->FindWindow((wchar_t const *)arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
@@ -4005,12 +4009,12 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowByProcess(PyObject *SWIGUNUSEDPARM(se
   int res4 ;
   wchar_t *buf4 = 0 ;
   int alloc4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowByProcess", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowByProcess", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindWindowByProcess" "', argument " "1"" of type '" "libop *""'"); 
@@ -4031,13 +4035,14 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowByProcess(PyObject *SWIGUNUSEDPARM(se
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_FindWindowByProcess" "', argument " "4"" of type '" "wchar_t const *""'");
   }
   arg4 = reinterpret_cast< wchar_t * >(buf4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_FindWindowByProcess" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->FindWindowByProcess((wchar_t const *)arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->FindWindowByProcess((wchar_t const *)arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
@@ -4067,12 +4072,12 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowByProcessId(PyObject *SWIGUNUSEDPARM(
   int res4 ;
   wchar_t *buf4 = 0 ;
   int alloc4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowByProcessId", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowByProcessId", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindWindowByProcessId" "', argument " "1"" of type '" "libop *""'"); 
@@ -4093,13 +4098,14 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowByProcessId(PyObject *SWIGUNUSEDPARM(
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_FindWindowByProcessId" "', argument " "4"" of type '" "wchar_t const *""'");
   }
   arg4 = reinterpret_cast< wchar_t * >(buf4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_FindWindowByProcessId" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->FindWindowByProcessId(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->FindWindowByProcessId(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
@@ -4127,12 +4133,12 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowEx(PyObject *SWIGUNUSEDPARM(self), Py
   int res4 ;
   wchar_t *buf4 = 0 ;
   int alloc4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowEx", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindWindowEx", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindWindowEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -4153,13 +4159,14 @@ SWIGINTERN PyObject *_wrap_libop_FindWindowEx(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_FindWindowEx" "', argument " "4"" of type '" "wchar_t const *""'");
   }
   arg4 = reinterpret_cast< wchar_t * >(buf4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_FindWindowEx" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->FindWindowEx(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->FindWindowEx(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
@@ -4183,20 +4190,24 @@ SWIGINTERN PyObject *_wrap_libop_GetClientRect(PyObject *SWIGUNUSEDPARM(self), P
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetClientRect", 7, 7, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetClientRect", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetClientRect" "', argument " "1"" of type '" "libop *""'"); 
@@ -4207,33 +4218,38 @@ SWIGINTERN PyObject *_wrap_libop_GetClientRect(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetClientRect" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetClientRect" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetClientRect(arg2,arg3,arg4,arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetClientRect" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_GetClientRect" "', argument " "5"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetClientRect" "', argument " "6"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags));
   }
-  arg6 = reinterpret_cast< long * >(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_GetClientRect" "', argument " "7"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  result = (long)(arg1)->GetClientRect(arg2,arg3,arg4,arg5,arg6,arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4251,16 +4267,18 @@ SWIGINTERN PyObject *_wrap_libop_GetClientSize(PyObject *SWIGUNUSEDPARM(self), P
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetClientSize", 5, 5, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetClientSize", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetClientSize" "', argument " "1"" of type '" "libop *""'"); 
@@ -4271,23 +4289,26 @@ SWIGINTERN PyObject *_wrap_libop_GetClientSize(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetClientSize" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetClientSize" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetClientSize(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetClientSize" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_GetClientSize" "', argument " "5"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->GetClientSize(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4300,24 +4321,26 @@ SWIGINTERN PyObject *_wrap_libop_GetForegroundFocus(PyObject *SWIGUNUSEDPARM(sel
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetForegroundFocus", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetForegroundFocus" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetForegroundFocus" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetForegroundFocus(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->GetForegroundFocus(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4330,24 +4353,26 @@ SWIGINTERN PyObject *_wrap_libop_GetForegroundWindow(PyObject *SWIGUNUSEDPARM(se
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetForegroundWindow", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetForegroundWindow" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetForegroundWindow" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetForegroundWindow(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->GetForegroundWindow(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4360,24 +4385,26 @@ SWIGINTERN PyObject *_wrap_libop_GetMousePointWindow(PyObject *SWIGUNUSEDPARM(se
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetMousePointWindow", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetMousePointWindow" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetMousePointWindow" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetMousePointWindow(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->GetMousePointWindow(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4396,12 +4423,12 @@ SWIGINTERN PyObject *_wrap_libop_GetPointWindow(PyObject *SWIGUNUSEDPARM(self), 
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetPointWindow", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetPointWindow", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetPointWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -4417,13 +4444,14 @@ SWIGINTERN PyObject *_wrap_libop_GetPointWindow(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_GetPointWindow" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetPointWindow" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->GetPointWindow(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->GetPointWindow(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4439,12 +4467,12 @@ SWIGINTERN PyObject *_wrap_libop_GetProcessInfo(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetProcessInfo", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetProcessInfo", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetProcessInfo" "', argument " "1"" of type '" "libop *""'"); 
@@ -4455,16 +4483,14 @@ SWIGINTERN PyObject *_wrap_libop_GetProcessInfo(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetProcessInfo" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetProcessInfo" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->GetProcessInfo(arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetProcessInfo" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->GetProcessInfo(arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4480,12 +4506,12 @@ SWIGINTERN PyObject *_wrap_libop_GetSpecialWindow(PyObject *SWIGUNUSEDPARM(self)
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetSpecialWindow", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetSpecialWindow", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetSpecialWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -4496,13 +4522,14 @@ SWIGINTERN PyObject *_wrap_libop_GetSpecialWindow(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetSpecialWindow" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetSpecialWindow" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetSpecialWindow(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->GetSpecialWindow(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4521,12 +4548,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindow(PyObject *SWIGUNUSEDPARM(self), PyObj
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindow", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindow", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -4542,13 +4569,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindow(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_GetWindow" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetWindow" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->GetWindow(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->GetWindow(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4564,12 +4592,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowClass(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowClass", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowClass", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowClass" "', argument " "1"" of type '" "libop *""'"); 
@@ -4580,16 +4608,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowClass(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetWindowClass" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetWindowClass" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->GetWindowClass(arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetWindowClass" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->GetWindowClass(arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4605,12 +4631,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowProcessId(PyObject *SWIGUNUSEDPARM(sel
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowProcessId", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowProcessId", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowProcessId" "', argument " "1"" of type '" "libop *""'"); 
@@ -4621,13 +4647,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowProcessId(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetWindowProcessId" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetWindowProcessId" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetWindowProcessId(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->GetWindowProcessId(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4643,12 +4670,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowProcessPath(PyObject *SWIGUNUSEDPARM(s
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowProcessPath", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowProcessPath", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowProcessPath" "', argument " "1"" of type '" "libop *""'"); 
@@ -4659,16 +4686,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowProcessPath(PyObject *SWIGUNUSEDPARM(s
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetWindowProcessPath" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetWindowProcessPath" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->GetWindowProcessPath(arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetWindowProcessPath" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->GetWindowProcessPath(arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4688,20 +4713,24 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowRect(PyObject *SWIGUNUSEDPARM(self), P
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowRect", 7, 7, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowRect", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowRect" "', argument " "1"" of type '" "libop *""'"); 
@@ -4712,33 +4741,38 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowRect(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetWindowRect" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetWindowRect" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetWindowRect(arg2,arg3,arg4,arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetWindowRect" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_GetWindowRect" "', argument " "5"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetWindowRect" "', argument " "6"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags));
   }
-  arg6 = reinterpret_cast< long * >(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_GetWindowRect" "', argument " "7"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  result = (long)(arg1)->GetWindowRect(arg2,arg3,arg4,arg5,arg6,arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4757,12 +4791,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowState(PyObject *SWIGUNUSEDPARM(self), 
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowState", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowState", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowState" "', argument " "1"" of type '" "libop *""'"); 
@@ -4778,13 +4812,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowState(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_GetWindowState" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetWindowState" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->GetWindowState(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->GetWindowState(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4800,12 +4835,12 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowTitle(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowTitle", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetWindowTitle", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetWindowTitle" "', argument " "1"" of type '" "libop *""'"); 
@@ -4816,16 +4851,14 @@ SWIGINTERN PyObject *_wrap_libop_GetWindowTitle(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetWindowTitle" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetWindowTitle" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->GetWindowTitle(arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetWindowTitle" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->GetWindowTitle(arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4847,12 +4880,12 @@ SWIGINTERN PyObject *_wrap_libop_MoveWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
   int ecode3 = 0 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MoveWindow", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_MoveWindow", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MoveWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -4873,13 +4906,14 @@ SWIGINTERN PyObject *_wrap_libop_MoveWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_MoveWindow" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_MoveWindow" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->MoveWindow(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->MoveWindow(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4897,16 +4931,18 @@ SWIGINTERN PyObject *_wrap_libop_ScreenToClient(PyObject *SWIGUNUSEDPARM(self), 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_ScreenToClient", 5, 5, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_ScreenToClient", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_ScreenToClient" "', argument " "1"" of type '" "libop *""'"); 
@@ -4917,23 +4953,26 @@ SWIGINTERN PyObject *_wrap_libop_ScreenToClient(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_ScreenToClient" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_ScreenToClient" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->ScreenToClient(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_ScreenToClient" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_ScreenToClient" "', argument " "5"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->ScreenToClient(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4949,12 +4988,12 @@ SWIGINTERN PyObject *_wrap_libop_SendPaste(PyObject *SWIGUNUSEDPARM(self), PyObj
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SendPaste", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SendPaste", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SendPaste" "', argument " "1"" of type '" "libop *""'"); 
@@ -4965,13 +5004,14 @@ SWIGINTERN PyObject *_wrap_libop_SendPaste(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_SendPaste" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SendPaste" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->SendPaste(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->SendPaste(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4993,12 +5033,12 @@ SWIGINTERN PyObject *_wrap_libop_SetClientSize(PyObject *SWIGUNUSEDPARM(self), P
   int ecode3 = 0 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetClientSize", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetClientSize", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetClientSize" "', argument " "1"" of type '" "libop *""'"); 
@@ -5019,13 +5059,14 @@ SWIGINTERN PyObject *_wrap_libop_SetClientSize(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_SetClientSize" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_SetClientSize" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->SetClientSize(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->SetClientSize(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5044,12 +5085,12 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowState(PyObject *SWIGUNUSEDPARM(self), 
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowState", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowState", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetWindowState" "', argument " "1"" of type '" "libop *""'"); 
@@ -5065,13 +5106,14 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowState(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_SetWindowState" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SetWindowState" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SetWindowState(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SetWindowState(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5093,12 +5135,12 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowSize(PyObject *SWIGUNUSEDPARM(self), P
   int ecode3 = 0 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowSize", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowSize", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetWindowSize" "', argument " "1"" of type '" "libop *""'"); 
@@ -5119,13 +5161,14 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowSize(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_SetWindowSize" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_SetWindowSize" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->SetWindowSize(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->SetWindowSize(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5145,12 +5188,12 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowText(PyObject *SWIGUNUSEDPARM(self), P
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowText", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowText", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetWindowText" "', argument " "1"" of type '" "libop *""'"); 
@@ -5166,13 +5209,14 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowText(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SetWindowText" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SetWindowText" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SetWindowText(arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SetWindowText(arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -5193,12 +5237,12 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowTransparent(PyObject *SWIGUNUSEDPARM(s
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowTransparent", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetWindowTransparent", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetWindowTransparent" "', argument " "1"" of type '" "libop *""'"); 
@@ -5214,13 +5258,14 @@ SWIGINTERN PyObject *_wrap_libop_SetWindowTransparent(PyObject *SWIGUNUSEDPARM(s
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_SetWindowTransparent" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SetWindowTransparent" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SetWindowTransparent(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SetWindowTransparent(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5240,12 +5285,12 @@ SWIGINTERN PyObject *_wrap_libop_SendString(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SendString", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SendString", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SendString" "', argument " "1"" of type '" "libop *""'"); 
@@ -5261,13 +5306,14 @@ SWIGINTERN PyObject *_wrap_libop_SendString(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SendString" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SendString" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SendString(arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SendString(arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -5289,12 +5335,12 @@ SWIGINTERN PyObject *_wrap_libop_SendStringIme(PyObject *SWIGUNUSEDPARM(self), P
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SendStringIme", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SendStringIme", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SendStringIme" "', argument " "1"" of type '" "libop *""'"); 
@@ -5310,13 +5356,14 @@ SWIGINTERN PyObject *_wrap_libop_SendStringIme(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SendStringIme" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SendStringIme" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SendStringIme(arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SendStringIme(arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -5338,12 +5385,12 @@ SWIGINTERN PyObject *_wrap_libop_RunApp(PyObject *SWIGUNUSEDPARM(self), PyObject
   int alloc2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_RunApp", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_RunApp", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_RunApp" "', argument " "1"" of type '" "libop *""'"); 
@@ -5359,13 +5406,14 @@ SWIGINTERN PyObject *_wrap_libop_RunApp(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_RunApp" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_RunApp" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->RunApp((wchar_t const *)arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->RunApp((wchar_t const *)arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -5387,12 +5435,12 @@ SWIGINTERN PyObject *_wrap_libop_WinExec(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int alloc2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_WinExec", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_WinExec", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_WinExec" "', argument " "1"" of type '" "libop *""'"); 
@@ -5408,13 +5456,14 @@ SWIGINTERN PyObject *_wrap_libop_WinExec(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_WinExec" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_WinExec" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->WinExec((wchar_t const *)arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->WinExec((wchar_t const *)arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -5436,12 +5485,12 @@ SWIGINTERN PyObject *_wrap_libop_GetCmdStr(PyObject *SWIGUNUSEDPARM(self), PyObj
   int alloc2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  std::wstring temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetCmdStr", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetCmdStr", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetCmdStr" "', argument " "1"" of type '" "libop *""'"); 
@@ -5457,16 +5506,14 @@ SWIGINTERN PyObject *_wrap_libop_GetCmdStr(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_GetCmdStr" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetCmdStr" "', argument " "4"" of type '" "std::wstring &""'"); 
+  (arg1)->GetCmdStr((wchar_t const *)arg2,arg3,*arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp4) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetCmdStr" "', argument " "4"" of type '" "std::wstring &""'"); 
-  }
-  arg4 = reinterpret_cast< std::wstring * >(argp4);
-  result = (long)(arg1)->GetCmdStr((wchar_t const *)arg2,arg3,*arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -5499,12 +5546,12 @@ SWIGINTERN PyObject *_wrap_libop_BindWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
   int alloc5 = 0 ;
   long val6 ;
   int ecode6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_BindWindow", 7, 7, swig_obj)) SWIG_fail;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_BindWindow", 6, 6, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_BindWindow" "', argument " "1"" of type '" "libop *""'"); 
@@ -5535,13 +5582,14 @@ SWIGINTERN PyObject *_wrap_libop_BindWindow(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "libop_BindWindow" "', argument " "6"" of type '" "long""'");
   } 
   arg6 = static_cast< long >(val6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_BindWindow" "', argument " "7"" of type '" "long *""'"); 
+  (arg1)->BindWindow(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,(wchar_t const *)arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  result = (long)(arg1)->BindWindow(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,(wchar_t const *)arg5,arg6,arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   if (alloc5 == SWIG_NEWOBJ) delete[] buf5;
@@ -5560,24 +5608,26 @@ SWIGINTERN PyObject *_wrap_libop_UnBindWindow(PyObject *SWIGUNUSEDPARM(self), Py
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_UnBindWindow", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_UnBindWindow" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_UnBindWindow" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->UnBindWindow(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->UnBindWindow(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5592,38 +5642,44 @@ SWIGINTERN PyObject *_wrap_libop_GetCursorPos(PyObject *SWIGUNUSEDPARM(self), Py
   long *arg4 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetCursorPos", 4, 4, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetCursorPos" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetCursorPos" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetCursorPos(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetCursorPos" "', argument " "3"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetCursorPos" "', argument " "4"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->GetCursorPos(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5642,12 +5698,12 @@ SWIGINTERN PyObject *_wrap_libop_MoveR(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MoveR", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_MoveR", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MoveR" "', argument " "1"" of type '" "libop *""'"); 
@@ -5663,13 +5719,14 @@ SWIGINTERN PyObject *_wrap_libop_MoveR(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_MoveR" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_MoveR" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->MoveR(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->MoveR(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5688,12 +5745,12 @@ SWIGINTERN PyObject *_wrap_libop_MoveTo(PyObject *SWIGUNUSEDPARM(self), PyObject
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MoveTo", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_MoveTo", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MoveTo" "', argument " "1"" of type '" "libop *""'"); 
@@ -5709,13 +5766,14 @@ SWIGINTERN PyObject *_wrap_libop_MoveTo(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_MoveTo" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_MoveTo" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->MoveTo(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->MoveTo(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5740,12 +5798,12 @@ SWIGINTERN PyObject *_wrap_libop_MoveToEx(PyObject *SWIGUNUSEDPARM(self), PyObje
   int ecode4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MoveToEx", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_MoveToEx", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MoveToEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -5771,13 +5829,14 @@ SWIGINTERN PyObject *_wrap_libop_MoveToEx(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_MoveToEx" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_MoveToEx" "', argument " "6"" of type '" "long *""'"); 
+  (arg1)->MoveToEx(arg2,arg3,arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags));
   }
-  arg6 = reinterpret_cast< long * >(argp6);
-  result = (long)(arg1)->MoveToEx(arg2,arg3,arg4,arg5,arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5790,24 +5849,26 @@ SWIGINTERN PyObject *_wrap_libop_LeftClick(PyObject *SWIGUNUSEDPARM(self), PyObj
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LeftClick", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LeftClick" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_LeftClick" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->LeftClick(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->LeftClick(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5820,24 +5881,26 @@ SWIGINTERN PyObject *_wrap_libop_LeftDoubleClick(PyObject *SWIGUNUSEDPARM(self),
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LeftDoubleClick", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LeftDoubleClick" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_LeftDoubleClick" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->LeftDoubleClick(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->LeftDoubleClick(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5850,24 +5913,26 @@ SWIGINTERN PyObject *_wrap_libop_LeftDown(PyObject *SWIGUNUSEDPARM(self), PyObje
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LeftDown", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LeftDown" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_LeftDown" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->LeftDown(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->LeftDown(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5880,24 +5945,26 @@ SWIGINTERN PyObject *_wrap_libop_LeftUp(PyObject *SWIGUNUSEDPARM(self), PyObject
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LeftUp", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LeftUp" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_LeftUp" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->LeftUp(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->LeftUp(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5910,24 +5977,26 @@ SWIGINTERN PyObject *_wrap_libop_MiddleClick(PyObject *SWIGUNUSEDPARM(self), PyO
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MiddleClick", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MiddleClick" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_MiddleClick" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->MiddleClick(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->MiddleClick(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5940,24 +6009,26 @@ SWIGINTERN PyObject *_wrap_libop_MiddleDown(PyObject *SWIGUNUSEDPARM(self), PyOb
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MiddleDown", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MiddleDown" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_MiddleDown" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->MiddleDown(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->MiddleDown(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -5970,24 +6041,26 @@ SWIGINTERN PyObject *_wrap_libop_MiddleUp(PyObject *SWIGUNUSEDPARM(self), PyObje
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MiddleUp", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MiddleUp" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_MiddleUp" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->MiddleUp(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->MiddleUp(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6000,24 +6073,26 @@ SWIGINTERN PyObject *_wrap_libop_RightClick(PyObject *SWIGUNUSEDPARM(self), PyOb
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_RightClick", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_RightClick" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_RightClick" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->RightClick(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->RightClick(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6030,24 +6105,26 @@ SWIGINTERN PyObject *_wrap_libop_RightDown(PyObject *SWIGUNUSEDPARM(self), PyObj
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_RightDown", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_RightDown" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_RightDown" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->RightDown(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->RightDown(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6060,24 +6137,26 @@ SWIGINTERN PyObject *_wrap_libop_RightUp(PyObject *SWIGUNUSEDPARM(self), PyObjec
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_RightUp", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_RightUp" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_RightUp" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->RightUp(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->RightUp(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6090,24 +6169,26 @@ SWIGINTERN PyObject *_wrap_libop_WheelDown(PyObject *SWIGUNUSEDPARM(self), PyObj
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_WheelDown", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_WheelDown" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_WheelDown" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->WheelDown(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->WheelDown(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6120,24 +6201,26 @@ SWIGINTERN PyObject *_wrap_libop_WheelUp(PyObject *SWIGUNUSEDPARM(self), PyObjec
   long *arg2 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_WheelUp", 2, 2, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_WheelUp" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_WheelUp" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->WheelUp(arg2);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  result = (long)(arg1)->WheelUp(arg2);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6153,12 +6236,12 @@ SWIGINTERN PyObject *_wrap_libop_GetKeyState(PyObject *SWIGUNUSEDPARM(self), PyO
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetKeyState", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetKeyState", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetKeyState" "', argument " "1"" of type '" "libop *""'"); 
@@ -6169,13 +6252,14 @@ SWIGINTERN PyObject *_wrap_libop_GetKeyState(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_GetKeyState" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetKeyState" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->GetKeyState(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->GetKeyState(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6191,12 +6275,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyDown(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyDown", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyDown", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyDown" "', argument " "1"" of type '" "libop *""'"); 
@@ -6207,13 +6291,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyDown(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_KeyDown" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyDown" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyDown(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyDown(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6230,12 +6315,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyDownChar(PyObject *SWIGUNUSEDPARM(self), PyO
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyDownChar", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyDownChar", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyDownChar" "', argument " "1"" of type '" "libop *""'"); 
@@ -6246,13 +6331,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyDownChar(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_KeyDownChar" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyDownChar" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyDownChar((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyDownChar((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -6270,12 +6356,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyUp(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyUp", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyUp", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyUp" "', argument " "1"" of type '" "libop *""'"); 
@@ -6286,13 +6372,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyUp(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_KeyUp" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyUp" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyUp(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyUp(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6309,12 +6396,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyUpChar(PyObject *SWIGUNUSEDPARM(self), PyObj
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyUpChar", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyUpChar", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyUpChar" "', argument " "1"" of type '" "libop *""'"); 
@@ -6325,13 +6412,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyUpChar(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_KeyUpChar" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyUpChar" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyUpChar((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyUpChar((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -6352,12 +6440,12 @@ SWIGINTERN PyObject *_wrap_libop_WaitKey(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_WaitKey", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_WaitKey", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_WaitKey" "', argument " "1"" of type '" "libop *""'"); 
@@ -6373,13 +6461,14 @@ SWIGINTERN PyObject *_wrap_libop_WaitKey(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_WaitKey" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_WaitKey" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->WaitKey(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->WaitKey(arg2,arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6395,12 +6484,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyPress(PyObject *SWIGUNUSEDPARM(self), PyObje
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyPress", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyPress", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyPress" "', argument " "1"" of type '" "libop *""'"); 
@@ -6411,13 +6500,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyPress(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_KeyPress" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyPress" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyPress(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyPress(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -6434,12 +6524,12 @@ SWIGINTERN PyObject *_wrap_libop_KeyPressChar(PyObject *SWIGUNUSEDPARM(self), Py
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_KeyPressChar", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_KeyPressChar", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_KeyPressChar" "', argument " "1"" of type '" "libop *""'"); 
@@ -6450,13 +6540,14 @@ SWIGINTERN PyObject *_wrap_libop_KeyPressChar(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_KeyPressChar" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_KeyPressChar" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->KeyPressChar((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->KeyPressChar((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -6487,12 +6578,12 @@ SWIGINTERN PyObject *_wrap_libop_Capture(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res6 ;
   wchar_t *buf6 = 0 ;
   int alloc6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_Capture", 7, 7, swig_obj)) SWIG_fail;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_Capture", 6, 6, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_Capture" "', argument " "1"" of type '" "libop *""'"); 
@@ -6523,13 +6614,14 @@ SWIGINTERN PyObject *_wrap_libop_Capture(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_Capture" "', argument " "6"" of type '" "wchar_t const *""'");
   }
   arg6 = reinterpret_cast< wchar_t * >(buf6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_Capture" "', argument " "7"" of type '" "long *""'"); 
+  (arg1)->Capture(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  result = (long)(arg1)->Capture(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -6557,12 +6649,12 @@ SWIGINTERN PyObject *_wrap_libop_CmpColor(PyObject *SWIGUNUSEDPARM(self), PyObje
   int alloc4 = 0 ;
   double val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_CmpColor", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_CmpColor", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_CmpColor" "', argument " "1"" of type '" "libop *""'"); 
@@ -6588,13 +6680,14 @@ SWIGINTERN PyObject *_wrap_libop_CmpColor(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_CmpColor" "', argument " "5"" of type '" "double""'");
   } 
   arg5 = static_cast< double >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_CmpColor" "', argument " "6"" of type '" "long *""'"); 
+  (arg1)->CmpColor(arg2,arg3,(wchar_t const *)arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags));
   }
-  arg6 = reinterpret_cast< long * >(argp6);
-  result = (long)(arg1)->CmpColor(arg2,arg3,(wchar_t const *)arg4,arg5,arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
 fail:
@@ -6633,16 +6726,18 @@ SWIGINTERN PyObject *_wrap_libop_FindColor(PyObject *SWIGUNUSEDPARM(self), PyObj
   int ecode7 = 0 ;
   long val8 ;
   int ecode8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  void *argp11 = 0 ;
-  int res11 = 0 ;
-  PyObject *swig_obj[11] ;
-  long result;
+  long temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  long temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  long temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindColor", 11, 11, swig_obj)) SWIG_fail;
+  arg9 = &temp9;
+  arg10 = &temp10;
+  arg11 = &temp11;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindColor", 8, 8, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindColor" "', argument " "1"" of type '" "libop *""'"); 
@@ -6683,23 +6778,26 @@ SWIGINTERN PyObject *_wrap_libop_FindColor(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindColor" "', argument " "8"" of type '" "long""'");
   } 
   arg8 = static_cast< long >(val8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "libop_FindColor" "', argument " "9"" of type '" "long *""'"); 
+  (arg1)->FindColor(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,arg9,arg10,arg11);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_long, new_flags));
   }
-  arg9 = reinterpret_cast< long * >(argp9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindColor" "', argument " "10"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_long, new_flags));
   }
-  arg10 = reinterpret_cast< long * >(argp10);
-  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res11)) {
-    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "libop_FindColor" "', argument " "11"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_long, new_flags));
   }
-  arg11 = reinterpret_cast< long * >(argp11);
-  result = (long)(arg1)->FindColor(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,arg9,arg10,arg11);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -6736,12 +6834,12 @@ SWIGINTERN PyObject *_wrap_libop_FindColorEx(PyObject *SWIGUNUSEDPARM(self), PyO
   int ecode7 = 0 ;
   long val8 ;
   int ecode8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
-  PyObject *swig_obj[9] ;
-  long result;
+  std::wstring temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindColorEx", 9, 9, swig_obj)) SWIG_fail;
+  arg9 = &temp9;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindColorEx", 8, 8, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindColorEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -6782,16 +6880,14 @@ SWIGINTERN PyObject *_wrap_libop_FindColorEx(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindColorEx" "', argument " "8"" of type '" "long""'");
   } 
   arg8 = static_cast< long >(val8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "libop_FindColorEx" "', argument " "9"" of type '" "std::wstring &""'"); 
+  (arg1)->FindColorEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,*arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp9) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindColorEx" "', argument " "9"" of type '" "std::wstring &""'"); 
-  }
-  arg9 = reinterpret_cast< std::wstring * >(argp9);
-  result = (long)(arg1)->FindColorEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,*arg9);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -6834,16 +6930,18 @@ SWIGINTERN PyObject *_wrap_libop_FindMultiColor(PyObject *SWIGUNUSEDPARM(self), 
   int ecode8 = 0 ;
   long val9 ;
   int ecode9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  void *argp11 = 0 ;
-  int res11 = 0 ;
-  void *argp12 = 0 ;
-  int res12 = 0 ;
-  PyObject *swig_obj[12] ;
-  long result;
+  long temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  long temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  long temp12 ;
+  int res12 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindMultiColor", 12, 12, swig_obj)) SWIG_fail;
+  arg10 = &temp10;
+  arg11 = &temp11;
+  arg12 = &temp12;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindMultiColor", 9, 9, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindMultiColor" "', argument " "1"" of type '" "libop *""'"); 
@@ -6889,23 +6987,26 @@ SWIGINTERN PyObject *_wrap_libop_FindMultiColor(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindMultiColor" "', argument " "9"" of type '" "long""'");
   } 
   arg9 = static_cast< long >(val9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindMultiColor" "', argument " "10"" of type '" "long *""'"); 
+  (arg1)->FindMultiColor(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11,arg12);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_long, new_flags));
   }
-  arg10 = reinterpret_cast< long * >(argp10);
-  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res11)) {
-    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "libop_FindMultiColor" "', argument " "11"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_long, new_flags));
   }
-  arg11 = reinterpret_cast< long * >(argp11);
-  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res12)) {
-    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "libop_FindMultiColor" "', argument " "12"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res12)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg12)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res12) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg12), SWIGTYPE_p_long, new_flags));
   }
-  arg12 = reinterpret_cast< long * >(argp12);
-  result = (long)(arg1)->FindMultiColor(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11,arg12);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -6948,12 +7049,12 @@ SWIGINTERN PyObject *_wrap_libop_FindMultiColorEx(PyObject *SWIGUNUSEDPARM(self)
   int ecode8 = 0 ;
   long val9 ;
   int ecode9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  PyObject *swig_obj[10] ;
-  long result;
+  std::wstring temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindMultiColorEx", 10, 10, swig_obj)) SWIG_fail;
+  arg10 = &temp10;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindMultiColorEx", 9, 9, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindMultiColorEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -6999,16 +7100,14 @@ SWIGINTERN PyObject *_wrap_libop_FindMultiColorEx(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindMultiColorEx" "', argument " "9"" of type '" "long""'");
   } 
   arg9 = static_cast< long >(val9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindMultiColorEx" "', argument " "10"" of type '" "std::wstring &""'"); 
+  (arg1)->FindMultiColorEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp10) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindMultiColorEx" "', argument " "10"" of type '" "std::wstring &""'"); 
-  }
-  arg10 = reinterpret_cast< std::wstring * >(argp10);
-  result = (long)(arg1)->FindMultiColorEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -7053,16 +7152,18 @@ SWIGINTERN PyObject *_wrap_libop_FindPic(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int ecode8 = 0 ;
   long val9 ;
   int ecode9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  void *argp11 = 0 ;
-  int res11 = 0 ;
-  void *argp12 = 0 ;
-  int res12 = 0 ;
-  PyObject *swig_obj[12] ;
-  long result;
+  long temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  long temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  long temp12 ;
+  int res12 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindPic", 12, 12, swig_obj)) SWIG_fail;
+  arg10 = &temp10;
+  arg11 = &temp11;
+  arg12 = &temp12;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindPic", 9, 9, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindPic" "', argument " "1"" of type '" "libop *""'"); 
@@ -7108,23 +7209,26 @@ SWIGINTERN PyObject *_wrap_libop_FindPic(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindPic" "', argument " "9"" of type '" "long""'");
   } 
   arg9 = static_cast< long >(val9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindPic" "', argument " "10"" of type '" "long *""'"); 
+  (arg1)->FindPic(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11,arg12);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_long, new_flags));
   }
-  arg10 = reinterpret_cast< long * >(argp10);
-  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res11)) {
-    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "libop_FindPic" "', argument " "11"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_long, new_flags));
   }
-  arg11 = reinterpret_cast< long * >(argp11);
-  res12 = SWIG_ConvertPtr(swig_obj[11], &argp12,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res12)) {
-    SWIG_exception_fail(SWIG_ArgError(res12), "in method '" "libop_FindPic" "', argument " "12"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res12)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg12)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res12) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg12), SWIGTYPE_p_long, new_flags));
   }
-  arg12 = reinterpret_cast< long * >(argp12);
-  result = (long)(arg1)->FindPic(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11,arg12);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -7167,12 +7271,12 @@ SWIGINTERN PyObject *_wrap_libop_FindPicEx(PyObject *SWIGUNUSEDPARM(self), PyObj
   int ecode8 = 0 ;
   long val9 ;
   int ecode9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  PyObject *swig_obj[10] ;
-  long result;
+  std::wstring temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindPicEx", 10, 10, swig_obj)) SWIG_fail;
+  arg10 = &temp10;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindPicEx", 9, 9, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindPicEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -7218,16 +7322,14 @@ SWIGINTERN PyObject *_wrap_libop_FindPicEx(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindPicEx" "', argument " "9"" of type '" "long""'");
   } 
   arg9 = static_cast< long >(val9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindPicEx" "', argument " "10"" of type '" "std::wstring &""'"); 
+  (arg1)->FindPicEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp10) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindPicEx" "', argument " "10"" of type '" "std::wstring &""'"); 
-  }
-  arg10 = reinterpret_cast< std::wstring * >(argp10);
-  result = (long)(arg1)->FindPicEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -7270,12 +7372,12 @@ SWIGINTERN PyObject *_wrap_libop_FindPicExS(PyObject *SWIGUNUSEDPARM(self), PyOb
   int ecode8 = 0 ;
   long val9 ;
   int ecode9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  PyObject *swig_obj[10] ;
-  long result;
+  std::wstring temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindPicExS", 10, 10, swig_obj)) SWIG_fail;
+  arg10 = &temp10;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindPicExS", 9, 9, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindPicExS" "', argument " "1"" of type '" "libop *""'"); 
@@ -7321,16 +7423,14 @@ SWIGINTERN PyObject *_wrap_libop_FindPicExS(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindPicExS" "', argument " "9"" of type '" "long""'");
   } 
   arg9 = static_cast< long >(val9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindPicExS" "', argument " "10"" of type '" "std::wstring &""'"); 
+  (arg1)->FindPicExS(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp10) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindPicExS" "', argument " "10"" of type '" "std::wstring &""'"); 
-  }
-  arg10 = reinterpret_cast< std::wstring * >(argp10);
-  result = (long)(arg1)->FindPicExS(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,*arg10);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -7353,12 +7453,12 @@ SWIGINTERN PyObject *_wrap_libop_GetColor(PyObject *SWIGUNUSEDPARM(self), PyObje
   int ecode2 = 0 ;
   long val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  std::wstring temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetColor", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetColor", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetColor" "', argument " "1"" of type '" "libop *""'"); 
@@ -7374,16 +7474,14 @@ SWIGINTERN PyObject *_wrap_libop_GetColor(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_GetColor" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_GetColor" "', argument " "4"" of type '" "std::wstring &""'"); 
+  (arg1)->GetColor(arg2,arg3,*arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp4) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_GetColor" "', argument " "4"" of type '" "std::wstring &""'"); 
-  }
-  arg4 = reinterpret_cast< std::wstring * >(argp4);
-  result = (long)(arg1)->GetColor(arg2,arg3,*arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -7400,12 +7498,12 @@ SWIGINTERN PyObject *_wrap_libop_SetDisplayInput(PyObject *SWIGUNUSEDPARM(self),
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetDisplayInput", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetDisplayInput", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetDisplayInput" "', argument " "1"" of type '" "libop *""'"); 
@@ -7416,13 +7514,14 @@ SWIGINTERN PyObject *_wrap_libop_SetDisplayInput(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_SetDisplayInput" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SetDisplayInput" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->SetDisplayInput((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->SetDisplayInput((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -7441,12 +7540,12 @@ SWIGINTERN PyObject *_wrap_libop_LoadPic(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LoadPic", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_LoadPic", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LoadPic" "', argument " "1"" of type '" "libop *""'"); 
@@ -7457,13 +7556,14 @@ SWIGINTERN PyObject *_wrap_libop_LoadPic(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_LoadPic" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_LoadPic" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->LoadPic((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->LoadPic((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -7482,12 +7582,12 @@ SWIGINTERN PyObject *_wrap_libop_FreePic(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FreePic", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FreePic", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FreePic" "', argument " "1"" of type '" "libop *""'"); 
@@ -7498,13 +7598,14 @@ SWIGINTERN PyObject *_wrap_libop_FreePic(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_FreePic" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_FreePic" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->FreePic((wchar_t const *)arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->FreePic((wchar_t const *)arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -7528,12 +7629,12 @@ SWIGINTERN PyObject *_wrap_libop_LoadMemPic(PyObject *SWIGUNUSEDPARM(self), PyOb
   int res3 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_LoadMemPic", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_LoadMemPic", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_LoadMemPic" "', argument " "1"" of type '" "libop *""'"); 
@@ -7553,13 +7654,14 @@ SWIGINTERN PyObject *_wrap_libop_LoadMemPic(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_LoadMemPic" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_LoadMemPic" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->LoadMemPic((wchar_t const *)arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->LoadMemPic((wchar_t const *)arg2,arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -7589,12 +7691,12 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenData(PyObject *SWIGUNUSEDPARM(self), P
   int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenData", 7, 7, swig_obj)) SWIG_fail;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenData", 6, 6, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetScreenData" "', argument " "1"" of type '" "libop *""'"); 
@@ -7625,13 +7727,14 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenData(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetScreenData" "', argument " "6"" of type '" "void **""'"); 
   }
   arg6 = reinterpret_cast< void ** >(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_GetScreenData" "', argument " "7"" of type '" "long *""'"); 
+  (arg1)->GetScreenData(arg2,arg3,arg4,arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  result = (long)(arg1)->GetScreenData(arg2,arg3,arg4,arg5,arg6,arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -7660,14 +7763,15 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenDataBmp(PyObject *SWIGUNUSEDPARM(self)
   int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  PyObject *swig_obj[8] ;
-  long result;
+  long temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  long temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenDataBmp", 8, 8, swig_obj)) SWIG_fail;
+  arg7 = &temp7;
+  arg8 = &temp8;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenDataBmp", 6, 6, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetScreenDataBmp" "', argument " "1"" of type '" "libop *""'"); 
@@ -7698,18 +7802,20 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenDataBmp(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetScreenDataBmp" "', argument " "6"" of type '" "void **""'"); 
   }
   arg6 = reinterpret_cast< void ** >(argp6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_GetScreenDataBmp" "', argument " "7"" of type '" "long *""'"); 
+  (arg1)->GetScreenDataBmp(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_long, new_flags));
   }
-  arg7 = reinterpret_cast< long * >(argp7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "libop_GetScreenDataBmp" "', argument " "8"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_long, new_flags));
   }
-  arg8 = reinterpret_cast< long * >(argp8);
-  result = (long)(arg1)->GetScreenDataBmp(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -7723,31 +7829,35 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenFrameInfo(PyObject *SWIGUNUSEDPARM(sel
   long *arg3 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenFrameInfo", 3, 3, swig_obj)) SWIG_fail;
+  arg2 = &temp2;
+  arg3 = &temp3;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetScreenFrameInfo" "', argument " "1"" of type '" "libop *""'"); 
   }
   arg1 = reinterpret_cast< libop * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_GetScreenFrameInfo" "', argument " "2"" of type '" "long *""'"); 
+  (arg1)->GetScreenFrameInfo(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags));
   }
-  arg2 = reinterpret_cast< long * >(argp2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_GetScreenFrameInfo" "', argument " "3"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->GetScreenFrameInfo(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -7764,12 +7874,12 @@ SWIGINTERN PyObject *_wrap_libop_MatchPicName(PyObject *SWIGUNUSEDPARM(self), Py
   int res2 ;
   wchar_t *buf2 = 0 ;
   int alloc2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_MatchPicName", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_MatchPicName", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_MatchPicName" "', argument " "1"" of type '" "libop *""'"); 
@@ -7780,16 +7890,14 @@ SWIGINTERN PyObject *_wrap_libop_MatchPicName(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "libop_MatchPicName" "', argument " "2"" of type '" "wchar_t const *""'");
   }
   arg2 = reinterpret_cast< wchar_t * >(buf2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_MatchPicName" "', argument " "3"" of type '" "std::wstring &""'"); 
+  (arg1)->MatchPicName((wchar_t const *)arg2,*arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp3) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_MatchPicName" "', argument " "3"" of type '" "std::wstring &""'"); 
-  }
-  arg3 = reinterpret_cast< std::wstring * >(argp3);
-  result = (long)(arg1)->MatchPicName((wchar_t const *)arg2,*arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -7811,12 +7919,12 @@ SWIGINTERN PyObject *_wrap_libop_SetDict(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res3 ;
   wchar_t *buf3 = 0 ;
   int alloc3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetDict", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetDict", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetDict" "', argument " "1"" of type '" "libop *""'"); 
@@ -7832,13 +7940,14 @@ SWIGINTERN PyObject *_wrap_libop_SetDict(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_SetDict" "', argument " "3"" of type '" "wchar_t const *""'");
   }
   arg3 = reinterpret_cast< wchar_t * >(buf3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_SetDict" "', argument " "4"" of type '" "long *""'"); 
+  (arg1)->SetDict(arg2,(wchar_t const *)arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags));
   }
-  arg4 = reinterpret_cast< long * >(argp4);
-  result = (long)(arg1)->SetDict(arg2,(wchar_t const *)arg3,arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -7863,12 +7972,12 @@ SWIGINTERN PyObject *_wrap_libop_SetMemDict(PyObject *SWIGUNUSEDPARM(self), PyOb
   int alloc3 = 0 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_SetMemDict", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_SetMemDict", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_SetMemDict" "', argument " "1"" of type '" "libop *""'"); 
@@ -7889,13 +7998,14 @@ SWIGINTERN PyObject *_wrap_libop_SetMemDict(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_SetMemDict" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_SetMemDict" "', argument " "5"" of type '" "long *""'"); 
+  (arg1)->SetMemDict(arg2,(wchar_t const *)arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags));
   }
-  arg5 = reinterpret_cast< long * >(argp5);
-  result = (long)(arg1)->SetMemDict(arg2,(wchar_t const *)arg3,arg4,arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -7913,12 +8023,12 @@ SWIGINTERN PyObject *_wrap_libop_UseDict(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  void *argp3 = 0 ;
-  int res3 = 0 ;
-  PyObject *swig_obj[3] ;
-  long result;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_UseDict", 3, 3, swig_obj)) SWIG_fail;
+  arg3 = &temp3;
+  if (!SWIG_Python_UnpackTuple(args, "libop_UseDict", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_UseDict" "', argument " "1"" of type '" "libop *""'"); 
@@ -7929,13 +8039,14 @@ SWIGINTERN PyObject *_wrap_libop_UseDict(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_UseDict" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "libop_UseDict" "', argument " "3"" of type '" "long *""'"); 
+  (arg1)->UseDict(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags));
   }
-  arg3 = reinterpret_cast< long * >(argp3);
-  result = (long)(arg1)->UseDict(arg2,arg3);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -7967,12 +8078,12 @@ SWIGINTERN PyObject *_wrap_libop_Ocr(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   int alloc6 = 0 ;
   double val7 ;
   int ecode7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  PyObject *swig_obj[8] ;
-  long result;
+  std::wstring temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[7] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_Ocr", 8, 8, swig_obj)) SWIG_fail;
+  arg8 = &temp8;
+  if (!SWIG_Python_UnpackTuple(args, "libop_Ocr", 7, 7, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_Ocr" "', argument " "1"" of type '" "libop *""'"); 
@@ -8008,16 +8119,14 @@ SWIGINTERN PyObject *_wrap_libop_Ocr(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "libop_Ocr" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = static_cast< double >(val7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "libop_Ocr" "', argument " "8"" of type '" "std::wstring &""'"); 
+  (arg1)->Ocr(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp8) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_Ocr" "', argument " "8"" of type '" "std::wstring &""'"); 
-  }
-  arg8 = reinterpret_cast< std::wstring * >(argp8);
-  result = (long)(arg1)->Ocr(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -8051,12 +8160,12 @@ SWIGINTERN PyObject *_wrap_libop_OcrEx(PyObject *SWIGUNUSEDPARM(self), PyObject 
   int alloc6 = 0 ;
   double val7 ;
   int ecode7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  PyObject *swig_obj[8] ;
-  long result;
+  std::wstring temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[7] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_OcrEx", 8, 8, swig_obj)) SWIG_fail;
+  arg8 = &temp8;
+  if (!SWIG_Python_UnpackTuple(args, "libop_OcrEx", 7, 7, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_OcrEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -8092,16 +8201,14 @@ SWIGINTERN PyObject *_wrap_libop_OcrEx(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "libop_OcrEx" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = static_cast< double >(val7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "libop_OcrEx" "', argument " "8"" of type '" "std::wstring &""'"); 
+  (arg1)->OcrEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp8) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_OcrEx" "', argument " "8"" of type '" "std::wstring &""'"); 
-  }
-  arg8 = reinterpret_cast< std::wstring * >(argp8);
-  result = (long)(arg1)->OcrEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -8141,16 +8248,18 @@ SWIGINTERN PyObject *_wrap_libop_FindStr(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int alloc7 = 0 ;
   double val8 ;
   int ecode8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
-  void *argp10 = 0 ;
-  int res10 = 0 ;
-  void *argp11 = 0 ;
-  int res11 = 0 ;
-  PyObject *swig_obj[11] ;
-  long result;
+  long temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  long temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  long temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindStr", 11, 11, swig_obj)) SWIG_fail;
+  arg9 = &temp9;
+  arg10 = &temp10;
+  arg11 = &temp11;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindStr", 8, 8, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindStr" "', argument " "1"" of type '" "libop *""'"); 
@@ -8191,23 +8300,26 @@ SWIGINTERN PyObject *_wrap_libop_FindStr(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindStr" "', argument " "8"" of type '" "double""'");
   } 
   arg8 = static_cast< double >(val8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "libop_FindStr" "', argument " "9"" of type '" "long *""'"); 
+  (arg1)->FindStr(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_long, new_flags));
   }
-  arg9 = reinterpret_cast< long * >(argp9);
-  res10 = SWIG_ConvertPtr(swig_obj[9], &argp10,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res10)) {
-    SWIG_exception_fail(SWIG_ArgError(res10), "in method '" "libop_FindStr" "', argument " "10"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg10)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_long, new_flags));
   }
-  arg10 = reinterpret_cast< long * >(argp10);
-  res11 = SWIG_ConvertPtr(swig_obj[10], &argp11,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res11)) {
-    SWIG_exception_fail(SWIG_ArgError(res11), "in method '" "libop_FindStr" "', argument " "11"" of type '" "long *""'"); 
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_long, new_flags));
   }
-  arg11 = reinterpret_cast< long * >(argp11);
-  result = (long)(arg1)->FindStr(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,arg9,arg10,arg11);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -8247,12 +8359,12 @@ SWIGINTERN PyObject *_wrap_libop_FindStrEx(PyObject *SWIGUNUSEDPARM(self), PyObj
   int alloc7 = 0 ;
   double val8 ;
   int ecode8 = 0 ;
-  void *argp9 = 0 ;
-  int res9 = 0 ;
-  PyObject *swig_obj[9] ;
-  long result;
+  std::wstring temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindStrEx", 9, 9, swig_obj)) SWIG_fail;
+  arg9 = &temp9;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindStrEx", 8, 8, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindStrEx" "', argument " "1"" of type '" "libop *""'"); 
@@ -8293,16 +8405,14 @@ SWIGINTERN PyObject *_wrap_libop_FindStrEx(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindStrEx" "', argument " "8"" of type '" "double""'");
   } 
   arg8 = static_cast< double >(val8);
-  res9 = SWIG_ConvertPtr(swig_obj[8], &argp9, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res9)) {
-    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "libop_FindStrEx" "', argument " "9"" of type '" "std::wstring &""'"); 
+  (arg1)->FindStrEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,*arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg9)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp9) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindStrEx" "', argument " "9"" of type '" "std::wstring &""'"); 
-  }
-  arg9 = reinterpret_cast< std::wstring * >(argp9);
-  result = (long)(arg1)->FindStrEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,(wchar_t const *)arg7,arg8,*arg9);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
   return resultobj;
@@ -8334,12 +8444,12 @@ SWIGINTERN PyObject *_wrap_libop_OcrAuto(PyObject *SWIGUNUSEDPARM(self), PyObjec
   int ecode5 = 0 ;
   double val6 ;
   int ecode6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  PyObject *swig_obj[7] ;
-  long result;
+  std::wstring temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_OcrAuto", 7, 7, swig_obj)) SWIG_fail;
+  arg7 = &temp7;
+  if (!SWIG_Python_UnpackTuple(args, "libop_OcrAuto", 6, 6, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_OcrAuto" "', argument " "1"" of type '" "libop *""'"); 
@@ -8370,16 +8480,14 @@ SWIGINTERN PyObject *_wrap_libop_OcrAuto(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "libop_OcrAuto" "', argument " "6"" of type '" "double""'");
   } 
   arg6 = static_cast< double >(val6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "libop_OcrAuto" "', argument " "7"" of type '" "std::wstring &""'"); 
+  (arg1)->OcrAuto(arg2,arg3,arg4,arg5,arg6,*arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg7)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp7) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_OcrAuto" "', argument " "7"" of type '" "std::wstring &""'"); 
-  }
-  arg7 = reinterpret_cast< std::wstring * >(argp7);
-  result = (long)(arg1)->OcrAuto(arg2,arg3,arg4,arg5,arg6,*arg7);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
   return NULL;
@@ -8403,12 +8511,12 @@ SWIGINTERN PyObject *_wrap_libop_OcrFromFile(PyObject *SWIGUNUSEDPARM(self), PyO
   int alloc3 = 0 ;
   double val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  std::wstring temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_OcrFromFile", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_OcrFromFile", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_OcrFromFile" "', argument " "1"" of type '" "libop *""'"); 
@@ -8429,16 +8537,14 @@ SWIGINTERN PyObject *_wrap_libop_OcrFromFile(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_OcrFromFile" "', argument " "4"" of type '" "double""'");
   } 
   arg4 = static_cast< double >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_OcrFromFile" "', argument " "5"" of type '" "std::wstring &""'"); 
+  (arg1)->OcrFromFile((wchar_t const *)arg2,(wchar_t const *)arg3,arg4,*arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp5) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_OcrFromFile" "', argument " "5"" of type '" "std::wstring &""'"); 
-  }
-  arg5 = reinterpret_cast< std::wstring * >(argp5);
-  result = (long)(arg1)->OcrFromFile((wchar_t const *)arg2,(wchar_t const *)arg3,arg4,*arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
@@ -8462,12 +8568,12 @@ SWIGINTERN PyObject *_wrap_libop_OcrAutoFromFile(PyObject *SWIGUNUSEDPARM(self),
   int alloc2 = 0 ;
   double val3 ;
   int ecode3 = 0 ;
-  void *argp4 = 0 ;
-  int res4 = 0 ;
-  PyObject *swig_obj[4] ;
-  long result;
+  std::wstring temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_OcrAutoFromFile", 4, 4, swig_obj)) SWIG_fail;
+  arg4 = &temp4;
+  if (!SWIG_Python_UnpackTuple(args, "libop_OcrAutoFromFile", 3, 3, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_OcrAutoFromFile" "', argument " "1"" of type '" "libop *""'"); 
@@ -8483,16 +8589,14 @@ SWIGINTERN PyObject *_wrap_libop_OcrAutoFromFile(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_OcrAutoFromFile" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = static_cast< double >(val3);
-  res4 = SWIG_ConvertPtr(swig_obj[3], &argp4, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "libop_OcrAutoFromFile" "', argument " "4"" of type '" "std::wstring &""'"); 
+  (arg1)->OcrAutoFromFile((wchar_t const *)arg2,arg3,*arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg4)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp4) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_OcrAutoFromFile" "', argument " "4"" of type '" "std::wstring &""'"); 
-  }
-  arg4 = reinterpret_cast< std::wstring * >(argp4);
-  result = (long)(arg1)->OcrAutoFromFile((wchar_t const *)arg2,arg3,*arg4);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return resultobj;
 fail:
@@ -8526,12 +8630,12 @@ SWIGINTERN PyObject *_wrap_libop_FindLine(PyObject *SWIGUNUSEDPARM(self), PyObje
   int alloc6 = 0 ;
   double val7 ;
   int ecode7 = 0 ;
-  void *argp8 = 0 ;
-  int res8 = 0 ;
-  PyObject *swig_obj[8] ;
-  long result;
+  std::wstring temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[7] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_FindLine", 8, 8, swig_obj)) SWIG_fail;
+  arg8 = &temp8;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindLine", 7, 7, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindLine" "', argument " "1"" of type '" "libop *""'"); 
@@ -8567,16 +8671,14 @@ SWIGINTERN PyObject *_wrap_libop_FindLine(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "libop_FindLine" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = static_cast< double >(val7);
-  res8 = SWIG_ConvertPtr(swig_obj[7], &argp8, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res8)) {
-    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "libop_FindLine" "', argument " "8"" of type '" "std::wstring &""'"); 
+  (arg1)->FindLine(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg8)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp8) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_FindLine" "', argument " "8"" of type '" "std::wstring &""'"); 
-  }
-  arg8 = reinterpret_cast< std::wstring * >(argp8);
-  result = (long)(arg1)->FindLine(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   return resultobj;
 fail:
@@ -8605,12 +8707,12 @@ SWIGINTERN PyObject *_wrap_libop_WriteData(PyObject *SWIGUNUSEDPARM(self), PyObj
   int alloc4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
-  PyObject *swig_obj[6] ;
-  long result;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_WriteData", 6, 6, swig_obj)) SWIG_fail;
+  arg6 = &temp6;
+  if (!SWIG_Python_UnpackTuple(args, "libop_WriteData", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_WriteData" "', argument " "1"" of type '" "libop *""'"); 
@@ -8636,13 +8738,14 @@ SWIGINTERN PyObject *_wrap_libop_WriteData(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_WriteData" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_long, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_WriteData" "', argument " "6"" of type '" "long *""'"); 
+  (arg1)->WriteData(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags));
   }
-  arg6 = reinterpret_cast< long * >(argp6);
-  result = (long)(arg1)->WriteData(arg2,(wchar_t const *)arg3,(wchar_t const *)arg4,arg5,arg6);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
   return resultobj;
@@ -8669,12 +8772,12 @@ SWIGINTERN PyObject *_wrap_libop_ReadData(PyObject *SWIGUNUSEDPARM(self), PyObje
   int alloc3 = 0 ;
   long val4 ;
   int ecode4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  PyObject *swig_obj[5] ;
-  long result;
+  std::wstring temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "libop_ReadData", 5, 5, swig_obj)) SWIG_fail;
+  arg5 = &temp5;
+  if (!SWIG_Python_UnpackTuple(args, "libop_ReadData", 4, 4, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_ReadData" "', argument " "1"" of type '" "libop *""'"); 
@@ -8695,16 +8798,14 @@ SWIGINTERN PyObject *_wrap_libop_ReadData(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_ReadData" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5, SWIGTYPE_p_std__wstring,  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "libop_ReadData" "', argument " "5"" of type '" "std::wstring &""'"); 
+  (arg1)->ReadData(arg2,(wchar_t const *)arg3,arg4,*arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg5)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_std__wstring, new_flags));
   }
-  if (!argp5) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "libop_ReadData" "', argument " "5"" of type '" "std::wstring &""'"); 
-  }
-  arg5 = reinterpret_cast< std::wstring * >(argp5);
-  result = (long)(arg1)->ReadData(arg2,(wchar_t const *)arg3,arg4,*arg5);
-  resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
 fail:
@@ -8730,10 +8831,10 @@ static PyMethodDef SwigMethods[] = {
 	 { "delete_libop", _wrap_delete_libop, METH_O, NULL},
 	 { "libop_Ver", _wrap_libop_Ver, METH_O, NULL},
 	 { "libop_SetPath", _wrap_libop_SetPath, METH_VARARGS, NULL},
-	 { "libop_GetPath", _wrap_libop_GetPath, METH_VARARGS, NULL},
-	 { "libop_GetBasePath", _wrap_libop_GetBasePath, METH_VARARGS, NULL},
-	 { "libop_GetID", _wrap_libop_GetID, METH_VARARGS, NULL},
-	 { "libop_GetLastError", _wrap_libop_GetLastError, METH_VARARGS, NULL},
+	 { "libop_GetPath", _wrap_libop_GetPath, METH_O, NULL},
+	 { "libop_GetBasePath", _wrap_libop_GetBasePath, METH_O, NULL},
+	 { "libop_GetID", _wrap_libop_GetID, METH_O, NULL},
+	 { "libop_GetLastError", _wrap_libop_GetLastError, METH_O, NULL},
 	 { "libop_SetShowErrorMsg", _wrap_libop_SetShowErrorMsg, METH_VARARGS, NULL},
 	 { "libop_Sleep", _wrap_libop_Sleep, METH_VARARGS, NULL},
 	 { "libop_InjectDll", _wrap_libop_InjectDll, METH_VARARGS, NULL},
@@ -8751,9 +8852,9 @@ static PyMethodDef SwigMethods[] = {
 	 { "libop_FindWindowEx", _wrap_libop_FindWindowEx, METH_VARARGS, NULL},
 	 { "libop_GetClientRect", _wrap_libop_GetClientRect, METH_VARARGS, NULL},
 	 { "libop_GetClientSize", _wrap_libop_GetClientSize, METH_VARARGS, NULL},
-	 { "libop_GetForegroundFocus", _wrap_libop_GetForegroundFocus, METH_VARARGS, NULL},
-	 { "libop_GetForegroundWindow", _wrap_libop_GetForegroundWindow, METH_VARARGS, NULL},
-	 { "libop_GetMousePointWindow", _wrap_libop_GetMousePointWindow, METH_VARARGS, NULL},
+	 { "libop_GetForegroundFocus", _wrap_libop_GetForegroundFocus, METH_O, NULL},
+	 { "libop_GetForegroundWindow", _wrap_libop_GetForegroundWindow, METH_O, NULL},
+	 { "libop_GetMousePointWindow", _wrap_libop_GetMousePointWindow, METH_O, NULL},
 	 { "libop_GetPointWindow", _wrap_libop_GetPointWindow, METH_VARARGS, NULL},
 	 { "libop_GetProcessInfo", _wrap_libop_GetProcessInfo, METH_VARARGS, NULL},
 	 { "libop_GetSpecialWindow", _wrap_libop_GetSpecialWindow, METH_VARARGS, NULL},
@@ -8778,23 +8879,23 @@ static PyMethodDef SwigMethods[] = {
 	 { "libop_WinExec", _wrap_libop_WinExec, METH_VARARGS, NULL},
 	 { "libop_GetCmdStr", _wrap_libop_GetCmdStr, METH_VARARGS, NULL},
 	 { "libop_BindWindow", _wrap_libop_BindWindow, METH_VARARGS, NULL},
-	 { "libop_UnBindWindow", _wrap_libop_UnBindWindow, METH_VARARGS, NULL},
-	 { "libop_GetCursorPos", _wrap_libop_GetCursorPos, METH_VARARGS, NULL},
+	 { "libop_UnBindWindow", _wrap_libop_UnBindWindow, METH_O, NULL},
+	 { "libop_GetCursorPos", _wrap_libop_GetCursorPos, METH_O, NULL},
 	 { "libop_MoveR", _wrap_libop_MoveR, METH_VARARGS, NULL},
 	 { "libop_MoveTo", _wrap_libop_MoveTo, METH_VARARGS, NULL},
 	 { "libop_MoveToEx", _wrap_libop_MoveToEx, METH_VARARGS, NULL},
-	 { "libop_LeftClick", _wrap_libop_LeftClick, METH_VARARGS, NULL},
-	 { "libop_LeftDoubleClick", _wrap_libop_LeftDoubleClick, METH_VARARGS, NULL},
-	 { "libop_LeftDown", _wrap_libop_LeftDown, METH_VARARGS, NULL},
-	 { "libop_LeftUp", _wrap_libop_LeftUp, METH_VARARGS, NULL},
-	 { "libop_MiddleClick", _wrap_libop_MiddleClick, METH_VARARGS, NULL},
-	 { "libop_MiddleDown", _wrap_libop_MiddleDown, METH_VARARGS, NULL},
-	 { "libop_MiddleUp", _wrap_libop_MiddleUp, METH_VARARGS, NULL},
-	 { "libop_RightClick", _wrap_libop_RightClick, METH_VARARGS, NULL},
-	 { "libop_RightDown", _wrap_libop_RightDown, METH_VARARGS, NULL},
-	 { "libop_RightUp", _wrap_libop_RightUp, METH_VARARGS, NULL},
-	 { "libop_WheelDown", _wrap_libop_WheelDown, METH_VARARGS, NULL},
-	 { "libop_WheelUp", _wrap_libop_WheelUp, METH_VARARGS, NULL},
+	 { "libop_LeftClick", _wrap_libop_LeftClick, METH_O, NULL},
+	 { "libop_LeftDoubleClick", _wrap_libop_LeftDoubleClick, METH_O, NULL},
+	 { "libop_LeftDown", _wrap_libop_LeftDown, METH_O, NULL},
+	 { "libop_LeftUp", _wrap_libop_LeftUp, METH_O, NULL},
+	 { "libop_MiddleClick", _wrap_libop_MiddleClick, METH_O, NULL},
+	 { "libop_MiddleDown", _wrap_libop_MiddleDown, METH_O, NULL},
+	 { "libop_MiddleUp", _wrap_libop_MiddleUp, METH_O, NULL},
+	 { "libop_RightClick", _wrap_libop_RightClick, METH_O, NULL},
+	 { "libop_RightDown", _wrap_libop_RightDown, METH_O, NULL},
+	 { "libop_RightUp", _wrap_libop_RightUp, METH_O, NULL},
+	 { "libop_WheelDown", _wrap_libop_WheelDown, METH_O, NULL},
+	 { "libop_WheelUp", _wrap_libop_WheelUp, METH_O, NULL},
 	 { "libop_GetKeyState", _wrap_libop_GetKeyState, METH_VARARGS, NULL},
 	 { "libop_KeyDown", _wrap_libop_KeyDown, METH_VARARGS, NULL},
 	 { "libop_KeyDownChar", _wrap_libop_KeyDownChar, METH_VARARGS, NULL},
@@ -8819,7 +8920,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "libop_LoadMemPic", _wrap_libop_LoadMemPic, METH_VARARGS, NULL},
 	 { "libop_GetScreenData", _wrap_libop_GetScreenData, METH_VARARGS, NULL},
 	 { "libop_GetScreenDataBmp", _wrap_libop_GetScreenDataBmp, METH_VARARGS, NULL},
-	 { "libop_GetScreenFrameInfo", _wrap_libop_GetScreenFrameInfo, METH_VARARGS, NULL},
+	 { "libop_GetScreenFrameInfo", _wrap_libop_GetScreenFrameInfo, METH_O, NULL},
 	 { "libop_MatchPicName", _wrap_libop_MatchPicName, METH_VARARGS, NULL},
 	 { "libop_SetDict", _wrap_libop_SetDict, METH_VARARGS, NULL},
 	 { "libop_SetMemDict", _wrap_libop_SetMemDict, METH_VARARGS, NULL},
