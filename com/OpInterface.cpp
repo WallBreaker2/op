@@ -19,8 +19,7 @@ OpInterface::OpInterface():obj(gInstance) {
 STDMETHODIMP OpInterface::Ver(BSTR* ret) {
 
 	//Tool::setlog("address=%d,str=%s", ver, ver);
-	wstring s;
-	obj.Ver(s);
+	wstring s = obj.Ver();
 	CComBSTR newstr;
 	newstr.Append(s.data());
 	newstr.CopyTo(ret);
