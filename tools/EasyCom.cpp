@@ -78,11 +78,11 @@ myCoCreateInstance(
 	}
 	//return -1;
 	*ppv = 0;
-	//printf("myCoCreateInstance\n");
+	printf("myCoCreateInstance\n");
 
 	HMODULE hdll = LoadLibraryA(dllpathA);
 	if (!hdll) {
-		//printf("LoadLibraryA false!\n");
+		printf("LoadLibraryA false!\n");
 		MessageBoxW(NULL, L"LoadLibraryA", NULL, 0);
 		return -1;
 	}
@@ -187,8 +187,7 @@ EASYCOM_API int nEasyCom = 0;
 EASYCOM_API int __stdcall setupA(const char* path)
 {
 	std::ifstream fin(path);
-	std::ofstream o("path.txt");
-	o << "path:" << path << std::endl;
+	
 	if (!fin) {
 		return 0;//file not exist
 	}
@@ -210,8 +209,7 @@ EASYCOM_API int __stdcall setupA(const char* path)
 
 EASYCOM_API int __stdcall setupW(const wchar_t* path) {
 	std::ifstream fin(path);
-	std::wofstream o("path.txt");
-	o << L"path:" << path << std::endl;
+
 	if (!fin) {
 		return 0;//file not exist
 	}

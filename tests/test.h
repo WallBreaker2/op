@@ -23,9 +23,9 @@ public:
 
 	int BindNox(libop* op) {
 		long hwnd = 0, subhwnd = 0, ret = 0;
-		op->FindWindow(L"Qt5QWindowIcon", L"Ò¹ÉñÄ£ÄâÆ÷", &hwnd);
+		op->FindWindow(L"Qt5QWindowIcon", L"Ò¹ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½", &hwnd);
 		if (!hwnd) {
-			std::cout << "FindWindow of Ò¹ÉñÄ£ÄâÆ÷ false!\n";
+			std::cout << "FindWindow of Ò¹ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ false!\n";
 
 			return -1;
 		}
@@ -48,9 +48,9 @@ public:
 	}
 	int BindLDPlayer(libop* op) {
 		long hwnd = 0, subhwnd = 0, ret = 0;
-		op->FindWindow(L"LDPlayerMainFrame", L"À×µçÄ£ÄâÆ÷", &hwnd);
+		op->FindWindow(L"LDPlayerMainFrame", L"ï¿½×µï¿½Ä£ï¿½ï¿½ï¿½ï¿½", &hwnd);
 		if (!hwnd) {
-			std::cout << "FindWindow of À×µçÄ£ÄâÆ÷ false!\n";
+			std::cout << "FindWindow of ï¿½×µï¿½Ä£ï¿½ï¿½ï¿½ï¿½ false!\n";
 			return -1;
 		}
 		op->FindWindowEx(hwnd, L"RenderWindow", L"TheRender", &subhwnd);
@@ -74,7 +74,7 @@ public:
 	int BindMine(libop* op) {
 		long hwnd = 0;
 		long ret = 0;
-		op->FindWindow(L"É¨À×", L"É¨À×", &hwnd);
+		op->FindWindow(L"É¨ï¿½ï¿½", L"É¨ï¿½ï¿½", &hwnd);
 		//hwnd = 0x004608BC;
 		if (hwnd) {
 			op->BindWindow(hwnd, L"dx.d3d9", L"normal", L"normal", 0, &ret);
@@ -114,7 +114,7 @@ public:
 		std::wcout << "MatchPicName:" << ver << std::endl;
 		m_op->FindNearestPos(L"1,2|3,4|5,6|7,8",1,3,0,ver);
 		std::wcout << "FindNearestPos:" << ver << std::endl;
-		m_op->Ver(ver);
+		ver = m_op->Ver();
 		wprintf(L"ver:%s\n", ver.data());
 		m_op->GetBasePath(ver);
 		wprintf(L"GetBasePath:%s\n", ver.data());
