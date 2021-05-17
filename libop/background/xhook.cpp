@@ -160,7 +160,7 @@ static void CopyImageData(char*  dst_, const char* src_, int rows_, int cols_,in
 					dst_[1] = p[1];//g
 					dst_[2] = p[2];//r
 					dst_[3] = (char)0xff;//a
-					dst_ += 4;//notirc that dst ptr is increasing
+					dst_ += 4;//notice that dst ptr is increasing
 				}
 				src_ += rowPitch;//row increase
 

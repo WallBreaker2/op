@@ -3,6 +3,7 @@
 class bkmouse
 {
 public:
+	static float getDPI();
 	bkmouse();
 	virtual ~bkmouse();
 
@@ -45,5 +46,6 @@ private:
 	HWND _hwnd;
 	int _mode;
 	int _x,_y;
+	float _dpi;//screen dpi
 };
 

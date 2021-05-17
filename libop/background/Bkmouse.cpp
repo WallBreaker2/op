@@ -1,8 +1,38 @@
 //#include "stdafx.h"
 #include "Bkmouse.h"
 #include "./core/globalVar.h"
+#include "./core/helpfunc.h"
 
-bkmouse::bkmouse():_hwnd(NULL)
+float bkmouse::getDPI() {
+	HDC hdcScreen;
+	hdcScreen = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
+
+	int logx = GetDeviceCaps(hdcScreen, LOGPIXELSX);
+	//int logy = GetDeviceCaps(hdcScreen, LOGPIXELSY);
+	//setlog("logx = %d", logx);
+	if (NULL != hdcScreen)
+	{
+		DeleteDC(hdcScreen);
+	}
+	float dpi = 1.0;
+	if (logx == 96) {
+		dpi = 1.0;
+	}
+	else if (logx == 120) {
+		dpi = 1.25;
+	}
+	else if (logx == 144) {
+		dpi = 1.50;
+	}
+	else if (logx == 192) {
+		dpi = 2.0;
+	}
+
+	return dpi;
+}
+
+bkmouse::bkmouse()
+	:_hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI())
 {
 }
 
@@ -39,7 +69,8 @@ long bkmouse::MoveR(int rx, int ry) {
 }
 
 long bkmouse::MoveTo(int x, int y) {
-
+	x = x * _dpi;
+	y = y * _dpi;
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
@@ -80,6 +111,7 @@ long bkmouse::MoveTo(int x, int y) {
 }
 
 long bkmouse::MoveToEx(int x, int y, int w, int h) {
+
 	if (w >= 2 && h >= 2)
 		return MoveTo(x + rand() % w, y + rand() % h);
 	else
@@ -140,7 +172,7 @@ long bkmouse::LeftDown() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 		break;
 	}
 	}
