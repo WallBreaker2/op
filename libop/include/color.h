@@ -54,7 +54,7 @@ struct color_t {
 		wsprintf(buff, L"%02X%02X%02X", r, g, b);
 		return buff;
 	}
-	uchar toGray() {
+	uchar toGray() const{
 		return (r * 299 + g * 587 + b * 114 + 500) / 1000;
 	}
 };

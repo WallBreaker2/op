@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 3.0)
 # SET(VCPKG_TARGET_TRIPLET x86-windows-static)
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
-option(build_qttool "buid qt tool,requrie qt lib",ON)
+option(build_qttool "buid qt tool,requrie qt lib" ON)
  
 project ("op")
 
@@ -47,6 +47,7 @@ add_subdirectory("tools")
 add_subdirectory("tests")
 
 add_subdirectory("swig")
+message(STATUS ${build_qttool})
 if(build_qttool)
     message(STATUS "build qt tool is on")
     add_subdirectory("qttool")
