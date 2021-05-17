@@ -36,6 +36,10 @@ public:
 	//
 	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr, bool returnID = true);
 
+	long FindColorBlock(const wstring&  color, double sim, long count, long height, long width, long& x, long& y);
+
+	long FindColorBlockEx(const wstring&  color, double sim, long count, long height, long width, wstring& retstr);
+
 	std::wstring GetColor(long x, long y);
 
 	long SetMemDict(int idx, void* data,long size);

@@ -232,6 +232,10 @@ public:
 	//
 	//这个函数可以查找多个图片, 并且返回所有找到的图像的坐标.此函数同FindPicEx.只是返回值不同.(file1,x,y|file2,x,y|...)
 	void FindPicExS(long x1, long y1, long x2, long y2, const wchar_t* files, const wchar_t* delta_color, double sim, long dir, std::wstring& retstr);
+	//查找指定区域内的颜色块,颜色格式"RRGGBB-DRDGDB",注意,和按键的颜色格式相反
+	void FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t*  color, double sim, long count, long height, long width, long* x, long* y, long* ret);
+	//查找指定区域内的所有颜色块, 颜色格式"RRGGBB-DRDGDB", 注意, 和按键的颜色格式相反
+	void FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t*  color, double sim, long count, long height, long width, std::wstring& retstr);
 	//获取(x,y)的颜色
 	void GetColor(long x, long y, std::wstring& ret);
 	//

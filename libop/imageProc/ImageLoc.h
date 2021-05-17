@@ -44,6 +44,13 @@ int inline sum(uchar* begin, uchar* end) {
 void extractConnectivity(const ImageBin& src, int threshold, std::vector<ImageBin>& out);
 
 
+struct gray_diff_t{
+	gray_diff_t(color_df_t const& cd):gray(cd.color.toGray()),diff(cd.df.toGray()){
+
+	}
+	unsigned char gray;
+	unsigned char diff;
+};
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -52,6 +59,9 @@ class ImageBase
 public:
 	
 	const static int _max_return_obj_ct = 1800;
+
+	using vcolor_diff_t = vector<color_df_t>;//rgb color-diff
+	using vgray_diff_t =vector<gray_diff_t>;//gray
 
 	ImageBase();
 
@@ -86,6 +96,10 @@ public:
 	long FindPic(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
 
 	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
+
+	long FindColorBlock(double sim, long count, long height, long width, long& x, long& y);
+
+	long FindColorBlockEx(double sim, long count, long height, long width, std::wstring& retstr);
 
 	long Ocr(Dict& dict, double sim, std::wstring& ret_str);
 

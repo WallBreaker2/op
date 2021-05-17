@@ -38,9 +38,10 @@ ENDIF(CMAKE_CL_64)
 
 add_library(${OUTPUT_NAME} SHARED ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/op.rc)
 
-target_link_libraries(${OUTPUT_NAME} libop)
+
 
 SET_TARGET_PROPERTIES(${OUTPUT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
+target_link_libraries(${OUTPUT_NAME} libop)
 
 add_custom_command(TARGET ${OUTPUT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
