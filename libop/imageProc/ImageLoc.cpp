@@ -501,11 +501,16 @@ long ImageBase::FindStr(Dict &dict, const vector<wstring> &vstr, double sim, lon
 		str.append(it.second);
 	//step 3. 在完整字符中查找目标字符串，并记录 索引
 	int idx = -1;
-	for (auto &t : vstr)
+	int oneIndex = -1;
+	for (int i = 0;i<vstr.size(); ++i)
 	{
-		idx = str.find(t);
-		if (idx != -1) //find it
+		
+		idx = str.find(vstr[i]);
+		if (idx != -1) {
+			oneIndex = i;
 			break;
+		}
+			
 	}
 	//step 4.根据索引给出对应 坐标 并返回
 	if (idx != -1)
@@ -520,14 +525,14 @@ long ImageBase::FindStr(Dict &dict, const vector<wstring> &vstr, double sim, lon
 			{
 				retx = it.first.x + _x1 + _dx;
 				rety = it.first.y + _y1 + _dy;
-				return 1;
+				return oneIndex;
 			}
 		}
 		//这里进行断言，表示不会走到这一步
 		assert(0);
 	}
 
-	return 0;
+	return -1;
 }
 
 long ImageBase::FindStrEx(Dict &dict, const vector<wstring> &vstr, double sim, std::wstring &retstr)
@@ -552,12 +557,12 @@ long ImageBase::FindStrEx(Dict &dict, const vector<wstring> &vstr, double sim, s
 	}
 	//step 3.
 	int find_ct = 0;
-	for (auto &ti : vstr)
+	for (int i = 0; i < vstr.size(); ++i)
 	{
 		int index = -1, old = -1;
 		do
 		{
-			index = str.find(ti, old + 1);
+			index = str.find(vstr[i], old + 1);
 			if (index == -1)
 			{ //failed!!
 				break;
@@ -575,7 +580,7 @@ long ImageBase::FindStrEx(Dict &dict, const vector<wstring> &vstr, double sim, s
 					//记录坐标
 					wchar_t buff[20] = {0};
 					//注意加偏移
-					wsprintf(buff, L"%d,%d|", it.first.x + _x1 + _dx, it.first.y + _y1 + _dy);
+					wsprintf(buff, L"%d,%d,%d|",i, it.first.x + _x1 + _dx, it.first.y + _y1 + _dy);
 					retstr.append(buff);
 					++find_ct;
 					if (find_ct > _max_return_obj_ct)
