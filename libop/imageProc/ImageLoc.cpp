@@ -292,13 +292,9 @@ _quick_return:
 
 long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long &x, long &y)
 {
-	//setlog("pic count=%d", pics.size());
-	/*if (sim == 1.0)
-		return FindPicKmp(pics, dfcolor, x, y);*/
 	auto t1 = clock();
 	x = y = -1;
 	vector<uint> points;
-	//bool nodfcolor = color2uint(dfcolor) == 0;
 	int match_ret = 0;
 	ImageBin gimg;
 	_gray.fromImage4(_src);
@@ -309,7 +305,6 @@ long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
 	{
 		auto pic = pics[pic_id];
 		int use_ts_match = check_transparent(pic);
-		//setlog("use trans match=%d", use_ts_match);
 		if (use_ts_match)
 			get_match_points(*pic, points);
 		else

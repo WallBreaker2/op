@@ -5,8 +5,8 @@
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
 #include <exception>
-#include "3rd_party/include/BlackBone/Process/Process.h"
-#include "3rd_party/include/BlackBone/Process/RPC/RemoteFunction.hpp"
+#include "BlackBone/Process/Process.h"
+#include "BlackBone/Process/RPC/RemoteFunction.hpp"
 
 #include "./include/Image.hpp"
 
@@ -29,6 +29,7 @@ bkdo::~bkdo()
 
 
 long bkdo::BindEx(HWND hwnd, long render_type) {
+	//setlog("BindEx");
 	_hwnd = hwnd;
 	long bind_ret = 0;
 	if (render_type == RDT_GL_NOX) {
@@ -83,14 +84,18 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 			}
 			if (injected) {
+				setlog("before MakeRemoteFunction");
 				using my_func_t = long(__stdcall*)(HWND, int);
 				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetXHook");
 				if (pSetXHook) {
+					//setlog("after MakeRemoteFunction");
 					auto cret = pSetXHook(hwnd, render_type);
+					//setlog("after pSetXHook");
 					bind_ret = cret.result();
+					//setlog("after result");
 				}
 				else {
-					setlog(L"remote function not found.");
+					//setlog(L"remote function not found.");
 				}
 			}
 			else {
@@ -100,7 +105,9 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 		else {
 			setlog(L"attach false.");
 		}
+		
 		proc.Detach();
+		//setlog("after Detach");
 	}
 
 	if (bind_ret == -1) {

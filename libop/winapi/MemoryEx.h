@@ -2,7 +2,7 @@
 #ifndef __MEMORYEX_H_
 #define __MEMORYEX_H_
 #include "./core/helpfunc.h"
-#include "3rd_party/include/BlackBone/Process/Process.h"
+#include "BlackBone/Process/Process.h"
 class MemoryEx
 {
 public:

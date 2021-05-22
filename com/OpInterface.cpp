@@ -2,17 +2,13 @@
 
 #include "stdafx.h"
 #include "OpInterface.h"
-#include "./core/cmder.h"
-#include "./winapi/injecter.h"
-#include "./core/optype.h"
-#include "./core/globalVar.h"
-#include "./core/helpfunc.h"
-#include "./algorithm/AStar.hpp"
-#include <filesystem>
-#include "./winapi/MemoryEx.h"
-// OpInterface
 
-OpInterface::OpInterface() : obj(gInstance)
+#include <filesystem>
+#include <string>
+// OpInterface
+using std::wstring;
+
+OpInterface::OpInterface() 
 {
 }
 

@@ -1,0 +1,12 @@
+﻿; op.def: 声明模块参数。
+
+LIBRARY
+
+EXPORTS
+	DllCanUnloadNow		PRIVATE
+	DllGetClassObject	PRIVATE
+	DllRegisterServer	PRIVATE
+	DllUnregisterServer	PRIVATE
+	DllInstall		PRIVATE
+	SetXHook	PRIVATE
+	UnXHook	PRIVATE

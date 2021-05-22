@@ -633,7 +633,7 @@ void __stdcall gl_hkglFinish(void) {
 
 bool is_hooked = false;
 //--------------export function--------------------------
-long SetXHook(HWND hwnd_, int render_type_) {
+long __stdcall SetXHook(HWND hwnd_, int render_type_) {
 	gShowError = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
 	if (is_hooked) {
 		is_capture = 1;
@@ -647,7 +647,7 @@ long SetXHook(HWND hwnd_, int render_type_) {
 	return 1;
 }
 
-long UnXHook() {
+long __stdcall UnXHook() {
 	if (!is_hooked)
 		return 0;
 	is_hooked = false;

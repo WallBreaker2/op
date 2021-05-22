@@ -127,7 +127,7 @@ long ImageProc::FindPicEx(const std::wstring &files, const wstring &delta_colors
 	dfcolor.str2color(delta_colors);
 	sim = 0.5 + sim / 2;
 	long ret = ImageBase::FindPicEx(vpic, dfcolor, sim, vpd);
-	std::wstringstream ss(std::wstringstream::in);
+	std::wstringstream ss(std::wstringstream::in|std::wstringstream::out);
 	if (returnID)
 	{
 		for (auto &it : vpd)

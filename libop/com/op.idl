@@ -1,0 +1,190 @@
+﻿// op.idl: op 的 IDL 源
+//
+
+// 此文件将由 MIDL 工具处理以
+// 生成类型库(op.tlb)和封送处理代码。
+
+import "oaidl.idl";
+import "ocidl.idl";
+//
+//[
+//	object,
+//	uuid(a817e7a2-43fa-11d0-9e44-00aa00b6770a),
+//	dual,
+//	pointer_default(unique)
+//]
+//interface IComponentRegistrar : IDispatch
+//{
+//	[id(1)]	HRESULT Attach([in] BSTR bstrPath);
+//	[id(2)]	HRESULT RegisterAll();
+//	[id(3)]	HRESULT UnregisterAll();
+//	[id(4)]	HRESULT GetComponents([out] SAFEARRAY(BSTR)* pbstrCLSIDs, [out] SAFEARRAY(BSTR)* pbstrDescriptions);
+//	[id(5)]	HRESULT RegisterComponent([in] BSTR bstrCLSID);
+//	[id(6)] HRESULT UnregisterComponent([in] BSTR bstrCLSID);
+//};
+
+[
+	object,
+	uuid(51e59a6f-85f4-4da0-a01e-c9b6b3b8b8a7),
+	dual,
+	nonextensible,
+	pointer_default(unique)
+]
+interface IOpInterface : IDispatch
+{
+	//base config 1-19
+	[id(1)] HRESULT Ver([out, retval] BSTR* ret);
+	[id(2)] HRESULT SetPath([in]BSTR path, [out, retval] LONG* ret);
+	[id(3)] HRESULT GetPath([out, retval] BSTR* path);
+	[id(4)] HRESULT GetBasePath([out, retval] BSTR* path);
+	[id(5)] HRESULT GetID([out, retval] LONG* ret);
+	[id(6)] HRESULT GetLastError([out, retval] LONG* ret);
+	[id(7)] HRESULT SetShowErrorMsg([in] LONG show_type, [out, retval] LONG* ret);
+	[id(8)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
+	[id(9)] HRESULT InjectDll([in] BSTR process_name, BSTR dll_name, LONG* ret);
+	[id(10)] HRESULT EnablePicCache([in] LONG enable, [out, retval] LONG* ret);
+	[id(11)] HRESULT CapturePre([in]BSTR file_name, [out, retval] LONG* ret);
+	//algorithm 20-49
+	[id(20)] HRESULT AStarFindPath([in] LONG mapWidth, [in] LONG mapHeight, [in] BSTR disable_points, [in] LONG beginX, [in] LONG beginY, [in] LONG endX, [in] LONG endY, [out, retval] BSTR* path);
+	[id(21)] HRESULT FindNearestPos([in] BSTR all_pos, [in] LONG type, [in] LONG x, [in] LONG y, [out, retval] BSTR* retstr);
+	//windows api 50-99
+	[id(58)] HRESULT EnumWindow([in] LONG parent, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstr);
+	[id(59)] HRESULT EnumWindowByProcess([in] BSTR process_name, [in] BSTR title, [in] BSTR class_name, [in] LONG filter, [out, retval] BSTR* retstring);
+	[id(60)] HRESULT EnumProcess([in] BSTR name, [out, retval] BSTR* retstring);
+	[id(61)] HRESULT ClientToScreen([in] LONG ClientToScreen, [in, out] VARIANT* x, [in, out] VARIANT* y, [out, retval] LONG* bret);
+	[id(62)] HRESULT FindWindow([in] BSTR class_name, [in] BSTR title, [out, retval] LONG* rethwnd);
+	[id(63)] HRESULT FindWindowByProcess([in] BSTR process_name, [in] BSTR class_name, [in] BSTR title, [out, retval] LONG* rethwnd);
+	[id(64)] HRESULT FindWindowByProcessId([in] LONG process_id, [in] BSTR class_name, [in] BSTR title, [out, retval] LONG* rethwnd);
+	[id(65)] HRESULT FindWindowEx([in] LONG parent, [in] BSTR class_name, [in] BSTR title, [out, retval] LONG* rethwnd);
+	[id(66)] HRESULT GetClientRect([in] LONG hwnd, [out] VARIANT* x1, [out] VARIANT* y1, [out] VARIANT* x2, [out] VARIANT* y2, [out, retval] LONG* nret);
+	[id(67)] HRESULT GetClientSize([in] LONG hwnd, [out] VARIANT* width, [out] VARIANT* height, [out, retval] LONG* nret);
+	[id(68)] HRESULT GetForegroundFocus([out, retval] LONG* rethwnd);
+	[id(69)] HRESULT GetForegroundWindow([out, retval] LONG* rethwnd);
+	[id(70)] HRESULT GetMousePointWindow([out, retval] LONG* rethwnd);
+	[id(71)] HRESULT GetPointWindow([in] LONG x, [in] LONG y, [out, retval] LONG* rethwnd);
+	[id(72)] HRESULT GetProcessInfo([in] LONG pid, [out, retval] BSTR* retstring);
+	[id(73)] HRESULT GetSpecialWindow([in] LONG flag, [out, retval] LONG* rethwnd);
+	[id(74)] HRESULT GetWindow([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
+	[id(75)] HRESULT GetWindowClass([in] LONG hwnd, [out, retval] BSTR* retstring);
+	[id(76)] HRESULT GetWindowProcessId([in] LONG hwnd, [out, retval] LONG* nretpid);
+	[id(77)] HRESULT GetWindowProcessPath([in] LONG hwnd, [out, retval] BSTR* retstring);
+	[id(78)] HRESULT GetWindowRect([in] LONG hwnd, [out] VARIANT* x1, [out] VARIANT* y1, [out] VARIANT* x2, [out] VARIANT* y2, [out, retval] LONG* nret);
+	[id(79)] HRESULT GetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* rethwnd);
+	[id(80)] HRESULT GetWindowTitle([in] LONG hwnd, [out, retval] BSTR* rettitle);
+	[id(81)] HRESULT MoveWindow([in] LONG hwnd, [in] LONG x, [in] LONG y, [out, retval] LONG* nret);
+	[id(82)] HRESULT ScreenToClient([in] LONG hwnd, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* nret);
+	[id(83)] HRESULT SendPaste([in] LONG hwnd, [out, retval] LONG* nret);
+	[id(84)] HRESULT SetClientSize([in] LONG hwnd, [in] LONG width, [in] LONG hight, [out, retval] LONG* nret);
+	[id(85)] HRESULT SetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
+	[id(86)] HRESULT SetWindowSize([in] LONG hwnd, [in] LONG width, [in] LONG height, [out, retval] LONG* nret);
+	[id(87)] HRESULT SetWindowText([in] LONG hwnd, [in] BSTR title, [out, retval] LONG* nret);
+	[id(88)] HRESULT SetWindowTransparent([in] LONG hwnd, [in] LONG trans, [out, retval] LONG* nret);
+	[id(89)] HRESULT SendString([in] LONG hwnd, [in] BSTR str, [out, retval] LONG* ret);
+	[id(90)] HRESULT SendStringIme([in] LONG hwnd, [in] BSTR str, [out, retval] LONG* ret);
+	[id(91)] HRESULT RunApp([in] BSTR cmdline, [in] LONG mode, [out, retval] LONG* ret);
+	[id(95)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
+	[id(96)] HRESULT GetCmdStr([in] BSTR cmd, [in] LONG millseconds, [out, retval] BSTR* retstr);
+	//background 100-119
+	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG* ret);
+	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
+	//mouse & ketboard 120-149
+	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
+	[id(122)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
+	[id(123)] HRESULT MoveToEx([in] LONG x, [in] LONG y, [in] LONG w, [in] long h, [out, retval] LONG* ret);
+
+	[id(124)] HRESULT LeftClick([out, retval] LONG* ret);
+	[id(125)] HRESULT LeftDoubleClick([out, retval] LONG* ret);
+	[id(126)] HRESULT LeftDown([out, retval] LONG* ret);
+	[id(127)] HRESULT LeftUp([out, retval] LONG* ret);
+
+	[id(128)] HRESULT MiddleClick([out, retval] LONG* ret);
+	[id(129)] HRESULT MiddleDown([out, retval] LONG* ret);
+	[id(130)] HRESULT MiddleUp([out, retval] LONG* ret);
+
+	[id(131)] HRESULT RightClick([out, retval] LONG* ret);
+	[id(132)] HRESULT RightDown([out, retval] LONG* ret);
+	[id(133)] HRESULT RightUp([out, retval] LONG* ret);
+
+	[id(134)] HRESULT WheelDown([out, retval] LONG* ret);
+	[id(135)] HRESULT WheelUp([out, retval] LONG* ret);
+
+	[id(136)] HRESULT GetKeyState([in] LONG vk_code, [out, retval] LONG* ret);
+
+	[id(137)] HRESULT KeyDown([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(138)] HRESULT KeyDownChar([in] BSTR vk_code, [out, retval] LONG* ret);
+	[id(139)] HRESULT KeyUp([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(140)] HRESULT KeyUpChar([in] BSTR vk_code, [out, retval] LONG* ret);
+	[id(141)] HRESULT WaitKey([in] LONG vk_code, [in] LONG time_out, [out, retval] LONG* ret);
+	[id(142)] HRESULT KeyPress([in] LONG vk_code, [out, retval] LONG* ret);
+	[id(143)] HRESULT KeyPressChar([in] BSTR vk_code, [out, retval] LONG* ret);
+	//image & color 150-199
+	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);
+	[id(152)] HRESULT FindColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(153)] HRESULT FindColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	[id(154)] HRESULT FindMultiColor([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(155)] HRESULT FindMultiColorEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR first_color, [in] BSTR offset_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* ret);
+	[id(156)] HRESULT FindPic([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(157)] HRESULT FindPicEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	//new
+	[id(158)] HRESULT FindPicExS([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR files, [in] BSTR delta_color, [in] DOUBLE sim, [in] LONG dir, [out, retval] BSTR* retstr);
+	[id(159)] HRESULT FindColorBlock([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(160)] HRESULT FindColorBlockEx([in] LONG x1, [in]LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG count, [in] LONG height, [in] LONG width, [out, retval] BSTR* retstr);
+	[id(161)] HRESULT GetResultCount([in] BSTR str, [out, retval] LONG* ret);
+	[id(162)] HRESULT GetResultPos([in] BSTR str, [in] LONG index, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+
+	[id(163)] HRESULT GetColor([in] LONG x, [in] LONG y, [out, retval] BSTR* ret);
+	[id(164)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
+	[id(165)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
+	[id(166)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
+	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval]LONG* ret);
+	[id(168)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size, [out, retval]LONG* ret);
+	[id(169)] HRESULT MatchPicName([in] BSTR pic_name, [out, retval] BSTR* retstr);
+	[id(170)] HRESULT LoadMemPic([in] BSTR pic_name, [in]long long data, [in]LONG size,[out, retval] LONG* ret);
+
+
+	//ocr 200-230
+	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);
+	[id(202)] HRESULT Ocr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(203)] HRESULT OcrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(204)] HRESULT FindStr([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out] VARIANT* retx, [out] VARIANT* rety, [out, retval]LONG* ret);
+	[id(205)] HRESULT FindStrEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR str, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* ret_str);
+	[id(206)] HRESULT OcrAuto([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(207)] HRESULT OcrFromFile([in] BSTR file_name, [in] BSTR color_format, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(208)] HRESULT OcrAutoFromFile([in] BSTR file_name, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(209)] HRESULT FindLine([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(220)] HRESULT SetMemDict([in] LONG idx, [in]BSTR data, [in]LONG size,[out, retval] LONG* ret);
+
+	[id(250)] HRESULT WriteData([in] LONG hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
+	[id(251)] HRESULT ReadData([in] LONG hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
+
+
+
+};
+[
+	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),
+	version(1.0),
+	custom(a817e7a1-43fa-11d0-9e44-00aa00b6770a, "{54ca0535-fb49-4d91-8709-786fb8725132}")
+]
+library opLib
+{
+	importlib("stdole2.tlb");
+	/*[
+		uuid(54ca0535-fb49-4d91-8709-786fb8725132)
+	]
+	coclass CompReg
+	{
+		[default] interface IComponentRegistrar;
+	};*/
+	[
+		uuid(12bec402-a06e-4fad-a7d4-830f967374c6)
+	]
+	coclass OpInterface
+	{
+		[default] interface IOpInterface;
+	};
+};
+
+import "shobjidl.idl";

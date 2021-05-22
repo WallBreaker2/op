@@ -13,11 +13,15 @@ class bkbase;
 class ImageProc;
 
 using bytearray = std::vector<unsigned char>;
-#ifndef OP_API
+#ifdef U_STATIC_IMPLEMENTATION
+#define OP_API
+#else
+#ifndef OP_API 
 #if defined(OP_EXPORTS)
 #define OP_API __declspec(dllexport)
 #else
 #define OP_API __declspec(dllimport)
+#endif
 #endif
 #endif
 // libop
@@ -25,15 +29,20 @@ using bytearray = std::vector<unsigned char>;
 #undef FindWindowEx
 #undef SetWindowText
 
+
+
 class OP_API libop{
 	
 public:
-	libop(void* hinst = nullptr);
+	
+	static void init(void* hinst);
+	libop();
 	~libop();
 	//复制构造
 	libop(libop const&) = delete;
 	libop& operator=(libop const rhs) = delete;
 private:
+	static void* m_instance;
 	//一些共用变量
 
 	//1. Windows API

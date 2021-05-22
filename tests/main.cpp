@@ -12,9 +12,10 @@
 #include <Windows.h>
 //#include "optest.hpp"
 #include "test.h"
-
+#include "../include/op.h"
 #include<time.h>
 #include <chrono>
+#include <filesystem>
 #pragma warning(disable:4996)
 
 
@@ -73,35 +74,35 @@ void  test_unique(){
 	t2.join();
 }
 
-//int test_com() {
-//	HMODULE hdll = LoadLibraryA("op_x86.dll");
-//	if (!hdll) {
-//		printf("LoadLibraryA false!\n");
-//		return -1;
-//	}
-//	typedef HRESULT(__stdcall* DllGetClassObject_t)(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID FAR* ppv);
-//	DllGetClassObject_t pfun1 = (DllGetClassObject_t)GetProcAddress(hdll, "DllGetClassObject");
-//	if (!pfun1) {
-//		printf("GetProcAddress false!\n");
-//		return -2;
-//	}
-//	IClassFactory* fac = 0;
-//	pfun1(CLSID_OpInterface, IID_IClassFactory, (void**)&fac);
-//	if (!fac) {
-//		printf("DllGetClassObject false!\n");
-//		return -3;
-//	}
-//	IOpInterface* op;
-//	fac->CreateInstance(NULL, IID_IOpInterface, (void**)&op);
-//
-//	if (!op) {
-//		printf("CoCreateInstance false!\n");
-//		return -4;
-//	}
-//	
-//	std::cout << "ok\n";
-//	return 0;
-//}
+int test_com() {
+	HMODULE hdll = LoadLibraryA("op_x86.dll");
+	if (!hdll) {
+		printf("LoadLibraryA false!\n");
+		return -1;
+	}
+	typedef HRESULT(__stdcall* DllGetClassObject_t)(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID FAR* ppv);
+	DllGetClassObject_t pfun1 = (DllGetClassObject_t)GetProcAddress(hdll, "DllGetClassObject");
+	if (!pfun1) {
+		printf("GetProcAddress false!\n");
+		return -2;
+	}
+	IClassFactory* fac = 0;
+	pfun1(CLSID_OpInterface, IID_IClassFactory, (void**)&fac);
+	if (!fac) {
+		printf("DllGetClassObject false!\n");
+		return -3;
+	}
+	IOpInterface* op;
+	fac->CreateInstance(NULL, IID_IOpInterface, (void**)&op);
+
+	if (!op) {
+		printf("CoCreateInstance false!\n");
+		return -4;
+	}
+	
+	std::cout << "ok\n";
+	return 0;
+}
 
 void printHR(HRESULT hr) {
 	if (hr == S_OK) {
@@ -187,6 +188,8 @@ union Var {
 	int val;
 };
 
+void test_fs();
+
 int main(int argc, char* argv[])
 {
 	Var v = {};
@@ -197,13 +200,23 @@ int main(int argc, char* argv[])
 	CoInitialize(NULL);
 	//test_unique();
 	//test_invoke();
-	//test_com();
+	test_com();
 	test* ptest = new test;
 	ptest->do_test();
 	delete ptest;
 	ptest = nullptr;
-
+test_fs();
 
 	return 0;
+}
+
+void test_fs(){
+	 namespace fs = std::filesystem;
+	 std::cout<<"current path:"<<fs::current_path()<<std::endl;;
+	 std::error_code e;
+	 std::cout<<"absolute: "<<fs::absolute("../",e)<<std::endl;
+	 std::cout<<"err code:"<<e<<std::endl;
+	 std::cout<<"absolute: "<<fs::absolute("../e",e)<<std::endl;
+	 std::cout<<"err code:"<<e<<std::endl;
 }
 

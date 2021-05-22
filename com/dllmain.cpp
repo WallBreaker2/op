@@ -5,12 +5,13 @@
 #include "op_i.h"
 #include "dllmain.h"
 #include "compreg.h"
-#include "./core/globalVar.h"
+#include "../libop/libop.h"
+#include "../libop/background/xhook.h"
 CopModule _AtlModule;
 
 // DLL 入口点
 extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
-	gInstance= hInstance;
+	libop::init(hInstance);
 	return _AtlModule.DllMain(dwReason, lpReserved);
 }
