@@ -261,7 +261,7 @@ long bkbase::RectConvert(long& x1, long& y1, long& x2, long& y2) {
 	x2 = std::min<long>(this->get_width(), x2);
 	y2 = std::min<long>(this->get_height(), y2);
 	if (x1 < 0 || y1 < 0 || x1 >= x2 || y1 >= y2) {
-		setlog("无效的窗口坐标:%d %d %d %d", x1, y1, x2, y2);
+		setlog(L"invalid rectangle:%d %d %d %d", x1, y1, x2, y2);
 		return 0;
 	}
 	//if (_pbkdisplay) {

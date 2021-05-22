@@ -19,7 +19,7 @@ ADD_DEFINITIONS(-D _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
 ADD_DEFINITIONS(-D _WINDLL)
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
-
+add_definitions(-D U_STATIC_IMPLEMENTATION)
 SET(COM_SRC_FILES 
 "../libop/core/globalVar.cpp"
 "op.cpp"
@@ -28,7 +28,8 @@ SET(COM_SRC_FILES
 "compreg.cpp"
 "dllmain.cpp"
 "op_i.c"
-"op.def")
+"op.def"
+"../libop/background/xhook.h")
 
 IF(CMAKE_CL_64)
     set(OUTPUT_NAME op_x64)
@@ -41,7 +42,7 @@ add_library(${OUTPUT_NAME} SHARED ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/o
 
 
 SET_TARGET_PROPERTIES(${OUTPUT_NAME} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
-target_link_libraries(${OUTPUT_NAME} libop)
+target_link_libraries(${OUTPUT_NAME} libop_static)
 
 add_custom_command(TARGET ${OUTPUT_NAME} PRE_BUILD  COMMAND midl op.idl /iid "op_i.c" /env win32 /h "op_i.h" /W1 /char signed /tlb "op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 

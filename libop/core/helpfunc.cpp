@@ -26,16 +26,26 @@ std::wstring _s2wstring(const std::string&s) {
 }
 
 std::string _ws2string(const std::wstring&ws) {
-	std::string strLocale = setlocale(LC_ALL, "");
-	const wchar_t* wchSrc = ws.c_str();
-	size_t nDestSize = wcstombs(NULL, wchSrc, 0) + 1;
-	char *chDest = new char[nDestSize];
-	memset(chDest, 0, nDestSize);
-	wcstombs(chDest, wchSrc, nDestSize);
-	std::string strResult = chDest;
-	delete[]chDest;
-	setlocale(LC_ALL, strLocale.c_str());
-	return strResult;
+	// std::string strLocale = setlocale(LC_ALL, "");
+	// const wchar_t* wchSrc = ws.c_str();
+	// size_t nDestSize = wcstombs(NULL, wchSrc, 0) + 1;
+	// char *chDest = new char[nDestSize];
+	// memset(chDest, 0, nDestSize);
+	// wcstombs(chDest, wchSrc, nDestSize);
+	// std::string strResult = chDest;
+	// delete[]chDest;
+	// setlocale(LC_ALL, strLocale.c_str());
+	//return strResult;
+	int nlen = ws.length();
+
+	char* m_char;
+	int len = WideCharToMultiByte(CP_ACP, 0, ws.data(), nlen, NULL, 0, NULL, NULL);
+	m_char = new char[len + 1];
+	WideCharToMultiByte(CP_ACP, 0, ws.data(), nlen, m_char, len, NULL, NULL);
+	m_char[len] = '\0';
+	std::string s(m_char);
+	delete[] m_char;
+	return s;
 }
 
 long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out) {

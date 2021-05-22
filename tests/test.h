@@ -13,7 +13,7 @@
 using namespace std;
 class test {
 public:
-	test() :m_op(new libop(nullptr)){
+	test() :m_op(new libop()){
 		
 	}
 	virtual ~test() {
@@ -48,9 +48,9 @@ public:
 	}
 	int BindLDPlayer(libop* op) {
 		long hwnd = 0, subhwnd = 0, ret = 0;
-		op->FindWindow(L"LDPlayerMainFrame", L"�׵�ģ����", &hwnd);
+		op->FindWindow(L"LDPlayerMainFrame", L"雷电模拟器", &hwnd);
 		if (!hwnd) {
-			std::cout << "FindWindow of �׵�ģ���� false!\n";
+			std::cout << "FindWindow of LDPlayerMainFrame false!\n";
 			return -1;
 		}
 		op->FindWindowEx(hwnd, L"RenderWindow", L"TheRender", &subhwnd);

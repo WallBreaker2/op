@@ -19,9 +19,16 @@
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
+
+void* libop::m_instance;
+
+void libop::init(void* hinst) {
+	m_instance = hinst;
+}
+
 // OpInterface
 std::mutex mtx;
-libop::libop(void *hinst)
+libop::libop()
 {
 	_winapi = new WinApi;
 	_bkproc = new bkbase;
@@ -64,7 +71,7 @@ libop::libop(void *hinst)
 	mtx.lock();
 	if (!is_init)
 	{
-		gInstance = static_cast<HINSTANCE>(hinst);
+		gInstance = static_cast<HINSTANCE>(m_instance);
 		m_opPath.resize(512);
 		DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
 		m_opPath.resize(real_size);
@@ -845,7 +852,7 @@ void libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, co
 void libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, DOUBLE sim, long dir, std::wstring &retstr)
 {
 
-	wstring str;
+	//wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
 	{
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
@@ -853,14 +860,14 @@ void libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, 
 			setlog("error requestCapture");
 		}
 		_image_proc->set_offset(x1, y1);
-		_image_proc->FindPicEx(files, delta_color, sim, dir, str);
+		_image_proc->FindPicEx(files, delta_color, sim, dir, retstr);
 	}
-	retstr = str;
+	//retstr = str;
 }
 
 void libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim, long dir, std::wstring &retstr)
 {
-	wstring str;
+	//wstring str;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
 	{
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
@@ -868,9 +875,9 @@ void libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files,
 			setlog("error requestCapture");
 		}
 		_image_proc->set_offset(x1, y1);
-		_image_proc->FindPicEx(files, delta_color, sim, dir, str, false);
+		_image_proc->FindPicEx(files, delta_color, sim, dir, retstr, false);
 	}
-	retstr = str;
+	//retstr = str;
 }
 
 void libop::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count, long height, long width, long *x, long *y, long *ret)
@@ -1046,7 +1053,7 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr)
 	s = std::regex_replace(s, std::wregex(L"\\*"), L".*?");
 	s = std::regex_replace(s, std::wregex(L"\\?"), L".?");
 
-	setlog(s.data());
+	//setlog(s.data());
 	namespace fs = std::filesystem;
 	fs::path path(_curr_path);
 	if (fs::exists(path))
