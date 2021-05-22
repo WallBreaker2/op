@@ -29,7 +29,7 @@ namespace xhook {
 */
 
 //返回值:1 成功，0失败
-DLL_API long SetXHook(HWND hwnd_,int render_type_);
+DLL_API long __stdcall SetXHook(HWND hwnd_,int render_type_);
 
-DLL_API long UnXHook();
+DLL_API long __stdcall UnXHook();
 #endif // !__DX9HOOK_H_
