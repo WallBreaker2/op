@@ -11,7 +11,7 @@ ADD_DEFINITIONS(-D EASYCOM_EXPORTS)
 
 SET(TOOLS_SRC_FILES 
 "dllmain.c"
-"../com/op_i.c"
+"../libop/com/op_i.c"
 "easycom.cpp")
 
 

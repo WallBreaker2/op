@@ -63,14 +63,14 @@ SET(SRC_FILES
 
 SET(COM_SRC_FILES 
 "../libop/core/globalVar.cpp"
-"../com/op.cpp"
-"../com/opinterface.cpp"
-"../com/stdafx.cpp"
-"../com/compreg.cpp"
-"../com/dllmain.cpp"
-"../com/op_i.c"
-"../com/op.def"
-"../libop/background/xhook.h")
+"./com/op.cpp"
+"./com/opinterface.cpp"
+"./com/stdafx.cpp"
+"./com/compreg.cpp"
+"./com/dllmain.cpp"
+"./com/op_i.c"
+"./com/op.def"
+"./background/xhook.h")
 
 
 
@@ -93,9 +93,9 @@ ADD_DEFINITIONS(-D OP_EXPORTS)
 # 6.add lib file
 #add_library(libop SHARED  ${SRC_FILES})
 # ----------op_x86/x64
-add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/../com/op.rc)
+add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
-add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ../com/op.idl /iid "../com/op_i.c" /env win32 /h "../com/op_i.h" /W1 /char signed /tlb "../com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
+add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 

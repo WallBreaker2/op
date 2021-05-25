@@ -147,15 +147,15 @@ void EditImage::on_roate() {
 	curImg.create(cw, cw);
 	for (int y = 0; y < cw; y++) {
 		for (int x = 0; x < cw; x++) {
-			int cx = x - cw / 2, cy = y - cw / 2;
-			int rx = cx * cos(theta) - cy * sin(theta);
-			int ry = cx * sin(theta) + cy * cos(theta);
-			rx += rawImg.width/2;
-			ry += rawImg.height / 2;
+			
+			int rx = x * cos(theta) - y * sin(theta) + rawImg.width/2;
+			int ry = x * sin(theta) + y * cos(theta) +rawImg.height/2;
+			rx-= cw/2;
+			ry-= cw/2;
 			if (0 <= rx && rx < rawImg.width && 0 <= ry && ry < rawImg.height)
 				curImg.at<uint>(y, x) = rawImg.at<uint>(ry, rx);
 			else
-				curImg.at<uint>(y, x) = 0x0;
+				curImg.at<uint>(y, x) = 0xffffffffu;
 		}
 	}
 	viewdlg->update();
