@@ -4,7 +4,7 @@
 #include "EasyCom.h"
 
 #include <stdio.h>
-#include "../com/op_i.h"
+#include "../libop/com/op_i.h"
 #include "MinHook.h"
 #include <iostream>
 #include <comdef.h>

@@ -6,7 +6,7 @@ ADD_DEFINITIONS(-D UNICODE)
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
 
 SET(SRC_FILES "main.cpp"
-"../com/op_i.c")
+"../libop/com/op_i.c")
 
 
 include_directories( 

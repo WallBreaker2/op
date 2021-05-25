@@ -8,8 +8,8 @@ cmake_minimum_required (VERSION 3.0)
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 option(build_swig_py "build swig py,requrie python" OFF)
-option(build_qttool "buid qt tool,requrie qt lib" OFF)
- 
+option(build_qttool "buid qt tool,requrie qt lib" ON)
+ set(build_qttool ON)
 project ("op")
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
