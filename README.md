@@ -1,6 +1,6 @@
 Overview
 ===========
-OP(operator & open)是一个开源插件(类似大漠插件).主要功能有:Windows消息模拟,后台截图，找图,字符识别(OCR),等。使用c++编写，源代码可编译为32/64位dll.op插件提供了两类接口:1）原生c++接口，可以让c/c++开发者方便调用；2）com接口，支持大多数编译型语言(c++,c#,vb,delphi等 以及脚本语言（python,lua等）的调用
+OP(operator & open)是一个开源插件(类似大漠插件).主要功能有:Windows消息模拟,后台截图，找图,字符识别(OCR)等。使用c++编写，源代码可编译为32/64位dll.op插件提供了两类接口:1）原生c++接口，可以让c/c++开发者方便调用；2）com接口，支持大多数编译型语言(c++,c#,vb,delphi等 以及脚本语言（python,lua等）的调用
 ![ava](doc/class_struct.svg)
 ## 功能特色
 1. Windows消息模拟，常见的键盘消息和鼠标消息模拟。
@@ -27,7 +27,7 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要功能有:Win
 * Windows SDK: 10.0.18362.0 (如果不同，可以在vs项目属性-->常规-->Windows SDk版本手动改一下)
 * DirectX SDK: 最新的即可
 ### 第三方库
-* [blackbone](https://github.com/DarthTon/Blackbone.git)(虽然项目已经链接了此库，但由于静态库不一定适合其他vs版本，最好自己手动编译)
+* [blackbone](https://github.com/DarthTon/Blackbone.git)(静态编译，链接方式MT)
 * [kiero](https://github.com/Rebzzel/kiero.git)(已在源码内，无需安装)
 * [minhook](https://github.com/TsudaKageyu/minhook.git)(推荐使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)安装)
 * [boost-stacktrace]()(可选，安装使用vcpkg.如果不想安装，注释掉helpfunc.cpp中的宏定义USE_BOOST_STACK_TRACE即可)

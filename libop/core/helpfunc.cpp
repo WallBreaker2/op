@@ -6,7 +6,7 @@
 #include <sstream>
 #include <shlwapi.h>
 #include "globalVar.h"
-
+#include "opEnv.h"
 //#define USE_BOOST_STACK_TRACE
 #ifdef USE_BOOST_STACK_TRACE
 #include <boost/stacktrace.hpp>
@@ -95,10 +95,10 @@ long setlog(const char* format, ...) {
 
 	
 	string s = ss.str();
-	if (gShowError == 1) {
+	if (opEnv::m_showErrorMsg == 1) {
 		MessageBoxA(NULL, s.data(), "error", MB_ICONERROR);
 	}
-	else if (gShowError == 2) {
+	else if (opEnv::m_showErrorMsg == 2) {
 		/*	wchar_t dll_path[MAX_PATH];
 			::GetModuleFileNameW(gInstance, dll_path, MAX_PATH);
 			wstring fname = dll_path;
@@ -111,7 +111,7 @@ long setlog(const char* format, ...) {
 		file << s << std::endl;
 		file.close();
 	}
-	else if (gShowError == 3) {
+	else if (opEnv::m_showErrorMsg == 3) {
 		std::cout << s << std::endl;
 	}
 
