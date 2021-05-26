@@ -8,13 +8,17 @@ cmake_minimum_required (VERSION 3.0)
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 option(build_swig_py "build swig py,requrie python" OFF)
-option(build_qttool "buid qt tool,requrie qt lib" ON)
- set(build_qttool ON)
+option(build_qttool "buid qt tool,requrie qt lib" OFF)
+
+set(build_qttool ON)
+set(build_swig_py OFF)
+
 project ("op")
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_CXX_STANDARD 17)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
     set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
@@ -46,17 +50,14 @@ include_directories(
 
 # 包含子项目。
 add_subdirectory ("libop")
-
-#add_subdirectory("com")
 add_subdirectory("python")
 add_subdirectory("lua")
-
 add_subdirectory("tools")
 add_subdirectory("tests")
 message(STATUS ${build_swig_py})
 if(build_swig_py)
     message(STATUS "build swig is on")
-    #add_subdirectory("swig")
+    add_subdirectory("swig")
 endif()
 message(STATUS ${build_qttool})
 if(build_qttool)

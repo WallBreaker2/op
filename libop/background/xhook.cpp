@@ -14,6 +14,7 @@
 #include <gl\glu.h>
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
+#include "./core/opEnv.h"
 #include "./winapi/query_api.h"
 #include <wingdi.h>
 #include <atlbase.h>
@@ -634,7 +635,7 @@ void __stdcall gl_hkglFinish(void) {
 bool is_hooked = false;
 //--------------export function--------------------------
 long __stdcall SetXHook(HWND hwnd_, int render_type_) {
-	gShowError = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
+	opEnv::m_showErrorMsg = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
 	if (is_hooked) {
 		is_capture = 1;
 		return 2;
@@ -652,7 +653,7 @@ long __stdcall UnXHook() {
 		return 0;
 	is_hooked = false;
 	int ret = xhook::release();
-	::FreeLibraryAndExitThread(gInstance,0);
+	::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
 	return ret;
 }
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __EDIT_IMAGE_H_
+#define __EDIT_IMAGE_H_
 
 #include <qdialog.h>
 #include "ui_editImg.h"
@@ -97,4 +98,6 @@ private:
 	int viewW=0, viewH=0;
 	int selected = 0;
 };
+
+#endif
 

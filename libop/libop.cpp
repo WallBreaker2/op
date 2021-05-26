@@ -4,6 +4,7 @@
 #include "./core/optype.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
+#include "./core/opEnv.h"
 #include "./winapi/WinApi.h"
 #include "./background/BKbase.h"
 #include "./ImageProc/ImageProc.h"
@@ -20,14 +21,7 @@
 #undef FindWindowEx
 #undef SetWindowText
 
-void* libop::m_instance;
 
-void libop::init(void* hinst) {
-	m_instance = hinst;
-}
-
-// OpInterface
-std::mutex mtx;
 libop::libop()
 {
 	_winapi = new WinApi;
@@ -65,23 +59,8 @@ libop::libop()
 	_vkmap[L"f10"] = VK_F10;
 	_vkmap[L"f11"] = VK_F11;
 	_vkmap[L"f12"] = VK_F12;
-	//初始化 op 路径 & name
-
-	static bool is_init = false;
-	mtx.lock();
-	if (!is_init)
-	{
-		gInstance = static_cast<HINSTANCE>(m_instance);
-		m_opPath.resize(512);
-		DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
-		m_opPath.resize(real_size);
-
-		g_op_name = m_opPath.substr(m_opPath.rfind(L"\\") + 1);
-		m_opPath = m_opPath.substr(0, m_opPath.rfind(L"\\"));
-
-		is_init = true;
-	}
-	mtx.unlock();
+	
+	m_opPath =  opEnv::getBasePath();
 }
 
 libop::~libop()
@@ -135,14 +114,7 @@ void libop::GetPath(std::wstring &path)
 
 void libop::GetBasePath(std::wstring &path)
 {
-	wchar_t basepath[1024];
-	::GetModuleFileNameW(gInstance, basepath, 1024);
-	path = basepath;
-	size_t index = path.rfind(L'\\');
-	if (index != std::wstring::npos)
-	{
-		path = path.substr(0, index);
-	}
+	path = opEnv::getBasePath();
 }
 
 void libop::GetID(long *ret)
@@ -157,7 +129,7 @@ void libop::GetLastError(long *ret)
 
 void libop::SetShowErrorMsg(long show_type, long *ret)
 {
-	gShowError = show_type;
+	opEnv::m_showErrorMsg = show_type;
 	*ret = 1;
 }
 

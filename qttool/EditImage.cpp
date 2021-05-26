@@ -148,10 +148,9 @@ void EditImage::on_roate() {
 	for (int y = 0; y < cw; y++) {
 		for (int x = 0; x < cw; x++) {
 			
-			int rx = x * cos(theta) - y * sin(theta) + rawImg.width/2;
-			int ry = x * sin(theta) + y * cos(theta) +rawImg.height/2;
-			rx-= cw/2;
-			ry-= cw/2;
+			int rx = (x -cw/2) * cos(theta) - (y-cw/2) * sin(theta) + rawImg.width/2;
+			int ry = (x -cw/2) * sin(theta) + (y-cw/2) * cos(theta) +rawImg.height/2;
+		
 			if (0 <= rx && rx < rawImg.width && 0 <= ry && ry < rawImg.height)
 				curImg.at<uint>(y, x) = rawImg.at<uint>(ry, rx);
 			else

@@ -47,7 +47,7 @@ SET(SRC_FILES
 "./core/globalVar.cpp"
 "./core/helpfunc.cpp"
 "./core/pipe.cpp"
-
+"./core/opEnv.cpp"
 
 
 "./imageProc/imageloc.cpp"
@@ -62,7 +62,7 @@ SET(SRC_FILES
 )
 
 SET(COM_SRC_FILES 
-"../libop/core/globalVar.cpp"
+"./core/globalVar.cpp"
 "./com/op.cpp"
 "./com/opinterface.cpp"
 "./com/stdafx.cpp"
