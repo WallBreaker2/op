@@ -44,6 +44,7 @@ SET(SRC_FILES
 "../libop/core/globalVar.cpp"
 "../libop/core/helpfunc.cpp"
 "../libop/core/pipe.cpp"
+"../libop/core/opEnv.cpp"
 )
 
 

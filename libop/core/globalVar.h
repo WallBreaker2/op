@@ -76,12 +76,12 @@ constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
 #define OP_VERSION MAKE_OP_VERSION(0,4,0,0)
 //模块句柄
-extern HINSTANCE gInstance;
+//extern HINSTANCE gInstance;
 //是否显示错误信息
-extern int gShowError;
+//extern int gShowError;
 //op 路径
 //extern wstring m_opPath;
 
-extern wstring g_op_name;
+//extern wstring g_op_name;
 
 #endif

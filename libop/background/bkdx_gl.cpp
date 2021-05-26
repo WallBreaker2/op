@@ -4,6 +4,7 @@
 #include "bkdx_gl.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
+#include "./core/opEnv.h"
 #include <exception>
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
@@ -11,13 +12,8 @@
 #include "./include/Image.hpp"
 
 #include <sstream>
-bkdo::bkdo() :IDisplay()
+bkdo::bkdo() :IDisplay(),m_opPath(opEnv::getBasePath())
 {
-	m_opPath.resize(512);
-	DWORD real_size = ::GetModuleFileNameW(gInstance, m_opPath.data(), 512);
-	m_opPath.resize(real_size);
-
-	m_opPath = m_opPath.substr(0, m_opPath.rfind(L"\\"));
 }
 
 
@@ -58,7 +54,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 
 
 		if (NT_SUCCESS(hr)) {
-			wstring dllname = g_op_name;
+			wstring dllname = opEnv::getOpName();
 			//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 			BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 			if (is64 != OP64) {
@@ -141,7 +137,7 @@ long bkdo::UnBindEx() {
 	hr = proc.Attach(id);
 
 	if (NT_SUCCESS(hr)) {
-		wstring dllname = g_op_name;
+		wstring dllname =  opEnv::getOpName();
 		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64) {

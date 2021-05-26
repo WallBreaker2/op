@@ -42,7 +42,7 @@ public:
 	libop(libop const&) = delete;
 	libop& operator=(libop const rhs) = delete;
 private:
-	static void* m_instance;
+	
 	//一些共用变量
 
 	//1. Windows API
