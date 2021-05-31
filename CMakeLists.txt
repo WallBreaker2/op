@@ -10,8 +10,35 @@ cmake_minimum_required (VERSION 3.0)
 option(build_swig_py "build swig py,requrie python" OFF)
 option(build_qttool "buid qt tool,requrie qt lib" OFF)
 
-set(build_qttool ON)
+# 编译开关
+set(build_qttool OFF)
 set(build_swig_py OFF)
+# blackbone 源码路径，必须设置！！！
+set(blackbone_include_path "E:/git_pro/Blackbone/src")
+# blackbone 32位静态库路径，必须设置！！！
+set(blackbone_lib32_path "E:/git_pro/Blackbone/build/Win32/Release")
+# blackbone 64位静态库路径，必须设置！！！
+set(blackbone_lib64_path "E:/git_pro/Blackbone/build/X64/Release")
+
+# 检查头文件是否设置正确
+if(EXISTS ${blackbone_include_path}/BlackBone/Process/Process.h)
+    message(STATUS "${blackbone_include_path}/BlackBone/Process/Process.h finded" )
+else()
+    message(FATAL_ERROR "${blackbone_include_path}/BlackBone/Process/Process.h not finded" )
+endif()
+
+# 检查库是否设置正确
+if(EXISTS ${blackbone_lib32_path}/blackbone.lib)
+    message(STATUS "32 blackbone lib find" )
+else()
+message(FATAL_ERROR "${blackbone_lib32_path}/blackbone.lib NOT find" )
+endif()
+if(EXISTS ${blackbone_lib64_path}/blackbone.lib)
+    message(STATUS "64 blackbone lib find" )
+else()
+message(FATAL_ERROR "${blackbone_lib64_path}/blackbone.lib NOT find" )
+endif()
+
 
 project ("op")
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -31,11 +58,17 @@ endif()
 
 
 IF(CMAKE_CL_64)
-    link_directories(${CMAKE_SOURCE_DIR}/3rd_party/lib/x64)
+    link_directories(
+        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
+        ${blackbone_lib64_path}
+    )
     set(op_com op_x64)
 	MESSAGE(STATUS "----------------Platform x64----------------")
 ELSE(CMAKE_CL_64)
-    link_directories(${CMAKE_SOURCE_DIR}/3rd_party/lib/x86)
+    link_directories(
+        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x86
+        ${blackbone_lib32_path}
+        )
     set(op_com op_x86)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF(CMAKE_CL_64)
@@ -44,22 +77,31 @@ include_directories(
   ./
   ${CMAKE_SOURCE_DIR}/3rd_party/include/
   ${CMAKE_SOURCE_DIR}/3rd_party/include/3rd_party
-  "E:/git_pro/Blackbone/src"
-   "E:/git_pro/Blackbone/src/3rd_party"
+  ${blackbone_include_path}
+  ${blackbone_include_path}/3rd_party
 ) 
 
+
+
 # 包含子项目。
+## libop主项目
 add_subdirectory ("libop")
+## python测试项目
 add_subdirectory("python")
+## lua测试项目
 add_subdirectory("lua")
+## tools项目
 add_subdirectory("tools")
+## 测试项目
 add_subdirectory("tests")
 message(STATUS ${build_swig_py})
+## swig 项目
 if(build_swig_py)
     message(STATUS "build swig is on")
     add_subdirectory("swig")
 endif()
 message(STATUS ${build_qttool})
+## qttool项目
 if(build_qttool)
     message(STATUS "build qt tool is on")
     add_subdirectory("qttool")

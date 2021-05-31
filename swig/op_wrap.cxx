@@ -3051,65 +3051,16 @@ SWIG_AsVal_long (PyObject *obj, long* val)
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_new_libop__SWIG_0(PyObject *SWIGUNUSEDPARM(self), Py_ssize_t nobjs, PyObject **swig_obj) {
-  PyObject *resultobj = 0;
-  void *arg1 = (void *) 0 ;
-  int res1 ;
-  libop *result = 0 ;
-  
-  if ((nobjs < 1) || (nobjs > 1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0],SWIG_as_voidptrptr(&arg1), 0, 0);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_libop" "', argument " "1"" of type '" "void *""'"); 
-  }
-  result = (libop *)new libop(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_libop, SWIG_POINTER_NEW |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_new_libop__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py_ssize_t nobjs, PyObject **SWIGUNUSEDPARM(swig_obj)) {
+SWIGINTERN PyObject *_wrap_new_libop(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   libop *result = 0 ;
   
-  if ((nobjs < 0) || (nobjs > 0)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "new_libop", 0, 0, 0)) SWIG_fail;
   result = (libop *)new libop();
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_libop, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_new_libop(PyObject *self, PyObject *args) {
-  Py_ssize_t argc;
-  PyObject *argv[2] = {
-    0
-  };
-  
-  if (!(argc = SWIG_Python_UnpackTuple(args, "new_libop", 0, 1, argv))) SWIG_fail;
-  --argc;
-  if (argc == 0) {
-    return _wrap_new_libop__SWIG_1(self, argc, argv);
-  }
-  if (argc == 1) {
-    int _v;
-    void *ptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &ptr, 0, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      return _wrap_new_libop__SWIG_0(self, argc, argv);
-    }
-  }
-  
-fail:
-  SWIG_Python_RaiseOrModifyTypeError("Wrong number or type of arguments for overloaded function 'new_libop'.\n"
-    "  Possible C/C++ prototypes are:\n"
-    "    libop::libop(void *)\n"
-    "    libop::libop()\n");
-  return 0;
 }
 
 
@@ -7441,6 +7392,238 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_libop_FindColorBlock(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  libop *arg1 = (libop *) 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = (wchar_t *) 0 ;
+  double arg7 ;
+  long arg8 ;
+  long arg9 ;
+  long arg10 ;
+  long *arg11 = (long *) 0 ;
+  long *arg12 = (long *) 0 ;
+  long *arg13 = (long *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  long val9 ;
+  int ecode9 = 0 ;
+  long val10 ;
+  int ecode10 = 0 ;
+  long temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  long temp12 ;
+  int res12 = SWIG_TMPOBJ ;
+  long temp13 ;
+  int res13 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[10] ;
+  
+  arg11 = &temp11;
+  arg12 = &temp12;
+  arg13 = &temp13;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindColorBlock", 10, 10, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindColorBlock" "', argument " "1"" of type '" "libop *""'"); 
+  }
+  arg1 = reinterpret_cast< libop * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_FindColorBlock" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_FindColorBlock" "', argument " "3"" of type '" "long""'");
+  } 
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_FindColorBlock" "', argument " "4"" of type '" "long""'");
+  } 
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_FindColorBlock" "', argument " "5"" of type '" "long""'");
+  } 
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_FindColorBlock" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "libop_FindColorBlock" "', argument " "7"" of type '" "double""'");
+  } 
+  arg7 = static_cast< double >(val7);
+  ecode8 = SWIG_AsVal_long(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindColorBlock" "', argument " "8"" of type '" "long""'");
+  } 
+  arg8 = static_cast< long >(val8);
+  ecode9 = SWIG_AsVal_long(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindColorBlock" "', argument " "9"" of type '" "long""'");
+  } 
+  arg9 = static_cast< long >(val9);
+  ecode10 = SWIG_AsVal_long(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "libop_FindColorBlock" "', argument " "10"" of type '" "long""'");
+  } 
+  arg10 = static_cast< long >(val10);
+  (arg1)->FindColorBlock(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_long, new_flags));
+  }
+  if (SWIG_IsTmpObj(res12)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg12)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res12) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg12), SWIGTYPE_p_long, new_flags));
+  }
+  if (SWIG_IsTmpObj(res13)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg13)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res13) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg13), SWIGTYPE_p_long, new_flags));
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_libop_FindColorBlockEx(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  libop *arg1 = (libop *) 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = (wchar_t *) 0 ;
+  double arg7 ;
+  long arg8 ;
+  long arg9 ;
+  long arg10 ;
+  std::wstring *arg11 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  long val9 ;
+  int ecode9 = 0 ;
+  long val10 ;
+  int ecode10 = 0 ;
+  std::wstring temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[10] ;
+  
+  arg11 = &temp11;
+  if (!SWIG_Python_UnpackTuple(args, "libop_FindColorBlockEx", 10, 10, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_FindColorBlockEx" "', argument " "1"" of type '" "libop *""'"); 
+  }
+  arg1 = reinterpret_cast< libop * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "libop_FindColorBlockEx" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "libop_FindColorBlockEx" "', argument " "3"" of type '" "long""'");
+  } 
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "libop_FindColorBlockEx" "', argument " "4"" of type '" "long""'");
+  } 
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_FindColorBlockEx" "', argument " "5"" of type '" "long""'");
+  } 
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_FindColorBlockEx" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "libop_FindColorBlockEx" "', argument " "7"" of type '" "double""'");
+  } 
+  arg7 = static_cast< double >(val7);
+  ecode8 = SWIG_AsVal_long(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "libop_FindColorBlockEx" "', argument " "8"" of type '" "long""'");
+  } 
+  arg8 = static_cast< long >(val8);
+  ecode9 = SWIG_AsVal_long(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "libop_FindColorBlockEx" "', argument " "9"" of type '" "long""'");
+  } 
+  arg9 = static_cast< long >(val9);
+  ecode10 = SWIG_AsVal_long(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "libop_FindColorBlockEx" "', argument " "10"" of type '" "long""'");
+  } 
+  arg10 = static_cast< long >(val10);
+  (arg1)->FindColorBlockEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,arg9,arg10,*arg11);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg11)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_std__wstring, new_flags));
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_libop_GetColor(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   libop *arg1 = (libop *) 0 ;
@@ -8827,7 +9010,7 @@ SWIGINTERN PyObject *libop_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
 
 static PyMethodDef SwigMethods[] = {
 	 { "SWIG_PyInstanceMethod_New", SWIG_PyInstanceMethod_New, METH_O, NULL},
-	 { "new_libop", _wrap_new_libop, METH_VARARGS, NULL},
+	 { "new_libop", _wrap_new_libop, METH_NOARGS, NULL},
 	 { "delete_libop", _wrap_delete_libop, METH_O, NULL},
 	 { "libop_Ver", _wrap_libop_Ver, METH_O, NULL},
 	 { "libop_SetPath", _wrap_libop_SetPath, METH_VARARGS, NULL},
@@ -8913,6 +9096,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "libop_FindPic", _wrap_libop_FindPic, METH_VARARGS, NULL},
 	 { "libop_FindPicEx", _wrap_libop_FindPicEx, METH_VARARGS, NULL},
 	 { "libop_FindPicExS", _wrap_libop_FindPicExS, METH_VARARGS, NULL},
+	 { "libop_FindColorBlock", _wrap_libop_FindColorBlock, METH_VARARGS, NULL},
+	 { "libop_FindColorBlockEx", _wrap_libop_FindColorBlockEx, METH_VARARGS, NULL},
 	 { "libop_GetColor", _wrap_libop_GetColor, METH_VARARGS, NULL},
 	 { "libop_SetDisplayInput", _wrap_libop_SetDisplayInput, METH_VARARGS, NULL},
 	 { "libop_LoadPic", _wrap_libop_LoadPic, METH_VARARGS, NULL},
