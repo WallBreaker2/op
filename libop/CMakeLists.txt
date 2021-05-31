@@ -40,8 +40,8 @@ SET(SRC_FILES
   "./background/bkmouse.cpp" 
   "./background/IDisplay.cpp" 
   "./background/winkeypad.cpp" 
-  "./background/xhook.cpp"
-
+  "./background/Hook/DisplayHook.cpp"
+  "./background/Hook/DisplayHook.cpp"
 
  
 "./core/globalVar.cpp"
@@ -69,8 +69,7 @@ SET(COM_SRC_FILES
 "./com/compreg.cpp"
 "./com/dllmain.cpp"
 "./com/op_i.c"
-"./com/op.def"
-"./background/xhook.h")
+"./com/op.def")
 
 
 

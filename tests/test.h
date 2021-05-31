@@ -123,6 +123,11 @@ public:
 		wprintf(L"GetBasePath:%s\n", str.data());
 		op_check(GetBasePath, str==L"E:\\project\\op\\bin\\x86")
 
+		m_op->SetDict(0, L"C:/Users/78494/Desktop/st10.dict", &lret);
+		op_check(SetDict, lret==1)
+		m_op->Ocr(0,0,2000,2000,L"000000",1.0,str);
+		std::wcout<<L"ocr:"<<str<<std::endl;
+		op_check(Ocr, str.length()>0)
 
 		BindNox(m_op);
 		BindLDPlayer(m_op);
