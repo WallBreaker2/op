@@ -192,6 +192,10 @@ void test_fs();
 
 int main(int argc, char* argv[])
 {
+	int a[2]={0,1};
+	int b =*a+1;
+	int c = *(a+1);
+	std::cout<<"b:"<<b<<", c:"<<c<<std::endl;
 	Var v = {};
 	v.sp.a = 1;
 	std::cout<<"v:" << v.val << std::endl;

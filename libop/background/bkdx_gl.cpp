@@ -82,7 +82,7 @@ long bkdo::BindEx(HWND hwnd, long render_type) {
 			if (injected) {
 				setlog("before MakeRemoteFunction");
 				using my_func_t = long(__stdcall*)(HWND, int);
-				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetXHook");
+				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetDisplayHook");
 				if (pSetXHook) {
 					//setlog("after MakeRemoteFunction");
 					auto cret = pSetXHook(hwnd, render_type);
@@ -145,7 +145,7 @@ long bkdo::UnBindEx() {
 		}
 		//setlog(L"bkdo::dllname=%s",dllname);
 		using my_func_t = long(__stdcall*)(void);
-		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
+		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "ReleaseDisplayHook");
 		if (pUnXHook) {
 			//setlog(L"bkdo::pUnXHook");
 			pUnXHook();
@@ -212,7 +212,7 @@ long bkdo::BindNox(HWND hwnd, long render_type) {
 		}
 		if (injected) {
 			using my_func_t = long(__stdcall*)(HWND, int);
-			auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetXHook");
+			auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetDisplayHook");
 			if (pSetXHook) {
 				auto cret = pSetXHook(hwnd, render_type);
 				bind_ret = cret.result();
@@ -250,7 +250,7 @@ long bkdo::UnBindNox() {
 	if (NT_SUCCESS(hr)) {
 
 		using my_func_t = long(__stdcall*)(void);
-		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "UnXHook");
+		auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "ReleaseDisplayHook");
 		if (pUnXHook) {
 			pUnXHook();
 

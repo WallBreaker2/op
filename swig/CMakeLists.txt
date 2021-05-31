@@ -21,7 +21,7 @@ set_target_properties(opEx PROPERTIES PREFIX "_")
 set_target_properties(opEx PROPERTIES SUFFIX ".pyd")
 
 
-target_link_libraries(opEx libop)
+target_link_libraries(opEx op_x86)
 target_link_libraries(opEx python36.lib)
 
 IF(CMAKE_CL_64)

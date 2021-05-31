@@ -1,30 +1,30 @@
-#include "xhook.h"
+#include "DisplayHook.h"
 #include <d3d11.h>
 //#include <D3DX11.h>
 #include <d3d10.h>
 //#include <d3dx10.h>
 #include <d3d9.h>
-#include "./include/sharedmem.h"
-#include "./include/promutex.h"
+#include "../../include/sharedmem.h"
+#include "../../include/promutex.h"
 #include <exception>
+#include <ddraw.h>
 
-
-#include "3rd_party/include/kiero.h"
+#include "../../../3rd_party/include/kiero.h"
 #include <gl\gl.h>
 #include <gl\glu.h>
-#include "./core/globalVar.h"
-#include "./core/helpfunc.h"
-#include "./core/opEnv.h"
-#include "./winapi/query_api.h"
+#include "../../core/globalVar.h"
+#include "../../core/helpfunc.h"
+#include "../../core/opEnv.h"
+#include "../../winapi/query_api.h"
 #include <wingdi.h>
 #include <atlbase.h>
-#include "frameInfo.h"
+#include "../frameInfo.h"
 #define DEBUG_HOOK 0
-HWND xhook::render_hwnd = NULL;
-int xhook::render_type = 0;
-wchar_t xhook::shared_res_name[256];
-wchar_t xhook::mutex_name[256];
-void* xhook::old_address;
+HWND DisplayHook::render_hwnd = NULL;
+int DisplayHook::render_type = 0;
+wchar_t DisplayHook::shared_res_name[256];
+wchar_t DisplayHook::mutex_name[256];
+void* DisplayHook::old_address;
 
 static int is_capture;
 
@@ -45,10 +45,10 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface);
 //glfinish
 void __stdcall gl_hkglFinish(void);
 
-int xhook::setup(HWND hwnd_, int render_type_) {
-	xhook::render_hwnd = hwnd_;
-	wsprintf(xhook::shared_res_name, SHARED_RES_NAME_FORMAT, hwnd_);
-	wsprintf(xhook::mutex_name, MUTEX_NAME_FORMAT, hwnd_);
+int DisplayHook::setup(HWND hwnd_, int render_type_) {
+	DisplayHook::render_hwnd = hwnd_;
+	wsprintf(DisplayHook::shared_res_name, SHARED_RES_NAME_FORMAT, hwnd_);
+	wsprintf(DisplayHook::mutex_name, MUTEX_NAME_FORMAT, hwnd_);
 
 	int idx = 0;
 	void* address = nullptr;
@@ -91,7 +91,7 @@ int xhook::setup(HWND hwnd_, int render_type_) {
 	return is_capture;
 }
 
-int xhook::release() {
+int DisplayHook::release() {
 	is_capture = 0;
 	int ret = kiero::unbind();
 	return 1;
@@ -229,10 +229,10 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	// 取像素
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,xhook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
+		formatFrameInfo(pshare,DisplayHook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
 		memcpy(pshare + sizeof(FrameInfo), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
 		mutex.unlock();
 	}
@@ -244,7 +244,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 HRESULT STDMETHODCALLTYPE dx9_hkEndScene(IDirect3DDevice9* thiz)
 {
 	typedef long(__stdcall* EndScene)(LPDIRECT3DDEVICE9);
-	auto ret = ((EndScene)xhook::old_address)(thiz);
+	auto ret = ((EndScene)DisplayHook::old_address)(thiz);
 	if (is_capture)
 		dx9_capture(thiz);
 
@@ -329,12 +329,12 @@ void dx10_capture(IDXGISwapChain* pswapchain) {
 
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 
 		mutex.lock();
 		//memcpy(mem.data<char>(), mapText.pData, textDesc.Width*textDesc.Height * 4);
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,xhook::render_hwnd, textDesc.Width, textDesc.Height);
+		formatFrameInfo(pshare,DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
 		CopyImageData((char*)pshare+ sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, mapText.RowPitch, fmt);
 		mutex.unlock();
 	}
@@ -357,7 +357,7 @@ HRESULT STDMETHODCALLTYPE dx10_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval
 	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
 	if (is_capture)
 		dx10_capture(thiz);
-	return ((Present_t)xhook::old_address)(thiz, SyncInterval, Flags);
+	return ((Present_t)DisplayHook::old_address)(thiz, SyncInterval, Flags);
 	//thiz.
 }
 //------------------------------------------------------------
@@ -452,10 +452,10 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	sharedmem mem;
 	promutex mutex;
 	static int cnt = 10;
-	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare, xhook::render_hwnd, textDesc.Width, textDesc.Height);
+		formatFrameInfo(pshare, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
 		//CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
 		static_assert(sizeof(FrameInfo) == 28);
  
@@ -496,7 +496,7 @@ HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT F
 	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
 	if (is_capture)
 		dx11_capture(thiz);
-	return ((Present_t)xhook::old_address)(thiz, SyncInterval, Flags);
+	return ((Present_t)DisplayHook::old_address)(thiz, SyncInterval, Flags);
 }
 //------------------------------------------------------------
 
@@ -521,7 +521,7 @@ long gl_capture() {
 		return 0;
 	}
 	RECT rc;
-	::GetClientRect(xhook::render_hwnd, &rc);
+	::GetClientRect(DisplayHook::render_hwnd, &rc);
 	int width = rc.right - rc.left, height = rc.bottom - rc.top;
 
 	pglPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -530,10 +530,10 @@ long gl_capture() {
 
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,xhook::render_hwnd, width, height);
+		formatFrameInfo(pshare,DisplayHook::render_hwnd, width, height);
 		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare+ sizeof(FrameInfo));
 		mutex.unlock();
 	}
@@ -555,14 +555,14 @@ void __stdcall gl_hkglBegin(GLenum mode) {
 
 	if (is_capture)
 		gl_capture();
-	((glBegin_t)xhook::old_address)(mode);
+	((glBegin_t)DisplayHook::old_address)(mode);
 }
 
 void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
 	using wglSwapBuffers_t = void(__stdcall*) (HDC hdc);
 	if (is_capture)
 		gl_capture();
-	((wglSwapBuffers_t)xhook::old_address)(hdc);
+	((wglSwapBuffers_t)DisplayHook::old_address)(hdc);
 }
 
 
@@ -587,7 +587,7 @@ long egl_capture() {
 		return 0;
 	}
 	RECT rc;
-	::GetClientRect(xhook::render_hwnd, &rc);
+	::GetClientRect(DisplayHook::render_hwnd, &rc);
 	int width = rc.right - rc.left, height = rc.bottom - rc.top;
 
 	pglPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -596,10 +596,10 @@ long egl_capture() {
 
 	sharedmem mem;
 	promutex mutex;
-	if (mem.open(xhook::shared_res_name) && mutex.open(xhook::mutex_name)) {
+	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,xhook::render_hwnd, width, height);
+		formatFrameInfo(pshare,DisplayHook::render_hwnd, width, height);
 		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
 		//pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
 		mutex.unlock();
@@ -619,7 +619,7 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void* dpy, void* surface) {
 	using eglSwapBuffers_t = decltype(gl_hkeglSwapBuffers)*;
 	if (is_capture)
 		egl_capture();
-	return ((eglSwapBuffers_t)xhook::old_address)(dpy, surface);
+	return ((eglSwapBuffers_t)DisplayHook::old_address)(dpy, surface);
 	
 }
 
@@ -628,19 +628,19 @@ void __stdcall gl_hkglFinish(void) {
 	using glFinish_t = decltype(glFinish)*;
 	if (is_capture)
 		gl_capture();
-	((glFinish_t)xhook::old_address)();
+	((glFinish_t)DisplayHook::old_address)();
 }
 
 
 bool is_hooked = false;
 //--------------export function--------------------------
-long __stdcall SetXHook(HWND hwnd_, int render_type_) {
+long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
 	opEnv::m_showErrorMsg = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
 	if (is_hooked) {
 		is_capture = 1;
 		return 2;
 	}
-	int ret = xhook::setup(hwnd_, render_type_);
+	int ret = DisplayHook::setup(hwnd_, render_type_);
 	if (ret != 1)
 		return ret;
 	//setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
@@ -648,11 +648,11 @@ long __stdcall SetXHook(HWND hwnd_, int render_type_) {
 	return 1;
 }
 
-long __stdcall UnXHook() {
+long __stdcall ReleaseDisplayHook() {
 	if (!is_hooked)
 		return 0;
 	is_hooked = false;
-	int ret = xhook::release();
+	int ret = DisplayHook::release();
 	::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
 	return ret;
 }

@@ -65,8 +65,8 @@ class libop(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, hinst=None):
-        _opEx.libop_swiginit(self, _opEx.new_libop(hinst))
+    def __init__(self):
+        _opEx.libop_swiginit(self, _opEx.new_libop())
     __swig_destroy__ = _opEx.delete_libop
 
     def Ver(self):
@@ -320,6 +320,12 @@ class libop(object):
 
     def FindPicExS(self, x1, y1, x2, y2, files, delta_color, sim, dir):
         return _opEx.libop_FindPicExS(self, x1, y1, x2, y2, files, delta_color, sim, dir)
+
+    def FindColorBlock(self, x1, y1, x2, y2, color, sim, count, height, width):
+        return _opEx.libop_FindColorBlock(self, x1, y1, x2, y2, color, sim, count, height, width)
+
+    def FindColorBlockEx(self, x1, y1, x2, y2, color, sim, count, height, width):
+        return _opEx.libop_FindColorBlockEx(self, x1, y1, x2, y2, color, sim, count, height, width)
 
     def GetColor(self, x, y):
         return _opEx.libop_GetColor(self, x, y)

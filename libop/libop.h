@@ -35,7 +35,6 @@ class OP_API libop{
 	
 public:
 	
-	static void init(void* hinst);
 	libop();
 	~libop();
 	//复制构造

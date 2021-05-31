@@ -1,22 +1,22 @@
-//#pragma once
-#ifndef __DX9HOOK_H_
-#define __DX9HOOK_H_
-#include "./core/globalVar.h"
+#ifndef __INPUT_HOOK_H
+#define __INPUT_HOOK_H
+
+#include "../../core/globalVar.h"
 
 
-namespace xhook {
+namespace InputHook {
 	
 	/*target window hwnd*/
-	extern HWND render_hwnd;
-	extern int render_type;
+	extern HWND input_hwnd;
+	extern int input_type;
 	/*name of ...*/
 	extern wchar_t shared_res_name[256];
 	extern wchar_t mutex_name[256];
 	extern void* old_address;
 	//
-	int setup(HWND hwnd_, int render_type_);
+	int setup(HWND hwnd_, int input_type_);
 	int release();
-
+    int x,y;
 
 };
 //以下函数用于HOOK DX9
@@ -29,7 +29,8 @@ namespace xhook {
 */
 
 //返回值:1 成功，0失败
-DLL_API long __stdcall SetXHook(HWND hwnd_,int render_type_);
+DLL_API long __stdcall SetInputHook(HWND hwnd_, int input_type_);
 
-DLL_API long __stdcall UnXHook();
-#endif // !__DX9HOOK_H_
+DLL_API long __stdcall ReleaseInputHook();
+
+#endif

@@ -8,5 +8,4 @@ EXPORTS
 	DllRegisterServer	PRIVATE
 	DllUnregisterServer	PRIVATE
 	DllInstall		PRIVATE
-	SetXHook	PRIVATE
-	UnXHook	PRIVATE
+
