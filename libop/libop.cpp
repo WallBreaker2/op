@@ -6,7 +6,7 @@
 #include "./core/helpfunc.h"
 #include "./core/opEnv.h"
 #include "./winapi/WinApi.h"
-#include "./background/BKbase.h"
+#include "./background/opBackground.h"
 #include "./ImageProc/ImageProc.h"
 #include "./core/Cmder.h"
 #include "./winapi/Injecter.h"
@@ -25,7 +25,7 @@
 libop::libop()
 {
 	_winapi = new WinApi;
-	_bkproc = new bkbase;
+	_bkproc = new opBackground;
 	_image_proc = new ImageProc;
 
 	//初始化目录

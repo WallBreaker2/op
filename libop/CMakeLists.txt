@@ -33,14 +33,18 @@ AUX_SOURCE_DIRECTORY(src DIR_SRCS)
 
 
 SET(SRC_FILES 
-	"./background/bkbase.cpp" 
-  "./background/bkdx_gl.cpp" 
-  "./background/bkgdi.cpp" 
-  "./background/bkkeypad.cpp" 
-  "./background/bkmouse.cpp" 
-  "./background/dxmouse.cpp" 
-  "./background/IDisplay.cpp" 
-  "./background/winkeypad.cpp" 
+	"./background/opBackground.cpp" 
+
+  "./background/display/opDisplayDxOpengl.cpp" 
+  "./background/display/IDisplay.cpp" 
+  "./background/display/bkgdi.cpp" 
+  
+  "./background/mouse/bkmouse.cpp" 
+  "./background/mouse/dxmouse.cpp" 
+
+  "./background/keypad/bkkeypad.cpp" 
+  "./background/keypad/winkeypad.cpp" 
+  
   "./background/Hook/DisplayHook.cpp"
   "./background/Hook/InputHook.cpp"
   "./background/Hook/HookExport.cpp"
