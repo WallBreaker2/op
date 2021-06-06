@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __FRAME_INFO_H_
 #define __FRAME_INFO_H_
 #pragma pack(1)

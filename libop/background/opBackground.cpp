@@ -2,19 +2,19 @@
 #include <algorithm>
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
-#include "Bkbase.h"
+#include "opBackground.h"
 
-#include "bkgdi.h"
-#include "bkdx_gl.h"
+#include "./display/bkgdi.h"
+#include "./display/opDisplayDxOpengl.h""
 
-#include "winkeypad.h"
-#include "dxmouse.h"
-bkbase::bkbase() : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new bkmouse), _keypad(new winkeypad)
+#include "./keypad/winkeypad.h""
+#include "./mouse/dxmouse.h"
+opBackground::opBackground() : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new bkmouse), _keypad(new winkeypad)
 {
 	_display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
 
-bkbase::~bkbase()
+opBackground::~opBackground()
 {
 	/*_hwnd = NULL;
 	_is_bind = 0;
@@ -30,7 +30,7 @@ bkbase::~bkbase()
 	SAFE_DELETE(_keypad);
 }
 
-long bkbase::BindWindow(long hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad, long mode)
+long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad, long mode)
 {
 	//step 1.避免重复绑定
 	UnBindWindow();
@@ -129,7 +129,7 @@ long bkbase::BindWindow(long hwnd, const wstring &sdisplay, const wstring &smous
 	return 1;
 }
 
-long bkbase::UnBindWindow()
+long opBackground::UnBindWindow()
 {
 	//to do
 	//clear ....
@@ -159,12 +159,12 @@ long bkbase::UnBindWindow()
 	return 1;
 }
 
-long bkbase::GetBindWindow()
+long opBackground::GetBindWindow()
 {
 	return (long)_hwnd;
 }
 
-long bkbase::IsBind()
+long opBackground::IsBind()
 {
 	return _pbkdisplay ? 1 : 0;
 }
@@ -176,7 +176,7 @@ long bkbase::IsBind()
 //	return r;
 //}
 
-long bkbase::GetDisplay()
+long opBackground::GetDisplay()
 {
 	return _display;
 }
@@ -206,7 +206,7 @@ long bkbase::GetDisplay()
 //
 //}
 
-void bkbase::lock_data()
+void opBackground::lock_data()
 {
 	if (_pbkdisplay)
 	{
@@ -216,7 +216,7 @@ void bkbase::lock_data()
 	}
 }
 
-void bkbase::unlock_data()
+void opBackground::unlock_data()
 {
 	if (_pbkdisplay)
 	{
@@ -226,7 +226,7 @@ void bkbase::unlock_data()
 	}
 }
 
-long bkbase::get_height()
+long opBackground::get_height()
 {
 	auto &displayMethod = get_display_method();
 	if (displayMethod.first == L"pic")
@@ -251,7 +251,7 @@ long bkbase::get_height()
 	}
 }
 
-long bkbase::get_width()
+long opBackground::get_width()
 {
 	auto &displayMethod = get_display_method();
 	if (displayMethod.first == L"pic")
@@ -276,7 +276,7 @@ long bkbase::get_width()
 	}
 }
 
-long bkbase::RectConvert(long &x1, long &y1, long &x2, long &y2)
+long opBackground::RectConvert(long &x1, long &y1, long &x2, long &y2)
 {
 
 	/*if (_pbkdisplay && (_display == RENDER_TYPE::NORMAL || _display == RENDER_TYPE::GDI)) {
@@ -309,7 +309,7 @@ long bkbase::RectConvert(long &x1, long &y1, long &x2, long &y2)
 	return 1;
 }
 
-long bkbase::get_image_type()
+long opBackground::get_image_type()
 {
 
 	if (_display_method.first == L"pic")
@@ -337,7 +337,7 @@ long bkbase::get_image_type()
 	}
 }
 
-bool bkbase::check_bind()
+bool opBackground::check_bind()
 {
 	//已绑定
 	if (IsBind())
@@ -360,12 +360,12 @@ bool bkbase::check_bind()
 	return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
 }
 
-const std::pair<wstring, wstring> &bkbase::get_display_method() const
+const std::pair<wstring, wstring> &opBackground::get_display_method() const
 {
 	return _display_method;
 }
 
-long bkbase::set_display_method(const wstring &method)
+long opBackground::set_display_method(const wstring &method)
 {
 	if (method == L"screen")
 	{
@@ -434,7 +434,7 @@ long bkbase::set_display_method(const wstring &method)
 	}
 }
 
-bool bkbase::requestCapture(int x1, int y1, int w, int h, Image &img)
+bool opBackground::requestCapture(int x1, int y1, int w, int h, Image &img)
 {
 	wstring method = get_display_method().first;
 	if (method == L"screen")
@@ -449,7 +449,7 @@ bool bkbase::requestCapture(int x1, int y1, int w, int h, Image &img)
 	return false;
 }
 
-IDisplay *bkbase::createDisplay(int mode)
+IDisplay *opBackground::createDisplay(int mode)
 {
 	IDisplay *pans = 0;
 
@@ -459,16 +459,16 @@ IDisplay *bkbase::createDisplay(int mode)
 	}
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::DX)
 	{
-		pans = new bkdo;
+		pans = new DxOpengl;
 	}
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::OPENGL)
-		pans = new bkdo;
+		pans = new DxOpengl;
 	else
 		pans = 0;
 	return pans;
 }
 
-bkmouse *bkbase::createMouse(int mode)
+bkmouse *opBackground::createMouse(int mode)
 {
 	if (mode == INPUT_TYPE::IN_NORMAL || mode == INPUT_TYPE::IN_WINDOWS)
 		return new bkmouse();
@@ -479,7 +479,7 @@ bkmouse *bkbase::createMouse(int mode)
 	//return 0;
 }
 
-bkkeypad *bkbase::createKeypad(int mode)
+bkkeypad *opBackground::createKeypad(int mode)
 {
 	return new winkeypad();
 	//return 0;

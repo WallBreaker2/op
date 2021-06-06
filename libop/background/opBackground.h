@@ -4,26 +4,21 @@
 #include <string>
 #include "include/Image.hpp"
 
-#include "IDisplay.h"
+#include "./display/IDisplay.h"
 
-#include "Bkmouse.h"
-#include "Bkkeypad.h"
+#include "./mouse/Bkmouse.h"
+#include "./keypad/Bkkeypad.h"
 
 
 using std::wstring;
 
-/*
-后台处理类，包含以下功能:
-1.窗口绑定
-2.后台截图
-3.鼠标键盘操作
-*/
-class bkbase
+
+class opBackground
 {
 public:
 	
-	bkbase();
-	~bkbase();
+	opBackground();
+	~opBackground();
 public:
 	virtual long BindWindow(long hwnd, const wstring& sdisplay, const wstring& smouse, const wstring& skeypad, long mode);
 	virtual long UnBindWindow();
@@ -40,7 +35,7 @@ public:
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
 	//0:normal;-1 reserve 1 need cut
 	long get_image_type();
-	//检查是否绑定或者桌面前台
+	//锟斤拷锟斤拷欠锟襟定伙拷锟斤拷锟斤拷锟斤拷前台
 	bool check_bind();
 	const std::pair<wstring, wstring>& get_display_method()const;
 	long set_display_method(const wstring& method);
