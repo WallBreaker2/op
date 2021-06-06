@@ -25,7 +25,7 @@ int DisplayHook::render_type = 0;
 wchar_t DisplayHook::shared_res_name[256];
 wchar_t DisplayHook::mutex_name[256];
 void* DisplayHook::old_address;
-
+bool DisplayHook::is_hooked = false;
 static int is_capture;
 
 using ATL::CComPtr;
@@ -77,6 +77,11 @@ int DisplayHook::setup(HWND hwnd_, int render_type_) {
 	else if(render_type_==RDT_GL_ES){
 		render_type = kiero::RenderType::OpenglES;
 		idx = 0; address = gl_hkeglSwapBuffers;
+	}
+	else if(render_type_==RDT_GL_FI){
+		render_type = kiero::RenderType::OpenGL;
+		idx = 3; address = gl_hkglFinish;
+
 	}
 	else {
 		render_type = kiero::RenderType::None;
@@ -563,7 +568,12 @@ void __stdcall gl_hkwglSwapBuffers(HDC hdc) {
 	if (is_capture)
 		gl_capture();
 	((wglSwapBuffers_t)DisplayHook::old_address)(hdc);
+	
 }
+
+
+
+
 
 
 //---------------------OPENGL ES------------------------------
@@ -632,28 +642,6 @@ void __stdcall gl_hkglFinish(void) {
 }
 
 
-bool is_hooked = false;
-//--------------export function--------------------------
-long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
-	opEnv::m_showErrorMsg = 2;//this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
-	if (is_hooked) {
-		is_capture = 1;
-		return 2;
-	}
-	int ret = DisplayHook::setup(hwnd_, render_type_);
-	if (ret != 1)
-		return ret;
-	//setlog("in hook,hwnd=%d,bktype=%d", hwnd_, bktype_);
-	is_hooked = true;
-	return 1;
-}
 
-long __stdcall ReleaseDisplayHook() {
-	if (!is_hooked)
-		return 0;
-	is_hooked = false;
-	int ret = DisplayHook::release();
-	::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
-	return ret;
-}
+
 

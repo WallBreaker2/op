@@ -128,7 +128,10 @@ public:
 		m_op->Ocr(0,0,2000,2000,L"000000",1.0,str);
 		std::wcout<<L"ocr:"<<str<<std::endl;
 		op_check(Ocr, str.length()>0)
+		m_op->GetWindowState((long)(::GetDesktopWindow()),2,&lret);
+		op_check(GetWindowState, lret == 1)
 
+		//m_op->FindWindow()
 		BindNox(m_op);
 		BindLDPlayer(m_op);
 		BindMine(m_op);

@@ -884,15 +884,21 @@ void libop::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *
 void libop::GetColor(long x, long y, std::wstring &ret)
 {
 	color_t cr;
-	auto tx = x + 1, ty = y + 1;
+	auto tx = x + 200, ty = y + 20;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty))
 	{
-		if (!_bkproc->requestCapture(x, y, 1, 1, _image_proc->_src))
+		if (_bkproc->requestCapture(x, y, 200, 20, _image_proc->_src))
 		{
-			setlog("error requestCapture");
+			_image_proc->set_offset(x, y);
+			cr = _image_proc->_src.at<color_t>(0, 0);
 		}
-		_image_proc->set_offset(x, y);
-		cr = _image_proc->_src.at<color_t>(0, 0);
+		else {
+			setlog("error requestCapture");
+			
+		}
+	}
+	else {
+		//setlog("")
 	}
 
 	ret = _s2wstring(cr.tostr());
