@@ -5,7 +5,7 @@
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
 #include "../core/opEnv.h"
-#include "./HOOK/opMessage.h"
+#include "../HOOK/opMessage.h"
 dxMouse::dxMouse()
 	: _hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI())
 {

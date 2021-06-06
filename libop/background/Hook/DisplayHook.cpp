@@ -18,7 +18,7 @@
 #include "../../winapi/query_api.h"
 #include <wingdi.h>
 #include <atlbase.h>
-#include "../frameInfo.h"
+#include "../display/frameInfo.h"
 #define DEBUG_HOOK 0
 HWND DisplayHook::render_hwnd = NULL;
 int DisplayHook::render_type = 0;

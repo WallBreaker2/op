@@ -9,7 +9,7 @@
 #include<vector>
 //forward declare
 class WinApi;
-class bkbase;
+class opBackground;
 class ImageProc;
 
 using bytearray = std::vector<unsigned char>;
@@ -47,7 +47,7 @@ private:
 	//1. Windows API
 	WinApi* _winapi;
 	// background module
-	bkbase* _bkproc;
+	opBackground* _bkproc;
 	//image process
 	ImageProc* _image_proc;
 	// work path

@@ -15,7 +15,7 @@ constexpr int get_bit_count(T x) {
 	int s = 0;
 	while (x) {
 		s += x & 1;
-		s >>= 1;
+		x >>= 1;
 	}
 	return s;
 }
