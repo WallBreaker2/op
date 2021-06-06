@@ -38,10 +38,12 @@ SET(SRC_FILES
   "./background/bkgdi.cpp" 
   "./background/bkkeypad.cpp" 
   "./background/bkmouse.cpp" 
+  "./background/dxmouse.cpp" 
   "./background/IDisplay.cpp" 
   "./background/winkeypad.cpp" 
   "./background/Hook/DisplayHook.cpp"
-  "./background/Hook/DisplayHook.cpp"
+  "./background/Hook/InputHook.cpp"
+  "./background/Hook/HookExport.cpp"
 
  
 "./core/globalVar.cpp"

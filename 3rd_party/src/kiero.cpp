@@ -550,7 +550,7 @@ kiero::Status::Enum kiero::init(int _renderType)
 			}
 
 			const char* const methodsNames[] = {
-				"glBegin","glEnd","wglSwapBuffers"
+				"glBegin","glEnd","wglSwapBuffers","glFinish"
 			};
 
 			const size_t size = KIERO_ARRAY_SIZE(methodsNames);

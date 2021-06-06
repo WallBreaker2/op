@@ -75,7 +75,11 @@ void  test_unique(){
 }
 
 int test_com() {
+#ifdef _WIN64
+	HMODULE hdll = LoadLibraryA("op_x64.dll");
+#else
 	HMODULE hdll = LoadLibraryA("op_x86.dll");
+#endif
 	if (!hdll) {
 		printf("LoadLibraryA false!\n");
 		return -1;
@@ -101,6 +105,11 @@ int test_com() {
 	}
 	
 	std::cout << "ok\n";
+	long hwnd = 0;
+	op->GetPointWindow(100, 100, &hwnd);
+	long ret = 0;
+	op->GetWindowState(hwnd, 2, &ret);
+	std::cout << "----ret----:" << ret << std::endl;
 	return 0;
 }
 

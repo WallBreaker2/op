@@ -8,4 +8,8 @@ EXPORTS
 	DllRegisterServer	PRIVATE
 	DllUnregisterServer	PRIVATE
 	DllInstall		PRIVATE
+	SetDisplayHook	PRIVATE
+	ReleaseDisplayHook	PRIVATE
+	SetInputHook	PRIVATE
+	ReleaseInputHook	PRIVATE
 

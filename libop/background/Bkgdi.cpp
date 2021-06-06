@@ -234,6 +234,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 
 		RECT rc;
 		::GetWindowRect(_hwnd, &rc);
+		//setlog("rect left =%d top =%d, dx =%d, dy = %d", rc.left, rc.top, dx_, dy_);
 		int src_x = x1 + rc.left + dx_;
 		int src_y = y1 + rc.top + dy_;
 		if (BitBlt(_hmdc, 0, 0, w, h, _hdc, src_x, src_y, SRCCOPY)) {

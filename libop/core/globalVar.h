@@ -2,37 +2,45 @@
 #ifndef __GLOBALVAR_H_
 #define __GLOBALVAR_H_
 #include "optype.h"
-#define SAFE_CLOSE(h)if(h) CloseHandle(h);h=NULL;
-template<class Type>
-void SAFE_DELETE(Type* &ptr) {
-	delete ptr; 
+#define SAFE_CLOSE(h)   \
+	if (h)              \
+		CloseHandle(h); \
+	h = NULL;
+template <class Type>
+void SAFE_DELETE(Type *&ptr)
+{
+	delete ptr;
 	ptr = nullptr;
 }
 
-#define SAFE_DELETE_ARRAY(ptr) if(ptr)delete[] ptr;ptr=nullptr
+#define SAFE_DELETE_ARRAY(ptr) \
+	if (ptr)                   \
+		delete[] ptr;          \
+	ptr = nullptr
 
-#define SAFE_RELEASE(obj) if(obj) obj->Release();obj=nullptr
-
+#define SAFE_RELEASE(obj) \
+	if (obj)              \
+		obj->Release();   \
+	obj = nullptr
 
 //#define _sto_wstring(s) boost::locale::conv::to_utf<wchar_t>(s, "GBK")
 //#define _wsto_string(s)  boost::locale::conv::from_utf(s,"GBK")
 
-
-
 #define DLL_API extern "C" _declspec(dllexport)
 //normal windows,gdi;,dx;opengl;
-enum RENDER_TYPE {
+enum RENDER_TYPE
+{
 	NORMAL = 0,
-	GDI=1,
+	GDI = 1,
 	DX = 2,
 	OPENGL = 3
 };
 
-#define MAKE_RENDER(type,flag) ((type<<16)|flag)
+#define MAKE_RENDER(type, flag) ((type << 16) | flag)
 
-#define GET_RENDER_TYPE(t) (t>>16)
+#define GET_RENDER_TYPE(t) (t >> 16)
 
-#define GET_RENDER_FLAG(t) (t&0xffff)
+#define GET_RENDER_FLAG(t) (t & 0xffff)
 
 constexpr int RDT_NORMAL = MAKE_RENDER(NORMAL, 0);
 constexpr int RDT_GDI = MAKE_RENDER(GDI, 0);
@@ -46,11 +54,13 @@ constexpr int RDT_GL_DEFAULT = MAKE_RENDER(OPENGL, 0);
 constexpr int RDT_GL_STD = MAKE_RENDER(OPENGL, 1);
 constexpr int RDT_GL_NOX = MAKE_RENDER(OPENGL, 2);
 constexpr int RDT_GL_ES = MAKE_RENDER(OPENGL, 3);
-constexpr int RDT_GL_FI = MAKE_RENDER(OPENGL, 4);//glFinish
+constexpr int RDT_GL_FI = MAKE_RENDER(OPENGL, 4); //glFinish
 
-enum INPUT_TYPE {
+enum INPUT_TYPE
+{
 	IN_NORMAL = 0,
-	IN_WINDOWS=1
+	IN_WINDOWS = 1,
+	IN_DX = 2
 };
 //define Image byte format
 constexpr int IBF_R8G8B8A8 = 0;
@@ -63,7 +73,6 @@ constexpr int IBF_R8G8B8 = 2;
 constexpr auto SHARED_RES_NAME_FORMAT = L"op_mutex_%d";
 constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
-
 #ifndef _M_X64
 #define OP64 0
 #else
@@ -72,9 +81,9 @@ constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
 #define _TOSTRING(x) #x
 
-#define MAKE_OP_VERSION(a,b,c,d) _TOSTRING(a##.##b##.##c##.##d)
+#define MAKE_OP_VERSION(a, b, c, d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0,4,0,0)
+#define OP_VERSION MAKE_OP_VERSION(0, 4, 0, 0)
 //模块句柄
 //extern HINSTANCE gInstance;
 //是否显示错误信息
