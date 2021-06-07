@@ -13,16 +13,16 @@
 #endif
 
 std::wstring _s2wstring(const std::string&s) {
-	std::string strLocale = setlocale(LC_ALL, "");
-	const char* chSrc = s.c_str();
-	size_t nDestSize = mbstowcs(NULL, chSrc, 0) + 1;
-	wchar_t* wchDest = new wchar_t[nDestSize];
-	wmemset(wchDest, 0, nDestSize);
-	mbstowcs(wchDest, chSrc, nDestSize);
-	std::wstring wstrResult = wchDest;
-	delete[]wchDest;
-	setlocale(LC_ALL, strLocale.c_str());
-	return wstrResult;
+	size_t nlen = s.length();
+
+	wchar_t* m_char;
+	int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), nlen, NULL, 0);
+	m_char = new wchar_t[len + 1];
+	MultiByteToWideChar(CP_ACP, 0, s.data(), nlen, m_char, len);
+	m_char[len] = '\0';
+	std::wstring ws(m_char);
+	delete[] m_char;
+	return ws;
 }
 
 std::string _ws2string(const std::wstring&ws) {

@@ -38,7 +38,7 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		_hdc = ::GetDC(::GetDesktopWindow());
 	}
 	else {//client size
-		RECT rc,rc2;
+		RECT rc, rc2;
 		::GetWindowRect(_hwnd, &rc);
 		::GetClientRect(hwnd, &rc2);
 		_width = rc2.right - rc2.left;
@@ -51,7 +51,7 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		if (_render_type == RDT_GDI) {
 			_hdc = ::GetDC(_hwnd);
 		}
-		else if (RDT_GDI_DX2 == render_type ) {
+		else if (RDT_GDI_DX2 == render_type) {
 			_hdc = ::GetDC(_hwnd);
 			_device_caps = GetDeviceCaps(_hdc, BITSPIXEL);
 		}
@@ -206,7 +206,7 @@ long bkgdi::UnBindEx() {
 //
 //}
 
-bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
+bool bkgdi::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	//step 1.判断 窗口是否存在
 	if (!::IsWindow(_hwnd))
 		return 0;
@@ -248,17 +248,18 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
-		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h,pshare+sizeof(FrameInfo), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)h, pshare + sizeof(FrameInfo), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 
 		//_pmutex->unlock();
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
 		//将数据拷贝到目标注意实际数据是反的
-		
+
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i) * 4 * w, 4 * w);
 		}
-	}else if (RDT_GDI_DX2 == _render_type){
+	}
+	else if (RDT_GDI_DX2 == _render_type) {
 		ATL::CImage image;
 		image.Create(w, h, _device_caps);
 		BitBlt(
@@ -309,12 +310,12 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 		//_pmutex->lock();
 		uchar* pshare = _shmem->data<byte>();
 		fmtFrameInfo(pshare, _hwnd, w, h);
-		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)wh, pshare+ sizeof(FrameInfo), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
+		GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)wh, pshare + sizeof(FrameInfo), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 
 		if (_hbmpscreen)DeleteObject(_hbmpscreen); _hbmpscreen = NULL;
 
 		//将数据拷贝到目标注意实际数据是反的(注意偏移)
-		auto ppixels = _shmem->data<byte>()+sizeof(FrameInfo);
+		auto ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
 		for (int i = 0; i < h; i++) {
 			memcpy(img.ptr<uchar>(i), ppixels + (wh - 1 - i - y1 - dy_) * 4 * ww + (x1 + dx_) * 4, 4 * w);
 		}
@@ -323,7 +324,7 @@ bool bkgdi::requestCapture(int x1,int y1,int w,int h,Image& img) {
 	return 1;
 
 }
-void bkgdi::fmtFrameInfo(void* dst,HWND hwnd, int w, int h) {
+void bkgdi::fmtFrameInfo(void* dst, HWND hwnd, int w, int h) {
 	m_frameInfo.hwnd = (unsigned __int64)hwnd;
 	m_frameInfo.frameId++;
 	m_frameInfo.time = ::GetTickCount();

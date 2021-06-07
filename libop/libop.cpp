@@ -22,6 +22,8 @@
 #undef SetWindowText
 
 
+const int small_block_size = 10;
+
 libop::libop()
 {
 	_winapi = new WinApi;
@@ -59,8 +61,8 @@ libop::libop()
 	_vkmap[L"f10"] = VK_F10;
 	_vkmap[L"f11"] = VK_F11;
 	_vkmap[L"f12"] = VK_F12;
-	
-	m_opPath =  opEnv::getBasePath();
+
+	m_opPath = opEnv::getBasePath();
 }
 
 libop::~libop()
@@ -708,25 +710,31 @@ void libop::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_name
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
 
-		*ret = _image_proc->Capture(file_name);
+			*ret = _image_proc->Capture(file_name);
+		}
 	}
 }
 //比较指定坐标点(x,y)的颜色
 void libop::CmpColor(long x, long y, const wchar_t *color, DOUBLE sim, long *ret)
 {
 	//LONG rx = -1, ry = -1;
-	long tx = x + 1, ty = y + 1;
+	long tx = x + small_block_size, ty = y + small_block_size;
 	*ret = 0;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty))
 	{
-		if (!_bkproc->requestCapture(x, y, 1, 1, _image_proc->_src))
+		if (!_bkproc->requestCapture(x, y, small_block_size, small_block_size, _image_proc->_src))
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x, y);
-		*ret = _image_proc->CmpColor(x, y, color, sim);
+		else
+		{
+			_image_proc->set_offset(x, y);
+			*ret = _image_proc->CmpColor(x, y, color, sim);
+		}
 	}
 }
 //查找指定区域内的颜色
@@ -742,8 +750,11 @@ void libop::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color, 
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindColor(color, sim, dir, *x, *y);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindColor(color, sim, dir, *x, *y);
+		}
 	}
 }
 //查找指定区域内的所有颜色
@@ -756,8 +767,11 @@ void libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindColoEx(color, sim, dir, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindColoEx(color, sim, dir, str);
+		}
 	}
 	retstr = str;
 }
@@ -774,8 +788,12 @@ void libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *fi
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		*ret = _image_proc->FindMultiColor(first_color, offset_color, sim, dir, *x, *y);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			*ret = _image_proc->FindMultiColor(first_color, offset_color, sim, dir, *x, *y);
+		}
+
 		/*if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc->_pbkdisplay->_client_x;
@@ -793,8 +811,11 @@ void libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, str);
+		}
 	}
 	retstr = str;
 }
@@ -811,8 +832,12 @@ void libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, co
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		*ret = _image_proc->FindPic(files, delta_color, sim, 0, *x, *y);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			*ret = _image_proc->FindPic(files, delta_color, sim, 0, *x, *y);
+		}
+
 		/*if (*ret) {
 			rx += x1; ry += y1;
 			rx -= _bkproc->_pbkdisplay->_client_x;
@@ -831,8 +856,11 @@ void libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, 
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindPicEx(files, delta_color, sim, dir, retstr);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindPicEx(files, delta_color, sim, dir, retstr);
+		}
 	}
 	//retstr = str;
 }
@@ -846,8 +874,11 @@ void libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files,
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindPicEx(files, delta_color, sim, dir, retstr, false);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindPicEx(files, delta_color, sim, dir, retstr, false);
+		}
 	}
 	//retstr = str;
 }
@@ -861,8 +892,11 @@ void libop::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *co
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		*ret = _image_proc->FindColorBlock(color, sim, count, height, width, *x, *y);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			*ret = _image_proc->FindColorBlock(color, sim, count, height, width, *x, *y);
+		}
 	}
 }
 
@@ -875,8 +909,11 @@ void libop::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindColorBlockEx(color, sim, count, height, width, retstr);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindColorBlockEx(color, sim, count, height, width, retstr);
+		}
 	}
 }
 
@@ -884,24 +921,25 @@ void libop::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *
 void libop::GetColor(long x, long y, std::wstring &ret)
 {
 	color_t cr;
-	auto tx = x + 200, ty = y + 20;
+	auto tx = x + small_block_size, ty = y + small_block_size;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty))
 	{
-		if (_bkproc->requestCapture(x, y, 200, 20, _image_proc->_src))
+		if (_bkproc->requestCapture(x, y, small_block_size, small_block_size, _image_proc->_src))
 		{
 			_image_proc->set_offset(x, y);
 			cr = _image_proc->_src.at<color_t>(0, 0);
 		}
-		else {
+		else
+		{
 			setlog("error requestCapture");
-			
 		}
 	}
-	else {
+	else
+	{
 		//setlog("")
 	}
 
-	ret = _s2wstring(cr.tostr());
+	ret = cr.towstr();
 }
 
 void libop::SetDisplayInput(const wchar_t *mode, long *ret)
@@ -935,15 +973,18 @@ void libop::GetScreenData(long x1, long y1, long x2, long y2, void **data, long 
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_screenData.resize(img.size() * 4);
-		//memcpy(_screenData.data(), img.pdata, img.size()*4);
-		for (int i = 0; i < img.height; i++)
+		else
 		{
-			memcpy(_screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			_image_proc->set_offset(x1, y1);
+			_screenData.resize(img.size() * 4);
+			//memcpy(_screenData.data(), img.pdata, img.size()*4);
+			for (int i = 0; i < img.height; i++)
+			{
+				memcpy(_screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			}
+			*data = _screenData.data();
+			*ret = 1;
 		}
-		*data = _screenData.data();
-		*ret = 1;
 	}
 }
 
@@ -957,28 +998,30 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void **data, lo
 		{
 			setlog("rerror requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		auto &img = _image_proc->_src;
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			auto &img = _image_proc->_src;
 
-		BITMAPFILEHEADER bfh = {0}; //bmp file header
-		BITMAPINFOHEADER bih = {0}; //bmp info header
-		const int szBfh = sizeof(BITMAPFILEHEADER);
-		const int szBih = sizeof(BITMAPINFOHEADER);
-		bfh.bfOffBits = szBfh + szBih;
-		bfh.bfSize = bfh.bfOffBits + img.width * img.height * 4;
-		bfh.bfType = static_cast<WORD>(0x4d42);
+			BITMAPFILEHEADER bfh = {0}; //bmp file header
+			BITMAPINFOHEADER bih = {0}; //bmp info header
+			const int szBfh = sizeof(BITMAPFILEHEADER);
+			const int szBih = sizeof(BITMAPINFOHEADER);
+			bfh.bfOffBits = szBfh + szBih;
+			bfh.bfSize = bfh.bfOffBits + img.width * img.height * 4;
+			bfh.bfType = static_cast<WORD>(0x4d42);
 
-		bih.biBitCount = 32; //每个像素字节大小
-		bih.biCompression = BI_RGB;
-		//bih.biHeight = -img.height;//高度 反
-		bih.biHeight = img.height; //高度
-		bih.biPlanes = 1;
-		bih.biSize = sizeof(BITMAPINFOHEADER);
-		bih.biSizeImage = img.width * 4 * img.height; //图像数据大小
-		bih.biWidth = img.width;					  //宽度
+			bih.biBitCount = 32; //每个像素字节大小
+			bih.biCompression = BI_RGB;
+			//bih.biHeight = -img.height;//高度 反
+			bih.biHeight = img.height; //高度
+			bih.biPlanes = 1;
+			bih.biSize = sizeof(BITMAPINFOHEADER);
+			bih.biSizeImage = img.width * 4 * img.height; //图像数据大小
+			bih.biWidth = img.width;					  //宽度
 
-		_screenDataBmp.resize(bfh.bfSize);
-		/*	std::ofstream f;
+			_screenDataBmp.resize(bfh.bfSize);
+			/*	std::ofstream f;
 		f.open("xx.bmp",std::ios::binary);
 		if (f) {
 			f.write((char*)&bfh, sizeof(bfh));
@@ -987,19 +1030,20 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void **data, lo
 		}
 		
 		f.close();*/
-		auto dst = _screenDataBmp.data();
+			auto dst = _screenDataBmp.data();
 
-		memcpy(dst, &bfh, sizeof(bfh));
-		memcpy(dst + sizeof(bfh), &bih, sizeof(bih));
-		dst += sizeof(bfh) + sizeof(bih);
-		for (int i = 0; i < img.height; i++)
-		{
-			memcpy(dst + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			memcpy(dst, &bfh, sizeof(bfh));
+			memcpy(dst + sizeof(bfh), &bih, sizeof(bih));
+			dst += sizeof(bfh) + sizeof(bih);
+			for (int i = 0; i < img.height; i++)
+			{
+				memcpy(dst + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			}
+			//memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
+			*data = _screenDataBmp.data();
+			*size = bfh.bfSize;
+			*ret = 1;
 		}
-		//memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
-		*data = _screenDataBmp.data();
-		*size = bfh.bfSize;
-		*ret = 1;
 	}
 }
 
@@ -1044,10 +1088,17 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr)
 			if (it.status().type() == fs::file_type::regular)
 			{
 				tmp = it.path().filename();
-				if (std::regex_match(tmp, e))
+				try
 				{
-					retstr += tmp;
-					retstr += L"|";
+					if (std::regex_match(tmp, e))
+					{
+						retstr += tmp;
+						retstr += L"|";
+					}
+				}
+				catch (...)
+				{
+					setlog("exception!");
 				}
 			}
 		}
@@ -1083,8 +1134,11 @@ void libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->OCR(color, sim, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->OCR(color, sim, str);
+		}
 	}
 	retstr = str;
 }
@@ -1098,8 +1152,11 @@ void libop::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color, DOUB
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->OcrEx(color, sim, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->OcrEx(color, sim, str);
+		}
 	}
 	retstr = str;
 }
@@ -1114,8 +1171,11 @@ void libop::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, con
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		*ret = _image_proc->FindStr(strs, color, sim, *retx, *rety);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			*ret = _image_proc->FindStr(strs, color, sim, *retx, *rety);
+		}
 	}
 }
 //返回符合color_format的所有坐标位置
@@ -1128,8 +1188,11 @@ void libop::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, c
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindStrEx(strs, color, sim, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindStrEx(strs, color, sim, str);
+		}
 	}
 	retstr = str;
 }
@@ -1143,8 +1206,11 @@ void libop::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstring
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->OcrAuto(sim, str);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->OcrAuto(sim, str);
+		}
 	}
 	retstr = str;
 }
@@ -1172,8 +1238,11 @@ void libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, d
 		{
 			setlog("error requestCapture");
 		}
-		_image_proc->set_offset(x1, y1);
-		_image_proc->FindLine(color, sim, retstr);
+		else
+		{
+			_image_proc->set_offset(x1, y1);
+			_image_proc->FindLine(color, sim, retstr);
+		}
 	}
 }
 
