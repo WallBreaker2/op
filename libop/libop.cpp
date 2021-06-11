@@ -753,14 +753,15 @@ void libop::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color, 
 		else
 		{
 			_image_proc->set_offset(x1, y1);
-			_image_proc->FindColor(color, sim, dir, *x, *y);
+			*ret = _image_proc->FindColor(color, sim, dir, *x, *y);
 		}
 	}
 }
 //查找指定区域内的所有颜色
 void libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE sim, long dir, std::wstring &retstr)
 {
-	wstring str;
+	//wstring str;
+	retstr.clear();
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
 	{
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
@@ -770,10 +771,10 @@ void libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color
 		else
 		{
 			_image_proc->set_offset(x1, y1);
-			_image_proc->FindColoEx(color, sim, dir, str);
+			_image_proc->FindColoEx(color, sim, dir, retstr);
 		}
 	}
-	retstr = str;
+	
 }
 //根据指定的多点查找颜色坐标
 void libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color, DOUBLE sim, long dir, long *x, long *y, long *ret)
@@ -804,7 +805,7 @@ void libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *fi
 //根据指定的多点查找所有颜色坐标
 void libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color, DOUBLE sim, long dir, std::wstring &retstr)
 {
-	wstring str;
+	retstr.clear();
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
 	{
 		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
@@ -814,10 +815,10 @@ void libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *
 		else
 		{
 			_image_proc->set_offset(x1, y1);
-			_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, str);
+			_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, retstr);
 		}
 	}
-	retstr = str;
+	//retstr = str;
 }
 //查找指定区域内的图片
 void libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, DOUBLE sim, long dir, long *x, long *y, long *ret)
