@@ -1,11 +1,11 @@
 #pragma once
 #include "../core/optype.h"
-#include "Bkmouse.h"
-class dxMouse: public bkmouse
+#include "opMouseWin.h"
+class opMouseDx: public opMouseWin
 {
 public:
-	dxMouse();
-	virtual ~dxMouse();
+	opMouseDx();
+	virtual ~opMouseDx();
 
 	virtual long Bind(HWND h,int mode);
 
