@@ -1,7 +1,7 @@
 
 //#include "stdafx.h"
 
-#include "opDisplayDxOpengl.h"
+#include "opDxGL.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
 #include "./core/opEnv.h"
@@ -12,19 +12,19 @@
 #include "./include/Image.hpp"
 
 #include <sstream>
-DxOpengl::DxOpengl() :IDisplay(),m_opPath(opEnv::getBasePath())
+opDxGL::opDxGL() :IDisplay(),m_opPath(opEnv::getBasePath())
 {
 }
 
 
-DxOpengl::~DxOpengl()
+opDxGL::~opDxGL()
 {
 	//do clear
 	UnBindEx();
 }
 
 
-long DxOpengl::BindEx(HWND hwnd, long render_type) {
+long opDxGL::BindEx(HWND hwnd, long render_type) {
 	//setlog("BindEx");
 	_hwnd = hwnd;
 	long bind_ret = 0;
@@ -123,7 +123,7 @@ long DxOpengl::BindEx(HWND hwnd, long render_type) {
 //	return UnBind();
 //}
 
-long DxOpengl::UnBindEx() {
+long opDxGL::UnBindEx() {
 	//setlog("bkdo::UnBindEx()");
 	if (_render_type == RDT_GL_NOX)
 		return UnBindNox();
@@ -167,7 +167,7 @@ long DxOpengl::UnBindEx() {
 	return 1;
 }
 
-long DxOpengl::BindNox(HWND hwnd, long render_type) {
+long opDxGL::BindNox(HWND hwnd, long render_type) {
 	_render_type = render_type;
 	_hwnd = hwnd;
 	RECT rc;
@@ -237,7 +237,7 @@ long DxOpengl::BindNox(HWND hwnd, long render_type) {
 	return bind_ret;
 }
 
-long DxOpengl::UnBindNox() {
+long opDxGL::UnBindNox() {
 
 	//attach 进程
 	blackbone::Process proc;
@@ -272,7 +272,7 @@ long DxOpengl::UnBindNox() {
 
 
 
-bool DxOpengl::requestCapture(int x1, int y1, int w, int h, Image& img) {
+bool opDxGL::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	img.create(w, h);
 	_pmutex->lock();
 	uchar* const ppixels = _shmem->data<byte>() + sizeof(FrameInfo);

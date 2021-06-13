@@ -4,11 +4,11 @@
 
 #include "IDisplay.h"
 struct Image;
-class DxOpengl : public IDisplay
+class opDxGL : public IDisplay
 {
 public:
-	DxOpengl();
-	~DxOpengl();
+	opDxGL();
+	~opDxGL();
 	//1
 	long BindEx(HWND hwnd, long render_type) override;
 

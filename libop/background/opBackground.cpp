@@ -4,12 +4,12 @@
 #include "./core/helpfunc.h"
 #include "opBackground.h"
 
-#include "./display/bkgdi.h"
-#include "./display/opDisplayDxOpengl.h""
+#include "./display/opGDI.h"
+#include "./display/opDxGL.h""
 
 #include "./keypad/winkeypad.h""
-#include "./mouse/dxmouse.h"
-opBackground::opBackground() : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new bkmouse), _keypad(new winkeypad)
+#include "./mouse/opMouseDx.h"
+opBackground::opBackground() : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin), _keypad(new winkeypad)
 {
 	_display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
@@ -153,7 +153,7 @@ long opBackground::UnBindWindow()
 		SAFE_DELETE(_keypad);
 	}
 	//恢复为前台(默认)
-	_bkmouse = new bkmouse;
+	_bkmouse = new opMouseWin;
 	_keypad = new winkeypad;
 
 	return 1;
@@ -455,26 +455,26 @@ IDisplay *opBackground::createDisplay(int mode)
 
 	if (mode == RDT_NORMAL || GET_RENDER_TYPE(mode) == RENDER_TYPE::GDI)
 	{
-		pans = new bkgdi();
+		pans = new opGDI();
 	}
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::DX)
 	{
-		pans = new DxOpengl;
+		pans = new opDxGL;
 	}
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::OPENGL)
-		pans = new DxOpengl;
+		pans = new opDxGL;
 	else
 		pans = 0;
 	return pans;
 }
 
-bkmouse *opBackground::createMouse(int mode)
+opMouseWin *opBackground::createMouse(int mode)
 {
 	if (mode == INPUT_TYPE::IN_NORMAL || mode == INPUT_TYPE::IN_WINDOWS)
-		return new bkmouse();
+		return new opMouseWin();
 	else if (mode == INPUT_TYPE::IN_DX)
 	{
-		return new dxMouse();
+		return new opMouseDx();
 	}
 	//return 0;
 }

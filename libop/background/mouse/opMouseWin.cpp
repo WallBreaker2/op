@@ -1,9 +1,9 @@
 //#include "stdafx.h"
-#include "Bkmouse.h"
+#include "opMouseWin.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
 
-float bkmouse::getDPI() {
+float opMouseWin::getDPI() {
 	HDC hdcScreen;
 	hdcScreen = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
 
@@ -31,29 +31,29 @@ float bkmouse::getDPI() {
 	return dpi;
 }
 
-bkmouse::bkmouse()
+opMouseWin::opMouseWin()
 	:_hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI())
 {
 }
 
 
-bkmouse::~bkmouse()
+opMouseWin::~opMouseWin()
 {
 	_hwnd = NULL;
 }
 
-long bkmouse::Bind(HWND h,int mode) {
+long opMouseWin::Bind(HWND h,int mode) {
 	_hwnd = h;
 	_mode = mode;
 	return 1;
 }
 
-long bkmouse::UnBind() {
+long opMouseWin::UnBind() {
 	_hwnd = 0; _mode = 0;
 	return 1;
 }
 
-long bkmouse::GetCursorPos(long& x, long& y) {
+long opMouseWin::GetCursorPos(long& x, long& y) {
 	BOOL ret = FALSE;
 	POINT pt;
 	ret=::GetCursorPos(&pt);
@@ -64,11 +64,11 @@ long bkmouse::GetCursorPos(long& x, long& y) {
 	return ret;
 }
 
-long bkmouse::MoveR(int rx, int ry) {
+long opMouseWin::MoveR(int rx, int ry) {
 	return MoveTo(_x + rx, _y + ry);
 }
 
-long bkmouse::MoveTo(int x, int y) {
+long opMouseWin::MoveTo(int x, int y) {
 	x = x * _dpi;
 	y = y * _dpi;
 	long ret = 0;
@@ -110,7 +110,7 @@ long bkmouse::MoveTo(int x, int y) {
 	return ret;
 }
 
-long bkmouse::MoveToEx(int x, int y, int w, int h) {
+long opMouseWin::MoveToEx(int x, int y, int w, int h) {
 
 	if (w >= 2 && h >= 2)
 		return MoveTo(x + rand() % w, y + rand() % h);
@@ -118,7 +118,7 @@ long bkmouse::MoveToEx(int x, int y, int w, int h) {
 		return MoveTo(x, y);
 }
 
-long bkmouse::LeftClick() {
+long opMouseWin::LeftClick() {
 	long ret = 0, ret2 = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -151,7 +151,7 @@ long bkmouse::LeftClick() {
 	return ret && ret2 ? 1 : 0;
 }
 
-long bkmouse::LeftDoubleClick() {
+long opMouseWin::LeftDoubleClick() {
 	long r1, r2;
 	r1=LeftClick();
 	::Sleep(1);
@@ -159,7 +159,7 @@ long bkmouse::LeftDoubleClick() {
 	return r1 & r2 ? 1 : 0;
 }
 
-long bkmouse::LeftDown() {
+long opMouseWin::LeftDown() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -179,7 +179,7 @@ long bkmouse::LeftDown() {
 	return ret;
 }
 
-long bkmouse::LeftUp() {
+long opMouseWin::LeftUp() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -200,7 +200,7 @@ long bkmouse::LeftUp() {
 	return ret;
 }
 
-long bkmouse::MiddleClick() {
+long opMouseWin::MiddleClick() {
 	long r1, r2;
 	r1=MiddleDown();
 	::Sleep(1);
@@ -208,7 +208,7 @@ long bkmouse::MiddleClick() {
 	return r1 & r2 ? 1 : 0;
 }
 
-long bkmouse::MiddleDown() {
+long opMouseWin::MiddleDown() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -229,7 +229,7 @@ long bkmouse::MiddleDown() {
 	return ret;
 }
 
-long bkmouse::MiddleUp() {
+long opMouseWin::MiddleUp() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -251,7 +251,7 @@ long bkmouse::MiddleUp() {
 }
 
 
-long bkmouse::RightClick() {
+long opMouseWin::RightClick() {
 	long ret = 0;
 	long r1, r2;
 	switch (_mode) {
@@ -282,7 +282,7 @@ long bkmouse::RightClick() {
 	return ret;
 }
 
-long bkmouse::RightDown() {
+long opMouseWin::RightDown() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -302,7 +302,7 @@ long bkmouse::RightDown() {
 	return ret;
 }
 
-long bkmouse::RightUp() {
+long opMouseWin::RightUp() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -323,7 +323,7 @@ long bkmouse::RightUp() {
 	return ret;
 }
 
-long bkmouse::WheelDown() {
+long opMouseWin::WheelDown() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
@@ -368,7 +368,7 @@ long bkmouse::WheelDown() {
 	return ret;
 }
 
-long bkmouse::WheelUp() {
+long opMouseWin::WheelUp() {
 	long ret = 0;
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {

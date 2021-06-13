@@ -41,6 +41,7 @@ public:
 	long SendStringIme(HWND hwnd, const wstring& str);
 	//2019.3
 	long RunApp(const wstring& cmd, long mode);
+	static HWND GetTopWindowSp(HWND hwnd);
 private:
 	DWORD  FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, const wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);

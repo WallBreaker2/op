@@ -5,11 +5,11 @@
 #include "optype.h"
 #include "IDisplay.h"
 struct Image;
-class bkgdi:public IDisplay
+class opGDI:public IDisplay
 {
 public:
-	bkgdi();
-	~bkgdi();
+	opGDI();
+	~opGDI();
 	//绑定
 	long BindEx(HWND _hwnd, long render_type) override;
 	//long UnBind(HWND hwnd);
