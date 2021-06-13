@@ -1,22 +1,22 @@
 //#include "stdafx.h"
-#include "dxMouse.h"
+#include "opMouseDx.h"
 #include "../core/globalVar.h"
 #include "../core/helpfunc.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
 #include "../core/opEnv.h"
 #include "../HOOK/opMessage.h"
-dxMouse::dxMouse()
+opMouseDx::opMouseDx()
 	: _hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI())
 {
 }
 
-dxMouse::~dxMouse()
+opMouseDx::~opMouseDx()
 {
 	_hwnd = NULL;
 }
 
-long dxMouse::Bind(HWND h, int mode)
+long opMouseDx::Bind(HWND h, int mode)
 {
 	_hwnd = h;
 	_mode = mode;
@@ -93,7 +93,7 @@ long dxMouse::Bind(HWND h, int mode)
 	return 1;
 }
 
-long dxMouse::UnBind()
+long opMouseDx::UnBind()
 {
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
@@ -140,7 +140,7 @@ long dxMouse::UnBind()
 	return 1;
 }
 
-long dxMouse::GetCursorPos(long &x, long &y)
+long opMouseDx::GetCursorPos(long &x, long &y)
 {
 	BOOL ret = FALSE;
 	POINT pt;
@@ -154,12 +154,12 @@ long dxMouse::GetCursorPos(long &x, long &y)
 	return ret;
 }
 
-long dxMouse::MoveR(int rx, int ry)
+long opMouseDx::MoveR(int rx, int ry)
 {
 	return MoveTo(_x + rx, _y + ry);
 }
 
-long dxMouse::MoveTo(int x, int y)
+long opMouseDx::MoveTo(int x, int y)
 {
 	x = x * _dpi;
 	y = y * _dpi;
@@ -170,7 +170,7 @@ long dxMouse::MoveTo(int x, int y)
 	return ret;
 }
 
-long dxMouse::MoveToEx(int x, int y, int w, int h)
+long opMouseDx::MoveToEx(int x, int y, int w, int h)
 {
 
 	if (w >= 2 && h >= 2)
@@ -179,7 +179,7 @@ long dxMouse::MoveToEx(int x, int y, int w, int h)
 		return MoveTo(x, y);
 }
 
-long dxMouse::LeftClick()
+long opMouseDx::LeftClick()
 {
 	long ret = 0, ret2 = 0;
 
@@ -193,7 +193,7 @@ long dxMouse::LeftClick()
 	return ret && ret2 ? 1 : 0;
 }
 
-long dxMouse::LeftDoubleClick()
+long opMouseDx::LeftDoubleClick()
 {
 	long r1, r2;
 	r1 = LeftClick();
@@ -202,7 +202,7 @@ long dxMouse::LeftDoubleClick()
 	return r1 & r2 ? 1 : 0;
 }
 
-long dxMouse::LeftDown()
+long opMouseDx::LeftDown()
 {
 	long ret = 0;
 
@@ -211,7 +211,7 @@ long dxMouse::LeftDown()
 	return ret;
 }
 
-long dxMouse::LeftUp()
+long opMouseDx::LeftUp()
 {
 	long ret = 0;
 
@@ -220,7 +220,7 @@ long dxMouse::LeftUp()
 	return ret;
 }
 
-long dxMouse::MiddleClick()
+long opMouseDx::MiddleClick()
 {
 	long r1, r2;
 	r1 = MiddleDown();
@@ -229,7 +229,7 @@ long dxMouse::MiddleClick()
 	return r1 & r2 ? 1 : 0;
 }
 
-long dxMouse::MiddleDown()
+long opMouseDx::MiddleDown()
 {
 	long ret = 0;
 
@@ -238,7 +238,7 @@ long dxMouse::MiddleDown()
 	return ret;
 }
 
-long dxMouse::MiddleUp()
+long opMouseDx::MiddleUp()
 {
 	long ret = 0;
 
@@ -247,7 +247,7 @@ long dxMouse::MiddleUp()
 	return ret;
 }
 
-long dxMouse::RightClick()
+long opMouseDx::RightClick()
 {
 	long ret = 0;
 	long r1, r2;
@@ -259,7 +259,7 @@ long dxMouse::RightClick()
 	return ret;
 }
 
-long dxMouse::RightDown()
+long opMouseDx::RightDown()
 {
 	long ret = 0;
 
@@ -268,7 +268,7 @@ long dxMouse::RightDown()
 	return ret;
 }
 
-long dxMouse::RightUp()
+long opMouseDx::RightUp()
 {
 	long ret = 0;
 
@@ -277,7 +277,7 @@ long dxMouse::RightUp()
 	return ret;
 }
 
-long dxMouse::WheelDown()
+long opMouseDx::WheelDown()
 {
 	long ret = 0;
 
@@ -301,7 +301,7 @@ long dxMouse::WheelDown()
 	return ret;
 }
 
-long dxMouse::WheelUp()
+long opMouseDx::WheelUp()
 {
 	long ret = 0;
 

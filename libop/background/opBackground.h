@@ -6,7 +6,7 @@
 
 #include "./display/IDisplay.h"
 
-#include "./mouse/Bkmouse.h"
+#include "./mouse/opMouseWin.h"
 #include "./keypad/Bkkeypad.h"
 
 
@@ -50,11 +50,11 @@ private:
 	Image _pic;
 
 	IDisplay* createDisplay(int mode);
-	bkmouse* createMouse(int mode);
+	opMouseWin* createMouse(int mode);
 	bkkeypad* createKeypad(int mode);
 public:
 	IDisplay* _pbkdisplay;
-	bkmouse* _bkmouse;
+	opMouseWin* _bkmouse;
 	bkkeypad* _keypad;
 	wstring _curr_path;
 	

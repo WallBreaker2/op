@@ -1,11 +1,11 @@
 #pragma once
 #include "core/optype.h"
-class bkmouse
+class opMouseWin
 {
 public:
 	static float getDPI();
-	bkmouse();
-	virtual ~bkmouse();
+	opMouseWin();
+	virtual ~opMouseWin();
 
 	virtual long Bind(HWND h,int mode);
 
