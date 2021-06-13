@@ -109,7 +109,8 @@ long ImageProc::FindPic(const std::wstring &files, const wstring &delta_colors, 
 	dfcolor.str2color(delta_colors);
 	//str2colors(delta_colors, vcolor);
 	sim = 0.5 + sim / 2;
-	long ret = ImageBase::FindPic(vpic, dfcolor, sim, x, y);
+	//long ret = ImageBase::FindPic(vpic, dfcolor, sim, x, y);
+	long ret = ImageBase::FindPicTh(vpic, dfcolor, sim, x, y);
 	//清理缓存
 	if (!_enable_cache)
 		_pic_cache.clear();

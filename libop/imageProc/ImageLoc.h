@@ -10,7 +10,7 @@
 #include <string>
 #include "../include/Dict.h"
 #include "../include/color.h"
-
+#include "./compute/ThreadPool.h"
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')
 		return c - L'0';
@@ -95,6 +95,8 @@ public:
 
 	long FindPic(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
 
+	long FindPicTh(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
+
 	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
 
 	long FindColorBlock(double sim, long count, long height, long width, long& x, long& y);
@@ -173,7 +175,7 @@ private:
 	int _x1, _y1;
 	//偏移
 	int _dx, _dy;
-	
+	ThreadPool m_threadPool;
 };
 
 #endif
