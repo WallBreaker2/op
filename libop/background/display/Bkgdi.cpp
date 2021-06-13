@@ -35,7 +35,7 @@ long bkgdi::BindEx(HWND hwnd, long render_type) {
 		::ClientToScreen(hwnd, &pt);
 		dx_ = pt.x - rc.left;
 		dy_ = pt.y - rc.top;
-		_hdc = ::GetDC(::GetDesktopWindow());
+		_hdc = ::GetDC(NULL);
 	}
 	else {//client size
 		RECT rc, rc2;
