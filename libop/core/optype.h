@@ -51,6 +51,8 @@ struct rect_t {
   rect_t& shrinkRect(int w, int h) {
     x2 -= w;
     y2 -= h;
+    x2 += 1;
+    y2 += 1;
     return *this;
   }
   bool valid() const { return 0 <= x1 && x1 < x2 && 0 <= y1 && y1 < y2; }
