@@ -3,15 +3,14 @@
 #
 cmake_minimum_required (VERSION 3.0)
 
-# SET(CMAKE_TOOLCHAIN_FILE "E:/git_pro/vcpkg/scripts/buildsystems/vcpkg.cmake")
-# SET(VCPKG_TARGET_TRIPLET x86-windows-static)
+
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 option(build_swig_py "build swig py,requrie python" OFF)
 option(build_qttool "buid qt tool,requrie qt lib" OFF)
 
 # 编译开关
-set(build_qttool OFF)
+set(build_qttool ON)
 set(build_swig_py OFF)
 # blackbone 源码路径，必须设置！！！
 set(blackbone_include_path "E:/git_pro/Blackbone/src")
