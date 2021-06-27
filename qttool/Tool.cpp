@@ -374,13 +374,24 @@ void Tool::load_dict() {
 }
 
 void Tool::save_dict() {
-	auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("dict(*.dict)"));
-	if (!dir.isEmpty()) {
-		saved = true;
-		QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
-		QByteArray ba = dir.toLocal8Bit();
-		file_dict.write_dict(ba.data());
-	}
+    QString dictfile = ui.editPath->text();
+
+    if (dictfile.isEmpty() == false)
+    {
+        saved = true;
+        QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+        QByteArray ba = dictfile.toLocal8Bit();
+        file_dict.write_dict(ba.data());
+    }
+    else {
+        auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("dict(*.dict)"));
+        if (!dir.isEmpty()) {
+            saved = true;
+            QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+            QByteArray ba = dir.toLocal8Bit();
+            file_dict.write_dict(ba.data());
+        }
+    }
 }
 
 void Tool::add_word() {
@@ -582,31 +593,31 @@ void Tool::capture_full_screen() {
 	_width = rc.right - rc.left;
 	_height = rc.bottom - rc.top;
 	//qDebug() << _width << "," << _height;
-	_hmdc = CreateCompatibleDC(_hdc); //¥¥Ω®“ª∏ˆ”Î÷∏∂®…Ë±∏ºÊ»›µƒƒ⁄¥Ê…Ë±∏…œœ¬Œƒª∑æ≥	
+	_hmdc = CreateCompatibleDC(_hdc); //ÂàõÂª∫‰∏Ä‰∏™‰∏éÊåáÂÆöËÆæÂ§áÂÖºÂÆπÁöÑÂÜÖÂ≠òËÆæÂ§á‰∏ä‰∏ãÊñáÁéØÂ¢É	
 	if (_hmdc == NULL) {
 		//Tool::setlog("CreateCompatibleDC false");
 		//return -2;
 	}
-	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //¥¥Ω®”Î÷∏∂®µƒ…Ë±∏ª∑æ≥œ‡πÿµƒ…Ë±∏ºÊ»›µƒŒªÕº
+	_hbmpscreen = CreateCompatibleBitmap(_hdc, _width, _height); //ÂàõÂª∫‰∏éÊåáÂÆöÁöÑËÆæÂ§áÁéØÂ¢ÉÁõ∏ÂÖ≥ÁöÑËÆæÂ§áÂÖºÂÆπÁöÑ‰ΩçÂõæ
 
-	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //—°‘Ò“ª∂‘œÛµΩ÷∏∂®µƒ…Ë±∏…œœ¬Œƒª∑æ≥÷–
+	_holdbmp = (HBITMAP)SelectObject(_hmdc, _hbmpscreen); //ÈÄâÊã©‰∏ÄÂØπË±°Âà∞ÊåáÂÆöÁöÑËÆæÂ§á‰∏ä‰∏ãÊñáÁéØÂ¢É‰∏≠
 
 
-	GetObject(_hbmpscreen, sizeof(_bm), (LPSTR)&_bm); //µ√µΩ÷∏∂®Õº–Œ∂‘œÛµƒ–≈œ¢	
+	GetObject(_hbmpscreen, sizeof(_bm), (LPSTR)&_bm); //ÂæóÂà∞ÊåáÂÆöÂõæÂΩ¢ÂØπË±°ÁöÑ‰ø°ÊÅØ	
 	//BITMAPINFOHEADER _bih;
-	_bih.biBitCount = _bm.bmBitsPixel;//√ø∏ˆœÒÀÿ◊÷Ω⁄¥Û–°
+	_bih.biBitCount = _bm.bmBitsPixel;//ÊØè‰∏™ÂÉèÁ¥†Â≠óËäÇÂ§ßÂ∞è
 	_bih.biCompression = BI_RGB;
-	_bih.biHeight = _bm.bmHeight;//∏ﬂ∂»
+	_bih.biHeight = _bm.bmHeight;//È´òÂ∫¶
 	_bih.biPlanes = 1;
 	_bih.biSize = sizeof(BITMAPINFOHEADER);
-	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//ÕºœÒ ˝æ›¥Û–°
-	_bih.biWidth = _bm.bmWidth;//øÌ∂»
+	_bih.biSizeImage = _bm.bmWidthBytes * _bm.bmHeight;//ÂõæÂÉèÊï∞ÊçÆÂ§ßÂ∞è
+	_bih.biWidth = _bm.bmWidth;//ÂÆΩÂ∫¶
 	BitBlt(_hmdc, 0, 0, _width, _height, _hdc, 0, 0, SRCCOPY);
 	//if (_pimagedata)
 	//	delete[] _pimagedata;
 	//_pimagedata = new byte[_width*_height * 4];
 	_imagedata.reserve(_width * _height * 4);
-	//∫Ø ˝ªÒ»°÷∏∂®ºÊ»›ŒªÕºµƒŒª£¨»ª∫ÛΩ´∆‰◊˜“ª∏ˆDIB°™…Ë±∏ŒﬁπÿŒªÕº£®Device-Independent Bitmap£© π”√µƒ÷∏∂®∏Ò Ω∏¥÷∆µΩ“ª∏ˆª∫≥Â«¯÷–
+	//ÂáΩÊï∞Ëé∑ÂèñÊåáÂÆöÂÖºÂÆπ‰ΩçÂõæÁöÑ‰ΩçÔºåÁÑ∂ÂêéÂ∞ÜÂÖ∂‰Ωú‰∏Ä‰∏™DIB‚ÄîËÆæÂ§áÊó†ÂÖ≥‰ΩçÂõæÔºàDevice-Independent BitmapÔºâ‰ΩøÁî®ÁöÑÊåáÂÆöÊ†ºÂºèÂ§çÂà∂Âà∞‰∏Ä‰∏™ÁºìÂÜ≤Âå∫‰∏≠
 	GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)_height, (LPBYTE)_imagedata.data(), (LPBITMAPINFO)&_bih, (DWORD)DIB_RGB_COLORS);
 
 }
@@ -632,7 +643,7 @@ void Tool::to_mat() {
 	int y1 = _cap_dlg.srect.top();
 	for (int i = 0; i < ch; ++i) {
 		p = _imgloc._src.ptr<uchar>(i);
-		p2 = _imagedata.data() + (_height - i - 1 - y1) * _width * 4 + x1 * 4;//∆´“∆
+		p2 = _imagedata.data() + (_height - i - 1 - y1) * _width * 4 + x1 * 4;//ÂÅèÁßª
 		for (int j = 0; j < cw; ++j) {
 			*p++ = *p2++; *p++ = *p2++;
 			*p++ = *p2++; *p++ = *p2++;
