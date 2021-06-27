@@ -80,7 +80,7 @@ long opDxGL::BindEx(HWND hwnd, long render_type) {
 
 			}
 			if (injected) {
-				setlog("before MakeRemoteFunction");
+				//setlog("before MakeRemoteFunction");
 				using my_func_t = long(__stdcall*)(HWND, int);
 				auto pSetXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetDisplayHook");
 				if (pSetXHook) {

@@ -261,6 +261,10 @@ struct ImageBin {
 		return pixels.data() + y * width;
 	}
 
+	unsigned char const* ptr(int y) const{
+		return pixels.data() + y * width;
+	}
+
 	void fromImage4(const Image& img4) {
 		create(img4.width, img4.height);
 		auto psrc = img4.pdata;

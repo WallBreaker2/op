@@ -5,6 +5,8 @@ ADD_DEFINITIONS(-D UNICODE)
 
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
 
+#include_directories("E:/git_pro/vcpkg/installed/x86-windows/include")
+
 SET(SRC_FILES "main.cpp"
 "../libop/com/op_i.c")
 
@@ -15,7 +17,7 @@ include_directories(
 ) 
 
 
-add_executable(tests ${SRC_FILES})
+add_executable(tests ${SRC_FILES} )
 
 
 target_link_libraries(tests ${op_com})

@@ -14,6 +14,10 @@ long __stdcall SetDisplayHook(HWND hwnd_, int render_type_)
       DisplayHook::is_hooked = ret == 1;
       refCount += DisplayHook::is_hooked;
     }
+    else {
+        //setlog("warning: ")
+        ret = 1;
+    }
     return ret;
 }
 

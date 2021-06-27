@@ -99,6 +99,8 @@ public:
 
 	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
 
+	long FindPicExTh(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
+
 	long FindColorBlock(double sim, long count, long height, long width, long& x, long& y);
 
 	long FindColorBlockEx(double sim, long count, long height, long width, std::wstring& retstr);

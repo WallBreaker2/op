@@ -57,8 +57,8 @@ long opGDI::BindEx(HWND hwnd, long render_type) {
         dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
       } else {
         dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
-        SetPropA(topHwnd, "dmstyle", (HANDLE)dwExStyle);
-        SetPropA(topHwnd, "dmstyle_flag", (HANDLE)HANDLE_FLAG_INHERIT);
+        SetPropA(topHwnd, "opstyle", (HANDLE)dwExStyle);
+        SetPropA(topHwnd, "opstyle_flag", (HANDLE)HANDLE_FLAG_INHERIT);
       }
       // dmIsWindowTransParent((int)InfoStruct, (int)topHwnd, (int)&v44,
       // (int)&v42, (int)&v45);
@@ -106,11 +106,6 @@ long opGDI::BindEx(HWND hwnd, long render_type) {
   // updata_screen();
   return 1;
 }
-
-// long bkgdi::UnBind(HWND hwnd) {
-//	_hwnd = hwnd;
-//	return UnBind();
-//}
 
 long opGDI::UnBindEx() {
   // setlog("bkgdi::UnBindEx()");
