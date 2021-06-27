@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>op_test</string>
+   <string>optool-0.4.0</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>

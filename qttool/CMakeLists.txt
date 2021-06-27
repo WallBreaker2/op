@@ -25,8 +25,8 @@ set(CMAKE_CXX_STANDARD 17)
  #FILE(GLOB_RECURSE HEADER_FILES "*.h")
  #QT5_WRAP_CPP(MOC_FILES ${HEADER_FILES})
  #message(MOC_FILES: ${MOC_FILES})
-
-
+ include_directories("E:/git_pro/vcpkg/installed/x86-windows/include")
+link_directories("E:/git_pro/vcpkg/installed/x86-windows/lib")
 SET(SRC_FILES 
 
 "BindWidget.cpp"
@@ -63,7 +63,7 @@ Set_Target_Properties(qttool PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /
 
 #target_link_libraries(qttool PRIVATE Qt5::Widgets)
 target_link_libraries(qttool ScintillaEdit4.lib)
-
+target_link_libraries(qttool lua)
 qt5_use_modules(qttool Core Widgets  Gui)
 
 IF(CMAKE_CL_64)

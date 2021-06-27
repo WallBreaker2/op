@@ -15,7 +15,7 @@
 #include <chrono>
 #include <filesystem>
 
-#include "../libop/com/op_i.h"
+#include "../include/op.h"
 #include "../libop/imageProc/compute/ThreadPool.h"
 #include "test.h"
 #include "../libop/core/optype.h"

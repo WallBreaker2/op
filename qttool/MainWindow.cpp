@@ -12,17 +12,8 @@
 #include <qdesktopservices.h>
 #include "Tool.h"
 #include "BindWidget.h"
-//#pragma comment(lib,"FreeCom.lib")
-//#define SC_MARKNUM_FOLDEREND 25  //�۵�״̬���༶�м䣩
-//#define SC_MARKNUM_FOLDEROPENMID 26  //չ��״̬���༶�м䣩
-//#define SC_MARKNUM_FOLDERMIDTAIL 27  //���۵������β�����༶�м䣩
-//#define SC_MARKNUM_FOLDERTAIL 28  //���۵������β��
-//#define SC_MARKNUM_FOLDERSUB 29   //���۵��Ĵ����
-//#define SC_MARKNUM_FOLDER 30     //�۵�״̬
-//#define SC_MARKNUM_FOLDEROPEN 31 //չ��״̬
-//
-//#define SC_MASK_FOLDERS 0xFE000000
-//extern "C" int setupA(const char* path);
+#define URL_DOC "https://gitee.com/wallbreaker2/op/wikis/"
+#define URL_UPDATE "https://gitee.com/wallbreaker2/op/releases"
 using std::string;
 QTextEdit* g_edit;
 QComboBox* g_combox[4];
@@ -688,7 +679,7 @@ void MainWindow::on_item_clickd(QTreeWidgetItem* item, int col) {
 }
 
 void MainWindow::on_actiondocument_triggered() {
-	QDesktopServices::openUrl(QUrl("https://github.com/WallBreaker2/op/tree/master/doc"));
+	QDesktopServices::openUrl(QUrl(URL_DOC));
 }
 
 void MainWindow::on_pushButton_5_clicked() {
@@ -696,8 +687,8 @@ void MainWindow::on_pushButton_5_clicked() {
 }
 
 void MainWindow::on_actionabout_triggered() {
-	QMessageBox::about(this, "about", "op-tool v0.3.9\nAutohr:DeepFire\nEmail:784942619@qq.com\nBuild:2020-09-02\n");
+	QMessageBox::about(this, "about", "op-tool v0.4.0\nAutohr:DeepFire\nEmail:784942619@qq.com\nBuild:2020-09-02\n");
 }
 void MainWindow::on_actionupdate_triggered() {
-	QDesktopServices::openUrl(QUrl("https://github.com/WallBreaker2/op/releases"));
+	QDesktopServices::openUrl(QUrl(URL_UPDATE));
 }
