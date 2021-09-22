@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <string>
+#include "../core/globalVar.h"
 // OpInterface
 using std::wstring;
 
