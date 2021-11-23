@@ -3,7 +3,10 @@
 #
 cmake_minimum_required (VERSION 3.0)
 
-
+if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
+    message("=====================VCPKG================")
+    message($ENV{VCPKG_ROOT})
+endif()
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 option(build_swig_py "build swig py,requrie python" OFF)
