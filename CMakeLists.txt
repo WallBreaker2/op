@@ -12,12 +12,21 @@ option(build_qttool "buid qt tool,requrie qt lib" OFF)
 # 编译开关
 set(build_qttool ON)
 set(build_swig_py OFF)
-# blackbone 源码路径，必须设置！！！
-set(blackbone_include_path "E:/git_pro/Blackbone/src")
-# blackbone 32位静态库路径，必须设置！！！
-set(blackbone_lib32_path "E:/git_pro/Blackbone/build/Win32/Release")
-# blackbone 64位静态库路径，必须设置！！！
-set(blackbone_lib64_path "E:/git_pro/Blackbone/build/X64/Release")
+
+if(NOT blackbone_include_path)
+    # blackbone 源码路径，必须设置！！！
+    set(blackbone_include_path "E:/git_pro/Blackbone/src")
+endif()
+
+if(NOT blackbone_lib32_path)
+    # blackbone 32位静态库路径，必须设置！！！
+    set(blackbone_lib32_path "E:/git_pro/Blackbone/build/Win32/Release")
+endif()
+
+if(NOT blackbone_lib64_path)
+    # blackbone 64位静态库路径，必须设置！！！
+    set(blackbone_lib64_path "E:/git_pro/Blackbone/build/X64/Release")
+endif()
 
 # 检查头文件是否设置正确
 if(EXISTS ${blackbone_include_path}/BlackBone/Process/Process.h)
