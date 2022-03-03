@@ -181,16 +181,16 @@ int sethook() {
 }
 
 // 这是导出变量的一个示例
-EASYCOM_API int nEasyCom = 0;
+//EASYCOM_API int nEasyCom = 0;
 
 // 这是导出函数的一个示例。
-EASYCOM_API int __stdcall setupA(const char* path)
+int  setupA(const char* path)
 {
-	std::ifstream fin(path);
-	
-	if (!fin) {
-		return 0;//file not exist
-	}
+	//std::ifstream fin(path);
+	//
+	//if (!fin) {
+	//	return 0;//file not exist
+	//}
 	strcpy(dllpathA, path);
 	wchar_t* m_wchar;
 	int nlen = strlen(dllpathA);
@@ -207,12 +207,12 @@ EASYCOM_API int __stdcall setupA(const char* path)
 
 }
 
-EASYCOM_API int __stdcall setupW(const wchar_t* path) {
-	std::ifstream fin(path);
+int  setupW(const wchar_t* path) {
+	//std::ifstream fin(path);
 
-	if (!fin) {
-		return 0;//file not exist
-	}
+	//if (!fin) {
+	//	return 0;//file not exist
+	//}
 	int nlen = wcslen(path);
 	wcscpy(dllpathW, path);
 	char* m_char;

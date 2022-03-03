@@ -476,7 +476,7 @@ opMouseWin *opBackground::createMouse(int mode)
 	{
 		return new opMouseDx();
 	}
-	//return 0;
+	return nullptr;
 }
 
 bkkeypad *opBackground::createKeypad(int mode)
