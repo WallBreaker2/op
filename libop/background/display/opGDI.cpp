@@ -51,42 +51,36 @@ long opGDI::BindEx(HWND hwnd, long render_type) {
     /*setlog("dx=%d dy=%d", dx_, dy_);*/
     if (_render_type == RDT_GDI) {
       _hdc = ::GetDC(_hwnd);
-      HWND topHwnd = WinApi::GetTopWindowSp(_hwnd);
-      long dwExStyle = 0;
-      if (GetPropA(topHwnd, "opstyle_flag")) {
+      //HWND topHwnd = WinApi::GetTopWindowSp(_hwnd);
+      //long dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
+     /* if (GetPropA(topHwnd, "opstyle_flag")) {
         dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
       } else {
         dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
         SetPropA(topHwnd, "opstyle", (HANDLE)dwExStyle);
         SetPropA(topHwnd, "opstyle_flag", (HANDLE)HANDLE_FLAG_INHERIT);
-      }
-      // dmIsWindowTransParent((int)InfoStruct, (int)topHwnd, (int)&v44,
-      // (int)&v42, (int)&v45);
-      SetWindowLongA(topHwnd, GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
-      // SetWindowTransparent((int)InfoStruct, (int)topHwnd, 16711935, 0, 1);
-      UpdateWindow(topHwnd);
+      }*/
+    
+      //SetWindowLongA(topHwnd, GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
+      //UpdateWindow(topHwnd);
 
     } else if (RDT_GDI_DX2 == render_type) {
       _hdc = ::GetDC(_hwnd);
       _device_caps = GetDeviceCaps(_hdc, BITSPIXEL);
     } else {
-      HWND dx2TopHwnd = WinApi::GetTopWindowSp(_hwnd);
+    /*  HWND dx2TopHwnd = WinApi::GetTopWindowSp(_hwnd);
       GetPropA(dx2TopHwnd, "opstyle");
-      long dx2ExStyle = 0;
-      if (GetPropA(dx2TopHwnd, "opstyle_flag")) {
+      long dx2ExStyle = GetWindowLongA(dx2TopHwnd, GWL_EXSTYLE);*/
+      /*if (GetPropA(dx2TopHwnd, "opstyle_flag")) {
         dx2ExStyle = GetWindowLongA(dx2TopHwnd, GWL_EXSTYLE);
       } else {
         dx2ExStyle = GetWindowLongA(dx2TopHwnd, GWL_EXSTYLE);
         SetPropA(dx2TopHwnd, "opstyle", (HANDLE)dx2ExStyle);
         SetPropA(dx2TopHwnd, "opstyle_flag", (HANDLE)HANDLE_FLAG_INHERIT);
       }
-      // dmIsWindowTransParent((int)InfoStruct, (int)dx2TopHwnd, (int)&v45,
-      // (int)&v42, (int)&v44);
-      SetWindowLongA(dx2TopHwnd, GWL_EXSTYLE, dx2ExStyle | WS_EX_LAYERED);
-      // SetWindowTransparent((int)InfoStruct, (int)dx2TopHwnd, 0, 255, 2);
-      UpdateWindow(dx2TopHwnd);
-      // InfoStruct[11] = 3;
-
+    */
+     /* SetWindowLongA(dx2TopHwnd, GWL_EXSTYLE, dx2ExStyle | WS_EX_LAYERED);
+      UpdateWindow(dx2TopHwnd);*/
       _hdc = ::GetDC(_hwnd);
     }
   }
@@ -175,7 +169,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image& img) {
     //将数据拷贝到目标注意实际数据是反的
 
     for (int i = 0; i < h; i++) {
-      memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + (h - 1 - i) * 4 * w,
+      memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + sizeof(FrameInfo) + (h - 1 - i) * 4 * w,
              4 * w);
     }
   } else if (RDT_GDI_DX2 == _render_type) {

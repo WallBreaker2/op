@@ -4,7 +4,11 @@ ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
-
+IF(CMAKE_CL_64)
+	SET(PYTHON_HOME "D:\\py38_64")
+else(CMAKE_CL_64)
+	SET(PYTHON_HOME "D:\\python")
+endif(CMAKE_CL_64)
 SET(SRC_FILES "op_wrap.cxx")
 
 add_library(opEx SHARED ${SRC_FILES})
@@ -12,17 +16,17 @@ add_library(opEx SHARED ${SRC_FILES})
 target_include_directories(opEx PUBLIC
 "${PROJECT_BINARY_DIR}"
 "${CMAKE_CURRENT_SOURCE_DIR}"
-"D:\\py36\\include"
+"${PYTHON_HOME}\\include"
 )
-
-link_directories(opEx PUBLIC "D:\\py36\\libs")
+message(STATUS "${PYTHON_HOME}\\libs")
+target_link_directories(opEx PUBLIC "${PYTHON_HOME}\\libs")
 #find_library(OP_LIB op ../bin/Release NO_DEFAULT_PATH)
 set_target_properties(opEx PROPERTIES PREFIX "_")
 set_target_properties(opEx PROPERTIES SUFFIX ".pyd")
 
 
-target_link_libraries(opEx op_x86)
-target_link_libraries(opEx python36.lib)
+target_link_libraries(opEx ${op_com})
+target_link_libraries(opEx python38)
 
 IF(CMAKE_CL_64)
   install(TARGETS opEx RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")

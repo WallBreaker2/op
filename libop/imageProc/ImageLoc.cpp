@@ -161,7 +161,7 @@ long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x,
     for (int i = 0; i < _src.height; ++i) {
       auto p = _src.ptr<color_t>(i);
       for (int j = 0; j < _src.width; ++j) {
-        if (IN_RANGE(*(p + j), it.color, it.df)) {
+        if (IN_RANGE(*p, it.color, it.df)) {
           x = j + _x1 + _dx;
           y = i + _y1 + _dy;
           return 1;

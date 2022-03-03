@@ -10,6 +10,7 @@
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 *.zip
+CMakeSettings.json
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -292,3 +293,4 @@ __pycache__/
 
 
 
+/libop/com/RCa09948

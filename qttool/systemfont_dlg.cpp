@@ -21,7 +21,7 @@ FIXED FixedFromDouble(double d)
 	return *(FIXED *)&l;
 }
 
-//ÉèÖÃ×ÖÌåÍ¼ÐÎ±ä»»¾ØÕó¡£
+
 void SetMat(LPMAT2 lpMat)
 {
 	lpMat->eM11 = FixedFromDouble(1);
@@ -109,14 +109,14 @@ void systemfont_dlg::GeneratingPeriod(HDC hDC, wchar_t chText, HFONT hFont) {
 						{
 							var |= (1 << i);
 							ck++;
-							//OutputDebugString(_T("¡ñ"));
+							//OutputDebugString(_T("ï¿½ï¿½"));
 							SET_BIT(_word.data[idx / 8], idx & 7);
 
 						}
 						else
 						{
 							var &= ~(1 << i);
-							//OutputDebugString(_T("¡ð"));
+							//OutputDebugString(_T("ï¿½ï¿½"));
 						}
 						idx++;
 					}
