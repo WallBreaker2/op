@@ -9,8 +9,12 @@ ADD_DEFINITIONS(-D _WINDOWS)
 
 set(CMAKE_CXX_STANDARD 17)
 #---------------add qt--------------
+
+# 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
+if($ENV{VCPKG_ROOT} STREQUAL "")
  set(CMAKE_PREFIX_PATH "G:\\Qt\\5.13.2\\msvc2017")
  include_directories("G:\\Qt\\5.13.2\\msvc2017include")
+endif()
  find_package(Qt5 COMPONENTS Widgets REQUIRED)
  set(CMAKE_INCLUDE_CURRENT_DIR ON)
  set(CMAKE_AUTOMOC ON)
@@ -25,8 +29,15 @@ set(CMAKE_CXX_STANDARD 17)
  #FILE(GLOB_RECURSE HEADER_FILES "*.h")
  #QT5_WRAP_CPP(MOC_FILES ${HEADER_FILES})
  #message(MOC_FILES: ${MOC_FILES})
- include_directories("E:/git_pro/vcpkg/installed/x86-windows/include")
-link_directories("E:/git_pro/vcpkg/installed/x86-windows/lib")
+
+# 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
+if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
+  include_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/include")
+  link_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/lib")
+else()
+  include_directories("E:/git_pro/vcpkg/installed/x86-windows/include")
+  link_directories("E:/git_pro/vcpkg/installed/x86-windows/lib")
+endif()
 SET(SRC_FILES 
 
 "BindWidget.cpp"
