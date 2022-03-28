@@ -98,6 +98,9 @@ ADD_DEFINITIONS(-D OP_EXPORTS)
 
 # 6.add lib file
 #add_library(libop SHARED  ${SRC_FILES})
+
+add_library(libop ${SRC_FILES})
+
 # ----------op_x86/x64
 add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
@@ -116,6 +119,7 @@ target_include_directories(${op_com} PUBLIC
 )
 
 include_directories(
+  ./
   ./core
 )
 
