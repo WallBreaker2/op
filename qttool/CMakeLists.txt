@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 #---------------add qt--------------
 
 # 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
-if($ENV{VCPKG_ROOT} STREQUAL "")
+if(NOT DEFINED $ENV{VCPKG_ROOT})
  set(CMAKE_PREFIX_PATH "G:\\Qt\\5.13.2\\msvc2017")
  include_directories("G:\\Qt\\5.13.2\\msvc2017include")
 endif()
