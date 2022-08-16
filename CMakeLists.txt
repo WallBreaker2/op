@@ -13,7 +13,7 @@ option(build_swig_py "build swig py,requrie python" ON)
 option(build_qttool "buid qt tool,requrie qt lib" OFF)
 
 # 编译开关
-set(build_qttool ON)
+set(build_qttool OFF)
 set(build_swig_py OFF)
 
 if(NOT blackbone_include_path)
@@ -68,21 +68,21 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 
-IF(CMAKE_CL_64)
+IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
         ${blackbone_lib64_path}
     )
     set(op_com op_x64)
 	MESSAGE(STATUS "----------------Platform x64----------------")
-ELSE(CMAKE_CL_64)
+ELSE()
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x86
         ${blackbone_lib32_path}
         )
     set(op_com op_x86)
 	MESSAGE(STATUS "----------------Platform x86----------------")
-ENDIF(CMAKE_CL_64)
+ENDIF()
 
 include_directories( 
   ./
@@ -109,7 +109,7 @@ message(STATUS ${build_swig_py})
 ## swig 项目
 if(build_swig_py)
     message(STATUS "build swig is on")
-    add_subdirectory("swig")
+    0add_subdirectory("swig")
 endif()
 message(STATUS ${build_qttool})
 ## qttool项目
