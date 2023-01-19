@@ -10,10 +10,10 @@ endif()
 
 # set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
 option(build_swig_py "build swig py,requrie python" ON)
-option(build_qttool "buid qt tool,requrie qt lib" OFF)
+option(build_qttool "buid qt tool,requrie qt lib" ON)
 
 # 编译开关
-set(build_qttool OFF)
+set(build_qttool ON)
 set(build_swig_py OFF)
 
 if(NOT blackbone_include_path)
@@ -109,7 +109,7 @@ message(STATUS ${build_swig_py})
 ## swig 项目
 if(build_swig_py)
     message(STATUS "build swig is on")
-    0add_subdirectory("swig")
+    add_subdirectory("swig")
 endif()
 message(STATUS ${build_qttool})
 ## qttool项目
