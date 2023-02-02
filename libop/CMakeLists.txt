@@ -102,16 +102,22 @@ ADD_DEFINITIONS(-D OP_EXPORTS)
 add_library(libop ${SRC_FILES})
 
 # ----------op_x86/x64
+
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.c
+  COMMAND COMMAND midl ${CMAKE_CURRENT_SOURCE_DIR}/com/op.idl /iid 
+  "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb 
+  "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"
+ # DEPENDS MakeTable
+ WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+
 add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
-add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
+# add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 
-#target_include_directories(libop PUBLIC
-#"${PROJECT_BINARY_DIR}"
-#"${CMAKE_CURRENT_SOURCE_DIR}"
-#)
 
 target_include_directories(${op_com} PUBLIC
 "${PROJECT_BINARY_DIR}"
