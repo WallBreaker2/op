@@ -12,9 +12,17 @@ set(CMAKE_CXX_STANDARD 17)
 
 # 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
 if(NOT DEFINED $ENV{VCPKG_ROOT})
- set(CMAKE_PREFIX_PATH "G:\\dev\\Qt\\5.12.12\\msvc2017")
- include_directories("G:\\dev\\Qt\\5.12.12\\msvc2017include")
+IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+set(CMAKE_PREFIX_PATH "D:\\workspace\\dev\\5.12.12\\msvc2017_64")
+ # include_directories("D:\\workspace\\dev\\5.12.12\\msvc2017_64\\include")
+else()
+ set(CMAKE_PREFIX_PATH "D:\\workspace\\dev\\5.12.12\\msvc2017")
+ # include_directories("D:\\workspace\\dev\\5.12.12\\msvc2017\\include")
 endif()
+ 
+endif()
+ 
+# find_package(Eigen3 CONFIG REQUIRED)
  find_package(Qt5 COMPONENTS Widgets REQUIRED)
  set(CMAKE_INCLUDE_CURRENT_DIR ON)
  set(CMAKE_AUTOMOC ON)
@@ -32,6 +40,7 @@ endif()
 
 # 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
 if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
+message(STATUS "USE USER VCPKG$ENV{VCPKG_ROOT}")
   include_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/include")
   link_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/lib")
 else()

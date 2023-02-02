@@ -5,30 +5,31 @@ cmake_minimum_required (VERSION 3.0)
 
 if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
     message("=====================VCPKG================")
-    message($ENV{VCPKG_ROOT})
+    set(${CMAKE_TOOLCHAIN_FILE} "D:\\workspace\\vcpkg")
+    # set(${unofficial-lua_DIR}$ "D:\\workspace\\vcpkg\\installed\\x86-windows\\share\\unofficial-lua")
 endif()
 
-# set(VCPKG_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
-option(build_swig_py "build swig py,requrie python" ON)
-option(build_qttool "buid qt tool,requrie qt lib" ON)
+
+option(build_swig_py "build swig py,requrie python" OFF)
+option(build_qttool "buid qt tool,requrie qt lib" OFF)
 
 # 编译开关
-set(build_qttool ON)
-set(build_swig_py OFF)
+# set(build_qttool ON)
+# set(build_swig_py OFF)
 
 if(NOT blackbone_include_path)
     # blackbone 源码路径，必须设置！！！
-    set(blackbone_include_path "E:/git_pro/Blackbone/src")
+    set(blackbone_include_path "D:/workspace/Blackbone/src")
 endif()
 
 if(NOT blackbone_lib32_path)
     # blackbone 32位静态库路径，必须设置！！！
-    set(blackbone_lib32_path "E:/git_pro/Blackbone/build/Win32/Release")
+    set(blackbone_lib32_path "D:/workspace/Blackbone/build/Win32/Release")
 endif()
 
 if(NOT blackbone_lib64_path)
     # blackbone 64位静态库路径，必须设置！！！
-    set(blackbone_lib64_path "E:/git_pro/Blackbone/build/X64/Release")
+    set(blackbone_lib64_path "D:/workspace/Blackbone/build/X64/Release")
 endif()
 
 # 检查头文件是否设置正确
@@ -39,13 +40,13 @@ else()
 endif()
 
 # 检查库是否设置正确
-if(EXISTS ${blackbone_lib32_path}/blackbone.lib)
+if(EXISTS ${blackbone_lib32_path}/BlackBone.lib)
     message(STATUS "32 blackbone lib find" )
 else()
-message(FATAL_ERROR "${blackbone_lib32_path}/blackbone.lib NOT find" )
+message(FATAL_ERROR "${blackbone_lib32_path}/BlackBone.lib NOT find" )
 endif()
-if(EXISTS ${blackbone_lib64_path}/blackbone.lib)
-    message(STATUS "64 blackbone lib find" )
+if(EXISTS ${blackbone_lib64_path}/BlackBone.lib)
+    message(STATUS "64 BlackBone lib find" )
 else()
 message(FATAL_ERROR "${blackbone_lib64_path}/blackbone.lib NOT find" )
 endif()

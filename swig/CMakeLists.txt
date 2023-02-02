@@ -5,9 +5,9 @@ ADD_DEFINITIONS(-D UNICODE)
 
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
 IF(CMAKE_CL_64)
-	SET(PYTHON_HOME "D:\\py38_64")
+	SET(PYTHON_HOME "D:/program/python310")
 else(CMAKE_CL_64)
-	SET(PYTHON_HOME "D:\\python")
+	SET(PYTHON_HOME "D:/program/python310")
 endif(CMAKE_CL_64)
 SET(SRC_FILES "op_wrap.cxx")
 
@@ -26,7 +26,7 @@ set_target_properties(opEx PROPERTIES SUFFIX ".pyd")
 
 
 target_link_libraries(opEx ${op_com})
-target_link_libraries(opEx python38)
+target_link_libraries(opEx python310)
 
 IF(CMAKE_CL_64)
   install(TARGETS opEx RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
