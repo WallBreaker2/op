@@ -4,33 +4,21 @@
 cmake_minimum_required (VERSION 3.0)
 
 if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
-    message("=====================VCPKG================")
-    set(${CMAKE_TOOLCHAIN_FILE} "D:\\workspace\\vcpkg")
-    # set(${unofficial-lua_DIR}$ "D:\\workspace\\vcpkg\\installed\\x86-windows\\share\\unofficial-lua")
+    set(${CMAKE_TOOLCHAIN_FILE} $ENV{VCPKG_ROOT})
+endif()
+
+if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
+    set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
+    set(blackbone_lib32_path "$ENV{BLACKBONE_ROOT}/build/Win32/Release")
+    set(blackbone_lib64_path "$ENV{BLACKBONE_ROOT}/build/X64/Release")
 endif()
 
 
 option(build_swig_py "build swig py,requrie python" OFF)
 option(build_qttool "buid qt tool,requrie qt lib" OFF)
 
-# 编译开关
-# set(build_qttool ON)
-# set(build_swig_py OFF)
 
-if(NOT blackbone_include_path)
-    # blackbone 源码路径，必须设置！！！
-    set(blackbone_include_path "D:/workspace/Blackbone/src")
-endif()
 
-if(NOT blackbone_lib32_path)
-    # blackbone 32位静态库路径，必须设置！！！
-    set(blackbone_lib32_path "D:/workspace/Blackbone/build/Win32/Release")
-endif()
-
-if(NOT blackbone_lib64_path)
-    # blackbone 64位静态库路径，必须设置！！！
-    set(blackbone_lib64_path "D:/workspace/Blackbone/build/X64/Release")
-endif()
 
 # 检查头文件是否设置正确
 if(EXISTS ${blackbone_include_path}/BlackBone/Process/Process.h)
@@ -109,13 +97,14 @@ add_subdirectory("tests")
 message(STATUS ${build_swig_py})
 ## swig 项目
 if(build_swig_py)
-    message(STATUS "build swig is on")
     add_subdirectory("swig")
 endif()
-message(STATUS ${build_qttool})
+
 ## qttool项目
 if(build_qttool)
-    message(STATUS "build qt tool is on")
-    add_subdirectory("qttool")
+    # 只编译32位
+    if(${CMAKE_SIZEOF_VOID_P}$ EQUAL 4)
+        add_subdirectory("qttool")
+    endif()
 endif()
 

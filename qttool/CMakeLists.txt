@@ -10,8 +10,8 @@ ADD_DEFINITIONS(-D _WINDOWS)
 set(CMAKE_CXX_STANDARD 17)
 #---------------add qt--------------
 
-# 如果用户安装了VCPKG并且设置了环境变量，直接使用变量地址
-if(NOT DEFINED $ENV{VCPKG_ROOT})
+
+if(NOT $ENV{QT_ROOT} STREQUAL "")
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 set(CMAKE_PREFIX_PATH "D:\\workspace\\dev\\5.12.12\\msvc2017_64")
  # include_directories("D:\\workspace\\dev\\5.12.12\\msvc2017_64\\include")
