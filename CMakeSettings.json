@@ -19,7 +19,19 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x86" ]
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": [
+        {
+          "name": "build_qttool",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "build_swig_py",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     },
     {
       "name": "x86-Debug",
@@ -42,7 +54,18 @@
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "variables": [
+        {
+          "name": "build_qttool",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "build_swig_py",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

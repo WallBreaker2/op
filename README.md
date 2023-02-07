@@ -24,16 +24,15 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要功能有:Win
 * 操作系统: windows 10 64位
 * 编译器: vs2019 MSVC2017 32/64
 * 工具： cmake 3.0以上
-* Windows SDK: 10.0.18362.0 (如果不同，可以在vs项目属性-->常规-->Windows SDk版本手动改一下)
 * DirectX SDK: 最新的即可
 ### 第三方库
 * [blackbone](https://github.com/DarthTon/Blackbone.git)(静态编译，链接方式MT)
 * [kiero](https://github.com/Rebzzel/kiero.git)(已在源码内，无需安装)
-* [minhook](https://github.com/TsudaKageyu/minhook.git)(推荐使用[Vcpkg](https://github.com/Microsoft/vcpkg.git)安装)
-* [boost-stacktrace]()(可选，安装使用vcpkg.如果不想安装，注释掉helpfunc.cpp中的宏定义USE_BOOST_STACK_TRACE即可)
+* [minhook](https://github.com/TsudaKageyu/minhook.git)(已在源码内，无需安装)
 
 ## 交流
 * 提交issue
+* [Discussion](https://github.com/WallBreaker2/op/discussions)
 
 
 ## 参考
