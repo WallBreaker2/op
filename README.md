@@ -27,9 +27,11 @@ OP(operator & open)是一个开源插件(类似大漠插件).主要功能有:Win
 * DirectX SDK: 最新的即可
 ### 第三方库
 * [blackbone](https://github.com/DarthTon/Blackbone.git)(静态编译，链接方式MT)
+编译完成后，设置环境变量BLACKBONE_ROOT为源码根目录(例如D:\workspace\Blackbone)
 * [kiero](https://github.com/Rebzzel/kiero.git)(已在源码内，无需安装)
 * [minhook](https://github.com/TsudaKageyu/minhook.git)(已在源码内，无需安装)
-
+* [QT5.12](https://download.qt.io/archive/qt/5.12/5.12.12/)(可选) 安装完成后设置环境变量QT_ROOT为Qt安装目录下的版本目录，例如D:\workspace\QT\5.12.12
+* [Python32/64](https://www.python.org/downloads/)(可选) 安装完成后设置环境变量PYTHON32_ROOT为32位python安装目录，PYTHON64_ROOT为64位python安装目录
 ## 交流
 * 提交issue
 * [Discussion](https://github.com/WallBreaker2/op/discussions)
