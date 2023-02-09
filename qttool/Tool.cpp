@@ -37,7 +37,7 @@ Tool::Tool(QWidget* parent)
 	create_control();
 	//----------------------set layout----------------------------
 	create_layout();
-	awidget = new ArrayW(nullptr, _curr_word);
+	awidget = new ArrayWindow(nullptr, _curr_word);
 	ui.scrollArea->setWidget(awidget);
 	//auto p = ui.groupBoxArray->pos();
 	//auto rc = m_array_lb->rect();
@@ -154,7 +154,7 @@ void Tool::load_image() {
 			//_qimage = _qbinary = QImage(_imgloc._gray.data(), img.width, img.height, img.width, QImage::Format_Grayscale8);
 			_qimage = _qbinary = QImage(img.pdata, img.width, img.height, img.width * 4, QImage::Format_ARGB32);
 			ui.label_src->setPixmap(QPixmap::fromImage(_qimage));
-			to_binary();
+			toBinary();
 		}
 		else {
 			QMessageBox::about(this, "info", "load false");
@@ -177,7 +177,7 @@ void Tool::save_image() {
 	}
 }
 
-void Tool::to_binary() {
+void Tool::toBinary() {
 
 	if (_imgloc._src.empty())
 		return;
@@ -364,7 +364,7 @@ void Tool::load_dict() {
 		ui.editPath->setText(dir);
 		std::wstring ss;
 
-		to_binary();
+		toBinary();
 
 
 		edit_dict();
@@ -374,24 +374,24 @@ void Tool::load_dict() {
 }
 
 void Tool::save_dict() {
-    QString dictfile = ui.editPath->text();
+	QString dictfile = ui.editPath->text();
 
-    if (dictfile.isEmpty() == false)
-    {
-        saved = true;
-        QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
-        QByteArray ba = dictfile.toLocal8Bit();
-        file_dict.write_dict(ba.data());
-    }
-    else {
-        auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("dict(*.dict)"));
-        if (!dir.isEmpty()) {
-            saved = true;
-            QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
-            QByteArray ba = dir.toLocal8Bit();
-            file_dict.write_dict(ba.data());
-        }
-    }
+	if (dictfile.isEmpty() == false)
+	{
+		saved = true;
+		QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+		QByteArray ba = dictfile.toLocal8Bit();
+		file_dict.write_dict(ba.data());
+	}
+	else {
+		auto dir = QFileDialog::getSaveFileName(this, "save path", "", tr("dict(*.dict)"));
+		if (!dir.isEmpty()) {
+			saved = true;
+			QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+			QByteArray ba = dir.toLocal8Bit();
+			file_dict.write_dict(ba.data());
+		}
+	}
 }
 
 void Tool::add_word() {
@@ -422,7 +422,7 @@ void Tool::add_word() {
 		ui.listView->setCurrentIndex(next);
 		show_char(next);
 		std::wstring ss;
-		to_binary();
+		toBinary();
 	}
 
 }
@@ -462,7 +462,7 @@ void Tool::del_word() {
 		cDict.erase(file_dict.words[idx]);
 		auto midx = ui.listView->currentIndex();
 		show_char(midx);
-		to_binary();
+		toBinary();
 	}
 }
 
@@ -520,7 +520,7 @@ void Tool::got_color(QPoint pt) {
 	ui.lineEdit_3->setText(QString::fromStdString(ss));
 	update();
 
-	to_binary();
+	toBinary();
 	//qDebug() << "move" << event->x() << ":" << event->y();
 	//ui.tableView->setAttribute(Qt::WA_TransparentForMouseEvents, false);
 
@@ -545,7 +545,7 @@ void Tool::on_state_changed(int st) {
 	if (ss.length() > 0 && ss.back() == L'|')
 		ss.pop_back();
 	ui.lineEdit_3->setText(QString::fromStdString(ss));
-	to_binary();
+	toBinary();
 }
 
 //void Tool::mouseMoveEvent(QMouseEvent* event) {
@@ -557,7 +557,7 @@ void Tool::on_simChanged(double sim) {
 	_ocr_sim = sim;
 	//ui.label_6->setText(QString::asprintf("sim:%lf", _ocr_sim));
 	//std::wstring ss;
-	to_binary();
+	toBinary();
 }
 
 void Tool::on_chkbk(bool checked) {
@@ -652,7 +652,7 @@ void Tool::to_mat() {
 	auto& img = _imgloc._src;
 	_qimage = _qbinary = QImage(img.pdata, img.width, img.height, img.width * 4, QImage::Format_ARGB32);
 	ui.label_src->setPixmap(QPixmap::fromImage(_qimage));
-	to_binary();
+	toBinary();
 }
 
 void Tool::on_editChanged(const QString& s) {
@@ -716,8 +716,8 @@ void Tool::on_item_clicked(const QModelIndex& index) {
 		m_getcolor_dlg->prepare();
 		m_getcolor_dlg->show();
 		m_getcolor_dlg->showFullScreen();
-	/*	ui.tableView->clearFocus();
-		m_getcolor_dlg->setFocus();*/
+		/*	ui.tableView->clearFocus();
+			m_getcolor_dlg->setFocus();*/
 	}
 
 }
@@ -725,13 +725,13 @@ void Tool::on_item_clicked(const QModelIndex& index) {
 void Tool::on_item_changed(const QStandardItem* item) {
 	bool need = item->column() == 3
 		|| item->data(Qt::EditRole).toString().length() == 6;
-	if (item->column() == 1&& item->data(Qt::EditRole).toString().length() == 6) {
+	if (item->column() == 1 && item->data(Qt::EditRole).toString().length() == 6) {
 		QString s = item->data(Qt::EditRole).toString();
 		qDebug("new color");
 		_itemmodel->item(item->row(), 0)->setData(
-			QColor(s.mid(0,2).toInt(nullptr,16),
-				s.mid(2,2).toInt(nullptr,16),
-				s.mid(4,2).toInt(nullptr,16)), 
+			QColor(s.mid(0, 2).toInt(nullptr, 16),
+				s.mid(2, 2).toInt(nullptr, 16),
+				s.mid(4, 2).toInt(nullptr, 16)),
 			Qt::BackgroundColorRole);
 	}
 	if (need) {
@@ -752,7 +752,7 @@ void Tool::on_item_changed(const QStandardItem* item) {
 		if (ss.length() > 0 && ss.back() == L'|')
 			ss.pop_back();
 		ui.lineEdit_3->setText(QString::fromStdString(ss));
-		to_binary();
+		toBinary();
 	}
 	else {
 
@@ -770,10 +770,10 @@ void Tool::readCfg() {
 			if (ss.indexOf("color-df:") == 0 && ss.length() >= 24 && idx < 10) {
 				QColor cr;
 				uchar r, g, b;
-				sscanf(buff+9,"%02X%02X%02X", &r, &g, &b);
+				sscanf(buff + 9, "%02X%02X%02X", &r, &g, &b);
 				_itemmodel->item(idx, 0)->setData(QColor(r, g, b), Qt::BackgroundColorRole);
-				_itemmodel->item(idx, 1)->setData(ss.mid(9, 6),Qt::EditRole);
-				_itemmodel->item(idx, 2)->setData(ss.mid(16, 6),Qt::EditRole);
+				_itemmodel->item(idx, 1)->setData(ss.mid(9, 6), Qt::EditRole);
+				_itemmodel->item(idx, 2)->setData(ss.mid(16, 6), Qt::EditRole);
 				_itemmodel->item(idx, 3)->setData(ss.right(1).toInt(), Qt::CheckStateRole);
 
 				_color_info[idx].color.str2color(string(buff + 9, buff + 15));
@@ -807,18 +807,19 @@ void Tool::writeCfg() {
 	QTextStream stream(&f);
 	for (int i = 0; i < 10; i++) {
 		stream << "color-df:";
-	/*	qDebug() << _itemmodel->item(i, 1);
-		qDebug() << _itemmodel->item(i, 2);
-		qDebug() << _itemmodel->item(i, 3);*/
+		/*	qDebug() << _itemmodel->item(i, 1);
+			qDebug() << _itemmodel->item(i, 2);
+			qDebug() << _itemmodel->item(i, 3);*/
 		stream << _itemmodel->item(i, 1)->data(Qt::EditRole).toString() << " ";
-		stream <<_itemmodel->item(i, 2)->data(Qt::EditRole).toString() << " ";
+		stream << _itemmodel->item(i, 2)->data(Qt::EditRole).toString() << " ";
 		stream << _itemmodel->item(i, 3)->checkState() << "\n";
 
 	}
 	char buff[256];
-	
-		stream << "path:" << ui.editPath->text().toStdString().data() <<"\n";
-		f.close();
-	
+	char buff[256];
+
+	stream << "path:" << ui.editPath->text().toStdString().data() << "\n";
+	f.close();
+
 }
 
