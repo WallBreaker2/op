@@ -22,10 +22,10 @@
 #include "get_color_dlg.h"
 
 
-class ArrayW :public QWidget {
+class ArrayWindow :public QWidget {
 public:
 	const int pixel_w = 7;
-	ArrayW(QWidget* parent, word1_t& wd_) :QWidget(parent, Qt::WindowFlags::enum_type::FramelessWindowHint), wd(wd_) {
+	ArrayWindow(QWidget* parent, word1_t& wd_) :QWidget(parent, Qt::WindowFlags::enum_type::FramelessWindowHint), wd(wd_) {
 		resize(pixel_w * 255, pixel_w * 255);
 
 	}
@@ -85,7 +85,7 @@ public:
 	void load_image();
 	void edit_image();
 	void save_image();
-	void to_binary();
+	void toBinary();
 	void hist();
 	//void draw_line(const std::vector<int>&lines, QPainter& paint,int isy,QGroupBox*,Qt::GlobalColor cr=Qt::black);
 	void show_char(const QModelIndex& idx);
@@ -152,7 +152,7 @@ private:
 	bool saved = true;
 	EditImage editDlg;
 	//QScrollArea* scroll_area;
-	ArrayW* awidget;
+	ArrayWindow* awidget;
 
 private:
 	void capture_full_screen();
