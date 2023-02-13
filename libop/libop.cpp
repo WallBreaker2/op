@@ -24,6 +24,8 @@
 
 const int small_block_size = 10;
 
+int libop::m_id = 0;
+
 libop::libop()
 {
 	_winapi = new WinApi;
@@ -31,8 +33,8 @@ libop::libop()
 	_image_proc = new ImageProc;
 
 	//初始化目录
-	wchar_t buff[256];
-	::GetCurrentDirectoryW(256, buff);
+	wchar_t buff[MAX_PATH];
+	::GetCurrentDirectoryW(MAX_PATH, buff);
 	_curr_path = buff;
 	_image_proc->_curr_path = _curr_path;
 	//初始化键码表
@@ -63,6 +65,8 @@ libop::libop()
 	_vkmap[L"f12"] = VK_F12;
 
 	m_opPath = opEnv::getBasePath();
+
+	++m_id;
 }
 
 libop::~libop()
@@ -121,7 +125,7 @@ void libop::GetBasePath(std::wstring &path)
 
 void libop::GetID(long *ret)
 {
-	*ret = (long)this;
+	*ret = m_id;
 }
 
 void libop::GetLastError(long *ret)

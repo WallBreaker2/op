@@ -816,7 +816,6 @@ void Tool::writeCfg() {
 
 	}
 	char buff[256];
-	char buff[256];
 
 	stream << "path:" << ui.editPath->text().toStdString().data() << "\n";
 	f.close();

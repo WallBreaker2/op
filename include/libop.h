@@ -57,6 +57,7 @@ private:
 	bytearray _screenData;
 	bytearray _screenDataBmp;
 	std::wstring m_opPath;
+	static int m_id;
 public:
 	//---------------基本设置/属性-------------------
 
