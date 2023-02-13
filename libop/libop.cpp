@@ -25,6 +25,8 @@
 const int small_block_size = 10;
 
 int libop::m_id = 0;
+const int SC_DATA_BOTTOM = 0;
+const int SC_DATA_TOP = 1;
 
 libop::libop()
 {
@@ -174,6 +176,11 @@ void libop::EnablePicCache(long enable, long *ret)
 void libop::CapturePre(const wchar_t *file, LONG *ret)
 {
 	*ret = _image_proc->Capture(file);
+}
+
+void libop::SetScreenDataMode(long mode, long* ret) {
+	m_screen_data_mode = mode;
+	*ret = 1;
 }
 
 void libop::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_points, long beginX, long beginY, long endX, long endY, std::wstring &path)
@@ -542,10 +549,6 @@ void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, 
 	if (_bkproc->IsBind())
 		_bkproc->UnBindWindow();
 	*ret = _bkproc->BindWindow(hwnd, display, mouse, keypad, mode);
-	if (*ret == 1)
-	{
-		//_image_proc->set_offset(_bkproc->_pbkdisplay->_client_x, _bkproc->_pbkdisplay->_client_y);
-	}
 }
 
 void libop::UnBindWindow(long *ret)
@@ -563,7 +566,7 @@ void libop::MoveR(long x, long y, long *ret)
 {
 	*ret = _bkproc->_bkmouse->MoveR(x, y);
 }
-//把鼠标移动到目的点(x,y)
+
 void libop::MoveTo(long x, long y, long *ret)
 {
 	*ret = _bkproc->_bkmouse->MoveTo(x, y);
@@ -677,8 +680,7 @@ void libop::KeyUpChar(const wchar_t *vk_code, long *ret)
 
 void libop::WaitKey(long vk_code, long time_out, long *ret)
 {
-	if (time_out < 0)
-		time_out = 0;
+	time_out = min(time_out, 0);
 	*ret = _bkproc->_keypad->WaitKey(vk_code, time_out);
 }
 
@@ -982,10 +984,15 @@ void libop::GetScreenData(long x1, long y1, long x2, long y2, void **data, long 
 		{
 			_image_proc->set_offset(x1, y1);
 			_screenData.resize(img.size() * 4);
-			//memcpy(_screenData.data(), img.pdata, img.size()*4);
-			for (int i = 0; i < img.height; i++)
-			{
-				memcpy(_screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			
+			if (m_screen_data_mode == SC_DATA_BOTTOM) {
+				for (int i = 0; i < img.height; i++)
+				{
+					memcpy(_screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+				}
+			}
+			else {
+				memcpy(_screenData.data(), img.pdata, img.size() * 4);
 			}
 			*data = _screenData.data();
 			*ret = 1;
@@ -1040,10 +1047,16 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void **data, lo
 			memcpy(dst, &bfh, sizeof(bfh));
 			memcpy(dst + sizeof(bfh), &bih, sizeof(bih));
 			dst += sizeof(bfh) + sizeof(bih);
-			for (int i = 0; i < img.height; i++)
-			{
-				memcpy(dst + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+			if (m_screen_data_mode == SC_DATA_BOTTOM) {
+				for (int i = 0; i < img.height; i++)
+				{
+					memcpy(dst + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+				}
 			}
+			else {
+				memcpy(dst, img.pdata, img.size() * 4);
+			}
+			
 			//memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
 			*data = _screenDataBmp.data();
 			*size = bfh.bfSize;
