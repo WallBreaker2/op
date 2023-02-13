@@ -57,6 +57,7 @@ private:
 	bytearray _screenData;
 	bytearray _screenDataBmp;
 	std::wstring m_opPath;
+	long m_screen_data_mode;
 	static int m_id;
 public:
 	//---------------基本设置/属性-------------------
@@ -85,6 +86,8 @@ public:
 	void EnablePicCache(long enable, long* ret);
 	//取上次操作的图色区域，保存为file(24位位图)
 	void CapturePre(const wchar_t* file_name, long* ret);
+	
+	void SetScreenDataMode(long mode, long* ret);
 	//---------------------algorithm-------------------------------
 	//A星算法
 	void AStarFindPath(long mapWidth,long mapHeight,const wchar_t* disable_points,long beginX,long beginY, long endX,long endY,std::wstring& ret);
