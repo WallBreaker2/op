@@ -24,7 +24,7 @@
 
 const int small_block_size = 10;
 
-int libop::m_id = 0;
+int libop::s_id = 0;
 const int SC_DATA_BOTTOM = 0;
 const int SC_DATA_TOP = 1;
 
@@ -68,7 +68,7 @@ libop::libop()
 
 	m_opPath = opEnv::getBasePath();
 
-	++m_id;
+	m_id = s_id++;
 }
 
 libop::~libop()
