@@ -12,14 +12,14 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 if(NOT $ENV{QT_ROOT} STREQUAL "")
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-set(CMAKE_PREFIX_PATH "D:\\workspace\\dev\\5.12.12\\msvc2017_64")
- # include_directories("D:\\workspace\\dev\\5.12.12\\msvc2017_64\\include")
+	IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(CMAKE_PREFIX_PATH "$ENV{QT_ROOT}\\msvc2017_64")
+	else()
+		set(CMAKE_PREFIX_PATH "$ENV{QT_ROOT}\\msvc2017")
+	endif()
+
 else()
- set(CMAKE_PREFIX_PATH "D:\\workspace\\dev\\5.12.12\\msvc2017")
- # include_directories("D:\\workspace\\dev\\5.12.12\\msvc2017\\include")
-endif()
- 
+	message(ERROR "环境变量 QT_ROOT 未设置")
 endif()
  
 # find_package(Eigen3 CONFIG REQUIRED)
@@ -44,8 +44,7 @@ message(STATUS "USE USER VCPKG$ENV{VCPKG_ROOT}")
   include_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/include")
   link_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/lib")
 else()
-  include_directories("E:/git_pro/vcpkg/installed/x86-windows/include")
-  link_directories("E:/git_pro/vcpkg/installed/x86-windows/lib")
+  message(ERROR "环境变量 QT_ROOT 未设置")
 endif()
 SET(SRC_FILES 
 
@@ -86,8 +85,8 @@ target_link_libraries(qttool ScintillaEdit4.lib)
 target_link_libraries(qttool lua)
 qt5_use_modules(qttool Core Widgets  Gui)
 
-IF(CMAKE_CL_64)
+IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
   install(TARGETS qttool  DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-ELSE(CMAKE_CL_64)
+ELSE()
   install(TARGETS qttool  DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-ENDIF(CMAKE_CL_64)
+ENDIF()
