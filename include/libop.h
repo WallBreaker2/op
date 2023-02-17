@@ -58,7 +58,8 @@ private:
 	bytearray _screenDataBmp;
 	std::wstring m_opPath;
 	long m_screen_data_mode;
-	static int m_id;
+	int m_id;
+	static int s_id;
 public:
 	//---------------基本设置/属性-------------------
 
