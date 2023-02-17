@@ -94,7 +94,6 @@ add_subdirectory("lua")
 add_subdirectory("tools")
 ## 测试项目
 add_subdirectory("tests")
-message(STATUS ${build_swig_py})
 ## swig 项目
 if(build_swig_py)
     add_subdirectory("swig")
