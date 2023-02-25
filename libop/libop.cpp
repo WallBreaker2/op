@@ -89,7 +89,7 @@ void libop::SetPath(const wchar_t *path, long *ret)
 {
 	wstring fpath = path;
 	replacew(fpath, L"/", L"\\");
-	if (fpath.find(L'\\') != -1 && ::PathFileExistsW(fpath.data()))
+	if (fpath.find(L'\\') != wstring::npos && ::PathFileExistsW(fpath.data()))
 	{
 		_curr_path = fpath;
 		_image_proc->_curr_path = _curr_path;
@@ -110,8 +110,11 @@ void libop::SetPath(const wchar_t *path, long *ret)
 			_bkproc->_curr_path = _curr_path;
 			*ret = 1;
 		}
-		else
+		else {
+			setlog("path '%s' not exists", fpath.data());
 			*ret = 0;
+		}
+			
 	}
 }
 
