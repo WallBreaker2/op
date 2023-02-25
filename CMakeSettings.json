@@ -14,7 +14,7 @@
     {
       "name": "x86-Release",
       "generator": "Ninja",
-      "configurationType": "RelWithDebInfo",
+      "configurationType": "Release",
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
@@ -30,6 +30,11 @@
           "name": "build_swig_py",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Release",
+          "type": "STRING"
         }
       ]
     },
@@ -64,6 +69,11 @@
           "name": "build_swig_py",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "CMAKE_BUILD_TYPE",
+          "value": "Release",
+          "type": "STRING"
         }
       ]
     }
