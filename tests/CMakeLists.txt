@@ -17,11 +17,9 @@ include_directories(
 ) 
 
 
-add_executable(tests ${SRC_FILES} )
-
+add_executable(tests ${SRC_FILES}  )
 
 target_link_libraries(tests ${op_com})
-
 
 IF(CMAKE_CL_64)
   install(TARGETS tests  DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")

@@ -342,11 +342,11 @@ class libop(object):
     def LoadMemPic(self, file_name, data, size):
         return _pyop.libop_LoadMemPic(self, file_name, data, size)
 
-    def GetScreenData(self, x1, y1, x2, y2, data):
-        return _pyop.libop_GetScreenData(self, x1, y1, x2, y2, data)
+    def GetScreenData(self, x1, y1, x2, y2):
+        return _pyop.libop_GetScreenData(self, x1, y1, x2, y2)
 
-    def GetScreenDataBmp(self, x1, y1, x2, y2, data):
-        return _pyop.libop_GetScreenDataBmp(self, x1, y1, x2, y2, data)
+    def GetScreenDataBmp(self, x1, y1, x2, y2):
+        return _pyop.libop_GetScreenDataBmp(self, x1, y1, x2, y2)
 
     def GetScreenFrameInfo(self):
         return _pyop.libop_GetScreenFrameInfo(self)

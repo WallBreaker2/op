@@ -32,7 +32,7 @@ void proc_shared(libop *sharedOp) {
     this_thread::sleep_for(chrono::microseconds(100));
     lock_guard<std::mutex> lock(gMutex);
     cout << "thread:" << this_thread::get_id() << endl;
-    sharedOp->GetScreenDataBmp(0, 0, 50, 50, &data, &size, &ret);
+    sharedOp->GetScreenDataBmp(0, 0, 50, 50, (size_t*)&data, &size, &ret);
   }
 }
 
@@ -46,7 +46,7 @@ void proc_unique(long hwnd) {
     // lock_guard lock(gMutex);
     cout << "thread:" << this_thread::get_id() << endl;
 
-    uniqueOp->GetScreenDataBmp(0, 0, 50, 50, &data, &size, &ret);
+    uniqueOp->GetScreenDataBmp(0, 0, 50, 50, (size_t*)&data, &size, &ret);
   }
   delete uniqueOp;
 }
