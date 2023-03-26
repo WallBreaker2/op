@@ -12,8 +12,8 @@
 #include <qdesktopservices.h>
 #include "Tool.h"
 #include "BindWidget.h"
-#define URL_DOC "https://gitee.com/wallbreaker2/op/wikis/"
-#define URL_UPDATE "https://gitee.com/wallbreaker2/op/releases"
+#define URL_DOC "https://github.com/WallBreaker2/op/wiki"
+#define URL_UPDATE "https://github.com/WallBreaker2/op/releases"
 using std::string;
 QTextEdit* g_edit;
 QComboBox* g_combox[4];
@@ -683,11 +683,11 @@ void MainWindow::on_actiondocument_triggered() {
 }
 
 void MainWindow::on_pushButton_5_clicked() {
-	qDebug("on_pushButton_5_clicked...");
+	
 }
 
 void MainWindow::on_actionabout_triggered() {
-	QMessageBox::about(this, "about", "op-tool v0.4.0\nAutohr:DeepFire\nEmail:784942619@qq.com\nBuild:2020-09-02\n");
+	QMessageBox::about(this, "about", "op-tool v0.4.0\nAutohr:DeepFire\nEmail:2787674296@qq.com\nBuild:2023-02-26\n");
 }
 void MainWindow::on_actionupdate_triggered() {
 	QDesktopServices::openUrl(QUrl(URL_UPDATE));
