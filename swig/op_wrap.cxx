@@ -2981,7 +2981,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_char swig_types[0]
 #define SWIGTYPE_p_libop swig_types[1]
 #define SWIGTYPE_p_long swig_types[2]
-#define SWIGTYPE_p_p_void swig_types[3]
+#define SWIGTYPE_p_size_t swig_types[3]
 #define SWIGTYPE_p_std__vectorT_unsigned_char_t swig_types[4]
 #define SWIGTYPE_p_std__wstring swig_types[5]
 #define SWIGTYPE_p_wchar_t swig_types[6]
@@ -3379,6 +3379,55 @@ SWIG_AsVal_long (PyObject *obj, long* val)
   }
 #endif
   return SWIG_TypeError;
+}
+
+
+SWIGINTERNINLINE PyObject* 
+SWIG_From_unsigned_SS_long  (unsigned long value)
+{
+  return (value > LONG_MAX) ?
+    PyLong_FromUnsignedLong(value) : PyInt_FromLong(static_cast< long >(value));
+}
+
+
+#include <limits.h>
+#if !defined(SWIG_NO_LLONG_MAX)
+# if !defined(LLONG_MAX) && defined(__GNUC__) && defined (__LONG_LONG_MAX__)
+#   define LLONG_MAX __LONG_LONG_MAX__
+#   define LLONG_MIN (-LLONG_MAX - 1LL)
+#   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+# endif
+#endif
+
+
+#if defined(LLONG_MAX) && !defined(SWIG_LONG_LONG_AVAILABLE)
+#  define SWIG_LONG_LONG_AVAILABLE
+#endif
+
+
+#ifdef SWIG_LONG_LONG_AVAILABLE
+SWIGINTERNINLINE PyObject* 
+SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
+{
+  return (value > LONG_MAX) ?
+    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(static_cast< long >(value));
+}
+#endif
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_size_t  (size_t value)
+{    
+#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(size_t) <= sizeof(unsigned long)) {
+#endif
+    return SWIG_From_unsigned_SS_long  (static_cast< unsigned long >(value));
+#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else {
+    /* assume sizeof(size_t) <= sizeof(unsigned long long) */
+    return SWIG_From_unsigned_SS_long_SS_long  (static_cast< unsigned long long >(value));
+  }
+#endif
 }
 
 #ifdef __cplusplus
@@ -8232,7 +8281,7 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenData(PyObject *self, PyObject *args) {
   long arg3 ;
   long arg4 ;
   long arg5 ;
-  void **arg6 = (void **) 0 ;
+  size_t *arg6 = (size_t *) 0 ;
   long *arg7 = (long *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -8244,14 +8293,15 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenData(PyObject *self, PyObject *args) {
   int ecode4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
+  size_t temp6 ;
+  int res6 = SWIG_TMPOBJ ;
   long temp7 ;
   int res7 = SWIG_TMPOBJ ;
-  PyObject *swig_obj[6] ;
+  PyObject *swig_obj[5] ;
   
+  arg6 = &temp6;
   arg7 = &temp7;
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenData", 6, 6, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenData", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetScreenData" "', argument " "1"" of type '" "libop *""'"); 
@@ -8277,13 +8327,14 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenData(PyObject *self, PyObject *args) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_GetScreenData" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_p_void, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetScreenData" "', argument " "6"" of type '" "void **""'"); 
-  }
-  arg6 = reinterpret_cast< void ** >(argp6);
   (arg1)->GetScreenData(arg2,arg3,arg4,arg5,arg6,arg7);
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_size_t((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_size_t, new_flags));
+  }
   if (SWIG_IsTmpObj(res7)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
   } else {
@@ -8303,7 +8354,7 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenDataBmp(PyObject *self, PyObject *args
   long arg3 ;
   long arg4 ;
   long arg5 ;
-  void **arg6 = (void **) 0 ;
+  size_t *arg6 = (size_t *) 0 ;
   long *arg7 = (long *) 0 ;
   long *arg8 = (long *) 0 ;
   void *argp1 = 0 ;
@@ -8316,17 +8367,18 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenDataBmp(PyObject *self, PyObject *args
   int ecode4 = 0 ;
   long val5 ;
   int ecode5 = 0 ;
-  void *argp6 = 0 ;
-  int res6 = 0 ;
+  size_t temp6 ;
+  int res6 = SWIG_TMPOBJ ;
   long temp7 ;
   int res7 = SWIG_TMPOBJ ;
   long temp8 ;
   int res8 = SWIG_TMPOBJ ;
-  PyObject *swig_obj[6] ;
+  PyObject *swig_obj[5] ;
   
+  arg6 = &temp6;
   arg7 = &temp7;
   arg8 = &temp8;
-  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenDataBmp", 6, 6, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "libop_GetScreenDataBmp", 5, 5, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_libop, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "libop_GetScreenDataBmp" "', argument " "1"" of type '" "libop *""'"); 
@@ -8352,13 +8404,14 @@ SWIGINTERN PyObject *_wrap_libop_GetScreenDataBmp(PyObject *self, PyObject *args
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "libop_GetScreenDataBmp" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  res6 = SWIG_ConvertPtr(swig_obj[5], &argp6,SWIGTYPE_p_p_void, 0 |  0 );
-  if (!SWIG_IsOK(res6)) {
-    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "libop_GetScreenDataBmp" "', argument " "6"" of type '" "void **""'"); 
-  }
-  arg6 = reinterpret_cast< void ** >(argp6);
   (arg1)->GetScreenDataBmp(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
   resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_size_t((*arg6)));
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_size_t, new_flags));
+  }
   if (SWIG_IsTmpObj(res7)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg7)));
   } else {
@@ -9503,7 +9556,7 @@ static PyMethodDef SwigMethods[] = {
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_libop = {"_p_libop", "libop *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_long = {"_p_long", "long *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_p_void = {"_p_p_void", "void **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_size_t = {"_p_size_t", "size_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_unsigned_char_t = {"_p_std__vectorT_unsigned_char_t", "bytearray *|std::vector< unsigned char > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__wstring = {"_p_std__wstring", "std::wstring *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_wchar_t = {"_p_wchar_t", "wchar_t *", 0, 0, (void*)0, 0};
@@ -9512,7 +9565,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_libop,
   &_swigt__p_long,
-  &_swigt__p_p_void,
+  &_swigt__p_size_t,
   &_swigt__p_std__vectorT_unsigned_char_t,
   &_swigt__p_std__wstring,
   &_swigt__p_wchar_t,
@@ -9521,7 +9574,7 @@ static swig_type_info *swig_type_initial[] = {
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_libop[] = {  {&_swigt__p_libop, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_long[] = {  {&_swigt__p_long, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_p_void[] = {  {&_swigt__p_p_void, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_size_t[] = {  {&_swigt__p_size_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_unsigned_char_t[] = {  {&_swigt__p_std__vectorT_unsigned_char_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__wstring[] = {  {&_swigt__p_std__wstring, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_wchar_t[] = {  {&_swigt__p_wchar_t, 0, 0, 0},{0, 0, 0, 0}};
@@ -9530,7 +9583,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_libop,
   _swigc__p_long,
-  _swigc__p_p_void,
+  _swigc__p_size_t,
   _swigc__p_std__vectorT_unsigned_char_t,
   _swigc__p_std__wstring,
   _swigc__p_wchar_t,

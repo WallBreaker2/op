@@ -100,7 +100,7 @@ class test {
     }
     void *data;
     long size;
-    m_op->GetScreenDataBmp(0, 0, 200, 200, &data, &size, &lret);
+    m_op->GetScreenDataBmp(0, 0, 200, 200, (size_t*) & data, & size, & lret);
     std::ofstream os("GetScreenDataBmp.bmp", std::ios::binary);
     os.write((char *)data, size);
     os.close();
@@ -166,7 +166,7 @@ class test {
 
     // ***********************8 check screen capture *************8
 
-    m_op->GetScreenDataBmp(0, 0, 200, 200, &data, &size, &lret);
+    m_op->GetScreenDataBmp(0, 0, 200, 200, (size_t*) & data, &size, &lret);
     op_check(GetScreenDataBmp, lret == 1);
 
     m_op->FindColorBlock(0, 0, 2000, 2000, L"000000", 1.0, 200, 20, 20, &lx, &ly, &lret);
