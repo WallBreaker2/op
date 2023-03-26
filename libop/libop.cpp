@@ -972,9 +972,9 @@ void libop::LoadMemPic(const wchar_t *file_name, void *data, long size, long *re
 	*ret = _image_proc->LoadMemPic(file_name, data, size);
 }
 
-void libop::GetScreenData(long x1, long y1, long x2, long y2, void **data, long *ret)
+void libop::GetScreenData(long x1, long y1, long x2, long y2, size_t* data, long *ret)
 {
-	*data = nullptr;
+	*data = 0;
 	*ret = 0;
 	auto &img = _image_proc->_src;
 	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
@@ -997,13 +997,13 @@ void libop::GetScreenData(long x1, long y1, long x2, long y2, void **data, long 
 			else {
 				memcpy(_screenData.data(), img.pdata, img.size() * 4);
 			}
-			*data = _screenData.data();
+			*data = (size_t)_screenData.data();
 			*ret = 1;
 		}
 	}
 }
 
-void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void **data, long *size, long *ret)
+void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, long *size, long *ret)
 {
 	*data = 0;
 	*ret = 0;
@@ -1061,7 +1061,7 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, void **data, lo
 			}
 			
 			//memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
-			*data = _screenDataBmp.data();
+			*data = (size_t)_screenDataBmp.data();
 			*size = bfh.bfSize;
 			*ret = 1;
 		}
