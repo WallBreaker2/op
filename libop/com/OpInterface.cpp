@@ -861,7 +861,7 @@ STDMETHODIMP OpInterface::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG
 	//#endif
 	//	* ret = 1;
 	*ret = 0;
-	void *data_ = nullptr;
+	size_t data_ = 0;
 	obj.GetScreenData(x1, y1, x2, y2, &data_, ret);
 	*ret = (long)data_;
 	return S_OK;
@@ -880,7 +880,7 @@ STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, V
 	data->lVal = 0;
 	size->lVal = 0;
 #endif
-	void *data_ = nullptr;
+	size_t data_ = 0;
 
 	obj.GetScreenDataBmp(x1, y1, x2, y2, &data_, &size->lVal, ret);
 #if OP64

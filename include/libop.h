@@ -261,9 +261,9 @@ public:
 	//从内存加载要查找的图片
 	void LoadMemPic(const wchar_t* file_name,void* data,long size, long* ret);
 	//
-	void GetScreenData(long x1, long y1, long x2, long y2, void** data,long* ret);
+	void GetScreenData(long x1, long y1, long x2, long y2, size_t* data,long* ret);
 	//
-	void GetScreenDataBmp(long x1, long y1, long x2, long y2, void** data,long* size, long* ret);
+	void GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data,long* size, long* ret);
 	//
 	void GetScreenFrameInfo(long* frame_id, long* time);
 	//
