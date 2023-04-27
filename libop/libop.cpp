@@ -28,7 +28,7 @@ int libop::s_id = 0;
 const int SC_DATA_BOTTOM = 0;
 const int SC_DATA_TOP = 1;
 
-libop::libop()
+libop::libop():m_screen_data_mode(0)
 {
 	_winapi = new WinApi;
 	_bkproc = new opBackground;
@@ -1029,7 +1029,7 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 			bih.biBitCount = 32; //每个像素字节大小
 			bih.biCompression = BI_RGB;
 			//bih.biHeight = -img.height;//高度 反
-			bih.biHeight = img.height; //高度
+			bih.biHeight = m_screen_data_mode==SC_DATA_BOTTOM? img.height: -img.height; //高度
 			bih.biPlanes = 1;
 			bih.biSize = sizeof(BITMAPINFOHEADER);
 			bih.biSizeImage = img.width * 4 * img.height; //图像数据大小
