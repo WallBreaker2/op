@@ -8,7 +8,7 @@
 #include "../libop/libop.h"
 #define op_check(name, express)                                        \
   std::cout << "check interface:'" << #name << "' condition:" << #express \
-            << ((express) ? "\npass\n" : "\nfailed\n")
+            << ((express) ? "\npass\n" : "\nfailed\n");++total_cnt;pass_cnt+=express
 using namespace std;
 class test {
  public:
@@ -109,9 +109,11 @@ class test {
 
     std::wcout.imbue(locale("chs"));
     
+    int pass_cnt = 0;
+    int total_cnt = 0;
     // ***************** check base function ************************
     ver = m_op->Ver();
-    op_check(Ver, ver == L"0.4.0.0");
+    op_check(Ver, ver == L"0.4.1.0");
 
     m_op->SetShowErrorMsg(3, &lret);
     op_check(SetShowErrorMsg, lret);
@@ -128,11 +130,11 @@ class test {
 
     m_op->GetBasePath(str);
     wprintf(L"GetBasePath:%s\n", str.data());
-    op_check(GetBasePath, str == L"E:\\project\\op\\bin\\x86");
+    // op_check(GetBasePath, str == L"E:\\project\\op\\bin\\x86");
 
     // ***************** check ocr function ******************
 
-    m_op->SetDict(0, L"C:/Users/78494/Desktop/st10.dict", &lret);
+    m_op->SetDict(0, L"st10.dict", &lret);
     op_check(SetDict, lret == 1);
     m_op->Ocr(0, 0, 2000, 2000, L"000000", 1.0, str);
     std::wcout << L"ocr:" << str << std::endl;
@@ -165,7 +167,7 @@ class test {
     op_check(FindMultiColorEx, str.length() > 0);
 
     // ***********************8 check screen capture *************8
-
+    m_op->SetScreenDataMode(0, &lret);
     m_op->GetScreenDataBmp(0, 0, 200, 200, (size_t*) & data, &size, &lret);
     op_check(GetScreenDataBmp, lret == 1);
 
@@ -176,7 +178,8 @@ class test {
     //std::wcout << str << std::endl;
     op_check(FindColorBlockEx, str.length() > 0);
 
-    //m_op->Capture(60, 60, 100, 100, L"test.bmp", &lret);
+    m_op->Capture(60, 60, 100, 100, L"test.bmp", &lret);
+    op_check(Capture, lret >= 0);
 
     m_op->FindPic(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, 0, &lx, &ly, &lret);
     op_check(FindPic, lret >= 0);
@@ -184,6 +187,9 @@ class test {
     m_op->FindPicEx(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, 0, str);
     std::wcout<<"FindPicEx:"  << str << std::endl;
     op_check(FindPicEx, str.length() > 0);
+    
+    std::cout << "--------------total_test-----------:\n" 
+        << total_cnt << " passed:" << pass_cnt << std::endl;
     return 0;
   }
   void do_test() {
