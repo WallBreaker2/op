@@ -83,7 +83,7 @@ constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
 
 #define MAKE_OP_VERSION(a, b, c, d) _TOSTRING(a##.##b##.##c##.##d)
 
-#define OP_VERSION MAKE_OP_VERSION(0, 4, 1, 0)
+#define OP_VERSION MAKE_OP_VERSION(0, 4, 2, 0)
 //模块句柄
 //extern HINSTANCE gInstance;
 //是否显示错误信息
