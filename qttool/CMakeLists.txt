@@ -14,14 +14,17 @@ set(CMAKE_CXX_STANDARD 17)
 if(NOT $ENV{QT_ROOT} STREQUAL "")
 	IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(CMAKE_PREFIX_PATH "$ENV{QT_ROOT}\\msvc2017_64")
+		
+		set(Qt5_DIR "$ENV{QT_ROOT}\\msvc2017_64")
 	else()
 		set(CMAKE_PREFIX_PATH "$ENV{QT_ROOT}\\msvc2017")
+		set(Qt5_DIR "$ENV{QT_ROOT}\\msvc2017")
 	endif()
 
 else()
 	message(ERROR "环境变量 QT_ROOT 未设置")
 endif()
- 
+ message(STATUS "环境变量 ${CMAKE_PREFIX_PATH}$")
 # find_package(Eigen3 CONFIG REQUIRED)
  find_package(Qt5 COMPONENTS Widgets REQUIRED)
  set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -44,7 +47,7 @@ message(STATUS "USE USER VCPKG$ENV{VCPKG_ROOT}")
   include_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/include")
   link_directories("$ENV{VCPKG_ROOT}/installed/x86-windows/lib")
 else()
-  message(ERROR "环境变量 QT_ROOT 未设置")
+  message(ERROR "环境变量 VCPKG_ROOT 未设置")
 endif()
 SET(SRC_FILES 
 
