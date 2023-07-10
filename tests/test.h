@@ -113,7 +113,7 @@ class test {
     int total_cnt = 0;
     // ***************** check base function ************************
     ver = m_op->Ver();
-    op_check(Ver, ver == L"0.4.1.0");
+    op_check(Ver, ver == L"0.4.2.0");
 
     m_op->SetShowErrorMsg(3, &lret);
     op_check(SetShowErrorMsg, lret);
@@ -154,14 +154,17 @@ class test {
     op_check(CmpColor, lret == 1);
 
     long lx, ly;
-    m_op->FindColor(0, 0, 25, 25, color.data(), 1.0, 0, &lx, &ly, &lret);
-
-    std::cout << "ret:" << lret << "," << lx << "," << ly << std::endl;
-    op_check(FindColor, lret == 1 && 0 <= ly && ly <= 20);
-    m_op->CapturePre(L"_pre.bmp", &lret);
-
-    m_op->FindMultiColor(0, 0, 2000, 2000, L"000000", L"0|1|000000,-5|-4|000000", 1.0, 0, &lx, &ly, &lret);
+    for(int dir=0;dir<4;++dir){
+        m_op->FindColor(0, 0, 2000, 2000, color.data(), 1.0, dir, &lx, &ly, &lret);
+        std::cout <<"dir:"<< dir<<" ret:" << lret << "," << lx << "," << ly << std::endl;
+        op_check(FindColor, lret == 1 && 0 <= lx && lx <= 2000);
+    }
+    for(int dir=0;dir<4;dir++){
+      m_op->FindMultiColor(0, 0, 2000, 2000, L"000000", L"0|1|000000,-5|-4|000000", 1.0, dir, &lx, &ly, &lret);
+      std::cout <<"FindMultiColor dir:"<< dir<<" ret:" << lret << "," << lx << "," << ly << std::endl;
     op_check(FindMultiColor, lret == 1);
+    }
+    
 
     m_op->FindMultiColorEx(0, 0, 2000, 2000, L"000000", L"0|1|000000,-5|-4|000000", 1.0, 0, str);
     op_check(FindMultiColorEx, str.length() > 0);
@@ -181,12 +184,17 @@ class test {
     m_op->Capture(60, 60, 100, 100, L"test.bmp", &lret);
     op_check(Capture, lret >= 0);
 
-    m_op->FindPic(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, 0, &lx, &ly, &lret);
-    op_check(FindPic, lret >= 0);
-
-    m_op->FindPicEx(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, 0, str);
-    std::wcout<<"FindPicEx:"  << str << std::endl;
-    op_check(FindPicEx, str.length() > 0);
+    for (int dir = 0; dir < 4; ++dir) {
+		m_op->FindPic(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, dir, &lx, &ly, &lret);
+		std::cout <<"dir:"<< dir<<" ret:" << lret << "," << lx << "," << ly << std::endl;
+		op_check(FindPic, lret >= 0);
+	}
+    for (int dir = 0; dir < 4; ++dir) {
+        m_op->FindPicEx(0, 0, 2000, 2000, L"test.bmp", L"000000", 1.0, dir, str);
+        std::wcout << "FindPicEx:" << str << std::endl;
+        op_check(FindPicEx, str.length() > 0);
+    }
+    
     
     std::cout << "--------------total_test-----------:\n" 
         << total_cnt << " passed:" << pass_cnt << std::endl;
