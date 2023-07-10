@@ -93,13 +93,13 @@ public:
 
 	long FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr);
 
-	long FindPic(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
+	long FindPic(std::vector<Image*>&pics,color_t dfcolor,double sim, long dir, long&x, long&y);
 
-	long FindPicTh(std::vector<Image*>&pics,color_t dfcolor,double sim, long&x, long&y);
+	long FindPicTh(std::vector<Image*>&pics,color_t dfcolor,double sim, long dir, long&x, long&y);
 
-	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
+	long FindPicEx(std::vector<Image*>& pics, color_t dfcolor, double sim, long dir, vpoint_desc_t& vpd);
 
-	long FindPicExTh(std::vector<Image*>& pics, color_t dfcolor, double sim, vpoint_desc_t& vpd);
+	long FindPicExTh(std::vector<Image*>& pics, color_t dfcolor, double sim, long dir, vpoint_desc_t& vpd);
 
 	long FindColorBlock(double sim, long count, long height, long width, long& x, long& y);
 

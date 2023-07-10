@@ -153,14 +153,60 @@ long ImageBase::CmpColor(color_t color, std::vector<color_df_t> &colors,
 
   return 0;
 }
+struct opRange{
+  int x1;
+  int x2;
+};
+struct opRange2D{
+  int x1;
+  int x2;
+  int y1;
+  int y2;
+  int stepX;
+  int stepY;
+};
+static void gen_rangeyx(int dir,const opRange2D& range, opRange2D& out) {
+if(dir == 0){
+  out.x1 = range.x1;
+  out.x2 = range.x2;
+  out.y1 = range.y1;
+  out.y2 = range.y2;
+  out.stepX = 1;
+  out.stepY = 1;
+}else if(dir == 1){
+  out.x1 = range.x2-1;
+  out.x2 = range.x1-1;
+  out.y1 = range.y1;
+  out.y2 = range.y2;
+  out.stepX = -1;
+  out.stepY = 1;
+}else if(dir == 2){
+  out.x1 = range.x1;
+  out.x2 = range.x2;
+  out.y1 = range.y2-1;
+  out.y2 = range.y1-1;
+  out.stepX = 1;
+  out.stepY = -1;
+}else{
+  out.x1 = range.x2-1;
+  out.x2 = range.x1-1;
+  out.y1 = range.y2-1;
+  out.y2 = range.y1-1;
+  out.stepX = -1;
+  out.stepY = -1;
+}
+}
+
 
 long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x,
                           long &y) {
+  opRange2D rng={0,_src.width,0,_src.height,0,0},range;
+  gen_rangeyx(dir,rng,range);
   for (auto &it : colors) {  //对每个颜色描述
 
-    for (int i = 0; i < _src.height; ++i) {
+    for (int i = range.y1; i !=range.y2; i+=range.stepY) {
       auto p = _src.ptr<color_t>(i);
-      for (int j = 0; j < _src.width; ++j) {
+      for (int j = range.x1; j !=range.x2; j+=range.stepX) {
         if (IN_RANGE(*p, it.color, it.df)) {
           x = j + _x1 + _dx;
           y = i + _y1 + _dy;
@@ -205,9 +251,11 @@ long ImageBase::FindMultiColor(std::vector<color_df_t> &first_color,
                                double sim, long dir, long &x, long &y) {
   int max_err_ct = offset_color.size() * (1. - sim);
   int err_ct;
-  for (int i = 0; i < _src.height; ++i) {
-    auto p = _src.ptr<color_t>(i);
-    for (int j = 0; j < _src.width; ++j) {
+  opRange2D rng={0,_src.width,0,_src.height,0,0},range;
+  gen_rangeyx(dir,rng,range);
+  for (int i = range.y1; i !=range.y2; i+=range.stepY) {
+      auto p = _src.ptr<color_t>(i);
+      for (int j = range.x1; j !=range.x2; j+=range.stepX)  {
       // step 1. find first color
       for (auto &it : first_color) {  //对每个颜色描述
         if (IN_RANGE(*p, it.color, it.df)) {
@@ -243,9 +291,12 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t> &first_color,
   int max_err_ct = offset_color.size() * (1. - sim);
   int err_ct;
   int find_ct = 0;
-  for (int i = 0; i < _src.height; ++i) {
+  opRange2D rng = { 0,_src.width,0,_src.height,0,0 }, range;
+  gen_rangeyx(dir, rng, range);
+
+  for (int i = range.y1; i != range.y2; i += range.stepY) {
     auto p = _src.ptr<color_t>(i);
-    for (int j = 0; j < _src.width; ++j) {
+    for (int j = range.x1; j != range.x2; j += range.stepX) {
       // step 1. find first color
       for (auto &it : first_color) {  //对每个颜色描述
         if (IN_RANGE(*p, it.color, it.df)) {
@@ -289,7 +340,7 @@ _quick_return:
   // x = y = -1;
 }
 
-long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
+long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir,
                         long &x, long &y) {
   x = y = -1;
   vector<uint> points;
@@ -298,6 +349,8 @@ long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
   _gray.fromImage4(_src);
   record_sum(_gray);
   int tnorm;
+  opRange2D rng = { 0,_src.width,0,_src.height,0,0 },range;
+  gen_rangeyx(dir, rng, range);
   //将小循环放在最外面，提高处理速度
   for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
     auto pic = pics[pic_id];
@@ -309,8 +362,8 @@ long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
       tnorm = sum(gimg.begin(), gimg.end());
     }
 
-    for (int i = 0; i < _src.height; ++i) {
-      for (int j = 0; j < _src.width; ++j) {
+    for (int i = range.y1; i != range.y2; i += range.stepY) {
+      for (int j = range.x1; j != range.x2; j += range.stepX) {
         // step 1. 边界检查
         if (i + pic->height > _src.height || j + pic->width > _src.width)
           continue;
@@ -339,7 +392,7 @@ long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
 }
 
 long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor,
-                          double sim, long &x, long &y) {
+                          double sim, long dir, long &x, long &y) {
   x = y = -1;
   vector<uint> points;
   int match_ret = 0;
@@ -413,7 +466,7 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor,
 }
 
 long ImageBase::FindPicEx(std::vector<Image *> &pics, color_t dfcolor,
-                          double sim, vpoint_desc_t &vpd) {
+                          double sim, long dir, vpoint_desc_t &vpd) {
   int obj_ct = 0;
   vpd.clear();
   vector<uint> points;
@@ -463,7 +516,7 @@ _quick_return:
 }
 
 long ImageBase::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor,
-                            double sim, vpoint_desc_t &vpd) {
+                            double sim, long dir, vpoint_desc_t &vpd) {
   vpd.clear();
   int obj_ct = 0;
   vector<uint> points;

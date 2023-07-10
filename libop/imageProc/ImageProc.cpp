@@ -110,7 +110,7 @@ long ImageProc::FindPic(const std::wstring &files, const wstring &delta_colors, 
 	//str2colors(delta_colors, vcolor);
 	sim = 0.5 + sim / 2;
 	//long ret = ImageBase::FindPic(vpic, dfcolor, sim, x, y);
-	long ret = ImageBase::FindPicTh(vpic, dfcolor, sim, x, y);
+	long ret = ImageBase::FindPicTh(vpic, dfcolor, sim, dir, x, y);
 	//清理缓存
 	if (!_enable_cache)
 		_pic_cache.clear();
@@ -127,7 +127,7 @@ long ImageProc::FindPicEx(const std::wstring &files, const wstring &delta_colors
 	files2mats(files, vpic, vpic_name);
 	dfcolor.str2color(delta_colors);
 	sim = 0.5 + sim / 2;
-	long ret = ImageBase::FindPicExTh(vpic, dfcolor, sim, vpd);
+	long ret = ImageBase::FindPicExTh(vpic, dfcolor, sim, dir, vpd);
 	std::wstringstream ss(std::wstringstream::in|std::wstringstream::out);
 	if (returnID)
 	{
