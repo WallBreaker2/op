@@ -11,6 +11,7 @@
 #include "../include/Dict.h"
 #include "../include/color.h"
 #include "./compute/ThreadPool.h"
+
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')
 		return c - L'0';
@@ -51,6 +52,8 @@ struct gray_diff_t{
 	unsigned char gray;
 	unsigned char diff;
 };
+
+
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -172,11 +175,12 @@ public:
 	ImageBin _record;
 	ImageBin _binary;
 	Image _sum;
-private:
 	//起始点
 	int _x1, _y1;
 	//偏移
 	int _dx, _dy;
+private:
+	
 	ThreadPool m_threadPool;
 };
 
