@@ -1,8 +1,7 @@
 ﻿// ConsoleTest.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
-#include <tesseract/baseapi.h>
-#include <leptonica/allheaders.h>
 
+#include <Windows.h>
 
 #include <fstream>
 #include <iostream>
@@ -196,7 +195,6 @@ void test_fs();
 void test_threadPool();
 
 void test_rect();
-int test_tess(int w, int h, unsigned char* data);
 
 int main(int argc, char *argv[]) {
   int a[2] = {0, 1};
@@ -209,9 +207,9 @@ int main(int argc, char *argv[]) {
   std::cout << add(1, 2);
   // test_shared();
   CoInitialize(NULL);
-  //test_unique();
-  //test_invoke();
-  //test_com();
+  // test_unique();
+  // test_invoke();
+  test_com();
   test *ptest = new test;
   ptest->do_test();
   delete ptest;
@@ -221,63 +219,8 @@ int main(int argc, char *argv[]) {
   test_threadPool();
 
   test_rect();
-  
+
   return 0;
-}
-
-int test_tess(int w, int h, unsigned char* data) {
-    SetConsoleOutputCP(CP_UTF8);
-    // 创建Tesseract OCR对象
-    tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
-
-    // 初始化Tesseract OCR
-    // 第一个参数是数据文件的路径（空字符串表示默认路径）
-    // 第二个参数是使用的语言（英语为"eng"）
-    // 第三个参数是OCR模式（默认为OEM_LSTM_ONLY）
-    if (api->Init("", "chi_sim")) {
-        fprintf(stderr, "Could not initialize tesseract.\n");
-        exit(1);
-    }
-
-    // 从图像文件读取像素数据
-    //Pix* image = pixRead("C:/Users/pans/Desktop/test.bmp");
-
-    // 将图像数据设置给Tesseract OCR
-    api->SetImage(data,w,h,4,w*4);
-
-    // 执行文字识别
-    api->Recognize(0);
-
-    // 获取结果迭代器
-    tesseract::ResultIterator* ri = api->GetIterator();
-    tesseract::PageIteratorLevel level = tesseract::RIL_WORD;
-    //std::setlocale()
-    // 如果结果迭代器有效，则循环
-    if (ri != 0) {
-        do {
-            // 获取识别出的单词和置信度
-            const char* word = ri->GetUTF8Text(level);
-            int x1, x2, y1, y2;
-            ri->BoundingBox(level, &x1, &y1, &x2, &y2);
-            float conf = ri->Confidence(level);
-
-            // 显示单词和置信度
-            printf("word: '%s';  \tconf: %.2f box=[%d,%d %d,%d]; \n", word, conf, x1, y1, x2, y2);
-            //std::wcout << L"xxx:" << utf82ws(word) << std::endl;
-
-            // 释放单词的内存
-            delete[] word;
-        } while (ri->Next(level));
-    }
-    Pix* px = api->GetInputImage();
-    pixWrite("test_oux.bmp", px, IFF_BMP);
-    // 删除Tesseract OCR对象
-    delete api;
-
-    // 删除图像数据
-    //pixDestroy(&image);
-
-    return 0;
 }
 
 void test_fs() {

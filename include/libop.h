@@ -87,7 +87,7 @@ public:
 	void EnablePicCache(long enable, long* ret);
 	//取上次操作的图色区域，保存为file(24位位图)
 	void CapturePre(const wchar_t* file_name, long* ret);
-	//设置屏幕数据模式，0:从上到下(默认),1:从下到上
+	
 	void SetScreenDataMode(long mode, long* ret);
 	//---------------------algorithm-------------------------------
 	//A星算法
