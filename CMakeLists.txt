@@ -3,9 +3,9 @@
 #
 cmake_minimum_required (VERSION 3.0)
 
-#if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
-#    set(${CMAKE_TOOLCHAIN_FILE} $ENV{VCPKG_ROOT})
-#endif()
+if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
+    set(${CMAKE_TOOLCHAIN_FILE} $ENV{VCPKG_ROOT})
+endif()
 
 if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
     set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
@@ -86,6 +86,10 @@ include_directories(
 # 包含子项目。
 ## libop主项目
 add_subdirectory ("libop")
+## python测试项目
+add_subdirectory("python")
+## lua测试项目
+add_subdirectory("lua")
 ## tools项目
 add_subdirectory("tools")
 ## 测试项目
