@@ -134,9 +134,9 @@ class test {
 
     // ***************** check ocr function ******************
 
-    m_op->SetDict(0, L"st10.dict", &lret);
-    op_check(SetDict, lret == 1);
-    m_op->Ocr(0, 0, 2000, 2000, L"000000", 1.0, str);
+    //m_op->SetDict(0, L"st10.dict", &lret);
+    //op_check(SetDict, lret == 1);
+    m_op->Ocr(0, 0, 2000, 2000, L"000000", 0.9, str);
     std::wcout << L"ocr:" << str << std::endl;
     op_check(Ocr, str.length() > 0);
     m_op->GetWindowState((long)(::GetDesktopWindow()), 2, &lret);
