@@ -8,6 +8,7 @@
 
 #include "../core/helpfunc.h"
 #include "imageView.hpp"
+
 using std::to_wstring;
 //检查是否为透明图，返回透明像素个数, 四角颜色相同且透明颜色数量在50%-99%范围内
 int check_transparent(Image *img) {
@@ -126,11 +127,13 @@ enum PicMatchType { PicMatchRGB = 0, PicMatchGray = 1, PicMatchTrans = 2 };
 //}
 
 ImageBase::ImageBase() : m_threadPool(std::thread::hardware_concurrency()) {
-  _x1 = _y1 = 0;
-  _dx = _dy = 0;
+    _x1 = _y1 = 0;
+    _dx = _dy = 0;
+   
 }
 
-ImageBase::~ImageBase() {}
+ImageBase::~ImageBase() {
+}
 
 void ImageBase::set_offset(int x1, int y1) {
   _x1 = x1;
