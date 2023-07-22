@@ -206,12 +206,12 @@ void Tool::toBinary() {
 	//_imgloc._binary.write(L"_binary.bmp");
 	//_qbinary.load("_binary.bmp");
 	ui.label_bin->setPixmap(QPixmap::fromImage(_qbinary));
-	std::map<point_t, std::wstring> ps;
+	std::map<point_t,ocr_rec_t> ps;
 	std::wstring ss;
 	auto tempDict = file_dict;
 	tempDict.sort_dict();
 	_imgloc.bin_ocr(tempDict, _ocr_sim, ps);
-	for (auto& it : ps)ss += it.second;
+	for (auto& it : ps)ss += it.second.text;
 	ui.textEdit->setText(QString::fromStdWString(ss));
 
 
