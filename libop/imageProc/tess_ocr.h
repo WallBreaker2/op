@@ -3,12 +3,6 @@
 namespace tesseract {
 	class TessBaseAPI;
 };
-struct tess_rec_info {
-	point_t left_top;
-	point_t right_bottom;
-	wstring text;
-	float confidenc;
-};
 
 class tess_ocr {
 public:
@@ -16,7 +10,7 @@ public:
 	~tess_ocr();
 	int init();
 	int release();
-	int ocr(byte* data, int w, int h, int bpp, vector<tess_rec_info>& result);
+	int ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result);
 private:
 	tesseract::TessBaseAPI* m_api;
 };

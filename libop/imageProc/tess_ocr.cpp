@@ -2,6 +2,7 @@
 #include <tesseract/baseapi.h>
 #include <leptonica/allheaders.h>
 #include "../core/helpfunc.h"
+#include "../core/opEnv.h"
 tess_ocr::tess_ocr(): m_api(nullptr)   {
     init();
 }
@@ -12,7 +13,7 @@ int tess_ocr::init() {
     // 创建Tesseract OCR对象
     m_api = new tesseract::TessBaseAPI();
     // 初始化Tesseract OCR
-    if (m_api->Init("./tess_model", "chi_sim")) {
+    if (m_api->Init(_ws2string( opEnv::getBasePath()+L"/tess_model").c_str(), "chi_sim")) {
         setlog("Could not initialize tesseract.\n");
         release();
     }
@@ -29,7 +30,7 @@ int tess_ocr::release() {
 
 static string utf8_to_ansi(string strUTF8);
 
-int tess_ocr::ocr(byte* data, int w, int h, int bpp, vector<tess_rec_info>& result) {
+int tess_ocr::ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result) {
     result.clear();
     if (m_api == nullptr)return -1;
     
@@ -55,8 +56,8 @@ int tess_ocr::ocr(byte* data, int w, int h, int bpp, vector<tess_rec_info>& resu
             // 显示单词和置信度
             //printf("word: '%s';  \tconf: %.2f box=[%d,%d %d,%d]; \n", word, conf, x1, y1, x2, y2);
             //std::wcout << L"xxx:" << utf82ws(word) << std::endl;
-            tess_rec_info ts;
-            ts.confidenc = conf;
+            ocr_rec_t ts;
+            ts.confidence = conf;
             ts.left_top = point_t(x1, y1);
             ts.right_bottom = point_t(x2, y2);
             ts.text = _s2wstring(utf8_to_ansi(word));
