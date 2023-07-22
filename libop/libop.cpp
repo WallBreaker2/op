@@ -25,10 +25,11 @@
 const int small_block_size = 10;
 
 int libop::s_id = 0;
-const int SC_DATA_BOTTOM = 0;
-const int SC_DATA_TOP = 1;
+const int SC_DATA_TOP = 0;
+const int SC_DATA_BOTTOM = 1;
 
-libop::libop():m_screen_data_mode(0)
+
+libop::libop():m_screen_data_mode(SC_DATA_TOP)
 {
 	_winapi = new WinApi;
 	_bkproc = new opBackground;
