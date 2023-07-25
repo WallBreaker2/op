@@ -272,12 +272,12 @@ void MainWindow::sci_init() {
 	m_sci->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERSUB, SC_MARK_VLINE);
 	m_sci->send(SCI_MARKERDEFINE, SC_MARKNUM_FOLDERTAIL, SC_MARK_LCORNERCURVE);
 
-	// �۵���ǩ��ɫ  
+	  
 	m_sci->send(SCI_MARKERSETBACK, SC_MARKNUM_FOLDERSUB, 0xa0a0a0);
 	m_sci->send(SCI_MARKERSETBACK, SC_MARKNUM_FOLDERMIDTAIL, 0xa0a0a0);
 	m_sci->send(SCI_MARKERSETBACK, SC_MARKNUM_FOLDERTAIL, 0xa0a0a0);
 
-	m_sci->send(SCI_SETFOLDFLAGS, 16 | 4, 0); //����۵������۵��е����¸���һ������
+	m_sci->send(SCI_SETFOLDFLAGS, 16 | 4, 0); 
 	//m_sci->send(SCI_SETMARGINMASKN, 0, 0x01);
 
 }
@@ -435,7 +435,7 @@ void MainWindow::getBindScreen(){
 	lua_getglobal(_L, "ret");
 	int ret = lua_tointeger(_L, -1);
 	lua_getglobal(_L, "data");
-	unsigned int data = lua_tointeger(_L, -1);
+	size_t data = lua_tointeger(_L, -1);
 	lua_getglobal(_L, "size");
 	int size = lua_tointeger(_L, -1);
 	char buffer[256] = { 0 };
@@ -461,7 +461,7 @@ void MainWindow::getBindScreen(){
 	
 	
 		//m_bindWindow->setScaledContents(true);
-		m_bindWindowPixmap = QPixmap::fromImage(img.mirrored(false));
+		m_bindWindowPixmap = QPixmap::fromImage(img);
 		
 		/*QPainter pant(&m_bindWindowPixmap);
 		

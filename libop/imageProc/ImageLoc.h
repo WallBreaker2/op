@@ -11,6 +11,7 @@
 #include "../include/Dict.h"
 #include "../include/color.h"
 #include "./compute/ThreadPool.h"
+
 inline int HEX2INT(wchar_t c) {
 	if (L'0' <= c && c <= L'9')
 		return c - L'0';
@@ -51,6 +52,8 @@ struct gray_diff_t{
 	unsigned char gray;
 	unsigned char diff;
 };
+
+
 /*
 此类用于实现一些图像功能，如图像定位，简单ocr等
 */
@@ -109,9 +112,9 @@ public:
 
 	long OcrEx(Dict& dict, double sim, std::wstring& out_str);
 
-	long FindStr(Dict& dict, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
+	long FindStr(std::map<point_t, ocr_rec_t>& ps, const vector<wstring>& vstr,  double sim, long& retx, long& rety);
 
-	long FindStrEx(Dict& dict, const vector<wstring>& vstr, double sim, std::wstring& out_str);
+	long FindStrEx(std::map<point_t, ocr_rec_t>& ps, const vector<wstring>& vstr, double sim, std::wstring& out_str);
 	//描述：查找目标图像中的直线
 	//输入：精度
 	//输出：outStr:直线描述[法线角度，直线到原点的距离];ret:该直线上的点的数量
@@ -144,12 +147,10 @@ private:
 
 	
 	//ocr 完全匹配模式
-	void _bin_ocr(const Dict& dict, std::map<point_t, std::wstring>&ps);
+	void _bin_ocr(const Dict& dict, std::map<point_t, ocr_rec_t>&ps);
 	//ocr 模糊匹配模式
-	void _bin_ocr(const Dict& dict,double sim, std::map<point_t, std::wstring>&ps);
-	//ocr wrapper
-	//template<int _type>
-	//void bin_ocr(const Image& binary, Image& record, const Dict& dict, int* max_error, std::wstring& outstr);
+	void _bin_ocr(const Dict& dict,double sim, std::map<point_t, ocr_rec_t>&ps);
+	
 public:
 	/*
 	if(abs(cr-src)<=df) pixel=1;
@@ -163,7 +164,7 @@ public:
 	void get_rois(int min_word_h, std::vector<rect_t>& vroi);
 	//ocr识别，返回识别到的字及对应坐标
 
-	void bin_ocr(const Dict& dict, double sim, std::map<point_t, std::wstring>&ps);
+	void bin_ocr(const Dict& dict, double sim, std::map<point_t, ocr_rec_t>&ps);
 
 
 public:
@@ -172,11 +173,12 @@ public:
 	ImageBin _record;
 	ImageBin _binary;
 	Image _sum;
-private:
 	//起始点
 	int _x1, _y1;
 	//偏移
 	int _dx, _dy;
+private:
+	
 	ThreadPool m_threadPool;
 };
 
