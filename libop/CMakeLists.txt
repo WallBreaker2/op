@@ -57,9 +57,9 @@ SET(SRC_FILES
 "./core/opEnv.cpp"
 
 
-"./imageProc/imageloc.cpp"
-"./imageProc/imageproc.cpp"
-
+	"./imageProc/imageloc.cpp"
+	"./imageProc/imageproc.cpp"
+	 "imageProc/tess_ocr.cpp"
 "./winapi/injecter.cpp"
 "./winapi/memoryEx.cpp"
 "./winapi/query_api.cpp"
@@ -112,7 +112,7 @@ add_custom_command(
  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
+add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc "imageProc/tess_ocr.cpp")
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
 # add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -128,6 +128,12 @@ include_directories(
   ./
   ./core
 )
+
+## for tesseract lib
+find_package(Tesseract)
+include_directories(${Tesseract_INCLUDE_DIRS})
+target_link_libraries(${op_com} Tesseract::libtesseract)
+
 
 # 7.add link library
 #TARGET_LINK_LIBRARIES(libop BlackBone.lib)
