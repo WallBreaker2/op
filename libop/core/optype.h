@@ -48,6 +48,7 @@ struct rect_t {
   int x2, y2;
   int width() const { return x2 - x1; }
   int height() const { return y2 - y1; }
+  int area() const { return width() * height(); }
   rect_t& shrinkRect(int w, int h) {
     x2 -= w;
     y2 -= h;
@@ -91,5 +92,18 @@ struct point_desc_t {
 };
 
 using vpoint_desc_t = std::vector<point_desc_t>;
+// ocr result
+struct ocr_rec_t {
+    // BBox of the text
+    point_t left_top;
+    point_t right_bottom;
+    // content of the text
+    wstring text;
+    // confidence of the text
+    float confidence;
+};
+
+using vocr_rec_t = std::vector<ocr_rec_t>;
+
 
 #endif
