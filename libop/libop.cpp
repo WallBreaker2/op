@@ -27,20 +27,37 @@ const int small_block_size = 10;
 int libop::s_id = 0;
 const int SC_DATA_TOP = 0;
 const int SC_DATA_BOTTOM = 1;
+//using bytearray = std::vector<unsigned char>;
+struct op_context {
+	//1. Windows API
+	WinApi winapi;
+	// background module
+	opBackground bkproc;
+	//image process
+	ImageProc image_proc;
+	// work path
+	std::wstring curr_path;
 
+	std::map<std::wstring, long> vkmap;
+	bytearray screenData;
+	bytearray screenDataBmp;
+	std::wstring opPath;
+	long screen_data_mode;
+	int id;
+};
 
-libop::libop():m_screen_data_mode(SC_DATA_TOP)
+libop::libop():m_context(nullptr)
 {
-	_winapi = new WinApi;
-	_bkproc = new opBackground;
-	_image_proc = new ImageProc;
-
+	m_context = new op_context;
+	m_context->screen_data_mode = SC_DATA_TOP;
+	
 	//初始化目录
 	wchar_t buff[MAX_PATH];
 	::GetCurrentDirectoryW(MAX_PATH, buff);
-	_curr_path = buff;
-	_image_proc->_curr_path = _curr_path;
+	m_context->curr_path = buff;
+	m_context->image_proc._curr_path = m_context->curr_path;
 	//初始化键码表
+	std::map<std::wstring, long>& _vkmap = m_context->vkmap;
 	_vkmap[L"back"] = VK_BACK;
 	_vkmap[L"ctrl"] = VK_CONTROL;
 	_vkmap[L"alt"] = 18;
@@ -67,16 +84,17 @@ libop::libop():m_screen_data_mode(SC_DATA_TOP)
 	_vkmap[L"f11"] = VK_F11;
 	_vkmap[L"f12"] = VK_F12;
 
-	m_opPath = opEnv::getBasePath();
+	m_context->opPath = opEnv::getBasePath();
 
-	m_id = s_id++;
+	m_context->id = s_id++;
 }
 
 libop::~libop()
 {
-	delete _winapi;
-	delete _bkproc;
-	delete _image_proc;
+	if (m_context) {
+		delete m_context;
+		m_context = nullptr;
+	}
 }
 
 std::wstring libop::Ver()
@@ -92,23 +110,23 @@ void libop::SetPath(const wchar_t *path, long *ret)
 	replacew(fpath, L"/", L"\\");
 	if (fpath.find(L'\\') != wstring::npos && ::PathFileExistsW(fpath.data()))
 	{
-		_curr_path = fpath;
-		_image_proc->_curr_path = _curr_path;
-		_bkproc->_curr_path = _curr_path;
+		m_context->curr_path = fpath;
+		m_context->image_proc._curr_path = m_context->curr_path;
+		m_context->bkproc._curr_path = m_context->curr_path;
 		*ret = 1;
 	}
 	else
 	{
 
 		if (!fpath.empty() && fpath[0] != L'\\')
-			fpath = _curr_path + L'\\' + fpath;
+			fpath = m_context->curr_path + L'\\' + fpath;
 		else
-			fpath = _curr_path + fpath;
+			fpath = m_context->curr_path + fpath;
 		if (::PathFileExistsW(fpath.data()))
 		{
-			_curr_path = path;
-			_image_proc->_curr_path = _curr_path;
-			_bkproc->_curr_path = _curr_path;
+			m_context->curr_path = path;
+			m_context->image_proc._curr_path = m_context->curr_path;
+			m_context->bkproc._curr_path = m_context->curr_path;
 			*ret = 1;
 		}
 		else {
@@ -121,7 +139,7 @@ void libop::SetPath(const wchar_t *path, long *ret)
 
 void libop::GetPath(std::wstring &path)
 {
-	path = _curr_path;
+	path = m_context->curr_path;
 }
 
 void libop::GetBasePath(std::wstring &path)
@@ -131,7 +149,7 @@ void libop::GetBasePath(std::wstring &path)
 
 void libop::GetID(long *ret)
 {
-	*ret = m_id;
+	*ret = m_context->id;
 }
 
 void libop::GetLastError(long *ret)
@@ -173,17 +191,17 @@ void libop::InjectDll(const wchar_t *process_name, const wchar_t *dll_name, long
 
 void libop::EnablePicCache(long enable, long *ret)
 {
-	_image_proc->_enable_cache = enable;
+	m_context->image_proc._enable_cache = enable;
 	*ret = 1;
 }
 
 void libop::CapturePre(const wchar_t *file, LONG *ret)
 {
-	*ret = _image_proc->Capture(file);
+	*ret = m_context->image_proc.Capture(file);
 }
 
 void libop::SetScreenDataMode(long mode, long* ret) {
-	m_screen_data_mode = mode;
+	m_context->screen_data_mode = mode;
 	*ret = 1;
 }
 
@@ -279,7 +297,7 @@ void libop::EnumWindow(long parent, const wchar_t *title, const wchar_t *class_n
 	// TODO: 在此添加实现代码
 	std::unique_ptr<wchar_t> retstring(new wchar_t[MAX_PATH * 200]);
 	memset(retstring.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-	_winapi->EnumWindow((HWND)parent, title, class_name, filter, retstring.get());
+	m_context->winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring.get());
 	//*retstr=_bstr_t(retstring);
 	retstr = retstring.get();
 }
@@ -289,7 +307,7 @@ void libop::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *titl
 	// TODO: 在此添加实现代码
 	std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
 	memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-	_winapi->EnumWindow((HWND)0, title, class_name, filter, retstr.get(), process_name);
+	m_context->winapi.EnumWindow((HWND)0, title, class_name, filter, retstr.get(), process_name);
 	//*retstring=_bstr_t(retstr);
 
 	retstring = retstr.get();
@@ -300,7 +318,7 @@ void libop::EnumProcess(const wchar_t *name, std::wstring &retstring)
 	// TODO: 在此添加实现代码
 	std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
 	memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-	_winapi->EnumProcess(name, retstr.get());
+	m_context->winapi.EnumProcess(name, retstr.get());
 	//*retstring=_bstr_t(retstr);
 	retstring = retstr.get();
 }
@@ -309,45 +327,45 @@ void libop::ClientToScreen(long ClientToScreen, long *x, long *y, long *bret)
 {
 	// TODO: 在此添加实现代码
 
-	*bret = _winapi->ClientToScreen(ClientToScreen, *x, *y);
+	*bret = m_context->winapi.ClientToScreen(ClientToScreen, *x, *y);
 }
 
 void libop::FindWindow(const wchar_t *class_name, const wchar_t *title, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	*rethwnd = _winapi->FindWindow(class_name, title);
+	*rethwnd = m_context->winapi.FindWindow(class_name, title);
 }
 
 void libop::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	_winapi->FindWindowByProcess(class_name, title, *rethwnd, process_name);
+	m_context->winapi.FindWindowByProcess(class_name, title, *rethwnd, process_name);
 }
 
 void libop::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	_winapi->FindWindowByProcess(class_name, title, *rethwnd, NULL, process_id);
+	m_context->winapi.FindWindowByProcess(class_name, title, *rethwnd, NULL, process_id);
 }
 
 void libop::FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	*rethwnd = _winapi->FindWindowEx(parent, class_name, title);
+	*rethwnd = m_context->winapi.FindWindowEx(parent, class_name, title);
 }
 
 void libop::GetClientRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *nret)
 {
 	// TODO: 在此添加实现代码
 
-	*nret = _winapi->GetClientRect(hwnd, *x1, *y1, *x2, *y2);
+	*nret = m_context->winapi.GetClientRect(hwnd, *x1, *y1, *x2, *y2);
 }
 
 void libop::GetClientSize(long hwnd, long *width, long *height, long *nret)
 {
 	// TODO: 在此添加实现代码
 
-	*nret = _winapi->GetClientSize(hwnd, *width, *height);
+	*nret = m_context->winapi.GetClientSize(hwnd, *width, *height);
 }
 
 void libop::GetForegroundFocus(long *rethwnd)
@@ -366,13 +384,13 @@ void libop::GetMousePointWindow(long *rethwnd)
 {
 	// TODO: 在此添加实现代码
 	//::Sleep(2000);
-	_winapi->GetMousePointWindow(*rethwnd);
+	m_context->winapi.GetMousePointWindow(*rethwnd);
 }
 
 void libop::GetPointWindow(long x, long y, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	_winapi->GetMousePointWindow(*rethwnd, x, y);
+	m_context->winapi.GetMousePointWindow(*rethwnd, x, y);
 }
 
 void libop::GetProcessInfo(long pid, std::wstring &retstring)
@@ -380,7 +398,7 @@ void libop::GetProcessInfo(long pid, std::wstring &retstring)
 	// TODO: 在此添加实现代码
 
 	wchar_t retstr[MAX_PATH] = {0};
-	_winapi->GetProcessInfo(pid, retstr);
+	m_context->winapi.GetProcessInfo(pid, retstr);
 	//* retstring=_bstr_t(retstr);
 
 	retstring = retstr;
@@ -401,7 +419,7 @@ void libop::GetSpecialWindow(long flag, long *rethwnd)
 void libop::GetWindow(long hwnd, long flag, long *nret)
 {
 	// TODO: 在此添加实现代码
-	_winapi->GetWindow(hwnd, flag, *nret);
+	m_context->winapi.GetWindow(hwnd, flag, *nret);
 }
 
 void libop::GetWindowClass(long hwnd, std::wstring &retstring)
@@ -428,7 +446,7 @@ void libop::GetWindowProcessPath(long hwnd, std::wstring &retstring)
 	DWORD pid = 0;
 	::GetWindowThreadProcessId((HWND)hwnd, &pid);
 	wchar_t process_path[MAX_PATH] = {0};
-	_winapi->GetProcesspath(pid, process_path);
+	m_context->winapi.GetProcesspath(pid, process_path);
 	//* retstring=_bstr_t(process_path);
 
 	retstring = process_path;
@@ -449,7 +467,7 @@ void libop::GetWindowRect(long hwnd, long *x1, long *y1, long *x2, long *y2, lon
 void libop::GetWindowState(long hwnd, long flag, long *rethwnd)
 {
 	// TODO: 在此添加实现代码
-	*rethwnd = _winapi->GetWindowState(hwnd, flag);
+	*rethwnd = m_context->winapi.GetWindowState(hwnd, flag);
 }
 
 void libop::GetWindowTitle(long hwnd, std::wstring &rettitle)
@@ -485,25 +503,25 @@ void libop::ScreenToClient(long hwnd, long *x, long *y, long *nret)
 void libop::SendPaste(long hwnd, long *nret)
 {
 	// TODO: 在此添加实现代码
-	*nret = _winapi->SendPaste(hwnd);
+	*nret = m_context->winapi.SendPaste(hwnd);
 }
 
 void libop::SetClientSize(long hwnd, long width, long hight, long *nret)
 {
 	// TODO: 在此添加实现代码
-	*nret = _winapi->SetWindowSize(hwnd, width, hight);
+	*nret = m_context->winapi.SetWindowSize(hwnd, width, hight);
 }
 
 void libop::SetWindowState(long hwnd, long flag, long *nret)
 {
 	// TODO: 在此添加实现代码
-	*nret = _winapi->SetWindowState(hwnd, flag);
+	*nret = m_context->winapi.SetWindowState(hwnd, flag);
 }
 
 void libop::SetWindowSize(long hwnd, long width, long height, long *nret)
 {
 	// TODO: 在此添加实现代码
-	*nret = _winapi->SetWindowSize(hwnd, width, height, 1);
+	*nret = m_context->winapi.SetWindowSize(hwnd, width, height, 1);
 }
 
 void libop::SetWindowText(long hwnd, const wchar_t *title, long *nret)
@@ -516,22 +534,22 @@ void libop::SetWindowText(long hwnd, const wchar_t *title, long *nret)
 void libop::SetWindowTransparent(long hwnd, long trans, long *nret)
 {
 	// TODO: 在此添加实现代码
-	*nret = _winapi->SetWindowTransparent(hwnd, trans);
+	*nret = m_context->winapi.SetWindowTransparent(hwnd, trans);
 }
 
 void libop::SendString(long hwnd, const wchar_t *str, long *ret)
 {
-	*ret = _winapi->SendString((HWND)hwnd, str);
+	*ret = m_context->winapi.SendString((HWND)hwnd, str);
 }
 
 void libop::SendStringIme(long hwnd, const wchar_t *str, long *ret)
 {
-	*ret = _winapi->SendStringIme((HWND)hwnd, str);
+	*ret = m_context->winapi.SendStringIme((HWND)hwnd, str);
 }
 
 void libop::RunApp(const wchar_t *cmdline, long mode, long *ret)
 {
-	*ret = _winapi->RunApp(cmdline, mode);
+	*ret = m_context->winapi.RunApp(cmdline, mode);
 }
 
 void libop::WinExec(const wchar_t *cmdline, long cmdshow, long *ret)
@@ -550,105 +568,105 @@ void libop::GetCmdStr(const wchar_t *cmd, long millseconds, std::wstring &retstr
 
 void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode, long *ret)
 {
-	if (_bkproc->IsBind())
-		_bkproc->UnBindWindow();
-	*ret = _bkproc->BindWindow(hwnd, display, mouse, keypad, mode);
+	if (m_context->bkproc.IsBind())
+		m_context->bkproc.UnBindWindow();
+	*ret = m_context->bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
 }
 
 void libop::UnBindWindow(long *ret)
 {
-	*ret = _bkproc->UnBindWindow();
+	*ret = m_context->bkproc.UnBindWindow();
 }
 
 void libop::GetCursorPos(long *x, long *y, long *ret)
 {
 
-	*ret = _bkproc->_bkmouse->GetCursorPos(*x, *y);
+	*ret = m_context->bkproc._bkmouse->GetCursorPos(*x, *y);
 }
 
 void libop::MoveR(long x, long y, long *ret)
 {
-	*ret = _bkproc->_bkmouse->MoveR(x, y);
+	*ret = m_context->bkproc._bkmouse->MoveR(x, y);
 }
 
 void libop::MoveTo(long x, long y, long *ret)
 {
-	*ret = _bkproc->_bkmouse->MoveTo(x, y);
+	*ret = m_context->bkproc._bkmouse->MoveTo(x, y);
 }
 
 void libop::MoveToEx(long x, long y, long w, long h, long *ret)
 {
-	*ret = _bkproc->_bkmouse->MoveToEx(x, y, w, h);
+	*ret = m_context->bkproc._bkmouse->MoveToEx(x, y, w, h);
 }
 
 void libop::LeftClick(long *ret)
 {
-	*ret = _bkproc->_bkmouse->LeftClick();
+	*ret = m_context->bkproc._bkmouse->LeftClick();
 }
 
 void libop::LeftDoubleClick(long *ret)
 {
-	*ret = _bkproc->_bkmouse->LeftDoubleClick();
+	*ret = m_context->bkproc._bkmouse->LeftDoubleClick();
 }
 
 void libop::LeftDown(long *ret)
 {
-	*ret = _bkproc->_bkmouse->LeftDown();
+	*ret = m_context->bkproc._bkmouse->LeftDown();
 }
 
 void libop::LeftUp(long *ret)
 {
-	*ret = _bkproc->_bkmouse->LeftUp();
+	*ret = m_context->bkproc._bkmouse->LeftUp();
 }
 
 void libop::MiddleClick(long *ret)
 {
-	*ret = _bkproc->_bkmouse->MiddleClick();
+	*ret = m_context->bkproc._bkmouse->MiddleClick();
 }
 
 void libop::MiddleDown(long *ret)
 {
-	*ret = _bkproc->_bkmouse->MiddleDown();
+	*ret = m_context->bkproc._bkmouse->MiddleDown();
 }
 
 void libop::MiddleUp(long *ret)
 {
-	*ret = _bkproc->_bkmouse->MiddleUp();
+	*ret = m_context->bkproc._bkmouse->MiddleUp();
 }
 
 void libop::RightClick(long *ret)
 {
-	*ret = _bkproc->_bkmouse->RightClick();
+	*ret = m_context->bkproc._bkmouse->RightClick();
 }
 
 void libop::RightDown(long *ret)
 {
-	*ret = _bkproc->_bkmouse->RightDown();
+	*ret = m_context->bkproc._bkmouse->RightDown();
 }
 
 void libop::RightUp(long *ret)
 {
-	*ret = _bkproc->_bkmouse->RightUp();
+	*ret = m_context->bkproc._bkmouse->RightUp();
 }
 
 void libop::WheelDown(long *ret)
 {
-	*ret = _bkproc->_bkmouse->WheelDown();
+	*ret = m_context->bkproc._bkmouse->WheelDown();
 }
 
 void libop::WheelUp(long *ret)
 {
-	*ret = _bkproc->_bkmouse->WheelUp();
+	*ret = m_context->bkproc._bkmouse->WheelUp();
 }
 
 void libop::GetKeyState(long vk_code, long *ret)
 {
-	*ret = _bkproc->_keypad->GetKeyState(vk_code);
+	*ret = m_context->bkproc._keypad->GetKeyState(vk_code);
 }
 
 void libop::KeyDown(long vk_code, long *ret)
 {
-	*ret = _bkproc->_keypad->KeyDown(vk_code);
+	*ret = m_context->bkproc._keypad->KeyDown(vk_code);
 }
 
 void libop::KeyDownChar(const wchar_t *vk_code, long *ret)
@@ -659,14 +677,14 @@ void libop::KeyDownChar(const wchar_t *vk_code, long *ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad->KeyDown(vk);
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		*ret = m_context->bkproc._keypad->KeyDown(vk);
 	}
 }
 
 void libop::KeyUp(long vk_code, long *ret)
 {
-	*ret = _bkproc->_keypad->KeyUp(vk_code);
+	*ret = m_context->bkproc._keypad->KeyUp(vk_code);
 }
 
 void libop::KeyUpChar(const wchar_t *vk_code, long *ret)
@@ -677,21 +695,21 @@ void libop::KeyUpChar(const wchar_t *vk_code, long *ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad->KeyUp(vk);
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		*ret = m_context->bkproc._keypad->KeyUp(vk);
 	}
 }
 
 void libop::WaitKey(long vk_code, long time_out, long *ret)
 {
 	time_out = min(time_out, 0);
-	*ret = _bkproc->_keypad->WaitKey(vk_code, time_out);
+	*ret = m_context->bkproc._keypad->WaitKey(vk_code, time_out);
 }
 
 void libop::KeyPress(long vk_code, long *ret)
 {
 
-	*ret = _bkproc->_keypad->KeyPress(vk_code);
+	*ret = m_context->bkproc._keypad->KeyPress(vk_code);
 }
 
 void libop::KeyPressChar(const wchar_t *vk_code, long *ret)
@@ -703,8 +721,8 @@ void libop::KeyPressChar(const wchar_t *vk_code, long *ret)
 		//setlog(vk_code);
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = _vkmap.count(s) ? _vkmap[s] : vk_code[0];
-		*ret = _bkproc->_keypad->KeyPress(vk);
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		*ret = m_context->bkproc._keypad->KeyPress(vk);
 	}
 }
 
@@ -714,17 +732,17 @@ void libop::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_name
 
 	*ret = 0;
 
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
+			m_context->image_proc.set_offset(x1, y1);
 
-			*ret = _image_proc->Capture(file_name);
+			*ret = m_context->image_proc.Capture(file_name);
 		}
 	}
 }
@@ -734,16 +752,16 @@ void libop::CmpColor(long x, long y, const wchar_t *color, DOUBLE sim, long *ret
 	//LONG rx = -1, ry = -1;
 	long tx = x + small_block_size, ty = y + small_block_size;
 	*ret = 0;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x, y, tx, ty))
 	{
-		if (!_bkproc->requestCapture(x, y, small_block_size, small_block_size, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x, y, small_block_size, small_block_size, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x, y);
-			*ret = _image_proc->CmpColor(x, y, color, sim);
+			m_context->image_proc.set_offset(x, y);
+			*ret = m_context->image_proc.CmpColor(x, y, color, sim);
 		}
 	}
 }
@@ -754,16 +772,16 @@ void libop::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color, 
 	*ret = 0;
 	*x = *y = -1;
 
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			*ret = _image_proc->FindColor(color, sim, dir, *x, *y);
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.FindColor(color, sim, dir, *x, *y);
 		}
 	}
 }
@@ -772,16 +790,16 @@ void libop::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color
 {
 	//wstring str;
 	retstr.clear();
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindColoEx(color, sim, dir, retstr);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindColoEx(color, sim, dir, retstr);
 		}
 	}
 	
@@ -793,22 +811,22 @@ void libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *fi
 	*ret = 0;
 	*x = *y = -1;
 
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			*ret = _image_proc->FindMultiColor(first_color, offset_color, sim, dir, *x, *y);
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.FindMultiColor(first_color, offset_color, sim, dir, *x, *y);
 		}
 
 		/*if (*ret) {
 			rx += x1; ry += y1;
-			rx -= _bkproc->_pbkdisplay->_client_x;
-			ry -= _bkproc->_pbkdisplay->_client_y;
+			rx -= m_context->bkproc._pbkdisplay->_client_x;
+			ry -= m_context->bkproc._pbkdisplay->_client_y;
 		}*/
 	}
 }
@@ -816,16 +834,16 @@ void libop::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *fi
 void libop::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color, DOUBLE sim, long dir, std::wstring &retstr)
 {
 	retstr.clear();
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindMultiColorEx(first_color, offset_color, sim, dir, retstr);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindMultiColorEx(first_color, offset_color, sim, dir, retstr);
 		}
 	}
 	//retstr = str;
@@ -837,22 +855,22 @@ void libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, co
 	*ret = 0;
 	*x = *y = -1;
 
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			*ret = _image_proc->FindPic(files, delta_color, sim, 0, *x, *y);
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.FindPic(files, delta_color, sim, 0, *x, *y);
 		}
 
 		/*if (*ret) {
 			rx += x1; ry += y1;
-			rx -= _bkproc->_pbkdisplay->_client_x;
-			ry -= _bkproc->_pbkdisplay->_client_y;
+			rx -= m_context->bkproc._pbkdisplay->_client_x;
+			ry -= m_context->bkproc._pbkdisplay->_client_y;
 		}*/
 	}
 }
@@ -861,16 +879,16 @@ void libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, 
 {
 
 	//wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindPicEx(files, delta_color, sim, dir, retstr);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr);
 		}
 	}
 	//retstr = str;
@@ -879,16 +897,16 @@ void libop::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, 
 void libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim, long dir, std::wstring &retstr)
 {
 	//wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindPicEx(files, delta_color, sim, dir, retstr, false);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr, false);
 		}
 	}
 	//retstr = str;
@@ -897,16 +915,16 @@ void libop::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files,
 void libop::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count, long height, long width, long *x, long *y, long *ret)
 {
 	*ret = 0;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			*ret = _image_proc->FindColorBlock(color, sim, count, height, width, *x, *y);
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.FindColorBlock(color, sim, count, height, width, *x, *y);
 		}
 	}
 }
@@ -914,16 +932,16 @@ void libop::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *co
 void libop::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count, long height, long width, std::wstring &retstr)
 {
 
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindColorBlockEx(color, sim, count, height, width, retstr);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindColorBlockEx(color, sim, count, height, width, retstr);
 		}
 	}
 }
@@ -933,12 +951,12 @@ void libop::GetColor(long x, long y, std::wstring &ret)
 {
 	color_t cr;
 	auto tx = x + small_block_size, ty = y + small_block_size;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x, y, tx, ty))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x, y, tx, ty))
 	{
-		if (_bkproc->requestCapture(x, y, small_block_size, small_block_size, _image_proc->_src))
+		if (m_context->bkproc.requestCapture(x, y, small_block_size, small_block_size, m_context->image_proc._src))
 		{
-			_image_proc->set_offset(x, y);
-			cr = _image_proc->_src.at<color_t>(0, 0);
+			m_context->image_proc.set_offset(x, y);
+			cr = m_context->image_proc._src.at<color_t>(0, 0);
 		}
 		else
 		{
@@ -955,50 +973,50 @@ void libop::GetColor(long x, long y, std::wstring &ret)
 
 void libop::SetDisplayInput(const wchar_t *mode, long *ret)
 {
-	*ret = _bkproc->set_display_method(mode);
+	*ret = m_context->bkproc.set_display_method(mode);
 }
 
 void libop::LoadPic(const wchar_t *file_name, long *ret)
 {
-	*ret = _image_proc->LoadPic(file_name);
+	*ret = m_context->image_proc.LoadPic(file_name);
 }
 
 void libop::FreePic(const wchar_t *file_name, long *ret)
 {
-	*ret = _image_proc->FreePic(file_name);
+	*ret = m_context->image_proc.FreePic(file_name);
 }
 
 void libop::LoadMemPic(const wchar_t *file_name, void *data, long size, long *ret)
 {
-	*ret = _image_proc->LoadMemPic(file_name, data, size);
+	*ret = m_context->image_proc.LoadMemPic(file_name, data, size);
 }
 
 void libop::GetScreenData(long x1, long y1, long x2, long y2, size_t* data, long *ret)
 {
 	*data = 0;
 	*ret = 0;
-	auto &img = _image_proc->_src;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	auto &img = m_context->image_proc._src;
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_screenData.resize(img.size() * 4);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->screenData.resize(img.size() * 4);
 			
-			if (m_screen_data_mode == SC_DATA_BOTTOM) {
+			if (m_context->screen_data_mode == SC_DATA_BOTTOM) {
 				for (int i = 0; i < img.height; i++)
 				{
-					memcpy(_screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
+					memcpy(m_context->screenData.data() + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
 				}
 			}
 			else {
-				memcpy(_screenData.data(), img.pdata, img.size() * 4);
+				memcpy(m_context->screenData.data(), img.pdata, img.size() * 4);
 			}
-			*data = (size_t)_screenData.data();
+			*data = (size_t)m_context->screenData.data();
 			*ret = 1;
 		}
 	}
@@ -1008,16 +1026,16 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 {
 	*data = 0;
 	*ret = 0;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("rerror requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			auto &img = _image_proc->_src;
+			m_context->image_proc.set_offset(x1, y1);
+			auto &img = m_context->image_proc._src;
 
 			BITMAPFILEHEADER bfh = {0}; //bmp file header
 			BITMAPINFOHEADER bih = {0}; //bmp info header
@@ -1030,13 +1048,13 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 			bih.biBitCount = 32; //每个像素字节大小
 			bih.biCompression = BI_RGB;
 			//bih.biHeight = -img.height;//高度 反
-			bih.biHeight = m_screen_data_mode==SC_DATA_BOTTOM? img.height: -img.height; //高度
+			bih.biHeight = m_context->screen_data_mode==SC_DATA_BOTTOM? img.height: -img.height; //高度
 			bih.biPlanes = 1;
 			bih.biSize = sizeof(BITMAPINFOHEADER);
 			bih.biSizeImage = img.width * 4 * img.height; //图像数据大小
 			bih.biWidth = img.width;					  //宽度
 
-			_screenDataBmp.resize(bfh.bfSize);
+			m_context->screenDataBmp.resize(bfh.bfSize);
 			/*	std::ofstream f;
 		f.open("xx.bmp",std::ios::binary);
 		if (f) {
@@ -1046,12 +1064,12 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 		}
 		
 		f.close();*/
-			auto dst = _screenDataBmp.data();
+			auto dst = m_context->screenDataBmp.data();
 
 			memcpy(dst, &bfh, sizeof(bfh));
 			memcpy(dst + sizeof(bfh), &bih, sizeof(bih));
 			dst += sizeof(bfh) + sizeof(bih);
-			if (m_screen_data_mode == SC_DATA_BOTTOM) {
+			if (m_context->screen_data_mode == SC_DATA_BOTTOM) {
 				for (int i = 0; i < img.height; i++)
 				{
 					memcpy(dst + i * img.width * 4, img.ptr<char>(img.height - 1 - i), img.width * 4);
@@ -1062,7 +1080,7 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 			}
 			
 			//memcpy(dst + sizeof(bfh)+sizeof(bih), img.pdata, img.size()*4);
-			*data = (size_t)_screenDataBmp.data();
+			*data = (size_t)m_context->screenDataBmp.data();
 			*size = bfh.bfSize;
 			*ret = 1;
 		}
@@ -1072,9 +1090,9 @@ void libop::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t* data, l
 void libop::GetScreenFrameInfo(long *frame_id, long *time)
 {
 	FrameInfo info = {};
-	if (_bkproc->IsBind())
+	if (m_context->bkproc.IsBind())
 	{
-		_bkproc->_pbkdisplay->getFrameInfo(info);
+		m_context->bkproc._pbkdisplay->getFrameInfo(info);
 	}
 	*frame_id = info.frameId;
 	*time = info.time;
@@ -1099,7 +1117,7 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr)
 
 	//setlog(s.data());
 	namespace fs = std::filesystem;
-	fs::path path(_curr_path);
+	fs::path path(m_context->curr_path);
 	if (fs::exists(path))
 	{
 		fs::directory_iterator iter(path);
@@ -1132,34 +1150,34 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr)
 //设置字库文件
 void libop::SetDict(long idx, const wchar_t *file_name, long *ret)
 {
-	*ret = _image_proc->SetDict(idx, file_name);
+	*ret = m_context->image_proc.SetDict(idx, file_name);
 }
 
 //设置内存字库文件
 void libop::SetMemDict(long idx, const wchar_t *data, long size, long *ret)
 {
-	*ret = _image_proc->SetMemDict(idx, (void *)data, size);
+	*ret = m_context->image_proc.SetMemDict(idx, (void *)data, size);
 }
 
 //使用哪个字库文件进行识别
 void libop::UseDict(long idx, long *ret)
 {
-	*ret = _image_proc->UseDict(idx);
+	*ret = m_context->image_proc.UseDict(idx);
 }
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 void libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->OCR(color, sim, str);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.OCR(color, sim, str);
 		}
 	}
 	retstr = str;
@@ -1168,16 +1186,16 @@ void libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE
 void libop::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->OcrEx(color, sim, str);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.OcrEx(color, sim, str);
 		}
 	}
 	retstr = str;
@@ -1187,16 +1205,16 @@ void libop::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, con
 {
 	wstring str;
 	*retx = *rety = -1;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			*ret = _image_proc->FindStr(strs, color, sim, *retx, *rety);
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.FindStr(strs, color, sim, *retx, *rety);
 		}
 	}
 }
@@ -1204,16 +1222,16 @@ void libop::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, con
 void libop::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindStrEx(strs, color, sim, str);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindStrEx(strs, color, sim, str);
 		}
 	}
 	retstr = str;
@@ -1222,16 +1240,16 @@ void libop::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, c
 void libop::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->OcrAuto(sim, str);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.OcrAuto(sim, str);
 		}
 	}
 	retstr = str;
@@ -1241,29 +1259,29 @@ void libop::OcrAuto(long x1, long y1, long x2, long y2, DOUBLE sim, std::wstring
 void libop::OcrFromFile(const wchar_t *file_name, const wchar_t *color_format, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	_image_proc->OcrFromFile(file_name, color_format, sim, str);
+	m_context->image_proc.OcrFromFile(file_name, color_format, sim, str);
 	retstr = str;
 }
 //从文件中识别图片,无需指定颜色
 void libop::OcrAutoFromFile(const wchar_t *file_name, DOUBLE sim, std::wstring &retstr)
 {
 	wstring str;
-	_image_proc->OcrAutoFromFile(file_name, sim, str);
+	m_context->image_proc.OcrAutoFromFile(file_name, sim, str);
 	retstr = str;
 }
 
 void libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, wstring &retstr)
 {
-	if (_bkproc->check_bind() && _bkproc->RectConvert(x1, y1, x2, y2))
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
 	{
-		if (!_bkproc->requestCapture(x1, y1, x2 - x1, y2 - y1, _image_proc->_src))
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
 		{
 			setlog("error requestCapture");
 		}
 		else
 		{
-			_image_proc->set_offset(x1, y1);
-			_image_proc->FindLine(color, sim, retstr);
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.FindLine(color, sim, retstr);
 		}
 	}
 }

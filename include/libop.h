@@ -3,16 +3,13 @@
 所有op的开放接口都从此cpp类衍生而出
 */
 #pragma once
-
 #include <string>
-#include<map>
-#include<vector>
 //forward declare
-class WinApi;
-class opBackground;
-class ImageProc;
+//class WinApi;
+//class opBackground;
+//class ImageProc;
+struct op_context;
 
-using bytearray = std::vector<unsigned char>;
 #ifdef U_STATIC_IMPLEMENTATION
 #define OP_API
 #else
@@ -44,21 +41,22 @@ private:
 	
 	//一些共用变量
 
-	//1. Windows API
-	WinApi* _winapi;
-	// background module
-	opBackground* _bkproc;
-	//image process
-	ImageProc* _image_proc;
-	// work path
-	std::wstring _curr_path;
-	
-	std::map<std::wstring, long> _vkmap;
-	bytearray _screenData;
-	bytearray _screenDataBmp;
-	std::wstring m_opPath;
-	long m_screen_data_mode;
-	int m_id;
+	////1. Windows API
+	//WinApi* _winapi;
+	//// background module
+	//opBackground* _bkproc;
+	////image process
+	//ImageProc* _image_proc;
+	//// work path
+	//std::wstring _curr_path;
+	//
+	//std::map<std::wstring, long> _vkmap;
+	//bytearray _screenData;
+	//bytearray _screenDataBmp;
+	//std::wstring m_opPath;
+	//long m_screen_data_mode;
+	//int m_id;
+	op_context* m_context;
 	static int s_id;
 public:
 	//---------------基本设置/属性-------------------

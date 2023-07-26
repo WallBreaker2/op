@@ -59,7 +59,7 @@ class test {
       std::cout << "FindWindow of TheRender false!\n";
       return -2;
     }
-    printf("find ok ,hwnd is %08x\n", subhwnd);
+    printf("find LD ok ,hwnd is %08x\n", subhwnd);
     op->BindWindow(subhwnd, L"opengl", L"windows", L"windows", 0, &ret);
     if (!ret) {
       std::cout << "BindWindow Nox false!\n";
@@ -136,7 +136,7 @@ class test {
 
     //m_op->SetDict(0, L"st10.dict", &lret);
     //op_check(SetDict, lret == 1);
-    m_op->Ocr(0, 0, 2000, 2000, L"000000", 0.9, str);
+    m_op->Ocr(0, 0, 2000, 2000, L"000000", 0.8, str);
     std::wcout << L"ocr:" << str << std::endl;
     op_check(Ocr, str.length() > 0);
     m_op->GetWindowState((long)(::GetDesktopWindow()), 2, &lret);
@@ -159,14 +159,19 @@ class test {
         std::cout <<"dir:"<< dir<<" ret:" << lret << "," << lx << "," << ly << std::endl;
         op_check(FindColor, lret == 1 && 0 <= lx && lx <= 2000);
     }
+    wstring colors[3];
+    m_op->GetColor(20, 20, colors[0]);
+    m_op->GetColor(21, 20, colors[1]);
+    m_op->GetColor(20, 21, colors[2]);
+    wstring offcolor = L"1|0|" + colors[1] + L",0|1|" + colors[2];
     for(int dir=0;dir<4;dir++){
-      m_op->FindMultiColor(0, 0, 2000, 2000, L"000000", L"0|1|000000,-5|-4|000000", 1.0, dir, &lx, &ly, &lret);
+      m_op->FindMultiColor(0, 0, 2000, 2000, colors[0].data(), offcolor.data(), 1.0, dir, &lx, &ly, &lret);
       std::cout <<"FindMultiColor dir:"<< dir<<" ret:" << lret << "," << lx << "," << ly << std::endl;
     op_check(FindMultiColor, lret == 1);
     }
     
 
-    m_op->FindMultiColorEx(0, 0, 2000, 2000, L"000000", L"0|1|000000,-5|-4|000000", 1.0, 0, str);
+    m_op->FindMultiColorEx(0, 0, 2000, 2000, colors[0].data(), offcolor.data(), 1.0, 0, str);
     op_check(FindMultiColorEx, str.length() > 0);
 
     // ***********************8 check screen capture *************8
