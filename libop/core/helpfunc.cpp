@@ -48,6 +48,21 @@ std::string _ws2string(const std::wstring&ws) {
 	return s;
 }
 
+string utf8_to_ansi(string strUTF8) {
+	UINT nLen = MultiByteToWideChar(CP_UTF8, NULL, strUTF8.c_str(), -1, NULL, NULL);
+	WCHAR* wszBuffer = new WCHAR[nLen + 1];
+	nLen = MultiByteToWideChar(CP_UTF8, NULL, strUTF8.c_str(), -1, wszBuffer, nLen);
+	wszBuffer[nLen] = 0;
+	nLen = WideCharToMultiByte(936, NULL, wszBuffer, -1, NULL, NULL, NULL, NULL);
+	CHAR* szBuffer = new CHAR[nLen + 1];
+	nLen = WideCharToMultiByte(936, NULL, wszBuffer, -1, szBuffer, nLen, NULL, NULL);
+	szBuffer[nLen] = 0;
+	strUTF8 = szBuffer;
+	delete[]szBuffer;
+	delete[]wszBuffer;
+	return strUTF8;
+}
+
 long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out) {
 	if (::PathFileExistsW(file.c_str())) {
 		out = file;
@@ -216,6 +231,8 @@ std::wostream& operator<<(std::wostream& o, FrameInfo const& rhs) {
 		<< L"width:" << rhs.width << std::endl;
 	return o;
 }
+
+
 
 
 

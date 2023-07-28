@@ -5,6 +5,8 @@
 #include "../background/display/frameInfo.h"
 std::wstring _s2wstring(const std::string&s);
 std::string _ws2string(const std::wstring&s);
+
+string utf8_to_ansi(string strUTF8);
 //将路径转化为全局路径
 long Path2GlobalPath(const std::wstring&file, const std::wstring& curr_path, std::wstring& out);
 
