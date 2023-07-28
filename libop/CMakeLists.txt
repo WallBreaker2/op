@@ -18,7 +18,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB"
 # set_target_properties(target PROPERTIES VcpkgEnabled "true")
 
 # 4.source directory
-AUX_SOURCE_DIRECTORY(src DIR_SRCS)
+AUX_SOURCE_DIRECTORY(./ DIR_SRCS)
 
 #LINK_DIRECTORIES("/3rd_party/lib/x86")
 # 5.set environment variable
@@ -59,7 +59,8 @@ SET(SRC_FILES
 
 	"./imageProc/imageloc.cpp"
 	"./imageProc/imageproc.cpp"
-	 "imageProc/tess_ocr.cpp"
+#	 "imageProc/tess_ocr.cpp"
+	 "imageProc/OcrWrapper.cpp"
 "./winapi/injecter.cpp"
 "./winapi/memoryEx.cpp"
 "./winapi/query_api.cpp"
@@ -112,7 +113,7 @@ add_custom_command(
  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc "imageProc/tess_ocr.cpp")
+add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
 # add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -130,9 +131,9 @@ include_directories(
 )
 
 ## for tesseract lib
-find_package(Tesseract)
-include_directories(${Tesseract_INCLUDE_DIRS})
-target_link_libraries(${op_com} Tesseract::libtesseract)
+# find_package(Tesseract)
+# include_directories(${Tesseract_INCLUDE_DIRS})
+# target_link_libraries(${op_com} Tesseract::libtesseract)
 
 
 # 7.add link library
