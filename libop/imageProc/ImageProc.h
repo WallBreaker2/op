@@ -2,8 +2,8 @@
 #include <string>
 #include "ImageLoc.h"
 #include <map>
-#include "tess_ocr.h"
-//#include <tesseract/baseapi.h>
+//#include "tess_ocr.h"
+#include "OcrWrapper.h"
 using std::wstring;
 /*
 此类为图像处理，包含以下工作
@@ -84,7 +84,8 @@ public:
 	//是否使用图片缓存，默认开启
 	int _enable_cache;
 
-	tess_ocr m_tess_ocr;
+	//tess_ocr m_tess_ocr;
+	OcrWrapper m_ocr;
 	
 	
 private:

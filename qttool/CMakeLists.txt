@@ -63,7 +63,7 @@ SET(SRC_FILES
 "cap_dialog.h"
 "../libop/imageProc/imageProc.cpp"
 "../libop/imageProc/imageLoc.cpp"
-"../libop/imageProc/tess_ocr.cpp"
+"../libop/imageProc/OcrWrapper.cpp"
 "../libop/core/globalVar.cpp"
 "../libop/core/helpfunc.cpp"
 "../libop/core/pipe.cpp"
@@ -85,9 +85,9 @@ add_executable(qttool ${SRC_FILES} Tool.qrc)
 Set_Target_Properties(qttool PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 ## for tesseract lib
-find_package(Tesseract)
-include_directories(${Tesseract_INCLUDE_DIRS})
-target_link_libraries(qttool Tesseract::libtesseract)
+# find_package(Tesseract)
+# include_directories(${Tesseract_INCLUDE_DIRS})
+# target_link_libraries(qttool Tesseract::libtesseract)
 #target_link_libraries(qttool PRIVATE Qt5::Widgets)
 target_link_libraries(qttool ScintillaEdit4.lib)
 target_link_libraries(qttool lua)
