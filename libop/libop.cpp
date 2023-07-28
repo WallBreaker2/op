@@ -1147,6 +1147,18 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr)
 	}
 }
 
+long libop::SetOcrEngine(const wchar_t* path_of_engine, const wchar_t* dll_name, const wchar_t* argv) {
+	string argvs = _ws2string(argv);
+	vector<string> vstr;
+	split(argvs, vstr, " ");
+
+	return m_context->image_proc.m_ocr.init(path_of_engine, dll_name, vstr);
+
+	return 0;
+
+
+}
+
 //设置字库文件
 void libop::SetDict(long idx, const wchar_t *file_name, long *ret)
 {
