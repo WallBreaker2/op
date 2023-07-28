@@ -267,6 +267,7 @@ public:
 	//
 	void MatchPicName(const wchar_t* pic_name, std::wstring& retstr);
 	//----------------------ocr-------------------------
+	long SetOcrEngine(const wchar_t* path_of_engine,const wchar_t* dll_name, const wchar_t* argv);
 	//设置字库文件
 	void SetDict(long idx, const wchar_t* file_name, long* ret);
 	//设置内存字库文件
