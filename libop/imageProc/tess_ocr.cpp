@@ -10,9 +10,9 @@ tess_ocr::~tess_ocr() {
     release();
 }
 int tess_ocr::init() {
-    // ´´½¨Tesseract OCR¶ÔÏó
+    // åˆ›å»ºTesseract OCRå¯¹è±¡
     m_api = new tesseract::TessBaseAPI();
-    // ³õÊ¼»¯Tesseract OCR
+    // åˆå§‹åŒ–Tesseract OCR
     if (m_api->Init(_ws2string( opEnv::getBasePath()+L"/tess_model").c_str(), "chi_sim")) {
         setlog("Could not initialize tesseract.\n");
         release();
@@ -21,7 +21,7 @@ int tess_ocr::init() {
 }
 int tess_ocr::release() {
     if (m_api) {
-        // É¾³ıTesseract OCR¶ÔÏó
+        // åˆ é™¤Tesseract OCRå¯¹è±¡
         delete m_api;
     }
     m_api = nullptr;
@@ -34,26 +34,30 @@ int tess_ocr::ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result) {
     result.clear();
     if (m_api == nullptr)return -1;
     
-    // ½«Í¼ÏñÊı¾İÉèÖÃ¸øTesseract OCR
+    // å°†å›¾åƒæ•°æ®è®¾ç½®ç»™Tesseract OCR
     m_api->SetImage(data, w, h, bpp, w * bpp);
 
-    // Ö´ĞĞÎÄ×ÖÊ¶±ğ
+    // æ‰§è¡Œæ–‡å­—è¯†åˆ«
     m_api->Recognize(0);
 
-    // »ñÈ¡½á¹ûµü´úÆ÷
+    // è·å–ç»“æœè¿­ä»£å™¨
     tesseract::ResultIterator* ri = m_api->GetIterator();
     tesseract::PageIteratorLevel level = tesseract::RIL_WORD;
     //std::setlocale()
-    // Èç¹û½á¹ûµü´úÆ÷ÓĞĞ§£¬ÔòÑ­»·
+    // å¦‚æœç»“æœè¿­ä»£å™¨æœ‰æ•ˆï¼Œåˆ™å¾ªç¯
     if (ri != 0) {
         do {
-            // »ñÈ¡Ê¶±ğ³öµÄµ¥´ÊºÍÖÃĞÅ¶È
+            // è·å–è¯†åˆ«å‡ºçš„å•è¯å’Œç½®ä¿¡åº¦
             const char* word = ri->GetUTF8Text(level);
+            if (word == nullptr)
+            {
+                continue;
+            }
             int x1, x2, y1, y2;
             ri->BoundingBox(level, &x1, &y1, &x2, &y2);
             float conf = ri->Confidence(level);
 
-            // ÏÔÊ¾µ¥´ÊºÍÖÃĞÅ¶È
+            // æ˜¾ç¤ºå•è¯å’Œç½®ä¿¡åº¦
             //printf("word: '%s';  \tconf: %.2f box=[%d,%d %d,%d]; \n", word, conf, x1, y1, x2, y2);
             //std::wcout << L"xxx:" << utf82ws(word) << std::endl;
             ocr_rec_t ts;
@@ -62,7 +66,7 @@ int tess_ocr::ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result) {
             ts.right_bottom = point_t(x2, y2);
             ts.text = _s2wstring(utf8_to_ansi(word));
             result.push_back(ts);
-            // ÊÍ·Åµ¥´ÊµÄÄÚ´æ
+            // é‡Šæ”¾å•è¯çš„å†…å­˜
             delete[] word;
         } while (ri->Next(level));
     }
