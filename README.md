@@ -19,7 +19,8 @@ OP插件是为了满足Windows平台下各种自动化操作和图像处理的�
 下载地址：[GitHub](https://github.com/WallBreaker2/op/releases)  
 
 ## 教程  
-所有函数说明以及Demo可在以在[wiki](https://github.com/WallBreaker2/op/wiki)中获取
+* [快速开始](https://github.com/WallBreaker2/op/wiki/quick_start)
+* 函数说明[wiki](https://github.com/WallBreaker2/op/wiki)
 
 ## 编译
 ### 编译环境
