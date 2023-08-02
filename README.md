@@ -19,8 +19,34 @@ OP插件是为了满足Windows平台下各种自动化操作和图像处理的�
 下载地址：[GitHub](https://github.com/WallBreaker2/op/releases)  
 
 ## 教程  
-* [快速开始](https://github.com/WallBreaker2/op/wiki/quick_start)
-* 函数说明[wiki](https://github.com/WallBreaker2/op/wiki)
+### 快速开始(python)
+1. 安装插件已安装到系统
+```bash
+cd <path of op>
+# 注册32位
+regsvr32 op_x86.dll
+# 注册64位
+# regsvr32 op_x64.dll
+```
+2. 安装pywin32
+```shell
+python -m pip install pywin32
+```
+3. 新建一个python脚本，输入以下代码：
+```python
+# import moudles 导入pywin32的 Dispatch 函数
+from win32com.client import Dispatch
+# create op instance 创建op对象
+op=Dispatch("op.opsoft")
+# print version of op 打印op插件的版本
+print(op.Ver())
+```
+如果一切正常，将会输出
+```shell
+0.4.2.0
+```
+
+更多用法及函数说明可从[wiki](https://github.com/WallBreaker2/op/wiki)获取
 
 ## 编译
 ### 编译环境
