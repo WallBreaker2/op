@@ -57,7 +57,6 @@ print(op.Ver())
 ### 第三方库
 * [blackbone](https://github.com/DarthTon/Blackbone.git)(静态编译，链接方式MT)
 编译完成后，设置环境变量BLACKBONE_ROOT为源码根目录(例如D:\workspace\Blackbone)
-* [tesseract](https://github.com/tesseract-ocr/tesseract)(依赖库较多，推荐vcpkg编译)
 * [kiero](https://github.com/Rebzzel/kiero.git)(已在源码内，无需安装)
 * [minhook](https://github.com/TsudaKageyu/minhook.git)(已在源码内，无需安装)
 * [QT5.12](https://download.qt.io/archive/qt/5.12/5.12.12/)(可选) 安装完成后设置环境变量QT_ROOT为Qt安装目录下的版本目录，例如D:\workspace\QT\5.12.12
