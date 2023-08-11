@@ -59,8 +59,9 @@ constexpr int RDT_GL_FI = MAKE_RENDER(OPENGL, 4); //glFinish
 enum INPUT_TYPE
 {
 	IN_NORMAL = 0,
-	IN_WINDOWS = 1,
-	IN_DX = 2
+	IN_NORMAL2 = 1,
+	IN_WINDOWS = 2,
+	IN_DX = 3
 };
 //define Image byte format
 constexpr int IBF_R8G8B8A8 = 0;

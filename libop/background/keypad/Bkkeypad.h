@@ -19,7 +19,7 @@ public:
 
 	virtual long KeyUp(long vk_code) = 0;
 
-	virtual long WaitKey(long vk_code, long time_out) = 0;
+	virtual long WaitKey(long vk_code, unsigned long time_out) = 0;
 
 	virtual long KeyPress(long vk_code) = 0;
 protected:

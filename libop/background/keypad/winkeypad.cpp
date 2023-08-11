@@ -67,6 +67,7 @@ long winkeypad::KeyDown(long vk_code) {
 		INPUT Input = { 0 };
 		Input.type = INPUT_KEYBOARD;
 		Input.ki.wVk = (WORD)vk_code;
+		Input.ki.wScan = 0;
 		Input.ki.dwFlags = 0;
 
 		/*The function returns the number of events that it successfully inserted into the keyboard or mouse input stream.
@@ -78,7 +79,18 @@ long winkeypad::KeyDown(long vk_code) {
 		ret = ::SendInput(1, &Input, sizeof(INPUT));
 		break;
 	}
-
+	case INPUT_TYPE::IN_NORMAL2:
+	{
+		INPUT Input = { 0 };
+		Input.type = INPUT_KEYBOARD;
+		Input.ki.wVk = 0;
+		Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
+		Input.ki.dwFlags = KEYEVENTF_SCANCODE;
+		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		if (ret == 0)
+			setlog("op:IN_NORMAL2 erro code:%s", GetLastErrorAsString().c_str());
+		break;
+	}
 	case INPUT_TYPE::IN_WINDOWS: {
 		/*Specification of WM_KEYDOWN :*/
 
@@ -116,6 +128,7 @@ long winkeypad::KeyDown(long vk_code) {
 		if (vk_code == VK_RCONTROL)
 			lparam |= 1u << 24;
 		lparam |= oem_code(vk_code) << 16;
+		lparam |= 1u << 31;
 		ret = ::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, lparam);
 		//ret = ::SendMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
 		if (ret == 0)setlog("error code=%d", GetLastError());
@@ -137,6 +150,7 @@ long winkeypad::KeyUp(long vk_code) {
 		INPUT Input = { 0 };
 		Input.type = INPUT_KEYBOARD;
 		Input.ki.wVk = vk_code;
+		Input.ki.wScan =0;
 		Input.ki.dwFlags = KEYEVENTF_KEYUP;
 
 		/*The function returns the number of events that it successfully inserted into the keyboard or mouse input stream.
@@ -146,6 +160,18 @@ long winkeypad::KeyUp(long vk_code) {
 		Note that neither GetLastError nor the return value will indicate the failure was caused by UIPI blocking.
 		*/
 		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		break;
+	}
+	case INPUT_TYPE::IN_NORMAL2:
+	{
+		INPUT Input = { 0 };
+		Input.type = INPUT_KEYBOARD;
+		Input.ki.wVk = 0;
+		Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
+		Input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+		ret = ::SendInput(1, &Input, sizeof(INPUT));
+		if (ret == 0)
+			setlog("op:IN_NORMAL2 erro code:%s", GetLastErrorAsString().c_str());
 		break;
 	}
 
@@ -177,7 +203,7 @@ long winkeypad::KeyUp(long vk_code) {
 		DWORD lparam = 1u;
 		if (vk_code == VK_RCONTROL)lparam |= 1u << 24;
 		lparam |= oem_code(vk_code) << 16;
-		lparam |= 1u << 30;
+		//lparam |= 1u << 30;
 		lparam |= 1u << 31;
 		ret = ::PostMessageW(_hwnd, WM_KEYUP, vk_code, lparam);
 		if (ret == 0)setlog("error2 code=%d", GetLastError());
@@ -189,9 +215,9 @@ long winkeypad::KeyUp(long vk_code) {
 	return ret;
 }
 
-long winkeypad::WaitKey(long vk_code, long time_out) {
-	auto deadline = ::GetTickCount() + time_out;
-	while (::GetTickCount() < deadline) {
+long winkeypad::WaitKey(long vk_code, unsigned long time_out) {
+	auto deadline = ::GetTickCount64() + time_out;
+	while (::GetTickCount64() < deadline) {
 		if (GetKeyState(vk_code))
 			return 1;
 		::Sleep(1);
