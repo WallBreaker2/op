@@ -38,6 +38,7 @@ OcrWrapper::~OcrWrapper() {
 int OcrWrapper::init(const std::wstring& engine, const std::wstring& dllName, const vector<string>& argvs) {
 	using std::cout;
 	using std::endl;
+	//只需加载一次
 	if (ocr_engine_init == nullptr) {
 		wchar_t old_path[512] = {};
 		DWORD nlen = GetDllDirectoryW(512, old_path);
@@ -58,6 +59,7 @@ int OcrWrapper::init(const std::wstring& engine, const std::wstring& dllName, co
 		if (ocr_engine_init && ocr_engine_ocr && ocr_engine_release) {}
 		else {
 			cout << "GetProcAddress false\n";
+			ocr_engine_init = nullptr;
 			::SetDllDirectoryW(old_path);
 			return -2;
 		}
@@ -90,7 +92,6 @@ int OcrWrapper::init(const std::wstring& engine, const std::wstring& dllName, co
 }
 int OcrWrapper::release() {
 	if (m_engine) {
-		// 删除Tesseract OCR对象
 		ocr_engine_release(m_engine);
 		m_engine = nullptr;
 	}
