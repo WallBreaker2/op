@@ -71,29 +71,33 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
 		display = RDT_GL_FI;
 	else
 	{
-		setlog(L"error display:%s", sdisplay.c_str());
+		setlog(L"error display mode: %s", sdisplay.c_str());
 		return 0;
 	}
 	//check mouse
 	if (smouse == L"normal")
 		mouse = INPUT_TYPE::IN_NORMAL;
+	else if (smouse == L"normal.hd")
+		mouse = INPUT_TYPE::IN_NORMAL2;
 	else if (smouse == L"windows")
 		mouse = INPUT_TYPE::IN_WINDOWS;
 	else if (smouse == L"dx")
 		mouse = INPUT_TYPE::IN_DX;
 	else
 	{
-		setlog(L"error mouse:%s", smouse.c_str());
+		setlog(L"error mouse mode: %s", smouse.c_str());
 		return 0;
 	}
 	//check keypad
 	if (skeypad == L"normal")
 		keypad = INPUT_TYPE::IN_NORMAL;
+	else if (skeypad == L"normal.hd")
+		keypad = INPUT_TYPE::IN_NORMAL2;
 	else if (skeypad == L"windows")
 		keypad = INPUT_TYPE::IN_WINDOWS;
 	else
 	{
-		setlog(L"error keypad:%s", sdisplay.c_str());
+		setlog(L"error keypad mode: %s", sdisplay.c_str());
 		return 0;
 	}
 	//step 4.init

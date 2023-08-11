@@ -35,7 +35,7 @@ public:
 	long RectConvert(long&x1, long&y1, long&x2, long&y2);
 	//0:normal;-1 reserve 1 need cut
 	long get_image_type();
-	//����Ƿ�󶨻�������ǰ̨
+	
 	bool check_bind();
 	const std::pair<wstring, wstring>& get_display_method()const;
 	long set_display_method(const wstring& method);
