@@ -28,6 +28,10 @@ long setlog(const wchar_t* format, ...);
 //
 long setlog(const char* format, ...);
 
+
+//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+std::string GetLastErrorAsString();
+
 int inline hex2bin(int c) {
 	return c <= L'9' ? c - L'0' : c - L'A' + 10;
 };
