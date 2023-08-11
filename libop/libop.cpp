@@ -702,8 +702,8 @@ void libop::KeyUpChar(const wchar_t *vk_code, long *ret)
 
 void libop::WaitKey(long vk_code, long time_out, long *ret)
 {
-	time_out = min(time_out, 0);
-	*ret = m_context->bkproc._keypad->WaitKey(vk_code, time_out);
+	unsigned long t = time_out <= 0 ? 0xffffffffu : time_out;
+	*ret = m_context->bkproc._keypad->WaitKey(vk_code, t);
 }
 
 void libop::KeyPress(long vk_code, long *ret)
