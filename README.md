@@ -19,7 +19,34 @@ OP插件是为了满足Windows平台下各种自动化操作和图像处理的�
 下载地址：[GitHub](https://github.com/WallBreaker2/op/releases)  
 
 ## 教程  
-所有函数说明以及Demo可在以在[wiki](https://github.com/WallBreaker2/op/wiki)中获取
+### 快速开始(python)
+1. 安装插件已安装到系统
+```bash
+cd <path of op>
+# 注册32位
+regsvr32 op_x86.dll
+# 注册64位
+# regsvr32 op_x64.dll
+```
+2. 安装pywin32
+```shell
+python -m pip install pywin32
+```
+3. 新建一个python脚本，输入以下代码：
+```python
+# import moudles 导入pywin32的 Dispatch 函数
+from win32com.client import Dispatch
+# create op instance 创建op对象
+op=Dispatch("op.opsoft")
+# print version of op 打印op插件的版本
+print(op.Ver())
+```
+如果一切正常，将会输出
+```shell
+0.4.2.0
+```
+
+更多用法及函数说明可从[wiki](https://github.com/WallBreaker2/op/wiki)获取
 
 ## 编译
 ### 编译环境
@@ -30,7 +57,6 @@ OP插件是为了满足Windows平台下各种自动化操作和图像处理的�
 ### 第三方库
 * [blackbone](https://github.com/DarthTon/Blackbone.git)(静态编译，链接方式MT)
 编译完成后，设置环境变量BLACKBONE_ROOT为源码根目录(例如D:\workspace\Blackbone)
-* [tesseract](https://github.com/tesseract-ocr/tesseract)(依赖库较多，推荐vcpkg编译)
 * [kiero](https://github.com/Rebzzel/kiero.git)(已在源码内，无需安装)
 * [minhook](https://github.com/TsudaKageyu/minhook.git)(已在源码内，无需安装)
 * [QT5.12](https://download.qt.io/archive/qt/5.12/5.12.12/)(可选) 安装完成后设置环境变量QT_ROOT为Qt安装目录下的版本目录，例如D:\workspace\QT\5.12.12
