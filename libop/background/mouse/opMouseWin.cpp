@@ -156,7 +156,7 @@ long opMouseWin::LeftDoubleClick() {
 	r1=LeftClick();
 	::Sleep(1);
 	r2=LeftClick();
-	return r1 & r2 ? 1 : 0;
+	return r1 && r2 ? 1 : 0;
 }
 
 long opMouseWin::LeftDown() {
@@ -205,7 +205,7 @@ long opMouseWin::MiddleClick() {
 	r1=MiddleDown();
 	::Sleep(1);
 	r2=MiddleUp();
-	return r1 & r2 ? 1 : 0;
+	return r1 && r2 ? 1 : 0;
 }
 
 long opMouseWin::MiddleDown() {
