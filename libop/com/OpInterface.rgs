@@ -1,10 +1,10 @@
 HKCR
 {
-	op.opsoft.1 = s 'OpInterface class'
+	ForceRemove op.opsoft.1 = s 'OpInterface class'
 	{
 		CLSID = s '{12bec402-a06e-4fad-a7d4-830f967374c6}'
 	}
-	op.opsoft = s 'OpInterface class'
+	ForceRemove op.opsoft = s 'OpInterface class'
 	{		
 		CurVer = s 'op.opsoft.1'
 	}
