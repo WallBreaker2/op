@@ -9,6 +9,7 @@ ocr_engine_release_t OcrWrapper::ocr_engine_release;
 
 OcrWrapper::OcrWrapper() : m_engine(nullptr) {
 	//paddle
+#ifdef _M_X64
 	std::wstring paddle_path = opEnv::getBasePath() + L"/paddle";
 	auto dllName =  L"paddle_ocr.dll";
 	std::wstring root = paddle_path;
@@ -22,14 +23,17 @@ OcrWrapper::OcrWrapper() : m_engine(nullptr) {
 		"--rec_char_dict_path=" + _ws2string(otherName),
 		"--enable_mkldnn=true"
 	};
+#else
 	//tess
-	/*std::wstring paddle_path = opEnv::getBasePath() + L"/tess";
+	std::wstring paddle_path = opEnv::getBasePath() + L"/tess";
 	auto dllName = L"tess_engine.dll";
 	std::wstring root = opEnv::getBasePath()+L"/tess";
-	wstring detName = root + L"/tess_model";
-	wstring recName = L"chi_sim";
-	wstring otherName = root + L"/ppocr/utils/ppocr_keys_v1.txt";*/
-	
+	vector<string> argvs = {
+		"tests",
+		_ws2string(root)+"/tess_model",
+		"chi_sim"
+	};
+#endif
 	init(paddle_path, dllName, argvs);
 }
 OcrWrapper::~OcrWrapper() {
@@ -50,7 +54,7 @@ int OcrWrapper::init(const std::wstring& engine, const std::wstring& dllName, co
 		
 		if (hdll == NULL) {
 			::SetDllDirectoryW(old_path);
-			cout << "error: LoadLibraryA false:" << GetLastError() << endl;
+			cout << "error: LoadLibraryA false:" << GetLastErrorAsString() << endl;
 			return -1;
 		}
 		ocr_engine_init = (ocr_engine_init_t)GetProcAddress(hdll, "ocr_engine_init");

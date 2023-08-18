@@ -43,6 +43,7 @@ enum RENDER_TYPE
 #define GET_RENDER_FLAG(t) (t & 0xffff)
 
 constexpr int RDT_NORMAL = MAKE_RENDER(NORMAL, 0);
+constexpr int RDT_NORMAL_DXGI = MAKE_RENDER(NORMAL, 1);
 constexpr int RDT_GDI = MAKE_RENDER(GDI, 0);
 constexpr int RDT_GDI2 = MAKE_RENDER(GDI, 1);
 constexpr int RDT_GDI_DX2 = MAKE_RENDER(GDI, 2);

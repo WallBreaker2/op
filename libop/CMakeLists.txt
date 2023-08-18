@@ -36,6 +36,7 @@ SET(SRC_FILES
 	"./background/opBackground.cpp" 
 
   "./background/display/opGDI.cpp" 
+  "./background/display/opDXGI.cpp" 
   "./background/display/opDxGL.cpp" 
   "./background/display/IDisplay.cpp" 
   
