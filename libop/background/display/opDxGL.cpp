@@ -16,13 +16,11 @@ opDxGL::opDxGL() :IDisplay(),m_opPath(opEnv::getBasePath())
 {
 }
 
-
 opDxGL::~opDxGL()
 {
 	//do clear
 	UnBindEx();
 }
-
 
 long opDxGL::BindEx(HWND hwnd, long render_type) {
 	//setlog("BindEx");
@@ -117,11 +115,6 @@ long opDxGL::BindEx(HWND hwnd, long render_type) {
 	}
 	return bind_ret;
 }
-//long bkdo::UnBind(HWND hwnd) {
-//	_hwnd = hwnd;
-//	_bind_state = 1;
-//	return UnBind();
-//}
 
 long opDxGL::UnBindEx() {
 	//setlog("bkdo::UnBindEx()");
@@ -269,8 +262,6 @@ long opDxGL::UnBindNox() {
 
 	return 1;
 }
-
-
 
 bool opDxGL::requestCapture(int x1, int y1, int w, int h, Image& img) {
 	img.create(w, h);
