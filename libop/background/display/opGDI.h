@@ -12,14 +12,8 @@ public:
 	~opGDI();
 	//绑定
 	long BindEx(HWND _hwnd, long render_type) override;
-	//long UnBind(HWND hwnd);
 	//解绑
 	long UnBindEx() override;
-	
-	
-	//long updata_screen();
-
-	//byte* get_data() override;
 
 	virtual bool requestCapture(int x1, int y1, int w, int h, Image& img)override;
 	

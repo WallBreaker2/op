@@ -51,16 +51,6 @@ long opGDI::BindEx(HWND hwnd, long render_type) {
     /*setlog("dx=%d dy=%d", dx_, dy_);*/
     if (_render_type == RDT_GDI) {
       _hdc = ::GetDC(_hwnd);
-      //HWND topHwnd = WinApi::GetTopWindowSp(_hwnd);
-      //long dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
-     /* if (GetPropA(topHwnd, "opstyle_flag")) {
-        dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
-      } else {
-        dwExStyle = GetWindowLongA(topHwnd, GWL_EXSTYLE);
-        SetPropA(topHwnd, "opstyle", (HANDLE)dwExStyle);
-        SetPropA(topHwnd, "opstyle_flag", (HANDLE)HANDLE_FLAG_INHERIT);
-      }*/
-    
       //SetWindowLongA(topHwnd, GWL_EXSTYLE, dwExStyle | WS_EX_LAYERED);
       //UpdateWindow(topHwnd);
 
@@ -238,7 +228,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image& img) {
 void opGDI::fmtFrameInfo(void* dst, HWND hwnd, int w, int h) {
   m_frameInfo.hwnd = (unsigned __int64)hwnd;
   m_frameInfo.frameId++;
-  m_frameInfo.time = ::GetTickCount();
+  m_frameInfo.time = ::GetTickCount64();
   m_frameInfo.width = w;
   m_frameInfo.height = h;
   m_frameInfo.fmtChk();
