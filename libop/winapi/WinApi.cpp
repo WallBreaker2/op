@@ -2822,8 +2822,9 @@ long WinApi::SendStringIme(HWND hwnd, const wstring &s) {
 }
 
 long WinApi::RunApp(const wstring &cmd, long mode) {
-  std::unique_ptr<wchar_t> cmdptr(new wchar_t[cmd.length()]);
+  std::unique_ptr<wchar_t> cmdptr(new wchar_t[cmd.length() + 1]);
   memcpy(cmdptr.get(), cmd.data(), cmd.length() * sizeof(wchar_t));
+  cmdptr.get()[cmd.length()] = 0; //C字符串需要末尾有0
   /*SECURITY_ATTRIBUTES SA;
   SA.bInheritHandle = NULL;
   SA.*/
