@@ -110,8 +110,8 @@ public:
 				auto it = _openset.find(temp);
 				//如果节点不在开放节点
 				if (it == _openset.end()) {
-
-					temp.parent = (Node*)&(*_closedset.find(curr_node));
+					auto findIter = std::find_if(_closedset.begin(), _closedset.end(), [&](Node it) {return it.pos == curr_node.pos; });
+			        temp.parent = (Node*)&(*findIter);
 					_openset.insert(temp);
 				}
 				else {

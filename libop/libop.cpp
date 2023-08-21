@@ -223,17 +223,17 @@ void libop::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_
 
 	as.set_map(mapWidth, mapHeight, walls);
 	as.findpath(beginX, beginY, endX, endY, paths);
-	wstring pathstr;
+	path.clear();
 	wchar_t buf[20];
 	for (auto it = paths.rbegin(); it != paths.rend(); ++it)
 	{
 		auto v = *it;
 		wsprintf(buf, L"%d,%d", v.x, v.y);
-		pathstr += buf;
-		pathstr.push_back(L'|');
+		path += buf;
+		path.push_back(L'|');
 	}
-	if (!pathstr.empty())
-		pathstr.pop_back();
+	if (!path.empty())
+		path.pop_back();
 }
 
 void libop::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, std::wstring &ret)
