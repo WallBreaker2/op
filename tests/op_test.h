@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __TEST_H_
-#define __TEST_H_
+#ifndef __OP_TEST_H_
+#define __OP_TEST_H_
 #include <windows.h>
 
 #include <iostream>
@@ -19,14 +19,27 @@ class test {
   }
 
   int TestForeground() {
-      return do_some_test(m_op);
+      long ret = 0;
+      m_op->BindWindow(0, L"normal", L"normal", L"normal", 0, &ret);
+      if (ret == 1) {
+          std::cout << "bind normal normal normal ok\n";
+          do_some_test(m_op);
+          m_op->UnBindWindow(&ret);
+      }
+      m_op->BindWindow(0, L"normal.dxgi", L"normal", L"normal", 0, &ret);
+      if (ret == 1) {
+          std::cout << "bind normal.dxgi normal normal ok\n";
+          do_some_test(m_op);
+          m_op->UnBindWindow(&ret);
+      }
+      return 0;
   }
 
   int TestNox(libop *op) {
     long hwnd = 0, subhwnd = 0, ret = 0;
     op->FindWindow(L"Qt5QWindowIcon", L"夜神模拟器", &hwnd);
     if (!hwnd) {
-      std::cout << "FindWindow of 夜神模拟器 false!\n";
+      std::wcout << L"FindWindow of 夜神模拟器 false!\n";
 
       return -1;
     }
@@ -90,20 +103,22 @@ class test {
     printf("******************** do_some_test *************************** \n");
     wstring ver, str;
     long lret = 0;
-    m_op->Capture(10, 10, 50, 50, L"xxx.bmp", &lret);
+    m_op->Capture(10, 10, 200, 200, L"xxx.bmp", &lret);
 
     for (int i = 0; i < 10; i++) {
-      Sleep(200);
+      Sleep(20);
       long frame_id, time;
       m_op->GetScreenFrameInfo(&frame_id, &time);
       printf("frame id=%d time=%.3lfs\n", frame_id, time / 1000.);
     }
-    void *data;
+    void *data=nullptr;
     long size;
-    m_op->GetScreenDataBmp(0, 0, 200, 200, (size_t*) & data, & size, & lret);
-    std::ofstream os("GetScreenDataBmp.bmp", std::ios::binary);
-    os.write((char *)data, size);
-    os.close();
+    m_op->GetScreenDataBmp(0, 0, 200, 200, (size_t*)&data, &size, &lret);
+    if (data) {
+        std::ofstream os("GetScreenDataBmp.bmp", std::ios::binary);
+        os.write((char*)data, size);
+        os.close();
+    }
     m_op->FindLine(50, 50, 400, 400, L"", 0.95, ver);
     std::wcout << "FindLine result:" << ver << std::endl;
 
