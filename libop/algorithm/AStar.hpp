@@ -110,7 +110,7 @@ public:
 				auto it = _openset.find(temp);
 				//如果节点不在开放节点
 				if (it == _openset.end()) {
-			        temp.parent = (Node*)&(*_closedset.find(curr_node));
+					temp.parent = (Node*)&(*_closedset.find(curr_node));
 					_openset.insert(temp);
 				}
 				else {
