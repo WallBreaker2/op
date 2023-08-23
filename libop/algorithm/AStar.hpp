@@ -43,7 +43,7 @@ public:
 	struct Nodeless
 	{
 		bool operator()(const Node& lhs, const Node& rhs) const {
-			return lhs.pos.x < rhs.pos.y || (lhs.pos.x == rhs.pos.x && lhs.pos.y < rhs.pos.y);
+			return lhs.pos.x < rhs.pos.x || (lhs.pos.x == rhs.pos.x && lhs.pos.y < rhs.pos.y);
 		}
 	};
 	struct Vec2less {
@@ -110,7 +110,6 @@ public:
 				auto it = _openset.find(temp);
 				//如果节点不在开放节点
 				if (it == _openset.end()) {
-
 					temp.parent = (Node*)&(*_closedset.find(curr_node));
 					_openset.insert(temp);
 				}
