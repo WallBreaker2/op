@@ -302,10 +302,10 @@ STDMETHODIMP OpInterface::GetWindowClass(LONG hwnd, BSTR *retstring)
 {
 	// TODO: 在此添加实现代码
 	wstring s;
+	obj.GetWindowClass(hwnd, s);
 
 	CComBSTR newbstr;
 	newbstr.Append(s.data());
-
 	newbstr.CopyTo(retstring);
 	return S_OK;
 }
