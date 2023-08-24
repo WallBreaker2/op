@@ -2,13 +2,15 @@
 #include "../core/helpfunc.h"
 #include "../core/opEnv.h"
 #include <iostream>
-
+#include <condition_variable>
 ocr_engine_init_t OcrWrapper::ocr_engine_init;
 ocr_engine_ocr_t OcrWrapper::ocr_engine_ocr;
 ocr_engine_release_t OcrWrapper::ocr_engine_release;
-
+using std::cout;
+using std::endl;
 OcrWrapper::OcrWrapper() : m_engine(nullptr) {
 	//paddle
+	cout << "OcrWrapper::OcrWrapper()" << endl;
 #ifdef _M_X64
 	std::wstring paddle_path = opEnv::getBasePath() + L"/paddle";
 	auto dllName =  L"paddle_ocr.dll";
@@ -39,9 +41,14 @@ OcrWrapper::OcrWrapper() : m_engine(nullptr) {
 OcrWrapper::~OcrWrapper() {
 	release();
 }
+
+OcrWrapper* OcrWrapper::getInstance() {
+	static OcrWrapper sOcrEngine;
+	return &sOcrEngine;
+}
+
 int OcrWrapper::init(const std::wstring& engine, const std::wstring& dllName, const vector<string>& argvs) {
-	using std::cout;
-	using std::endl;
+	
 	//只需加载一次
 	if (ocr_engine_init == nullptr) {
 		wchar_t old_path[512] = {};
@@ -106,6 +113,7 @@ int OcrWrapper::release() {
 
 
 int OcrWrapper::ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result) {
+	const std::lock_guard<std::mutex> lock(m_mutex);
 	result.clear();
 	using std::cout;
 	using std::endl;

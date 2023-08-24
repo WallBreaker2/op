@@ -5,6 +5,7 @@
 #include <bitset>
 #include <algorithm>
 #include <sstream>
+#include "OcrWrapper.h"
 ImageProc::ImageProc()
 {
 	_curr_idx = 0;
@@ -236,7 +237,7 @@ long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str)
 	long s = 0;
 	if (_dicts[_curr_idx].size() == 0) {
 		vocr_rec_t res;
-		m_ocr.ocr(_src.pdata, _src.width, _src.height, 4, res);
+		OcrWrapper::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
 		for (auto& it : res) {
 			if (it.confidence >= sim - 1e-9) {
 				out_str += it.text;
@@ -417,7 +418,7 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& retstr)
 	if (_dicts[_curr_idx].size() == 0) {
 		vocr_rec_t res;
 		int find_ct = 0;
-		m_ocr.ocr(_src.pdata, _src.width, _src.height, 4, res);
+		OcrWrapper::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
 		for (auto& it : res) {
 			if (it.confidence >= sim - 1e-9) {
 				retstr += std::to_wstring(it.left_top.x + _x1 + _dx);
@@ -459,7 +460,7 @@ long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, lo
 	std::map<point_t, ocr_rec_t> ocr_res;
 	if (_dicts[_curr_idx].size() == 0) {
 		vocr_rec_t res;
-		m_ocr.ocr(_src.pdata, _src.width, _src.height, 4, res);
+		OcrWrapper::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
 		for(auto& it:res){
 			if (it.confidence >= sim - 1e-9) {
 				ocr_res[it.left_top]=it;
@@ -491,7 +492,7 @@ long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, 
 	std::map<point_t, ocr_rec_t> ocr_res;
 	if (_dicts[_curr_idx].size() == 0) {
 		vocr_rec_t res;
-		m_ocr.ocr(_src.pdata, _src.width, _src.height, 4, res);
+		OcrWrapper::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
 		for (auto& it : res) {
 			if (it.confidence >= sim - 1e-9) {
 				ocr_res[it.left_top] = it;

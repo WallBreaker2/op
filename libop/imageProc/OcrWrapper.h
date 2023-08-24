@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/optype.h"
+#include <mutex>
 #define ocr_engine_ok 0
 #define ocr_engine_err 1
 struct ocr_engine;
@@ -16,8 +17,12 @@ typedef  int(_stdcall* ocr_engine_ocr_t)(ocr_engine* pocr, void* image, int w, i
 typedef  int(_stdcall* ocr_engine_release_t)(ocr_engine* obj);
 
 class OcrWrapper {
-public:
+private:
 	OcrWrapper();
+public:
+	OcrWrapper(const OcrWrapper&) = delete;
+	OcrWrapper operator=(const OcrWrapper&) = delete;
+	static OcrWrapper* getInstance();
 	~OcrWrapper();
 	int init(const std::wstring& enginePath, const std::wstring& dllName, const vector<string>& argv);
 	int release();
@@ -26,5 +31,6 @@ private:
 	static ocr_engine_init_t ocr_engine_init;
 	static ocr_engine_ocr_t ocr_engine_ocr;
 	static ocr_engine_release_t ocr_engine_release;
+	std::mutex m_mutex;
 	ocr_engine* m_engine;
 };
