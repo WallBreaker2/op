@@ -3,7 +3,7 @@
 #include "ImageLoc.h"
 #include <map>
 //#include "tess_ocr.h"
-#include "OcrWrapper.h"
+
 using std::wstring;
 /*
 此类为图像处理，包含以下工作
@@ -83,10 +83,6 @@ public:
 	std::map<wstring, Image> _pic_cache;
 	//是否使用图片缓存，默认开启
 	int _enable_cache;
-
-	//tess_ocr m_tess_ocr;
-	OcrWrapper m_ocr;
-	
 	
 private:
 	//RETURN TYPE 0:word colors info; 1:bk color info
