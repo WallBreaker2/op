@@ -469,6 +469,35 @@ STDMETHODIMP OpInterface::GetCmdStr(BSTR cmd, LONG millseconds, BSTR *retstr)
 	return hr;
 }
 
+STDMETHODIMP OpInterface::SetClipboard(BSTR str, LONG* ret)
+{
+	obj.SetClipboard(str, ret);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetClipboard(BSTR* ret)
+{
+	wstring s;
+	obj.GetClipboard(s);
+	
+	CComBSTR newstr;
+	auto hr = newstr.Append(s.data());
+	hr = newstr.CopyTo(ret);
+	return hr;
+}
+
+STDMETHODIMP OpInterface::Delay(LONG mis, LONG* ret)
+{
+	obj.Delay(mis, ret);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::Delays(LONG mis_min,LONG mis_max, LONG* ret)
+{
+	obj.Delays(mis_min, mis_max, ret);
+	return S_OK;
+}
+
 STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret)
 {
 	obj.BindWindow(hwnd,
@@ -484,6 +513,18 @@ STDMETHODIMP OpInterface::UnBindWindow(LONG *ret)
 {
 	obj.UnBindWindow(ret);
 
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetBindWindow(LONG *ret)
+{
+	obj.GetBindWindow(ret);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::IsBind(LONG *ret)
+{
+	obj.IsBind(ret);
 	return S_OK;
 }
 
@@ -596,7 +637,12 @@ STDMETHODIMP OpInterface::WheelDown(LONG *ret)
 STDMETHODIMP OpInterface::WheelUp(LONG *ret)
 {
 	obj.WheelUp(ret);
+	return S_OK;
+}
 
+STDMETHODIMP OpInterface::SetMouseDelay(BSTR type, LONG delay, LONG* ret)
+{
+	obj.SetMouseDelay(type, delay, ret);
 	return S_OK;
 }
 
@@ -654,6 +700,12 @@ STDMETHODIMP OpInterface::KeyPressChar(BSTR vk_code, LONG *ret)
 {
 	obj.KeyPressChar(vk_code, ret);
 
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SetKeypadDelay(BSTR type, LONG delay, LONG* ret)
+{
+	obj.SetKeypadDelay(type, delay, ret);
 	return S_OK;
 }
 
