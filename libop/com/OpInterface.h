@@ -176,12 +176,23 @@ public:
 
 	//运行命令行并返回结果
 	STDMETHOD(GetCmdStr)(BSTR cmd,LONG millseconds, BSTR* retstr);
-
+    //设置剪贴板数据
+	STDMETHOD(SetClipboard)(BSTR str, LONG* ret);
+	//获取剪贴板数据
+	STDMETHOD(GetClipboard)(BSTR* ret);
+	//延时指定的毫秒,过程中不阻塞UI操作
+	STDMETHOD(Delay)(LONG mis, LONG* ret);
+	//延时指定范围内随机毫秒,过程中不阻塞UI操作
+	STDMETHOD(Delays)(LONG mis_min,LONG mis_max, LONG* ret);
 	//--------------------Background -----------------------
 	//bind window and beign capture screen
 	STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode,LONG *ret);
 	//
 	STDMETHOD(UnBindWindow)(LONG* ret);
+	//获取当前对象已经绑定的窗口句柄. 无绑定返回0
+	STDMETHOD(GetBindWindow)(LONG* ret);
+	//判定当前对象是否已绑定窗口.
+	STDMETHOD(IsBind)(LONG* ret);
 	//--------------------mouse & keyboard------------------
 	//获取鼠标位置.
 	STDMETHOD(GetCursorPos)(VARIANT* x, VARIANT* y, LONG* ret);
@@ -215,6 +226,8 @@ public:
 	STDMETHOD(WheelDown)(LONG* ret);
 	//滚轮向上滚
 	STDMETHOD(WheelUp)(LONG* ret);
+    //设置鼠标单击或者双击时,鼠标按下和弹起的时间间隔
+	STDMETHOD(SetMouseDelay)(BSTR type, LONG delay, LONG* ret);
 	//获取指定的按键状态.(前台信息,不是后台)
 	STDMETHOD(GetKeyState)(LONG vk_code, LONG* ret);
 	//按住指定的虚拟键码
@@ -232,7 +245,8 @@ public:
 	//弹起来虚拟键vk_code
 	STDMETHOD(KeyPress)(LONG vk_code, LONG* ret);
 	STDMETHOD(KeyPressChar)(BSTR vk_code, LONG* ret);
-
+	//设置按键时,键盘按下和弹起的时间间隔
+    STDMETHOD(SetKeypadDelay)(BSTR type, LONG delay, LONG* ret);
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 	STDMETHOD(Capture)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret);

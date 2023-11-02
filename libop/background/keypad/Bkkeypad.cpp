@@ -205,6 +205,6 @@ long bkkeypad::UnBind() {
 //
 //long bkkeypad::KeyPress(long vk_code) {
 //	KeyDown(vk_code);
-//	
+//	::Delay(KEYPAD_DX_DELAY);
 //	return KeyUp(vk_code);
 //}
