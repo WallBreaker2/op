@@ -1216,7 +1216,7 @@ long libop::SetOcrEngine(const wchar_t* path_of_engine, const wchar_t* dll_name,
 	vector<string> vstr;
 	split(argvs, vstr, " ");
 
-	return m_context->image_proc.m_ocr.init(path_of_engine, dll_name, vstr);
+	//return m_context->image_proc.m_ocr.init(path_of_engine, dll_name, vstr);
 
 	return 0;
 
