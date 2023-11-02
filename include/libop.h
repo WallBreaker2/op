@@ -166,12 +166,23 @@ public:
 
 	//运行命令行并返回结果
 	void GetCmdStr(const wchar_t* cmd,long millseconds, std::wstring& retstr);
-
+    //设置剪贴板数据
+	void SetClipboard(const wchar_t* str, long* ret);
+	//获取剪贴板数据
+	void GetClipboard(std::wstring& ret);
+	//延时指定的毫秒,过程中不阻塞UI操作
+	void Delay(long mis, long* ret);
+	//延时指定范围内随机毫秒,过程中不阻塞UI操作
+	void Delays(long mis_min,long mis_max, long* ret);
 	//--------------------Background -----------------------
 	//bind window and beign capture screen
 	void BindWindow(long hwnd, const wchar_t* display, const wchar_t* mouse, const wchar_t* keypad, long mode,long *ret);
-	//
+	//解绑窗口
 	void UnBindWindow(long* ret);
+    //获取当前对象已经绑定的窗口句柄. 无绑定返回0
+	void GetBindWindow(long* ret);
+	//判定当前对象是否已绑定窗口.
+	void IsBind(long* ret);
 	//--------------------mouse & keyboard------------------
 	//获取鼠标位置.
 	void GetCursorPos(long* x, long* y, long* ret);
@@ -205,6 +216,8 @@ public:
 	void WheelDown(long* ret);
 	//滚轮向上滚
 	void WheelUp(long* ret);
+	//设置鼠标单击或者双击时,鼠标按下和弹起的时间间隔
+	void SetMouseDelay(const wchar_t* type, long delay, long* ret);
 	//获取指定的按键状态.(前台信息,不是后台)
 	void GetKeyState(long vk_code, long* ret);
 	//按住指定的虚拟键码
@@ -222,7 +235,8 @@ public:
 	//弹起来虚拟键vk_code
 	void KeyPress(long vk_code, long* ret);
 	void KeyPressChar(const wchar_t* vk_code, long* ret);
-
+	//设置按键时,键盘按下和弹起的时间间隔
+	void SetKeypadDelay(const wchar_t* type, long delay, long* ret);
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 	void Capture(long x1, long y1, long x2, long y2, const wchar_t* file_name, long* ret);

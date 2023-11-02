@@ -91,6 +91,9 @@ std::wostream& operator<<(std::wostream& o, point_t const& rhs);
 std::ostream& operator<<(std::ostream& o, FrameInfo const& rhs);
 std::wostream& operator<<(std::wostream& o, FrameInfo const& rhs);
 
+bool Delay(long mis);
+bool Delays(long mis_min, long mis_max);
+
 #endif // !__TOOL_H_
 
 

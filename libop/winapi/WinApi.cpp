@@ -2728,7 +2728,7 @@ bool WinApi::SetWindowTransparent(LONG hwnd, LONG trans) {
   return bret;
 }
 
-bool WinApi::SetClipboard(wchar_t *values) {
+bool WinApi::SetClipboard(const wchar_t *values) {
   bool bret = false;
   int n = ::WideCharToMultiByte(CP_ACP, 0, values, -1, NULL, 0, NULL, NULL);
   char *chcontent = new char[n + 1];
@@ -2766,32 +2766,32 @@ bool WinApi::SetClipboard(wchar_t *values) {
   return bret;
 }
 
-bool WinApi::GetClipboard(wchar_t *retstr) {
+bool WinApi::GetClipboard(std::wstring &retstr) {
   bool bret = false;
   HANDLE hClip;
   char *chBuffer = NULL;
-  if (OpenClipboard(NULL)) {
-    //从剪贴板中取出一个内存的句柄
-    hClip = GetClipboardData(CF_TEXT);
-    //定义字符型指针变量用来保存内存块中的数据
+  if (!OpenClipboard(NULL))
+    return bret;
 
-    //对内存块进行加锁，将内存句柄值转化为一个指针,并将内存块的引用计数器加一，内存中的数据也返回到指针型变量中
-    chBuffer = (char *)GlobalLock(hClip);
+  // 从剪贴板中取出一个内存的句柄
+  hClip = GetClipboardData(CF_TEXT);
+  // 定义字符型指针变量用来保存内存块中的数据
 
-    //将数据保存到字符型变量中
-    //将内存块的引用计数器减一
-    GlobalUnlock(hClip);
-    //关闭剪贴板，释放剪贴板资源的占用权
-    CloseClipboard();
-  }
+  // 对内存块进行加锁，将内存句柄值转化为一个指针,并将内存块的引用计数器加一，内存中的数据也返回到指针型变量中
+  chBuffer = (char *)GlobalLock(hClip);
+
+  // 将数据保存到字符型变量中
+  // 将内存块的引用计数器减一
+  GlobalUnlock(hClip);
+  // 关闭剪贴板，释放剪贴板资源的占用权
+  CloseClipboard();
 
   DWORD num = MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, NULL, 0);
-  wchar_t *wword = new wchar_t[num + 1];          //动态的申请空间存字
-  memset(wword, 0, (num + 1) * sizeof(wchar_t));  //初始化动作
+  wchar_t *wword = new wchar_t[num + 1];         // 动态的申请空间存字
+  memset(wword, 0, (num + 1) * sizeof(wchar_t)); // 初始化动作
   MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
-  if (num < MAX_PATH * 4 - 1) wcscpy(retstr, wword);
-
+  retstr.append(wword);
   delete[] wword;
 
   return bret;
