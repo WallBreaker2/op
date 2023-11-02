@@ -2813,7 +2813,7 @@ long WinApi::SendStringIme(HWND hwnd, const wstring &s) {
   if (::IsWindow(hwnd)) {
     auto p = s.data();
     for (int i = 0; i < s.length(); ++i) {
-      ::PostMessage(hwnd, WM_IME_CHAR, p[i], 1);
+      ::PostMessage(hwnd, WM_IME_CHAR, p[i], 0);
       ::Sleep(5);
     }
     return 1;
