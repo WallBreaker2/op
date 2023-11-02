@@ -68,6 +68,7 @@ SET(SRC_FILES
 "./winapi/winapi.cpp"
 "../3rd_party/src/kiero.cpp"
 "libop.cpp"
+"libopExport.cpp"
 )
 
 SET(COM_SRC_FILES 
