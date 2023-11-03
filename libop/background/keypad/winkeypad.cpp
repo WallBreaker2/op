@@ -130,7 +130,7 @@ long winkeypad::KeyDown(long vk_code) {
 		dwVKFkeyData |= dwScanCode << 16;
 		dwVKFkeyData |= 0 << 24;
 		dwVKFkeyData |= 0 << 29;
-		ret = ::SendMessage(_hwnd, WM_KEYDOWN, vk_code, dwVKFkeyData) == 0 ? 1 : 0;
+		ret = ::SendMessageTimeout(_hwnd, WM_KEYDOWN, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
 		if (ret == 0)setlog("error code=%d", GetLastError());
 		break;
 	}
@@ -207,7 +207,7 @@ long winkeypad::KeyUp(long vk_code) {
 		dwVKFkeyData |= 0 << 24;
 		dwVKFkeyData |= 0 << 29;
 		dwVKFkeyData |= 3 << 30;
-	    ret = ::SendMessage(_hwnd, WM_KEYUP, vk_code, dwVKFkeyData) == 0 ? 1 : 0;
+	    ret = ::SendMessageTimeout(_hwnd, WM_KEYUP, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
 		if (ret == 0)setlog("error code=%d", GetLastError());
 		break;
 	}
