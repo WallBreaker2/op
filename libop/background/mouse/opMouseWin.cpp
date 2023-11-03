@@ -100,7 +100,7 @@ long opMouseWin::MoveTo(int x, int y) {
 		break;
 	}
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -135,9 +135,9 @@ long opMouseWin::LeftClick() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, 0, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		::Delay(MOUSE_WINDOWS_DELAY);
-		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		///ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 		//ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		//ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
@@ -182,7 +182,7 @@ long opMouseWin::LeftDown() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -203,7 +203,7 @@ long opMouseWin::LeftUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -240,7 +240,7 @@ long opMouseWin::MiddleDown() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 
@@ -262,7 +262,7 @@ long opMouseWin::MiddleUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -291,9 +291,9 @@ long opMouseWin::RightClick() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		r1 = ::SendMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+		r1 = ::SendMessageTimeout(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		::Delay(MOUSE_WINDOWS_DELAY);
-		r2 = ::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+		r2 = ::SendMessageTimeout(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		ret = r1 == 0 && r2 == 0 ? 1 : 0;
 		break;
 	}
@@ -318,7 +318,7 @@ long opMouseWin::RightDown()
 	}
 	case INPUT_TYPE::IN_WINDOWS:
 	{
-		ret = ::SendMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -339,7 +339,7 @@ long opMouseWin::RightUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
@@ -381,7 +381,7 @@ long opMouseWin::WheelDown() {
 		relative to the upper-left corner of the screen.
 		*/
 		//If an application processes this message, it should return zero.
-		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	
@@ -404,7 +404,7 @@ long opMouseWin::WheelUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessage(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y));
+		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
