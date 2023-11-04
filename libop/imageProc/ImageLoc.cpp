@@ -615,7 +615,7 @@ long ImageBase::FindColorBlock(double sim, long count, long height, long width,
 			}
 		}
 	}
-	return -1;
+	return 0;
 }
 
 long ImageBase::FindColorBlockEx(double sim, long count, long height,
