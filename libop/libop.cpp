@@ -792,6 +792,19 @@ void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret)
 		*ret = 0;
 }
 
+void libop::KeyPressStr(const wchar_t* key_str, long delay, long* ret)
+{
+	size_t nlen = wcslen(key_str);	
+	*ret = 0;
+	for(size_t i = 0; i < nlen; ++i)
+	{
+		*ret = m_context->bkproc._keypad->KeyPress((long)key_str[i]);
+		if(*ret == 0)
+			return;
+		::Delay(delay);
+	}
+}
+
 //抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 void libop::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_name, long *ret)
 {

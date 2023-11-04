@@ -150,7 +150,8 @@ interface IOpInterface : IDispatch
     [id(174)] HRESULT GetClipboard([out, retval] BSTR* ret);
     [id(175)] HRESULT Delay([in] LONG mis, [out, retval] LONG* ret);
     [id(176)] HRESULT Delays([in] LONG mis_min,[in] LONG mis_max, [out, retval] LONG* ret);
-
+	[id(177)] HRESULT KeyPressStr([in]BSTR key_str,[in]LONG delay,[out, retval] LONG* ret);
+	
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(201)] HRESULT UseDict([in] LONG idx, [out, retval] LONG* ret);

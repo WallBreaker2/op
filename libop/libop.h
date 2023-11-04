@@ -237,6 +237,8 @@ public:
 	void KeyPressChar(const wchar_t* vk_code, long* ret);
 	//设置按键时,键盘按下和弹起的时间间隔
 	void SetKeypadDelay(const wchar_t* type, long delay, long* ret);
+	//根据指定的字符串序列，依次按顺序按下其中的字符
+	void KeyPressStr(const wchar_t* key_str, long delay, long* ret);
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 	void Capture(long x1, long y1, long x2, long y2, const wchar_t* file_name, long* ret);
