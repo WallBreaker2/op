@@ -247,6 +247,8 @@ public:
 	STDMETHOD(KeyPressChar)(BSTR vk_code, LONG* ret);
 	//设置按键时,键盘按下和弹起的时间间隔
     STDMETHOD(SetKeypadDelay)(BSTR type, LONG delay, LONG* ret);
+    //根据指定的字符串序列，依次按顺序按下其中的字符
+	STDMETHOD(KeyPressStr)(BSTR key_str, LONG delay, LONG* ret);
 	//--------------------image and color-----------------------
 	//抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 	STDMETHOD(Capture)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG* ret);
