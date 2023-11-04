@@ -495,6 +495,8 @@ void libop::ScreenToClient(long hwnd, long *x, long *y, long *nret)
 	// TODO: 在此添加实现代码
 
 	POINT point;
+	point.x = *x;
+	point.y = *y;
 	*nret = ::ScreenToClient((HWND)hwnd, &point);
 	*x = point.x;
 	*y = point.y;
