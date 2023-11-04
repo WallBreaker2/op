@@ -566,6 +566,26 @@ void libop::GetCmdStr(const wchar_t *cmd, long millseconds, std::wstring &retstr
 	retstr = _s2wstring(str);
 }
 
+void libop::SetClipboard(const wchar_t* str, long* ret)
+{
+	*ret = m_context->winapi.SetClipboard(str);
+}
+
+void libop::GetClipboard(std::wstring& ret)
+{
+	m_context->winapi.GetClipboard(ret);
+}
+
+void libop::Delay(long mis, long *ret)
+{
+	*ret = ::Delay(mis);
+}
+
+void libop::Delays(long mis_min, long mis_max, long *ret)
+{
+	*ret = ::Delays(mis_min, mis_max);
+}
+
 void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode, long *ret)
 {
 	if (m_context->bkproc.IsBind())
@@ -576,6 +596,16 @@ void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, 
 void libop::UnBindWindow(long *ret)
 {
 	*ret = m_context->bkproc.UnBindWindow();
+}
+
+void libop::GetBindWindow(long *ret)
+{
+	*ret = m_context->bkproc.GetBindWindow();
+}
+
+void libop::IsBind(long *ret)
+{
+	*ret = m_context->bkproc.IsBind();
 }
 
 void libop::GetCursorPos(long *x, long *y, long *ret)
@@ -659,6 +689,22 @@ void libop::WheelUp(long *ret)
 	*ret = m_context->bkproc._bkmouse->WheelUp();
 }
 
+void libop::SetMouseDelay(const wchar_t *type, long delay, long *ret)
+{
+	*ret = 0;
+	if(delay < 0)
+		return;
+	*ret = 1;
+	if(wcscmp(type, L"normal") == 0)
+		MOUSE_NORMAL_DELAY = delay;
+	else if(wcscmp(type, L"windows") == 0)
+	    MOUSE_WINDOWS_DELAY = delay;
+	else if(wcscmp(type, L"dx") == 0)
+	    MOUSE_DX_DELAY = delay;
+	else
+		*ret = 0;
+}
+
 void libop::GetKeyState(long vk_code, long *ret)
 {
 	*ret = m_context->bkproc._keypad->GetKeyState(vk_code);
@@ -724,6 +770,24 @@ void libop::KeyPressChar(const wchar_t *vk_code, long *ret)
 		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
 		*ret = m_context->bkproc._keypad->KeyPress(vk);
 	}
+}
+
+void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret)
+{
+	*ret = 0;
+	if(delay < 0)
+		return;
+    *ret = 1;
+    if(wcscmp(type, L"normal") == 0)
+		KEYPAD_NORMAL_DELAY = delay;
+	else if(wcscmp(type, L"normal2") == 0)
+		KEYPAD_NORMAL2_DELAY = delay;
+	else if(wcscmp(type, L"windows") == 0)
+	    KEYPAD_WINDOWS_DELAY = delay;
+	else if(wcscmp(type, L"dx") == 0)
+	    KEYPAD_DX_DELAY = delay;
+	else
+		*ret = 0;
 }
 
 //抓取指定区域(x1, y1, x2, y2)的图像, 保存为file

@@ -57,7 +57,6 @@ public:
 	opMouseWin* _bkmouse;
 	bkkeypad* _keypad;
 	wstring _curr_path;
-	
 };
 #endif
 
