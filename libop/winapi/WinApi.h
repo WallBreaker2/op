@@ -34,14 +34,15 @@ public:
 	bool SetWindowSize(LONG hwnd, LONG width, LONG hight, int type = 0);
 	bool SetWindowState(LONG hwnd, LONG flag, LONG rethwnd = 0);
 	bool SetWindowTransparent(LONG hwnd, LONG trans);
-	bool SetClipboard(wchar_t *values);
-	bool GetClipboard(wchar_t *retstr);
+	bool SetClipboard(const wchar_t *values);
+	bool GetClipboard(std::wstring &retstr);
 	//2019.1
 	long SendString(HWND hwnd, const wstring& str);
 	long SendStringIme(HWND hwnd, const wstring& str);
 	//2019.3
 	long RunApp(const wstring& cmd, long mode);
 	static HWND GetTopWindowSp(HWND hwnd);
+
 private:
 	DWORD  FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring, bool isGW_OWNER = false, bool isVisible = false, const wchar_t  *process_name = NULL);
 	BOOL   EnumProcessbyName(DWORD   dwPID, LPCWSTR   ExeName, LONG type = 0);
@@ -50,8 +51,6 @@ private:
 	__int64 FileTimeToInt64(const FILETIME& time);
 	double get_cpu_usage(DWORD ProcessID);	 //获取指定进程CPU使用率
 	DWORD GetMemoryInfo(DWORD ProcessID);  //或者指定进程内存使用率
-
-
 };
 
 

@@ -87,6 +87,8 @@ interface IOpInterface : IDispatch
 	//background 100-119
 	[id(100)] HRESULT BindWindow([in] LONG hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG* ret);
 	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
+	[id(102)] HRESULT GetBindWindow([out, retval] LONG* ret);
+	[id(103)] HRESULT IsBind([out, retval] LONG* ret);
 	//mouse & ketboard 120-149
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
@@ -142,7 +144,12 @@ interface IOpInterface : IDispatch
 	[id(168)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size, [out, retval]LONG* ret);
 	[id(169)] HRESULT MatchPicName([in] BSTR pic_name, [out, retval] BSTR* retstr);
 	[id(170)] HRESULT LoadMemPic([in] BSTR pic_name, [in]long long data, [in]LONG size,[out, retval] LONG* ret);
-
+	[id(171)] HRESULT SetMouseDelay([in] BSTR type, [in] LONG delay, [out, retval]LONG* ret);
+	[id(172)] HRESULT SetKeypadDelay([in] BSTR type, [in] LONG delay, [out, retval]LONG* ret);
+    [id(173)] HRESULT SetClipboard([in] BSTR str, [out, retval] LONG* ret);
+    [id(174)] HRESULT GetClipboard([out, retval] BSTR* ret);
+    [id(175)] HRESULT Delay([in] LONG mis, [out, retval] LONG* ret);
+    [id(176)] HRESULT Delays([in] LONG mis_min,[in] LONG mis_max, [out, retval] LONG* ret);
 
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);

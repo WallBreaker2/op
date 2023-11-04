@@ -58,7 +58,7 @@ long winkeypad::GetKeyState(long vk_code) {
 
 long winkeypad::KeyDown(long vk_code) {
 	long ret = 0;
-	vk_code = toupper(vk_code);
+	// vk_code = toupper(vk_code);
 
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
@@ -124,13 +124,13 @@ long winkeypad::KeyDown(long vk_code) {
 			31
 			Specifies the transition state.The value is always zero for a WM_KEYDOWN message.*/
 
-		DWORD lparam = 1u;
-		if (vk_code == VK_RCONTROL)
-			lparam |= 1u << 24;
-		lparam |= oem_code(vk_code) << 16;
-		lparam |= 1u << 31;
-		ret = ::PostMessageW(_hwnd, WM_KEYDOWN, vk_code, lparam);
-		//ret = ::SendMessageW(_hwnd, WM_KEYDOWN, vk_code, 0);
+        DWORD dwVKFkeyData;
+		WORD dwScanCode = MapVirtualKey(vk_code, 0);
+		dwVKFkeyData = 1;
+		dwVKFkeyData |= dwScanCode << 16;
+		dwVKFkeyData |= 0 << 24;
+		dwVKFkeyData |= 0 << 29;
+		ret = ::SendMessageTimeout(_hwnd, WM_KEYDOWN, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
 		if (ret == 0)setlog("error code=%d", GetLastError());
 		break;
 	}
@@ -142,7 +142,7 @@ long winkeypad::KeyDown(long vk_code) {
 
 long winkeypad::KeyUp(long vk_code) {
 	long ret = 0;
-	vk_code = toupper(vk_code);
+	// vk_code = toupper(vk_code);
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL:
 	{
@@ -200,13 +200,15 @@ long winkeypad::KeyUp(long vk_code) {
 			31
 			Specifies the transition state.The value is always 1 for a WM_KEYUP message.*/
 			//ret = ::SendMessageW(_hwnd, WM_KEYUP, vk_code, 0);
-		DWORD lparam = 1u;
-		if (vk_code == VK_RCONTROL)lparam |= 1u << 24;
-		lparam |= oem_code(vk_code) << 16;
-		//lparam |= 1u << 30;
-		lparam |= 1u << 31;
-		ret = ::PostMessageW(_hwnd, WM_KEYUP, vk_code, lparam);
-		if (ret == 0)setlog("error2 code=%d", GetLastError());
+		DWORD dwVKFkeyData;
+		WORD dwScanCode = MapVirtualKey(vk_code, 0);
+		dwVKFkeyData = 1;
+		dwVKFkeyData |= dwScanCode << 16;
+		dwVKFkeyData |= 0 << 24;
+		dwVKFkeyData |= 0 << 29;
+		dwVKFkeyData |= 3 << 30;
+	    ret = ::SendMessageTimeout(_hwnd, WM_KEYUP, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
+		if (ret == 0)setlog("error code=%d", GetLastError());
 		break;
 	}
 	}
@@ -227,6 +229,19 @@ long winkeypad::WaitKey(long vk_code, unsigned long time_out) {
 
 long winkeypad::KeyPress(long vk_code) {
 	KeyDown(vk_code);
-
+   	switch (_mode) {
+	case INPUT_TYPE::IN_NORMAL: {
+		::Delay(KEYPAD_NORMAL_DELAY);
+		break;
+	}
+	case INPUT_TYPE::IN_NORMAL2: {
+		::Delay(KEYPAD_NORMAL2_DELAY);
+		break;
+	}
+	case INPUT_TYPE::IN_WINDOWS: {
+		::Delay(KEYPAD_WINDOWS_DELAY);
+		break;
+	}
+	}
 	return KeyUp(vk_code);
 }

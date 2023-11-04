@@ -257,6 +257,29 @@ std::string GetLastErrorAsString()
 	return message;
 }
 
+bool Delay(long mis)
+{
+  MSG msg = {};
+  auto deadline = ::GetTickCount() + mis;
+  while (::GetTickCount() < deadline)
+  {
+		// 除收到'WM_QUIT'消息，结果始终都是大于0的
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+  }
+  return true;
+}
+
+bool Delays(long mis_min, long mis_max)
+{
+  if (mis_min <= 0 || mis_max <= 0)
+    return false;
+  long mis = mis_min + rand() % mis_max;
+  return Delay(mis);
+}
 
 
 
