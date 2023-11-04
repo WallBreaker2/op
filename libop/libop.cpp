@@ -794,11 +794,12 @@ void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret)
 
 void libop::KeyPressStr(const wchar_t* key_str, long delay, long* ret)
 {
-	size_t nlen = wcslen(key_str);	
 	*ret = 0;
+    auto nlen = wcslen(key_str);
 	for(size_t i = 0; i < nlen; ++i)
 	{
-		*ret = m_context->bkproc._keypad->KeyPress((long)key_str[i]);
+		long vkCode = ::VkKeyScanW(key_str[i]);
+		*ret = m_context->bkproc._keypad->KeyPress(vkCode);
 		if(*ret == 0)
 			return;
 		::Delay(delay);
