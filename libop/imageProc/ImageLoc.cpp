@@ -623,7 +623,7 @@ long ImageBase::FindColorBlockEx(double sim, long count, long height,
 	record_sum(_binary);
 	int cnt = 0;
 	for (int i = 0; i <= _binary.height - height; ++i) {
-		for (int j = 0; j < _binary.width - width; ++j) {
+		for (int j = 0; j <= _binary.width - width; ++j) {
 			if (region_sum(j, i, j + width, i + height) >= count) {
 				wchar_t buff[20];
 				wsprintfW(buff, L"%d,%d|", j + _x1 + _dx, i + _y1 + _dy);
