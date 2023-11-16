@@ -41,7 +41,7 @@ interface IOpInterface : IDispatch
 	[id(6)] HRESULT GetLastError([out, retval] LONG* ret);
 	[id(7)] HRESULT SetShowErrorMsg([in] LONG show_type, [out, retval] LONG* ret);
 	[id(8)] HRESULT Sleep([in] LONG millseconds, [out, retval] LONG* ret);
-	[id(9)] HRESULT InjectDll([in] BSTR process_name, BSTR dll_name, LONG* ret);
+	[id(9)] HRESULT InjectDll([in] BSTR process_name, [in] BSTR dll_name, [out, retval] LONG* ret);
 	[id(10)] HRESULT EnablePicCache([in] LONG enable, [out, retval] LONG* ret);
 	[id(11)] HRESULT CapturePre([in]BSTR file_name, [out, retval] LONG* ret);
 	//algorithm 20-49
@@ -72,7 +72,7 @@ interface IOpInterface : IDispatch
 	[id(79)] HRESULT GetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* rethwnd);
 	[id(80)] HRESULT GetWindowTitle([in] LONG hwnd, [out, retval] BSTR* rettitle);
 	[id(81)] HRESULT MoveWindow([in] LONG hwnd, [in] LONG x, [in] LONG y, [out, retval] LONG* nret);
-	[id(82)] HRESULT ScreenToClient([in] LONG hwnd, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* nret);
+	[id(82)] HRESULT ScreenToClient([in] LONG hwnd, [in, out] VARIANT* x, [in, out] VARIANT* y, [out, retval] LONG* nret);
 	[id(83)] HRESULT SendPaste([in] LONG hwnd, [out, retval] LONG* nret);
 	[id(84)] HRESULT SetClientSize([in] LONG hwnd, [in] LONG width, [in] LONG hight, [out, retval] LONG* nret);
 	[id(85)] HRESULT SetWindowState([in] LONG hwnd, [in] LONG flag, [out, retval] LONG* nret);
