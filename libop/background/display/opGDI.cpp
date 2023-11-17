@@ -165,7 +165,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image& img) {
   } else if (RDT_GDI_DX2 == _render_type) {
     ATL::CImage image;
     image.Create(w, h, _device_caps);
-    BitBlt(image.GetDC(), x1, y1, w, h, _hdc, 0, 0, SRCCOPY);
+    BitBlt(image.GetDC(), 0, 0, w, h, _hdc, x1, y1, SRCCOPY);
     img.read(&image);
     image.ReleaseDC();
   } else {  // gdi ... 由于printwindow 函数的原因
