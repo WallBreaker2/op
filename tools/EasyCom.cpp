@@ -130,6 +130,27 @@ myCoGetClassObject(
 	_Outptr_ LPVOID  FAR* ppv
 ) {
 	//printf("myCoGetClassObject\n");
+    //flaot:在这里如果走原始"oCoGetClassObject"则会失败，找注册表肯定找不到
+	if (memcmp(&rclsid, &CLSID_OpInterface, sizeof(CLSID_OpInterface)) == 0) {
+
+		HMODULE hdll = LoadLibraryA(dllpathA);
+		if (!hdll) {
+			printf("LoadLibraryA false!\n");
+			MessageBoxW(NULL, L"LoadLibraryA", NULL, 0);
+			return -1;
+		}
+		typedef HRESULT(__stdcall* DllGetClassObject_t)(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID FAR* ppv);
+		DllGetClassObject_t dynamiDllGetClassObject = (DllGetClassObject_t)GetProcAddress(hdll, "DllGetClassObject");
+		if (!dynamiDllGetClassObject) {
+			MessageBoxW(NULL, L"GetProcAddress", NULL, 0);
+			return -2;
+		}
+
+		IClassFactory* fac = 0;
+		dynamiDllGetClassObject(CLSID_OpInterface, IID_IClassFactory, (void**)&fac);
+		*ppv = fac;
+		return S_OK;
+	}
 	return oCoGetClassObject(rclsid, dwClsContext, pvReserved, riid, ppv);
 }
 
