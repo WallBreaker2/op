@@ -495,6 +495,8 @@ void libop::ScreenToClient(long hwnd, long *x, long *y, long *nret)
 	// TODO: 在此添加实现代码
 
 	POINT point;
+	point.x = *x;
+	point.y = *y;
 	*nret = ::ScreenToClient((HWND)hwnd, &point);
 	*x = point.x;
 	*y = point.y;
@@ -788,6 +790,20 @@ void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret)
 	    KEYPAD_DX_DELAY = delay;
 	else
 		*ret = 0;
+}
+
+void libop::KeyPressStr(const wchar_t* key_str, long delay, long* ret)
+{
+	*ret = 0;
+    auto nlen = wcslen(key_str);
+	for(size_t i = 0; i < nlen; ++i)
+	{
+		long vkCode = ::VkKeyScanW(key_str[i]);
+		*ret = m_context->bkproc._keypad->KeyPress(vkCode);
+		if(*ret == 0)
+			return;
+		::Delay(delay);
+	}
 }
 
 //抓取指定区域(x1, y1, x2, y2)的图像, 保存为file

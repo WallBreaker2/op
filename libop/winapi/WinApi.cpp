@@ -2149,8 +2149,9 @@ bool WinApi::EnumProcess(const wchar_t *name, wchar_t *retstring) {
 bool WinApi::ClientToScreen(LONG hwnd, LONG &x, LONG &y) {
   POINT point;
 
+   point.x = x;
+   point.y = y;
   ::ClientToScreen((HWND)hwnd, &point);
-
   x = point.x;
   y = point.y;
 
