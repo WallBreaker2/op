@@ -708,6 +708,11 @@ STDMETHODIMP OpInterface::SetKeypadDelay(BSTR type, LONG delay, LONG* ret)
 	obj.SetKeypadDelay(type, delay, ret);
 	return S_OK;
 }
+STDMETHODIMP OpInterface::KeyPressStr(BSTR key_str, LONG delay, LONG *ret)
+{
+	obj.KeyPressStr(key_str, delay, ret);
+	return S_OK;
+}
 
 //抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
 STDMETHODIMP OpInterface::Capture(LONG x1, LONG y1, LONG x2, LONG y2, BSTR file_name, LONG *ret)
