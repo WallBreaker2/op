@@ -65,8 +65,23 @@ long opMouseWin::GetCursorPos(long& x, long& y) {
 }
 
 long opMouseWin::MoveR(int rx, int ry) {
-	return MoveTo(_x + rx, _y + ry);
+    switch (_mode) {
+    case INPUT_TYPE::IN_NORMAL:
+    {
+        // https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/ns-winuser-mouseinput
+        _x += rx, _y += ry;
+        
+        INPUT Input = {0};
+        Input.type = INPUT_MOUSE;
+        Input.mi.dwFlags = MOUSEEVENTF_MOVE;
+        Input.mi.dx = static_cast<LONG>(rx);
+        Input.mi.dy = static_cast<LONG>(ry);
+        return ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
+    }
+    }
+    return MoveTo(_x + rx, _y + ry);
 }
+
 
 long opMouseWin::MoveTo(int x, int y) {
 	x = x * _dpi;
