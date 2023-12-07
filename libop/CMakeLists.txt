@@ -39,6 +39,8 @@ SET(SRC_FILES
   "./background/display/opDXGI.cpp" 
   "./background/display/opDxGL.cpp" 
   "./background/display/IDisplay.cpp" 
+
+  "./background/display/opWGC.cpp" 
   
   
   "./background/mouse/opMouseWin.cpp" 
