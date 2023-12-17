@@ -7,6 +7,7 @@
 #include "./display/opGDI.h"
 #include "./display/opDXGI.h"
 #include "./display/opDxGL.h""
+#include "./display/opWGC.h""
 
 #include "./keypad/winkeypad.h""
 #include "./mouse/opMouseDx.h"
@@ -50,6 +51,8 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
 		display = RDT_NORMAL;
 	else if (sdisplay == L"normal.dxgi")
 		display = RDT_NORMAL_DXGI;
+	else if (sdisplay == L"normal.wgc")
+		display = RDT_NORMAL_WGC;
 	else if (sdisplay == L"gdi")
 		display = RDT_GDI;
 	else if (sdisplay == L"gdi2")
@@ -469,6 +472,10 @@ IDisplay *opBackground::createDisplay(int mode)
 	else if (mode == RDT_NORMAL_DXGI)
 	{
 		pDisplay = new opDXGI();
+	}
+	else if (mode == RDT_NORMAL_WGC)
+	{
+		pDisplay = new opWGC();
 	}
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::DX)
 	{
