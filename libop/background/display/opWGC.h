@@ -10,7 +10,7 @@
 #include <inspectable.h>
 #include "IDisplay.h"
 #pragma comment(lib, "d3d11.lib")
-
+#ifdef _WIN32_WINNT_WIN11
 //this code ref https://www.jianshu.com/p/e775b0f45376
 using namespace winrt::Windows::Graphics::Capture;
 using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
@@ -213,3 +213,5 @@ static winrt::com_ptr<T> GetDXGIInterfaceFromObject(
 		access->GetInterface(winrt::guid_of<T>(), result.put_void()));
 	return result;
 }
+
+#endif
