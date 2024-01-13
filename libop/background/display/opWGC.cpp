@@ -9,7 +9,7 @@
 #include "./core/opEnv.h"
 #include "./include/Image.hpp"
 
-
+#ifdef _WIN32_WINNT_WIN11
 opWGC::opWGC():device_(nullptr), item_(nullptr), framePool_(nullptr), session_(nullptr), d3dDevice_(nullptr), d3dDeviceContext_(nullptr), m_frameInfo()
 {
 }
@@ -331,5 +331,5 @@ void opWGC::fmtFrameInfo(void* dst, HWND hwnd, int w, int h,bool inc) {
 	memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
 }
 
-
+#endif
 
