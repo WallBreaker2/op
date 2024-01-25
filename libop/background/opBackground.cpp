@@ -6,10 +6,10 @@
 
 #include "./display/opGDI.h"
 #include "./display/opDXGI.h"
-#include "./display/opDxGL.h""
-#include "./display/opWGC.h""
+#include "./display/opDxGL.h"
+#include "./display/opWGC.h"
 
-#include "./keypad/winkeypad.h""
+#include "./keypad/winkeypad.h"
 #include "./mouse/opMouseDx.h"
 opBackground::opBackground() : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin), _keypad(new winkeypad)
 {
@@ -51,8 +51,10 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
 		display = RDT_NORMAL;
 	else if (sdisplay == L"normal.dxgi")
 		display = RDT_NORMAL_DXGI;
+#ifdef _WIN32_WINNT_WIN11
 	else if (sdisplay == L"normal.wgc")
 		display = RDT_NORMAL_WGC;
+#endif
 	else if (sdisplay == L"gdi")
 		display = RDT_GDI;
 	else if (sdisplay == L"gdi2")
@@ -473,10 +475,12 @@ IDisplay *opBackground::createDisplay(int mode)
 	{
 		pDisplay = new opDXGI();
 	}
+#ifdef _WIN32_WINNT_WIN11
 	else if (mode == RDT_NORMAL_WGC)
 	{
 		pDisplay = new opWGC();
 	}
+#endif
 	else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::DX)
 	{
 		pDisplay = new opDxGL;
