@@ -11,6 +11,15 @@ struct FrameInfo {
 	void fmtChk() {
 		chk = (hwnd >> 32) ^ (hwnd & 0xffffffffull) ^ frameId ^ time ^ width ^ height;
 	}
+
+	void format(HWND hwnd_, int w_, int h_) {
+		hwnd = (unsigned __int64)hwnd_;
+		frameId++;
+		time = ::GetTickCount();
+		width = w_;
+		height = h_;
+		fmtChk();
+	}
 	
 };
 #pragma pack()
