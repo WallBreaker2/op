@@ -69,6 +69,8 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
 		display = RDT_DX_D3D10;
 	else if (sdisplay == L"dx.d3d11")
 		display = RDT_DX_D3D11;
+	else if (sdisplay == L"dx.d3d12")
+		display = RDT_DX_D3D12;
 	else if (sdisplay == L"opengl")
 		display = RDT_GL_DEFAULT;
 	else if (sdisplay == L"opengl.std")
