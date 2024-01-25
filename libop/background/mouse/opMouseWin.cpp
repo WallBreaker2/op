@@ -71,13 +71,51 @@ long opMouseWin::MoveR(int rx, int ry) {
         // https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/ns-winuser-mouseinput
         _x += rx, _y += ry;
         
-        INPUT Input = {0};
-        Input.type = INPUT_MOUSE;
-        Input.mi.dwFlags = MOUSEEVENTF_MOVE;
-        Input.mi.dx = static_cast<LONG>(rx);
-        Input.mi.dy = static_cast<LONG>(ry);
-        return ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
-    }
+	    ULONG mouseInfo[3]{0};
+	    SystemParametersInfo(SPI_GETMOUSE, 0, &mouseInfo, 0);
+	    if (mouseInfo[2] != 0) {
+	        ULONG idealMouseInfo[] = {mouseInfo[0], mouseInfo[1], 0};
+	        SystemParametersInfo(SPI_SETMOUSE, 0, &idealMouseInfo, 0);
+	    }
+	
+	    // 获取当前鼠标速度和双鼠标阈值
+	    // 获取当前鼠标速度和鼠标阈值
+	    UINT mouseSpeed, mouseHoverWidth, mouseHoverHeight;
+	    SystemParametersInfo(SPI_GETMOUSESPEED, 0, &mouseSpeed, 0);
+	
+	    int accel[3] = {0, 0, 0};
+	    /* dx and dy can be negative numbers for relative movements */
+	    SystemParametersInfo(SPI_GETMOUSE, 0, accel, 0);
+	
+	    SystemParametersInfo(SPI_GETMOUSEHOVERWIDTH, 0, &mouseHoverWidth, 0);
+	    SystemParametersInfo(SPI_GETMOUSEHOVERHEIGHT, 0, &mouseHoverHeight, 0);
+	
+	    static float mouse_speed_scale[] = {0.0f,     1 / 32.0f, 1 / 16.0f, 1 / 8.0f, 2 / 8.0f,
+	                                        3 / 8.0f, 4 / 8.0f,  5 / 8.0f,  6 / 8.0f, 7 / 8.0f,
+	                                        1.0f,     1.25f,     1.5f,      1.75f,    2.0f,
+	                                        2.25f,    2.5f,      2.75f,     3.0f,     3.25f,
+	                                        3.5f};
+	
+	    //鼠标速度
+	    if (mouseSpeed >= 1 && mouseSpeed <= 20) {
+	        double xxx = rx / mouse_speed_scale[mouseSpeed] / 1.0;
+	        double yyy = ry / mouse_speed_scale[mouseSpeed] / 1.0;
+	
+	        INPUT Input = {0};
+	        Input.type = INPUT_MOUSE;
+	        Input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_VIRTUALDESK;
+	        Input.mi.dx = static_cast<LONG>(xxx);
+	        Input.mi.dy = static_cast<LONG>(yyy);
+	        Input.mi.time = GetTickCount();
+	        Input.mi.dwExtraInfo = GetMessageExtraInfo();
+	
+	        bool isok = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? true : false;
+	
+	        SystemParametersInfo(SPI_SETMOUSE, 0, &mouseInfo, 0);
+	
+	        return isok ? 1 : 0;
+	    }
+	    }
     }
     return MoveTo(_x + rx, _y + ry);
 }
