@@ -52,6 +52,7 @@ SET(SRC_FILES
   "./background/Hook/DisplayHook.cpp"
   "./background/Hook/InputHook.cpp"
   "./background/Hook/HookExport.cpp"
+  "./background/Hook/opDx12Hook.cpp"
 
  
 "./core/globalVar.cpp"

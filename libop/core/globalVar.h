@@ -52,6 +52,7 @@ constexpr int RDT_DX_DEFAULT = MAKE_RENDER(DX, 0);
 constexpr int RDT_DX_D3D9 = MAKE_RENDER(DX, 1);
 constexpr int RDT_DX_D3D10 = MAKE_RENDER(DX, 2);
 constexpr int RDT_DX_D3D11 = MAKE_RENDER(DX, 3);
+constexpr int RDT_DX_D3D12 = MAKE_RENDER(DX, 4);
 constexpr int RDT_GL_DEFAULT = MAKE_RENDER(OPENGL, 0);
 constexpr int RDT_GL_STD = MAKE_RENDER(OPENGL, 1);
 constexpr int RDT_GL_NOX = MAKE_RENDER(OPENGL, 2);

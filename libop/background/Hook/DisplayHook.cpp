@@ -1,4 +1,6 @@
 #include "DisplayHook.h"
+#include <dxgi1_4.h>
+#include <d3d12.h>
 #include <d3d11.h>
 //#include <D3DX11.h>
 #include <d3d10.h>
@@ -19,6 +21,7 @@
 #include <wingdi.h>
 #include <atlbase.h>
 #include "../display/frameInfo.h"
+#include "opDx12Hook.h"
 #define DEBUG_HOOK 0
 HWND DisplayHook::render_hwnd = NULL;
 int DisplayHook::render_type = 0;
@@ -36,6 +39,8 @@ HRESULT __stdcall dx9_hkEndScene(IDirect3DDevice9* thiz);
 HRESULT __stdcall dx10_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags);
 //dx11
 HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags);
+//dx12
+HRESULT __stdcall dx12_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags);
 //opengl_std
 void __stdcall gl_hkglBegin(GLenum mode);
 //opengl dn,nox
@@ -65,6 +70,11 @@ int DisplayHook::setup(HWND hwnd_, int render_type_) {
 	{
 		render_type = kiero::RenderType::D3D11;
 		idx = 8; address = dx11_hkPresent;
+	}
+	else if (render_type_ == RDT_DX_D3D12)
+	{
+		render_type = kiero::RenderType::D3D12;
+		idx = 140; address = dx12_hkPresent;
 	}
 	else if (render_type_ == RDT_GL_DEFAULT || render_type_ == RDT_GL_NOX) {
 		render_type = kiero::RenderType::OpenGL;
@@ -102,7 +112,7 @@ int DisplayHook::release() {
 	return 1;
 }
 
-static void CopyImageData(char*  dst_, const char* src_, int rows_, int cols_,int rowPitch, int fmt_) {
+void CopyImageData(char*  dst_, const char* src_, int rows_, int cols_,int rowPitch, int fmt_) {
 	//assert(rowsPitch >= cols_ * 4);
 	if (rowPitch == cols_ * (fmt_ == IBF_R8G8B8 ? 3 : 4)) {
 		if (fmt_ == IBF_B8G8R8A8) {
@@ -186,16 +196,6 @@ static DXGI_FORMAT GetDxgiFormat(DXGI_FORMAT format) {
 	return format;
 }
 
-static void formatFrameInfo(void* dst,HWND hwnd, int w, int h) {
-	static FrameInfo frameInfo = {};
-	frameInfo.hwnd = (unsigned __int64)hwnd;
-	frameInfo.frameId++;
-	frameInfo.time = ::GetTickCount();
-	frameInfo.width = w;
-	frameInfo.height = h;
-	frameInfo.fmtChk();
-	memcpy(dst, &frameInfo, sizeof(frameInfo));
-}
 
 
 //------------------------dx9-------------------------------
@@ -237,7 +237,7 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
 	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,DisplayHook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
+		reinterpret_cast<FrameInfo*>(pshare)->format(DisplayHook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
 		memcpy(pshare + sizeof(FrameInfo), (byte*)lockedRect.pBits, lockedRect.Pitch*surface_Desc.Height);
 		mutex.unlock();
 	}
@@ -339,7 +339,7 @@ void dx10_capture(IDXGISwapChain* pswapchain) {
 		mutex.lock();
 		//memcpy(mem.data<char>(), mapText.pData, textDesc.Width*textDesc.Height * 4);
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
+		reinterpret_cast<FrameInfo*>(pshare)->format(DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
 		CopyImageData((char*)pshare+ sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, mapText.RowPitch, fmt);
 		mutex.unlock();
 	}
@@ -460,7 +460,7 @@ void dx11_capture(IDXGISwapChain* swapchain) {
 	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
+		reinterpret_cast<FrameInfo*>(pshare)->format(DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
 		//CopyImageData((char*)pshare + sizeof(FrameInfo), (char*)mapText.pData, textDesc.Height, textDesc.Width, fmt);
 		static_assert(sizeof(FrameInfo) == 28);
  
@@ -505,6 +505,21 @@ HRESULT __stdcall dx11_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT F
 }
 //------------------------------------------------------------
 
+//------------------------dx12----------------------------------
+//screen capture
+void dx12_capture(IDXGISwapChain* swapChain) {
+	opDx12Hook* pinst = opDx12Hook::Get();
+	pinst->CaptureFrame(swapChain);
+}
+
+//hooked present
+HRESULT __stdcall dx12_hkPresent(IDXGISwapChain* thiz, UINT SyncInterval, UINT Flags) {
+	typedef long(__stdcall* Present_t)(IDXGISwapChain* pswapchain, UINT x1, UINT x2);
+	if (is_capture)
+		dx12_capture(thiz);
+	return ((Present_t)DisplayHook::old_address)(thiz, SyncInterval, Flags);
+}
+
 //-----------------------opengl-----------------------------
 //screen capture
 long gl_capture() {
@@ -538,7 +553,7 @@ long gl_capture() {
 	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,DisplayHook::render_hwnd, width, height);
+		reinterpret_cast<FrameInfo*>(pshare)->format(DisplayHook::render_hwnd, width, height);
 		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare+ sizeof(FrameInfo));
 		mutex.unlock();
 	}
@@ -609,7 +624,7 @@ long egl_capture() {
 	if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
 		mutex.lock();
 		uchar* pshare = mem.data<byte>();
-		formatFrameInfo(pshare,DisplayHook::render_hwnd, width, height);
+		reinterpret_cast<FrameInfo*>(pshare)->format(DisplayHook::render_hwnd, width, height);
 		pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
 		//pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, mem.data<byte>());
 		mutex.unlock();
