@@ -26,5 +26,5 @@ public:
 2.设置共享内存,互斥量
 3.截图(hook)至共享内存
 */
-
+void CopyImageData(char* dst_, const char* src_, int rows_, int cols_, int rowPitch, int fmt_);
 #endif // !__DX9HOOK_H_
