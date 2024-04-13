@@ -396,7 +396,10 @@ long opMouseWin::WheelDown() {
 		relative to the upper-left corner of the screen.
 		*/
 		//If an application processes this message, it should return zero.
-		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+		POINT pt{};
+		pt.x = _x, pt.y = _y;
+		::ClientToScreen(_hwnd, &pt);
+		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	
@@ -419,7 +422,10 @@ long opMouseWin::WheelUp() {
 	}
 
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+		POINT pt{};
+		pt.x = _x, pt.y = _y;
+		::ClientToScreen(_hwnd, &pt);
+		ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y), SMTO_BLOCK, 2000, nullptr);
 		break;
 	}
 	}
