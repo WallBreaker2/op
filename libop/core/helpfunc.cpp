@@ -260,8 +260,8 @@ std::string GetLastErrorAsString()
 bool Delay(long mis)
 {
   MSG msg = {};
-  auto deadline = ::GetTickCount() + mis;
-  while (::GetTickCount() < deadline)
+  auto deadline = ::GetTickCount64() + mis;
+  while (::GetTickCount64() < deadline)
   {
 		// 除收到'WM_QUIT'消息，结果始终都是大于0的
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
