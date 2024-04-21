@@ -49,6 +49,16 @@ public:
 
 	long UseDict(int idx);
 
+	long AddDict(long idx, const wstring& dict_info);
+
+	long ClearDict(long idx);
+
+	long GetDictCount(long idx);
+
+	long GetNowDict();
+
+	std::wstring FetchWord(const wstring& color, const wstring& word);
+
 	long OCR(const wstring& color, double sim, std::wstring& out_str);
 
 	long OcrEx(const wstring& color, double sim, std::wstring& out_str);

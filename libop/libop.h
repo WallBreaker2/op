@@ -290,6 +290,16 @@ public:
 	void SetMemDict(long idx, const wchar_t* data, long size, long* ret);
 	//使用哪个字库文件进行识别
 	void UseDict(long idx,  long* ret);
+	//给指定的字库中添加一条字库信息
+	void AddDict(long idx, const wchar_t* dict_info, long* ret);
+	//清空指定的字库
+	void ClearDict(long idx, long* ret);
+	//获取指定的字库中的字符数量
+	void GetDictCount(long idx, long* ret);
+	//获取当前使用的字库序号
+	void GetNowDict(long* ret);
+	//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+	void FetchWord(long x1, long y1, long x2, long y2, const wchar_t* color, const wchar_t* word, std::wstring& retstr);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 	void Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, double sim,std::wstring& ret_str);
 	//回识别到的字符串，以及每个字符的坐标.

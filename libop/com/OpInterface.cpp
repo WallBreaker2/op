@@ -984,6 +984,47 @@ STDMETHODIMP OpInterface::UseDict(LONG idx, LONG *ret)
 
 	return S_OK;
 }
+
+//给指定的字库中添加一条字库信息
+STDMETHODIMP OpInterface::AddDict(LONG idx, BSTR dict_info, LONG* ret)
+{
+	obj.AddDict(idx, dict_info, ret);
+	return S_OK;
+}
+
+//清空指定的字库
+STDMETHODIMP OpInterface::ClearDict(LONG idx, LONG* ret)
+{
+	obj.ClearDict(idx, ret);
+	return S_OK;
+}
+
+//获取指定的字库中的字符数量
+STDMETHODIMP OpInterface::GetDictCount(LONG idx, LONG* ret)
+{
+	obj.GetDictCount(idx, ret);
+	return S_OK;
+}
+
+//获取当前使用的字库序号
+STDMETHODIMP OpInterface::GetNowDict(LONG* ret)
+{
+	obj.GetNowDict(ret);
+	return S_OK;
+}
+
+//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+STDMETHODIMP OpInterface::FetchWord(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR word, BSTR* ret_str)
+{
+	wstring s;
+	obj.FetchWord(x1, y1, x2, y2, color, word, s);
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(ret_str);
+	return S_OK;
+}
+
+
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR *ret_str)
 {
