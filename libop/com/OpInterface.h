@@ -297,6 +297,16 @@ public:
 	STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG* ret);
 	//使用哪个字库文件进行识别
 	STDMETHOD(UseDict)(LONG idx,  LONG* ret);
+	//给指定的字库中添加一条字库信息
+	STDMETHOD(AddDict)(LONG idx, BSTR dict_info, LONG* ret);
+	//清空指定的字库
+	STDMETHOD(ClearDict)(LONG idx, LONG* ret);
+	//获取指定的字库中的字符数量
+	STDMETHOD(GetDictCount)(LONG idx, LONG* ret);
+	//获取当前使用的字库序号
+	STDMETHOD(GetNowDict)(LONG* ret);
+	//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+	STDMETHOD(FetchWord)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR word, BSTR* ret_str);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
 	//回识别到的字符串，以及每个字符的坐标.

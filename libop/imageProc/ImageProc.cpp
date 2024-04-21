@@ -220,6 +220,102 @@ long ImageProc::UseDict(int idx)
 	return 1;
 }
 
+long ImageProc::AddDict(long idx, const wstring& dict_info)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	std::vector<wstring> vstr;
+	split(dict_info, vstr, L"|");
+	if (vstr.size() < 3)
+		return 0;
+
+	wstring name = vstr[0];
+	wstring info = vstr[1];
+	wstring dataStr = vstr[2];
+	split(info, vstr, L",");
+	if (vstr.size() < 3)
+		return 0;
+
+	word1_t word;
+	word.info.h = _wtoi(vstr[0].c_str());
+	word.info.w = _wtoi(vstr[1].c_str());
+	word.info.bit_cnt = _wtoi(vstr[2].c_str());
+	word.init();
+	word.set_chars(name);
+	int i = 0;
+	while (i < dataStr.length()) {
+		auto bin = (hex2bin(dataStr[i]) << 4) | (hex2bin(dataStr[i + 1]));
+		SET_BIT(word.data[i / 2], bin);
+		i += 2;
+	}
+	_dicts[idx].add_word(word);
+	return 1;
+}
+
+long ImageProc::ClearDict(long idx)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	_dicts[idx].clear();
+	return 1;
+}
+
+long ImageProc::GetDictCount(long idx)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	return _dicts[idx].info._word_count;
+}
+
+long ImageProc::GetNowDict()
+{
+	return _curr_idx;
+}
+
+wstring ImageProc::FetchWord(const wstring& color, const wstring& word)
+{
+	vector<color_df_t> colors;
+	if (str2colordfs(color, colors) == 0)
+	{
+		bgr2binary(colors);
+	}
+	else
+	{
+		bgr2binarybk(colors);
+	}
+	rect_t rc;
+	rc.x1 = rc.y1 = 0;
+	rc.x2 = _binary.width; rc.y2 = _binary.height;
+	auto orc = rc;
+	bin_image_cut(2, rc, orc);
+	//check is too large
+	if (orc.width() > 255) {
+		orc.x2 = orc.x1 + 255;
+		rc = orc;
+		bin_image_cut(2, rc, orc);
+	}
+	if (orc.height() > 255) {
+		orc.y2 = orc.y1 + 255;
+		rc = orc;
+		bin_image_cut(2, rc, orc);
+	}
+	wstring wstr;
+	word1_t wt;
+	wt.from_binary(_binary, orc);
+	wchar_t buff[21] = { 0 };
+	wsprintf(buff, L"|%d,%d,%d|", wt.info.h, wt.info.w, wt.info.bit_cnt);
+	wstr = word + buff;
+	wstr.reserve(wstr.length() + wt.data.size() * 2);
+	for (int j = 0; j <= wt.data.size(); ++j) {
+		wstr.append(1, (wchar_t)bin2hex((wt.data[j] >> 4) & 0xff));
+		wstr.append(1, (wchar_t)bin2hex(wt.data[j] & 0xff));
+	}
+	return wstr;
+}
+
 long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str)
 {
 	out_str.clear();

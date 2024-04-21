@@ -127,8 +127,27 @@ struct word1_t {
 			}
 		}
 	}
+	void from_binary(const ImageBin& binary, const rect_t& rc)
+	{
+		int x2 = min(rc.x1 + 255, rc.x2);
+		int y2 = min(rc.y1 + 255, rc.y2);
+		info.w = x2 - rc.x1;
+		info.h = y2 - rc.y1;
+		info.bit_cnt = 0;
+		init();
+		int idx = 0;
+		for (int j = rc.x1; j < x2; ++j) {
+			for (int i = rc.y1; i < y2; ++i) {
+				auto val = binary.at(i, j);
+				if (val == 1) {
+					SET_BIT(data[idx / 8], idx & 7);
 
-
+					++info.bit_cnt;
+				}
+				++idx;
+			}
+		}
+	}
 
 	void init() {
 		data.resize((info.w * info.h + 7) / 8);
@@ -296,27 +315,8 @@ struct Dict {
 		file.close();
 	}
 	void add_word(const ImageBin& binary, const rect_t& rc) {
-		int x2 = min(rc.x1 + 255, rc.x2);
-		int y2 = min(rc.y1 + 255, rc.y2);
 		word1_t word;
-		word.info.w = x2 - rc.x1;
-		word.info.h = y2 - rc.y1;
-		word.info.bit_cnt = 0;
-		word.init();
-		//word.data.resize((word.info.w * word.info.h + 7) / 8);
-		int idx = 0;
-		for (int j = rc.x1; j < x2; ++j) {
-			for (int i = rc.y1; i < y2; ++i) {
-				auto val = binary.at(i, j);
-				if (val == 1) {
-					SET_BIT(word.data[idx / 8],idx & 7);
-					
-					++word.info.bit_cnt;
-				}
-				++idx;
-					
-			}
-		}
+		word.from_binary(binary, rc);
 		auto it = find(word);
 		if (words.empty()||it==words.end()) {
 			word.set_chars(L"");
