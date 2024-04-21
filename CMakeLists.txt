@@ -1,11 +1,7 @@
 ﻿# CMakeList.txt: 顶层 CMake 项目文件，在此处执行全局配置
 # 并包含子项目。
 #
-cmake_minimum_required (VERSION 3.0)
-
-#if(NOT $ENV{VCPKG_ROOT} STREQUAL "")
-#    set(${CMAKE_TOOLCHAIN_FILE} $ENV{VCPKG_ROOT})
-#endif()
+cmake_minimum_required (VERSION 3.10)
 
 if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
     set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
@@ -14,11 +10,7 @@ if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
 endif()
 
 
-option(build_swig_py "build swig py,requrie python" OFF)
-option(build_qttool "buid qt tool,requrie qt lib" OFF)
-
-
-
+option(build_swig_py "build swig py,requrie python" ON)
 
 # 检查头文件是否设置正确
 if(EXISTS ${blackbone_include_path}/BlackBone/Process/Process.h)
@@ -38,6 +30,7 @@ if(EXISTS ${blackbone_lib64_path}/BlackBone.lib)
 else()
 message(FATAL_ERROR "${blackbone_lib64_path}/blackbone.lib NOT find" )
 endif()
+
 
 
 project ("op")
@@ -81,25 +74,18 @@ include_directories(
   ${blackbone_include_path}/3rd_party
 ) 
 
-
-
 # 包含子项目。
 ## libop主项目
 add_subdirectory ("libop")
-## tools项目
-add_subdirectory("tools")
-## 测试项目
-add_subdirectory("tests")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libop/com/op_i.h")
+    ## tools项目
+    add_subdirectory("tools")
+    ## 测试项目
+    add_subdirectory("tests")
+endif()
 ## swig 项目
 if(build_swig_py)
     add_subdirectory("swig")
 endif()
 
-## qttool项目
-if(build_qttool)
-    # 只编译32位
-    if(${CMAKE_SIZEOF_VOID_P}$ EQUAL 4)
-        add_subdirectory("qttool")
-    endif()
-endif()
 
