@@ -181,16 +181,11 @@ long opMouseDx::MoveToEx(int x, int y, int w, int h)
 
 long opMouseDx::LeftClick()
 {
-	long ret = 0, ret2 = 0;
-
-	///ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-	ret = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-	//ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+	long r1, r2;
+	r1 = LeftDown();
 	::Delay(MOUSE_DX_DELAY);
-	//ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-	ret2 = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-
-	return ret && ret2 ? 1 : 0;
+	r2 = LeftUp();
+	return r1 & r2 ? 1 : 0;
 }
 
 long opMouseDx::LeftDoubleClick()
@@ -249,15 +244,11 @@ long opMouseDx::MiddleUp()
 
 long opMouseDx::RightClick()
 {
-	long ret = 0;
 	long r1, r2;
-
-	r1 = ::SendMessage(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+	r1 = RightDown();
 	::Delay(MOUSE_DX_DELAY);
-	r2 = ::SendMessage(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
-	ret = r1 == 0 && r2 == 0 ? 1 : 0;
-
-	return ret;
+	r2 = RightUp();
+	return r1 & r2 ? 1 : 0;
 }
 
 long opMouseDx::RightDown()

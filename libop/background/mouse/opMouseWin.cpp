@@ -132,39 +132,20 @@ long opMouseWin::MoveToEx(int x, int y, int w, int h) {
 }
 
 long opMouseWin::LeftClick() {
-	long ret = 0, ret2 = 0;
+	long r1, r2;
+	r1 = LeftDown();
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
-		INPUT Input = { 0 };
-		// left down 
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-		ret = ::SendInput(1, &Input, sizeof(INPUT));
-       ::Delay(MOUSE_NORMAL_DELAY);
-		// left up
-		::ZeroMemory(&Input, sizeof(INPUT));
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
-		ret2 = ::SendInput(1, &Input, sizeof(INPUT));
+		::Delay(MOUSE_NORMAL_DELAY);
 		break;
 	}
-
 	case INPUT_TYPE::IN_WINDOWS: {
-		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		::Delay(MOUSE_WINDOWS_DELAY);
-		ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-		///ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-		//ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-		//ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-		//::Sleep(100);
-		//ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-		//ret2=::SendMessageTimeout(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-		//ret2 = ::SendMessage(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y));
-		//::SendMessage(_hwnd, WM_CAPTURECHANGED, 0, 0);
 		break;
 	}
 	}
-	return ret && ret2 ? 1 : 0;
+	r2 = LeftUp();
+	return r1 && r2 ? 1 : 0;
 }
 
 long opMouseWin::LeftDoubleClick() {
@@ -286,35 +267,20 @@ long opMouseWin::MiddleUp() {
 
 
 long opMouseWin::RightClick() {
-	long ret = 0;
 	long r1, r2;
+	r1 = RightDown();
 	switch (_mode) {
 	case INPUT_TYPE::IN_NORMAL: {
-		INPUT Input = { 0 };
-		// left down 
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-		r1 = ::SendInput(1, &Input, sizeof(INPUT));
 		::Delay(MOUSE_NORMAL_DELAY);
-		// left up
-		::ZeroMemory(&Input, sizeof(INPUT));
-		Input.type = INPUT_MOUSE;
-		Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-		r2 = ::SendInput(1, &Input, sizeof(INPUT)) ;
-		ret = r1 > 0 && r2 > 0 ? 1 : 0;
 		break;
 	}
-
 	case INPUT_TYPE::IN_WINDOWS: {
-		r1 = ::SendMessageTimeout(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 		::Delay(MOUSE_WINDOWS_DELAY);
-		r2 = ::SendMessageTimeout(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-		ret = r1 == 0 && r2 == 0 ? 1 : 0;
 		break;
 	}
-
 	}
-	return ret;
+	r2 = RightUp();
+	return r1 && r2 ? 1 : 0;
 }
 
 long opMouseWin::RightDown()
