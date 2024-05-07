@@ -64,6 +64,7 @@ libop::libop():m_context(nullptr)
 	_vkmap[L"shift"] = VK_SHIFT;
 	_vkmap[L"win"] = VK_LWIN;
 	_vkmap[L"space"] = L' ';
+	_vkmap[L"cap"] = VK_CAPITAL;
 	_vkmap[L"tab"] = VK_TAB;
 	_vkmap[L"esc"] = VK_CANCEL;
 	_vkmap[L"enter"] = L'\r';
@@ -71,6 +72,13 @@ libop::libop():m_context(nullptr)
 	_vkmap[L"down"] = VK_DOWN;
 	_vkmap[L"left"] = VK_LEFT;
 	_vkmap[L"right"] = VK_RIGHT;
+	_vkmap[L"option"] = VK_APPS;
+	_vkmap[L"print"] = VK_SNAPSHOT;
+	_vkmap[L"delete"] = VK_DELETE;
+	_vkmap[L"home"] = VK_HOME;
+	_vkmap[L"end"] = VK_END;
+	_vkmap[L"pgup"] = VK_PRIOR;
+	_vkmap[L"pgdn"] = VK_NEXT;
 	_vkmap[L"f1"] = VK_F1;
 	_vkmap[L"f2"] = VK_F2;
 	_vkmap[L"f3"] = VK_F3;
@@ -725,7 +733,7 @@ void libop::KeyDownChar(const wchar_t *vk_code, long *ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyDown(vk);
 	}
 }
@@ -743,7 +751,7 @@ void libop::KeyUpChar(const wchar_t *vk_code, long *ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyUp(vk);
 	}
 }
@@ -769,7 +777,7 @@ void libop::KeyPressChar(const wchar_t *vk_code, long *ret)
 		//setlog(vk_code);
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyPress(vk);
 	}
 }
