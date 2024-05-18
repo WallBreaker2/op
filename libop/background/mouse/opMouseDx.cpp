@@ -1,4 +1,4 @@
-//#include "stdafx.h"
+// #include "stdafx.h"
 #include "opMouseDx.h"
 #include "../core/globalVar.h"
 #include "../core/helpfunc.h"
@@ -23,7 +23,7 @@ long opMouseDx::Bind(HWND h, int mode)
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 
-	//attach 进程
+	// attach 进程
 	blackbone::Process proc;
 	NTSTATUS hr;
 
@@ -32,7 +32,7 @@ long opMouseDx::Bind(HWND h, int mode)
 	if (NT_SUCCESS(hr))
 	{
 		wstring dllname = opEnv::getOpName();
-		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
+		// 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64)
 		{
@@ -40,7 +40,7 @@ long opMouseDx::Bind(HWND h, int mode)
 		}
 
 		bool injected = false;
-		//判断是否已经注入
+		// 判断是否已经注入
 		auto _dllptr = proc.modules().GetModule(dllname);
 		auto mods = proc.modules().GetAllModules();
 		if (_dllptr)
@@ -66,11 +66,11 @@ long opMouseDx::Bind(HWND h, int mode)
 			auto PSetInputHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetInputHook");
 			if (PSetInputHook)
 			{
-				//setlog("after MakeRemoteFunction");
+				// setlog("after MakeRemoteFunction");
 				auto cret = PSetInputHook(_hwnd, _mode);
-				//setlog("after pSetXHook");
+				// setlog("after pSetXHook");
 				ret = cret.result();
-				//setlog("after result");
+				// setlog("after result");
 			}
 			else
 			{
@@ -88,7 +88,7 @@ long opMouseDx::Bind(HWND h, int mode)
 	}
 
 	proc.Detach();
-	//setlog("after Detach");
+	// setlog("after Detach");
 
 	return 1;
 }
@@ -98,7 +98,7 @@ long opMouseDx::UnBind()
 	DWORD id;
 	::GetWindowThreadProcessId(_hwnd, &id);
 
-	//attach 进程
+	// attach 进程
 	blackbone::Process proc;
 	NTSTATUS hr;
 
@@ -107,7 +107,7 @@ long opMouseDx::UnBind()
 	if (NT_SUCCESS(hr))
 	{
 		wstring dllname = opEnv::getOpName();
-		//检查是否与插件相同的32/64位,如果不同，则使用另一种dll
+		// 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
 		BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
 		if (is64 != OP64)
 		{
@@ -117,11 +117,11 @@ long opMouseDx::UnBind()
 		auto pReleaseInputHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "ReleaseInputHook");
 		if (pReleaseInputHook)
 		{
-			//setlog("after MakeRemoteFunction");
+			// setlog("after MakeRemoteFunction");
 			auto cret = pReleaseInputHook();
-			//setlog("after pSetXHook");
+			// setlog("after pSetXHook");
 			ret = cret.result();
-			//setlog("after result");
+			// setlog("after result");
 		}
 		else
 		{
@@ -134,7 +134,7 @@ long opMouseDx::UnBind()
 	}
 
 	proc.Detach();
-	//setlog("after Detach");
+	// setlog("after Detach");
 	_hwnd = 0;
 	_mode = 0;
 	return 1;
@@ -161,8 +161,9 @@ long opMouseDx::MoveR(int rx, int ry)
 
 long opMouseDx::MoveTo(int x, int y)
 {
-	x = x * _dpi;
-	y = y * _dpi;
+	// 启用DPI感知后，不需要在进行坐标处理
+	// x = x * _dpi;
+	// y = y * _dpi;
 	long ret = 0;
 	ret = ::SendMessage(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(x, y)) == 0 ? 1 : 0;
 
@@ -183,11 +184,11 @@ long opMouseDx::LeftClick()
 {
 	long ret = 0, ret2 = 0;
 
-	///ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+	/// ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 	ret = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-	//ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+	// ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 	::Delay(MOUSE_DX_DELAY);
-	//ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+	// ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 	ret2 = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
 
 	return ret && ret2 ? 1 : 0;
@@ -224,7 +225,7 @@ long opMouseDx::MiddleClick()
 {
 	long r1, r2;
 	r1 = MiddleDown();
-    ::Delay(MOUSE_DX_DELAY);
+	::Delay(MOUSE_DX_DELAY);
 	r2 = MiddleUp();
 	return r1 & r2 ? 1 : 0;
 }
@@ -284,8 +285,8 @@ long opMouseDx::WheelDown()
 
 	/*
 		wParam
-		The high-order word indicates the distance the wheel is rotated, 
-		expressed in multiples or divisions of WHEEL_DELTA, which is 120. 
+		The high-order word indicates the distance the wheel is rotated,
+		expressed in multiples or divisions of WHEEL_DELTA, which is 120.
 		A positive value indicates that the wheel was rotated forward, away from the user;
 		a negative value indicates that the wheel was rotated backward, toward the user.
 		The low-order word indicates whether various virtual keys are down.
@@ -293,10 +294,10 @@ long opMouseDx::WheelDown()
 		lParam
 		The low-order word specifies the x-coordinate of the pointer,
 		relative to the upper-left corner of the screen.
-		The high-order word specifies the y-coordinate of the pointer, 
+		The high-order word specifies the y-coordinate of the pointer,
 		relative to the upper-left corner of the screen.
 		*/
-	//If an application processes this message, it should return zero.
+	// If an application processes this message, it should return zero.
 	ret = ::SendMessage(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
 
 	return ret;
