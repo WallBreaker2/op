@@ -182,6 +182,13 @@ long ImageProc::FindColorBlockEx(const wstring& color, double sim, long count, l
 	return ImageBase::FindColorBlockEx(sim, count, height, width, retstr);
 }
 
+long ImageProc::GetColorNum(const wstring& color, double sim)
+{
+	std::vector<color_df_t> colors;
+	str2colordfs(color, colors);
+	return ImageBase::FindColorNum(colors);
+}
+
 long ImageProc::SetDict(int idx, const wstring& file_name)
 {
 	if (idx < 0 || idx >= _max_dict)

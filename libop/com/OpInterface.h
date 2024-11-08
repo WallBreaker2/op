@@ -258,6 +258,8 @@ public:
 	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color,DOUBLE sim,LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
 	//查找指定区域内的所有颜色
 	STDMETHOD(FindColorEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,LONG dir, BSTR* retstr);
+	//查找指定区域内的颜色数量
+	STDMETHOD(GetColorNum)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG* ret);
 	//根据指定的多点查找颜色坐标
 	STDMETHOD(FindMultiColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
 	//根据指定的多点查找所有颜色坐标
