@@ -1059,6 +1059,22 @@ void libop::GetColor(long x, long y, std::wstring &ret)
 	ret = cr.towstr();
 }
 
+void libop::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, long* ret)
+{
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
+	{
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
+		{
+			setlog("error requestCapture");
+		}
+		else
+		{
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.GetColorNum(color, sim);
+		}
+	}
+}
+
 void libop::SetDisplayInput(const wchar_t *mode, long *ret)
 {
 	*ret = m_context->bkproc.set_display_method(mode);

@@ -151,6 +151,7 @@ interface IOpInterface : IDispatch
     [id(175)] HRESULT Delay([in] LONG mis, [out, retval] LONG* ret);
     [id(176)] HRESULT Delays([in] LONG mis_min,[in] LONG mis_max, [out, retval] LONG* ret);
 	[id(177)] HRESULT KeyPressStr([in]BSTR key_str,[in]LONG delay,[out, retval] LONG* ret);
+	[id(178)] HRESULT GetColorNum([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval]LONG* ret);
 	
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);

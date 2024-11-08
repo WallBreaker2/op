@@ -248,6 +248,8 @@ public:
 	void FindColor(long x1, long y1, long x2, long y2, const wchar_t* color,double sim,long dir, long* x, long* y, long* ret);
 	//查找指定区域内的所有颜色
 	void FindColorEx(long x1, long y1, long x2, long y2, const wchar_t* color, double sim,long dir, std::wstring& retstr);
+	//查找指定区域内的所有颜色数量
+	void GetColorNum(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, long* ret);
 	//根据指定的多点查找颜色坐标
 	void FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t* first_color, const wchar_t* offset_color, double sim, long dir, long* x, long* y, long* ret);
 	//根据指定的多点查找所有颜色坐标

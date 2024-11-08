@@ -750,6 +750,14 @@ STDMETHODIMP OpInterface::FindColorEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR c
 	newstr.CopyTo(retstr);
 	return S_OK;
 }
+//查找指定区域内的颜色数量
+STDMETHODIMP OpInterface::GetColorNum(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG* ret)
+{
+	wstring s;
+	obj.GetColorNum(x1, y1, x2, y2, color, sim, ret);
+
+	return S_OK;
+}
 //根据指定的多点查找颜色坐标
 STDMETHODIMP OpInterface::FindMultiColor(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, VARIANT *x, VARIANT *y, LONG *ret)
 {
