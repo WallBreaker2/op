@@ -1,4 +1,3 @@
-
 # OP 自动化插件
 
 [![GitHub Release](https://img.shields.io/github/v/release/WallBreaker2/op?style=flat-square)](https://github.com/WallBreaker2/op/releases)
@@ -6,7 +5,9 @@
 
 ## 📖 项目概述
 
-**OP**（Operator & Open）是一款对标大漠插件的开源自动化工具，专为Windows平台设计。核心功能包括：
+
+**OP**（Operator & Open）是一款开源自动化工具，专为Windows平台设计。核心功能包括：
+
 
 - 🔍 **窗口自动化**：键鼠消息模拟/后台截图
 - 🖼️ **图像处理**：智能找图/色值识别
