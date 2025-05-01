@@ -1,3 +1,4 @@
+
 @echo off
 REM Set the path to vcpkg
 set "vcpkg_path=D:/workspace/vcpkg"
