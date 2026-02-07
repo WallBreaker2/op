@@ -1,7 +1,6 @@
 #ifndef __FRAME_INFO_H_
 #define __FRAME_INFO_H_
-#include <winbase.h>
-#include <windef.h>
+#include <Windows.h>
 #pragma pack(1)
 struct FrameInfo {
     unsigned __int64 hwnd;
