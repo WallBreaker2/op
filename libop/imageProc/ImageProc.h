@@ -49,9 +49,13 @@ public:
 
 	long SetDict(int idx,const wstring& file);
 
+	std::wstring GetDict(long idx, long font_index);
+
 	long UseDict(int idx);
 
 	long AddDict(long idx, const wstring& dict_info);
+
+	long SaveDict(long idx, const wstring& file_name);
 
 	long ClearDict(long idx);
 
@@ -59,7 +63,7 @@ public:
 
 	long GetNowDict();
 
-	std::wstring FetchWord(const wstring& color, const wstring& word);
+	std::wstring FetchWord(rect_t rc, const wstring& color, const wstring& word);
 
 	long OCR(const wstring& color, double sim, std::wstring& out_str);
 
@@ -82,6 +86,10 @@ public:
 	long FreePic(const wstring& files);
 
 	long LoadMemPic(const wstring& file_name, void* data, long size);
+
+	long GetPicSize(const wstring& file_name, long* x, long* y);
+
+	void str2binaryfbk(const wstring& color);
 private:
 	//字库
 	Dict _dicts[_max_dict];

@@ -837,8 +837,8 @@ STDMETHODIMP OpInterface::GetResultCount(BSTR str, LONG *ret)
 {
 	const wchar_t* p = str;
 	int cnt = 0;
-	while(p){
-		if(*p==L'|') ++cnt;
+	while (*p) {
+		if (*p == L'|') ++cnt;
 		++p;
 	}
 	*ret = cnt;
@@ -851,16 +851,17 @@ STDMETHODIMP OpInterface::GetResultPos(BSTR str, LONG index, VARIANT *x, VARIANT
 	long cnt = 0;
 	const wchar_t* p = str;
 	*ret = 0;
-	while(p&&index<cnt){
-		if(index==cnt){
-			if(swscanf(p,L"%d,%d",&x->lVal,&y->lVal)==2){
+	while (*p && index < cnt) {
+		if (index == cnt) {
+			if (swscanf(p, L"%d,%d", &x->lVal, &y->lVal) == 2) {
 				*ret = 1;
-			}else{
-				*ret= 0;
+			}
+			else {
+				*ret = 0;
 			}
 			break;
 		}
-		if(*p==L'|') ++cnt;
+		if (*p == L'|') ++cnt;
 		++p;
 	}
 	return S_OK;
@@ -902,6 +903,13 @@ STDMETHODIMP OpInterface::FreePic(BSTR pic_name, LONG *ret)
 STDMETHODIMP OpInterface::LoadMemPic(BSTR pic_name, long long data, LONG size, LONG *ret)
 {
 	obj.LoadMemPic(pic_name, (void *)data, size, ret);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetPicSize(BSTR pic_name, VARIANT* width, VARIANT* height, LONG* ret)
+{
+	width->vt = height->vt = VT_I4;
+	obj.GetPicSize(pic_name, &width->lVal, &height->lVal, ret);
 	return S_OK;
 }
 
@@ -977,6 +985,16 @@ STDMETHODIMP OpInterface::SetDict(LONG idx, BSTR file_name, LONG *ret)
 	return S_OK;
 }
 
+STDMETHODIMP OpInterface::GetDict(LONG idx, LONG font_index, BSTR* retstr)
+{
+	std::wstring s;
+	obj.GetDict(idx, font_index, s);
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(retstr);
+	return S_OK;
+}
+
 //设置字库文件
 STDMETHODIMP OpInterface::SetMemDict(LONG idx, BSTR data, LONG size, LONG *ret)
 {
@@ -997,6 +1015,12 @@ STDMETHODIMP OpInterface::UseDict(LONG idx, LONG *ret)
 STDMETHODIMP OpInterface::AddDict(LONG idx, BSTR dict_info, LONG* ret)
 {
 	obj.AddDict(idx, dict_info, ret);
+	return S_OK;
+}
+
+STDMETHODIMP OpInterface::SaveDict(LONG idx, BSTR file_name, LONG* ret)
+{
+	obj.SaveDict(idx, file_name, ret);
 	return S_OK;
 }
 
@@ -1031,7 +1055,40 @@ STDMETHODIMP OpInterface::FetchWord(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 	newstr.CopyTo(ret_str);
 	return S_OK;
 }
-
+//识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
+STDMETHODIMP OpInterface::GetWordsNoDict(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR* ret_str)
+{
+	wstring s;
+	obj.GetWordsNoDict(x1, y1, x2, y2, color, s);
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(ret_str);
+	return S_OK;
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
+STDMETHODIMP OpInterface::GetWordResultCount(BSTR result, LONG* ret)
+{
+	obj.GetWordResultCount(result, ret);
+	return S_OK;
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
+STDMETHODIMP OpInterface::GetWordResultPos(BSTR result, LONG index, VARIANT* x, VARIANT* y, LONG* ret)
+{
+	x->vt = y->vt = VT_I4;
+	wstring s;
+	obj.GetWordResultPos(result, index, &x->lVal, &y->lVal, ret);
+	return S_OK;
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
+STDMETHODIMP OpInterface::GetWordResultStr(BSTR result, LONG index, BSTR* ret_str)
+{
+	wstring s;
+	obj.GetWordResultStr(result, index, s);
+	CComBSTR newstr;
+	newstr.Append(s.data());
+	newstr.CopyTo(ret_str);
+	return S_OK;
+}
 
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 STDMETHODIMP OpInterface::Ocr(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR *ret_str)
