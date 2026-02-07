@@ -1,7 +1,4 @@
-﻿# CMakeList.txt: 顶层 CMake 项目文件，在此处执行全局配置
-# 并包含子项目。
-#
-cmake_minimum_required (VERSION 3.10)
+﻿cmake_minimum_required (VERSION 3.10)
 
 if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
     set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
@@ -34,6 +31,7 @@ endif()
 
 
 project ("op")
+include(CTest)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 

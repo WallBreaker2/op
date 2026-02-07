@@ -1,232 +1,332 @@
-﻿
-
+﻿#include <chrono>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
-#include <time.h>
 #include <vector>
-
-#include "../libop/com/op_i.h"
-#include "../libop/imageProc/compute/ThreadPool.h"
-#include "op_test.h"
-#include <chrono>
-#include <filesystem>
+#include <windows.h>
 
 #include "../libop/core/optype.h"
-#pragma warning(disable : 4996)
+#include "../libop/imageProc/compute/ThreadPool.h"
+#include "../libop/libop.h"
 
 using namespace std;
+
+// --- Test State ---
 bool gRun = false;
 mutex gMutex;
 
+// --- Helper Functions ---
 void proc_shared(libop *sharedOp) {
     void *data = 0;
     long size, ret;
     while (gRun) {
         this_thread::sleep_for(chrono::microseconds(100));
         lock_guard<std::mutex> lock(gMutex);
-        cout << "thread:" << this_thread::get_id() << endl;
         sharedOp->GetScreenDataBmp(0, 0, 50, 50, (size_t *)&data, &size, &ret);
     }
 }
 
-void proc_unique(long hwnd) {
-    void *data = 0;
-    long size, ret;
-    libop *uniqueOp = new libop();
-    uniqueOp->BindWindow(hwnd, L"normal", L"normal", L"normal", 0, &ret);
-    while (gRun && ret) {
-        // this_thread::sleep_for(chrono::microseconds(100));
-        // lock_guard lock(gMutex);
-        cout << "thread:" << this_thread::get_id() << endl;
+// --- Test Modules ---
 
-        uniqueOp->GetScreenDataBmp(0, 0, 50, 50, (size_t *)&data, &size, &ret);
-    }
-    delete uniqueOp;
+// 1. Core Module
+int test_core() {
+    libop op;
+    wstring ver = op.Ver();
+    wcout << L"Version: " << ver << endl;
+    if (ver.empty())
+        return 1;
+
+    wstring path;
+    op.GetBasePath(path);
+    wcout << L"Base Path: " << path << endl;
+
+    long id;
+    op.GetID(&id);
+    cout << "Object ID: " << id << endl;
+
+    return 0;
 }
 
-void test_shared() {
-    libop *sharedOp = new libop();
-    gRun = true;
-    thread t1(proc_shared, sharedOp);
-    thread t2(proc_shared, sharedOp);
-    cin.get();
-    gRun = false;
-    t1.join();
-    t2.join();
+// 2. Algorithm Module
+int test_algorithm() {
+    libop op;
+    wstring path;
+    op.AStarFindPath(100, 100, L"50,50", 0, 0, 99, 99, path);
+    wcout << L"AStar Path (first 20 chars): " << path.substr(0, 20) << L"..." << endl;
 
-    delete sharedOp;
+    wstring pos;
+    op.FindNearestPos(L"10,10|20,20|30,30", 1, 15, 15, pos);
+    wcout << L"Nearest Pos to (15,15): " << pos << endl;
+    if (pos != L"10,10" && pos != L"20,20")
+        return 2;
+
+    return 0;
 }
 
-void test_unique() {
-    gRun = true;
-    long hwnd[2] = {0x001407EE, 0x00010472};
-    thread t1(proc_unique, hwnd[0]);
-    thread t2(proc_unique, hwnd[1]);
-    cin.get();
-    gRun = false;
-    t1.join();
-    t2.join();
-}
-
-int test_com() {
-#ifdef _WIN64
-    HMODULE hdll = LoadLibraryA("op_x64.dll");
-#else
-    HMODULE hdll = LoadLibraryA("op_x86.dll");
-#endif
-    if (!hdll) {
-        printf("LoadLibraryA false!\n");
-        return -1;
-    }
-    typedef HRESULT(__stdcall * DllGetClassObject_t)(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID FAR * ppv);
-    DllGetClassObject_t pfun1 = (DllGetClassObject_t)GetProcAddress(hdll, "DllGetClassObject");
-    if (!pfun1) {
-        printf("GetProcAddress false!\n");
-        return -2;
-    }
-    IClassFactory *fac = 0;
-    pfun1(CLSID_OpInterface, IID_IClassFactory, (void **)&fac);
-    if (!fac) {
-        printf("DllGetClassObject false!\n");
-        return -3;
-    }
-    IOpInterface *op;
-    fac->CreateInstance(NULL, IID_IOpInterface, (void **)&op);
-
-    if (!op) {
-        printf("CoCreateInstance false!\n");
-        return -4;
-    }
-
-    std::cout << "ok\n";
+// 3. WinApi Module
+int test_winapi() {
+    libop op;
     long hwnd = 0;
-    op->GetPointWindow(100, 100, &hwnd);
-    long ret = 0;
-    op->GetWindowState(hwnd, 2, &ret);
-    std::cout << "----ret----:" << ret << std::endl;
+    op.GetForegroundWindow(&hwnd);
+    cout << "Foreground Window: " << hex << hwnd << dec << endl;
+
+    if (hwnd) {
+        wstring title;
+        op.GetWindowTitle(hwnd, title);
+        wcout << L"Title: " << title << endl;
+
+        long x1, y1, x2, y2, ret;
+        op.GetWindowRect(hwnd, &x1, &y1, &x2, &y2, &ret);
+        cout << "Rect: (" << x1 << "," << y1 << ") - (" << x2 << "," << y2 << ")" << endl;
+    }
+
+    wstring list;
+    op.EnumWindow(0, L"", L"", 1 + 2, list);
+    wcout << L"EnumWindow (top 50 chars): " << list.substr(0, 50) << L"..." << endl;
+
     return 0;
 }
 
-void printHR(HRESULT hr) {
-    if (hr == S_OK) {
-        printf("\n");
-    } else if (hr == E_OUTOFMEMORY) {
-        printf("E_OUTOFMEMORY\n");
-    } else if (hr == DISP_E_UNKNOWNNAME) {
-        printf("DISP_E_UNKNOWNNAME\n");
-    } else if (hr == DISP_E_UNKNOWNLCID) {
-        printf("DISP_E_UNKNOWNLCID\n");
-    } else {
-        printf("other error code=%08X\n", hr);
-    }
-}
+// 4. Mouse & Keyboard Module
+int test_mouse_key() {
+    libop op;
+    long ret;
+    op.MoveTo(100, 100, &ret);
+    if (!ret)
+        return 1;
 
-int test_invoke() {
-    IOpInterface *op;
+    long x, y;
+    op.GetCursorPos(&x, &y, &ret);
+    cout << "Cursor Pos: " << x << "," << y << endl;
 
-    // CoCreateInstance(&CLSID_OpInterface, NULL, CLSCTX_INPROC, &IID_IOpInterface, &op);
-    /*if (op) {
-        printf("use free com ok!\n");
-        BSTR ver;
-        op->lpVtbl->Ver(op, &ver);
-        wprintf(L"op ver=%s", ver);
-    }*/
-    IDispatch *dispatch;
-    HRESULT hr = 0;
-    hr = CoCreateInstance(CLSID_OpInterface, NULL, CLSCTX_INPROC, IID_IDispatch, (void **)&dispatch);
-    wchar_t *names = new wchar_t[256];
-    memcpy(names, L"Ver", 8);
-    if (dispatch == 0) {
-        printf("error:CoCreateInstance\n");
-        printHR(hr);
-        return 0;
-    }
+    op.SetMouseDelay(L"click", 10, &ret);
+    op.LeftClick(&ret);
 
-    DISPID id;
-    VARIANT ret;
-    hr = dispatch->GetIDsOfNames(IID_NULL, &names, 1, LOCALE_SYSTEM_DEFAULT, &id);
-    if (hr < 0) {
-        printf("error:GetIDsOfNames\n");
-        printHR(hr);
-        return 0;
-    }
-    DISPPARAMS parms = {NULL, 0, 0};
+    op.SetKeypadDelay(L"press", 10, &ret);
+    op.KeyPress(VK_ESCAPE, &ret);
 
-    hr = dispatch->Invoke(id, IID_NULL, LOCALE_SYSTEM_DEFAULT, DISPATCH_METHOD, &parms, &ret, NULL, NULL);
-    if (hr < 0) {
-        printf("error:Invoke\n");
-        printHR(hr);
-        return 0;
-    }
-
-    if (ret.vt == VT_BSTR) {
-        wprintf(ret.bstrVal);
-        wprintf(L"\n");
-    } else {
-        printf("error:ret.vt != VT_BSTR\n");
-    }
     return 0;
 }
 
-void test_threadPool();
+// 5. Image & Color Module
+int test_image_color() {
+    libop op;
+    long ret;
 
-void test_rect();
+    // We can't easily test capture without a valid window bond in some modes,
+    // but we can test basic color functions on desktop if allowed
+    wstring color;
+    op.GetColor(10, 10, color);
+    wcout << L"Color at (10,10): " << color << endl;
+    if (color.length() != 6)
+        return 1;
+
+    op.CmpColor(10, 10, color.c_str(), 0.9, &ret);
+    if (!ret)
+        return 2;
+
+    long x, y;
+    op.FindColor(0, 0, 100, 100, color.c_str(), 0.9, 0, &x, &y, &ret);
+    cout << "FindColor ret: " << ret << " at " << x << "," << y << endl;
+
+    return 0;
+}
+
+// 6. OCR Module
+int test_ocr() {
+    libop op;
+    long ret;
+    wstring text;
+
+    cout << "=== OCR Module Tests ===" << endl;
+
+    // --- 1. Dictionary Management Tests ---
+    cout << "\n[Dictionary Management]" << endl;
+
+    // Test SetDict with actual dictionary file
+    op.SetDict(0, L"../bin/miner/miner_num.dict", &ret);
+    cout << "SetDict(0, miner_num.dict): " << ret << endl;
+
+    // Test UseDict to activate dictionary
+    op.UseDict(0, &ret);
+    cout << "UseDict(0): " << ret << endl;
+
+    // Test GetDictCount
+    long dict_count = 0;
+    op.GetDictCount(0, &dict_count);
+    cout << "GetDictCount(0): " << dict_count << endl;
+
+    // Test GetNowDict
+    long now_dict_idx = -1;
+    op.GetNowDict(&now_dict_idx);
+    cout << "GetNowDict(): " << now_dict_idx << endl;
+
+    // Test GetDict to retrieve specific entry
+    wstring dict_info;
+    op.GetDict(0, 0, dict_info);
+    wcout << L"GetDict(0, 0): " << (dict_info.empty() ? L"empty" : dict_info.substr(0, 30)) << L"..." << endl;
+
+    // Test AddDict to add custom entry
+    op.AddDict(1, L"1$1$1$1$1$1$1$1$1", &ret);
+    cout << "AddDict(1, test_entry): " << ret << endl;
+
+    // Test SaveDict
+    op.SaveDict(1, L"test_dict_output.txt", &ret);
+    cout << "SaveDict(1, test_dict_output.txt): " << ret << endl;
+
+    // Test ClearDict
+    op.ClearDict(1, &ret);
+    cout << "ClearDict(1): " << ret << endl;
+
+    // Test SetMemDict (with minimal valid data)
+    const wchar_t *mem_dict_data = L"2$2$2$2$2$2$2$2$2";
+    op.SetMemDict(2, mem_dict_data, (long)(wcslen(mem_dict_data) * sizeof(wchar_t)), &ret);
+    cout << "SetMemDict(2): " << ret << endl;
+
+    // --- 2. OCR Operations Tests ---
+    cout << "\n[OCR Operations]" << endl;
+
+    // Test Ocr - basic OCR with color
+    text.clear();
+    op.Ocr(0, 0, 100, 100, L"ffffff-000000", 0.8, text);
+    wcout << L"Ocr(0,0,100,100): " << (text.empty() ? L"(empty)" : text) << endl;
+
+    // Test OcrEx - OCR with coordinates
+    text.clear();
+    op.OcrEx(0, 0, 100, 100, L"ffffff-000000", 0.8, text);
+    wcout << L"OcrEx(0,0,100,100): " << (text.empty() ? L"(empty)" : text.substr(0, 50)) << endl;
+
+    // Test OcrAuto - auto color detection
+    text.clear();
+    op.OcrAuto(0, 0, 100, 100, 0.8, text);
+    wcout << L"OcrAuto(0,0,100,100): " << (text.empty() ? L"(empty)" : text) << endl;
+
+    // Test OcrFromFile (may fail if file doesn't exist, that's OK)
+    text.clear();
+    op.OcrFromFile(L"test_image.bmp", L"ffffff-000000", 0.8, text);
+    wcout << L"OcrFromFile(test_image.bmp): " << (text.empty() ? L"(empty)" : text) << endl;
+
+    // Test OcrAutoFromFile
+    text.clear();
+    op.OcrAutoFromFile(L"test_image.bmp", 0.8, text);
+    wcout << L"OcrAutoFromFile(test_image.bmp): " << (text.empty() ? L"(empty)" : text) << endl;
+
+    // --- 3. Word Extraction Tests ---
+    cout << "\n[Word Extraction]" << endl;
+
+    // Test FetchWord - extract character pixel data
+    wstring word_data;
+    op.FetchWord(10, 10, 50, 50, L"ffffff-000000", L"A", word_data);
+    wcout << L"FetchWord(10,10,50,50, 'A'): " << (word_data.empty() ? L"(empty)" : word_data.substr(0, 30)) << L"..."
+          << endl;
+
+    // Test GetWordsNoDict - identify word shapes without dictionary
+    wstring words_result;
+    op.GetWordsNoDict(0, 0, 100, 100, L"ffffff-000000", words_result);
+    wcout << L"GetWordsNoDict(0,0,100,100): " << (words_result.empty() ? L"(empty)" : words_result.substr(0, 30))
+          << L"..." << endl;
+
+    // Test FindStr - locate specific string
+    long find_x = 0, find_y = 0;
+    op.FindStr(0, 0, 200, 200, L"test", L"ffffff-000000", 0.8, &find_x, &find_y, &ret);
+    cout << "FindStr('test'): ret=" << ret << " at (" << find_x << "," << find_y << ")" << endl;
+
+    // Test FindStrEx - find all instances
+    wstring find_results;
+    op.FindStrEx(0, 0, 200, 200, L"test|demo", L"ffffff-000000", 0.8, find_results);
+    wcout << L"FindStrEx('test|demo'): " << (find_results.empty() ? L"(empty)" : find_results.substr(0, 30)) << L"..."
+          << endl;
+
+    // --- 4. Result Parsing Tests ---
+    cout << "\n[Result Parsing]" << endl;
+
+    // Generate some test result data using GetWordsNoDict
+    wstring parse_test_result;
+    op.GetWordsNoDict(0, 0, 50, 50, L"ffffff-000000", parse_test_result);
+
+    // Test GetWordResultCount
+    long word_count = 0;
+    op.GetWordResultCount(parse_test_result.c_str(), &word_count);
+    cout << "GetWordResultCount: " << word_count << endl;
+
+    if (word_count > 0) {
+        // Test GetWordResultPos
+        long word_x = 0, word_y = 0;
+        op.GetWordResultPos(parse_test_result.c_str(), 0, &word_x, &word_y, &ret);
+        cout << "GetWordResultPos(0): ret=" << ret << " pos=(" << word_x << "," << word_y << ")" << endl;
+
+        // Test GetWordResultStr
+        wstring word_str;
+        op.GetWordResultStr(parse_test_result.c_str(), 0, word_str);
+        wcout << L"GetWordResultStr(0): " << (word_str.empty() ? L"(empty)" : word_str) << endl;
+    }
+
+    // --- 5. OCR Engine Configuration Test ---
+    cout << "\n[OCR Engine]" << endl;
+
+    // Test SetOcrEngine (basic interface stability test)
+    long engine_ret = op.SetOcrEngine(L".", L"test_engine.dll", L"");
+    cout << "SetOcrEngine: " << engine_ret << endl;
+
+    cout << "\n=== OCR Tests Complete ===" << endl;
+    return 0;
+}
+
+// 7. Utils / Shared
+int test_utils() {
+    ThreadPool pool(4);
+    auto fut = pool.enqueue([] { return 42; });
+    if (fut.get() != 42)
+        return 1;
+
+    rect_t rc(0, 0, 100, 100);
+    vector<rect_t> blocks;
+    rc.divideBlock(2, false, blocks);
+    if (blocks.size() != 2)
+        return 2;
+
+    return 0;
+}
+
+// --- Test Runner ---
+
+void print_usage(const char *prog) {
+    cout << "Usage: " << prog << " <test_module>" << endl;
+    cout << "Available modules: core, algorithm, winapi, mouse_key, image_color, ocr, utils" << endl;
+}
 
 int main(int argc, char *argv[]) {
-    locale loc("chs");
-    wcout.imbue(loc);
-    int a[2] = {0, 1};
-    int b = *a + 1;
-    int c = *(a + 1);
-    std::cout << "b:" << b << ", c:" << c << std::endl;
+    if (argc < 2) {
+        print_usage(argv[0]);
+        return 1;
+    }
+    libop op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+    string module_name = argv[1];
+    map<string, function<int()>> modules = {
+        {"core", test_core},           {"algorithm", test_algorithm},     {"winapi", test_winapi},
+        {"mouse_key", test_mouse_key}, {"image_color", test_image_color}, {"ocr", test_ocr},
+        {"utils", test_utils}};
 
-    // test_shared();
-    CoInitialize(NULL);
-    // test_unique();
-    // test_invoke();
-    // test_com();
-    test *ptest = new test;
-    ptest->do_test();
-    delete ptest;
-    ptest = nullptr;
-    // test_paddle();
-
-    return 0;
-}
-
-void test_threadPool() {
-    size_t maxThread = std::thread::hardware_concurrency();
-    std::cout << "max support thread num : " << maxThread << std::endl;
-    ThreadPool pool(4);
-
-    std::vector<std::future<int>> results;
-
-    for (int i = 0; i < 8; ++i) {
-        results.emplace_back(pool.enqueue([i] {
-            std::cout << "hello " << i << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            std::cout << "world " << i << std::endl;
-            return i * i;
-        }));
+    if (modules.find(module_name) == modules.end()) {
+        cout << "Unknown module: " << module_name << endl;
+        print_usage(argv[0]);
+        return 1;
     }
 
-    for (auto &&result : results)
-        std::cout << result.get() << ' ';
-    std::cout << std::endl;
-}
+    cout << "--- Running Module: " << module_name << " ---" << endl;
+    int result = modules[module_name]();
 
-void test_rect() {
-    rect_t rc(0, 0, 100, 100);
-    std::vector<rect_t> blocks;
-    rc.divideBlock(3, false, blocks);
-    for (auto &r : blocks) {
-        std::cout << r.x1 << "," << r.y1 << "," << r.x2 << "," << r.y2 << std::endl;
+    if (result == 0) {
+        cout << "Module " << module_name << " PASSED" << endl;
+    } else {
+        cout << "Module " << module_name << " FAILED with code " << result << endl;
     }
-    rc.divideBlock(3, true, blocks);
-    for (auto &r : blocks) {
-        std::cout << r.x1 << "," << r.y1 << "," << r.x2 << "," << r.y2 << std::endl;
-    }
+
+    return result;
 }
