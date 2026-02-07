@@ -248,6 +248,8 @@ public:
 	void FindColor(long x1, long y1, long x2, long y2, const wchar_t* color,double sim,long dir, long* x, long* y, long* ret);
 	//查找指定区域内的所有颜色
 	void FindColorEx(long x1, long y1, long x2, long y2, const wchar_t* color, double sim,long dir, std::wstring& retstr);
+	//查找指定区域内的所有颜色数量
+	void GetColorNum(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, long* ret);
 	//根据指定的多点查找颜色坐标
 	void FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t* first_color, const wchar_t* offset_color, double sim, long dir, long* x, long* y, long* ret);
 	//根据指定的多点查找所有颜色坐标
@@ -274,6 +276,8 @@ public:
 	void FreePic(const wchar_t* file_name, long* ret);
 	//从内存加载要查找的图片
 	void LoadMemPic(const wchar_t* file_name,void* data,long size, long* ret);
+	//获取指定图片的尺寸，如果指定的图片已经被加入缓存，则从缓存中获取信息.此接口也会把此图片加入缓存
+	void GetPicSize(const wchar_t* pic_name, long* width, long* height, long* ret);
 	//
 	void GetScreenData(long x1, long y1, long x2, long y2, size_t* data,long* ret);
 	//
@@ -286,10 +290,32 @@ public:
 	long SetOcrEngine(const wchar_t* path_of_engine,const wchar_t* dll_name, const wchar_t* argv);
 	//设置字库文件
 	void SetDict(long idx, const wchar_t* file_name, long* ret);
+	//获取指定字库中指定条目的字库信息
+	void GetDict(long idx, long font_index, std::wstring& retstr);
 	//设置内存字库文件
 	void SetMemDict(long idx, const wchar_t* data, long size, long* ret);
 	//使用哪个字库文件进行识别
 	void UseDict(long idx,  long* ret);
+	//给指定的字库中添加一条字库信息
+	void AddDict(long idx, const wchar_t* dict_info, long* ret);
+	//保存指定的字库到指定的文件中
+	void SaveDict(long idx, const wchar_t* file_name, long* ret);
+	//清空指定的字库
+	void ClearDict(long idx, long* ret);
+	//获取指定的字库中的字符数量
+	void GetDictCount(long idx, long* ret);
+	//获取当前使用的字库序号
+	void GetNowDict(long* ret);
+	//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+	void FetchWord(long x1, long y1, long x2, long y2, const wchar_t* color, const wchar_t* word, std::wstring& retstr);
+	//识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
+	void GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t* color, std::wstring& retstr);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
+	void GetWordResultCount(const wchar_t* result, long* ret);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
+	void GetWordResultPos(const wchar_t* result, long index, long* x, long* y, long* ret);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
+	void GetWordResultStr(const wchar_t* result, long index, std::wstring& ret_str);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 	void Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, double sim,std::wstring& ret_str);
 	//回识别到的字符串，以及每个字符的坐标.

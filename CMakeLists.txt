@@ -74,8 +74,6 @@ include_directories(
   ${blackbone_include_path}/3rd_party
 ) 
 
-
-
 # 包含子项目。
 ## libop主项目
 add_subdirectory ("libop")

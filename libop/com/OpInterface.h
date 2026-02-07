@@ -258,6 +258,8 @@ public:
 	STDMETHOD(FindColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color,DOUBLE sim,LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
 	//查找指定区域内的所有颜色
 	STDMETHOD(FindColorEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,LONG dir, BSTR* retstr);
+	//查找指定区域内的颜色数量
+	STDMETHOD(GetColorNum)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG* ret);
 	//根据指定的多点查找颜色坐标
 	STDMETHOD(FindMultiColor)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR first_color, BSTR offset_color, DOUBLE sim, LONG dir, VARIANT* x, VARIANT* y, LONG* ret);
 	//根据指定的多点查找所有颜色坐标
@@ -282,7 +284,8 @@ public:
 	STDMETHOD(SetDisplayInput)(BSTR mode, LONG* ret);
 	STDMETHOD(LoadPic)(BSTR pic_name, LONG* ret);
 	STDMETHOD(FreePic)(BSTR pic_name, LONG* ret);
-	STDMETHOD(LoadMemPic)(BSTR pic_name, long long data , LONG size, LONG* ret);
+	STDMETHOD(LoadMemPic)(BSTR pic_name, long long data, LONG size, LONG* ret);
+	STDMETHOD(GetPicSize)(BSTR pic_name, VARIANT* width, VARIANT* height, LONG* ret);
 	//获取指定区域的图像,用二进制数据的方式返回
 	STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2,LONG* ret);
 	//获取指定区域的图像,用24位位图的数据格式返回,方便二次开发.（或者可以配合SetDisplayInput的mem模式）
@@ -293,10 +296,30 @@ public:
 	//----------------------ocr-------------------------
 	//设置字库文件
 	STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG* ret);
+	STDMETHOD(GetDict)(LONG idx, LONG font_index, BSTR* ret_str);
 	//设置内存字库文件
 	STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG* ret);
 	//使用哪个字库文件进行识别
 	STDMETHOD(UseDict)(LONG idx,  LONG* ret);
+	//给指定的字库中添加一条字库信息
+	STDMETHOD(AddDict)(LONG idx, BSTR dict_info, LONG* ret);
+	STDMETHOD(SaveDict)(LONG idx, BSTR file_name, LONG* ret);
+	//清空指定的字库
+	STDMETHOD(ClearDict)(LONG idx, LONG* ret);
+	//获取指定的字库中的字符数量
+	STDMETHOD(GetDictCount)(LONG idx, LONG* ret);
+	//获取当前使用的字库序号
+	STDMETHOD(GetNowDict)(LONG* ret);
+	//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+	STDMETHOD(FetchWord)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR word, BSTR* ret_str);
+	//识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
+	STDMETHOD(GetWordsNoDict)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR* ret_str);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
+	STDMETHOD(GetWordResultCount)(BSTR result, LONG* ret);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
+	STDMETHOD(GetWordResultPos)(BSTR result, LONG index, VARIANT* x, VARIANT* y, LONG* ret);
+	//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
+	STDMETHOD(GetWordResultStr)(BSTR result, LONG index, BSTR* ret_str);
 	//识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 	STDMETHOD(Ocr)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,BSTR* ret_str);
 	//回识别到的字符串，以及每个字符的坐标.
