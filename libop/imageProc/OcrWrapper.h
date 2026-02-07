@@ -6,31 +6,34 @@
 struct ocr_engine;
 struct ocr_engine_ocr_result {
     int x1, y1, x2, y2;
-    char* text;
+    char *text;
     float confidence;
 };
 
-typedef int(_stdcall* ocr_engine_init_t)(ocr_engine** obj, char* argv[], int argc);
+typedef int(_stdcall *ocr_engine_init_t)(ocr_engine **obj, char *argv[], int argc);
 
-typedef  int(_stdcall* ocr_engine_ocr_t)(ocr_engine* pocr, void* image, int w, int h, int bpp, ocr_engine_ocr_result** ppresult, int* num_of_result);
+typedef int(_stdcall *ocr_engine_ocr_t)(ocr_engine *pocr, void *image, int w, int h, int bpp,
+                                        ocr_engine_ocr_result **ppresult, int *num_of_result);
 
-typedef  int(_stdcall* ocr_engine_release_t)(ocr_engine* obj);
+typedef int(_stdcall *ocr_engine_release_t)(ocr_engine *obj);
 
 class OcrWrapper {
-private:
-	OcrWrapper();
-public:
-	OcrWrapper(const OcrWrapper&) = delete;
-	OcrWrapper operator=(const OcrWrapper&) = delete;
-	static OcrWrapper* getInstance();
-	~OcrWrapper();
-	int init(const std::wstring& enginePath, const std::wstring& dllName, const vector<string>& argv);
-	int release();
-	int ocr(byte* data, int w, int h, int bpp, vocr_rec_t& result);
-private:
-	static ocr_engine_init_t ocr_engine_init;
-	static ocr_engine_ocr_t ocr_engine_ocr;
-	static ocr_engine_release_t ocr_engine_release;
-	std::mutex m_mutex;
-	ocr_engine* m_engine;
+  private:
+    OcrWrapper();
+
+  public:
+    OcrWrapper(const OcrWrapper &) = delete;
+    OcrWrapper operator=(const OcrWrapper &) = delete;
+    static OcrWrapper *getInstance();
+    ~OcrWrapper();
+    int init(const std::wstring &enginePath, const std::wstring &dllName, const vector<string> &argv);
+    int release();
+    int ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result);
+
+  private:
+    static ocr_engine_init_t ocr_engine_init;
+    static ocr_engine_ocr_t ocr_engine_ocr;
+    static ocr_engine_release_t ocr_engine_release;
+    std::mutex m_mutex;
+    ocr_engine *m_engine;
 };

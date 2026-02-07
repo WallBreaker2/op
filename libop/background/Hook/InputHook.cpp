@@ -1,10 +1,10 @@
 
 #include "InputHook.h"
-#include "../../core/opEnv.h"
 #include "../../core/helpfunc.h"
-#include "opMessage.h"
+#include "../../core/opEnv.h"
 #include "../../winapi/query_api.h"
 #include "MinHook.h"
+#include "opMessage.h"
 
 #include "dinput.h"
 #include <vector>
@@ -40,39 +40,28 @@ HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *this_, DWORD size, LPVO
 
 LRESULT CALLBACK opWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-int InputHook::setup(HWND hwnd_, int input_type_)
-{
+int InputHook::setup(HWND hwnd_, int input_type_) {
     if (!IsWindow(hwnd_))
         return 0;
-    opEnv::m_showErrorMsg = 2; //write data to file
+    opEnv::m_showErrorMsg = 2; // write data to file
     setlog("SetInputHook");
-    if (getDinputVtb() == 1)
-    {
+    if (getDinputVtb() == 1) {
         MH_Initialize();
-        MH_CreateHook(
-            gDinputVtb[indexGetDeviceState],
-            hkGetDeviceState,
-            &gDinputVtbRaw[indexGetDeviceState]);
-        MH_CreateHook(
-            gDinputVtb[indexPoll],
-            hkPoll,
-            &gDinputVtbRaw[indexPoll]);
+        MH_CreateHook(gDinputVtb[indexGetDeviceState], hkGetDeviceState, &gDinputVtbRaw[indexGetDeviceState]);
+        MH_CreateHook(gDinputVtb[indexPoll], hkPoll, &gDinputVtbRaw[indexPoll]);
         MH_EnableHook(NULL);
-        gRawWindowProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrA(hwnd_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(opWndProc)));
+        gRawWindowProc =
+            reinterpret_cast<WNDPROC>(SetWindowLongPtrA(hwnd_, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(opWndProc)));
         InputHook::input_hwnd = hwnd_;
-    }
-    else
-    {
+    } else {
         setlog("getDinputVtb false!");
     }
 
     return gRawWindowProc ? 1 : -1;
 }
-int InputHook::release()
-{
+int InputHook::release() {
     LONG_PTR ptr = 0;
-    if (gRawWindowProc)
-    {
+    if (gRawWindowProc) {
         MH_RemoveHook(NULL);
         MH_Uninitialize();
         ptr = SetWindowLongPtrA(InputHook::input_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(gRawWindowProc));
@@ -81,23 +70,19 @@ int InputHook::release()
     return 0;
 }
 
-void InputHook::upDataPos(LPARAM lp, int key, bool down)
-{
+void InputHook::upDataPos(LPARAM lp, int key, bool down) {
     m_mouseState.lAxisX = lp & 0xffff;
     m_mouseState.lAxisY = (lp >> 16) & 0xffff;
     setlog("upDataPos x=%d, y=%d", m_mouseState.lAxisX, m_mouseState.lAxisY);
-    if (0 <= key && key < 3)
-    {
+    if (0 <= key && key < 3) {
         m_mouseState.abButtons[key] = down ? 0x80 : 0;
     }
 }
 
-int getDinputVtb()
-{
+int getDinputVtb() {
     using DirectInput8Create_t = decltype(DirectInput8Create);
     auto pDirectInput8Create = reinterpret_cast<DirectInput8Create_t *>(query_api("dinput8.dll", "DirectInput8Create"));
-    if (pDirectInput8Create)
-    {
+    if (pDirectInput8Create) {
         WNDCLASSEX windowClass;
         windowClass.cbSize = sizeof(WNDCLASSEX);
         windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -114,12 +99,12 @@ int getDinputVtb()
 
         ::RegisterClassEx(&windowClass);
 
-        HWND window = ::CreateWindowW(windowClass.lpszClassName, L"Kiero DirectX Window", WS_OVERLAPPEDWINDOW, 0, 0, 100, 100, NULL, NULL, windowClass.hInstance, NULL);
+        HWND window = ::CreateWindowW(windowClass.lpszClassName, L"Kiero DirectX Window", WS_OVERLAPPEDWINDOW, 0, 0,
+                                      100, 100, NULL, NULL, windowClass.hInstance, NULL);
         LPDIRECTINPUT8 pDinput = NULL;
 
-        if (pDirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION,
-                                OP_IID_IDirectInput8W, (VOID **)&pDinput, NULL) < 0)
-        {
+        if (pDirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, OP_IID_IDirectInput8W, (VOID **)&pDinput,
+                                NULL) < 0) {
             ::DestroyWindow(window);
             ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
             setlog("pDirectInput8Create false!");
@@ -127,8 +112,7 @@ int getDinputVtb()
         }
 
         LPDIRECTINPUTDEVICE8 pMouse = NULL;
-        if (pDinput->CreateDevice(OP_GUID_SysMouse, &pMouse, NULL) < 0)
-        {
+        if (pDinput->CreateDevice(OP_GUID_SysMouse, &pMouse, NULL) < 0) {
             ::DestroyWindow(window);
             ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
             setlog("CreateDevice false!");
@@ -142,59 +126,49 @@ int getDinputVtb()
         ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 
         return 1;
-        //MH_Initialize();
-    }
-    else
-    {
+        // MH_Initialize();
+    } else {
         setlog("dinput8 not found");
         return 0;
     }
 }
 
-HRESULT __stdcall hkAcquire(IDirectInputDevice8W *this_)
-{
+HRESULT __stdcall hkAcquire(IDirectInputDevice8W *this_) {
     return DI_OK;
 }
 
-HRESULT __stdcall hkPoll(IDirectInputDevice8W *this_)
-{
+HRESULT __stdcall hkPoll(IDirectInputDevice8W *this_) {
     return DI_OK;
 }
 
-void EndianSwap(char *pData, int startIndex, int length)
-{
-    int i,cnt,end,start;
+void EndianSwap(char *pData, int startIndex, int length) {
+    int i, cnt, end, start;
     cnt = length / 2;
     start = startIndex;
-    end  = startIndex + length - 1;
+    end = startIndex + length - 1;
     char tmp;
-    for (i = 0; i < cnt; i++)
-    {
-        tmp            = pData[start+i];
-        pData[start+i] = pData[end-i];
-        pData[end-i]   = tmp;
+    for (i = 0; i < cnt; i++) {
+        tmp = pData[start + i];
+        pData[start + i] = pData[end - i];
+        pData[end - i] = tmp;
     }
 }
 
-HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *this_, DWORD size, LPVOID ptr)
-{
-    //setlog("called hkGetDeviceState");
+HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *this_, DWORD size, LPVOID ptr) {
+    // setlog("called hkGetDeviceState");
     using GetDeviceState_t = decltype(hkGetDeviceState);
 
-    if (size == sizeof(opMouseState))
-    {
+    if (size == sizeof(opMouseState)) {
         opMouseState state = {};
-        //setlog("called opMouseState");
-        // state.lAxisX = InputHook::m_mouseState.lAxisX;
-        // state.lAxisY = InputHook::m_mouseState.lAxisY;
-        // state.abButtons[0]
+        // setlog("called opMouseState");
+        //  state.lAxisX = InputHook::m_mouseState.lAxisX;
+        //  state.lAxisY = InputHook::m_mouseState.lAxisY;
+        //  state.abButtons[0]
         state = InputHook::m_mouseState;
-        //EndianSwap((char*)&state,0, sizeof(state));
+        // EndianSwap((char*)&state,0, sizeof(state));
         memcpy(ptr, &state, sizeof(state));
         return DI_OK;
-    }
-    else if (size == sizeof(DIMOUSESTATE))
-    {
+    } else if (size == sizeof(DIMOUSESTATE)) {
         DIMOUSESTATE state = {};
         setlog("called DIMOUSESTATE");
 
@@ -203,29 +177,22 @@ HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *this_, DWORD size, LPVO
 
         memcpy(ptr, &state, sizeof(state));
         return DI_OK;
-    }
-    else if (size == sizeof(DIMOUSESTATE2))
-    {
+    } else if (size == sizeof(DIMOUSESTATE2)) {
         DIMOUSESTATE2 state = {};
         setlog("called DIMOUSESTATE2");
         state.lX = InputHook::m_mouseState.lAxisX;
         state.lY = InputHook::m_mouseState.lAxisY;
         memcpy(ptr, &state, sizeof(state));
         return DI_OK;
-    }
-    else
-    {
+    } else {
         return reinterpret_cast<GetDeviceState_t *>(gDinputVtbRaw[indexGetDeviceState])(this_, size, ptr);
     }
 }
 
-LRESULT CALLBACK opWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK opWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     setlog("%04X message", message);
-    switch (message)
-    {
-    case OP_WM_MOUSEMOVE:
-    {
+    switch (message) {
+    case OP_WM_MOUSEMOVE: {
         InputHook::upDataPos(lParam, -1, false);
         setlog("OP_WM_MOUSEMOVE message");
         break;
@@ -255,7 +222,7 @@ LRESULT CALLBACK opWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         setlog("OP_WM_RBUTTONUP message");
         break;
     case OP_WM_MOUSEWHEEL:
-        //InputHook::upDataPos(wParam,2,true);
+        // InputHook::upDataPos(wParam,2,true);
         setlog("OP_WM_MOUSEWHEEL message");
         break;
     }

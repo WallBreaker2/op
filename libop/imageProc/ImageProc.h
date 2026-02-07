@@ -1,8 +1,8 @@
 #pragma once
-#include <string>
 #include "ImageLoc.h"
 #include <map>
-//#include "tess_ocr.h"
+#include <string>
+// #include "tess_ocr.h"
 
 using std::wstring;
 /*
@@ -13,101 +13,103 @@ using std::wstring;
 4.简单OCR
 5....
 */
-class ImageProc:public ImageBase
-{
-public:
-	const static int _max_dict = 10;
-	
-	ImageProc();
-	~ImageProc();
-	//
-	long Capture(const std::wstring& file);
+class ImageProc : public ImageBase {
+  public:
+    const static int _max_dict = 10;
 
-	long CmpColor(long x, long y, const std::wstring& scolor, double sim);
+    ImageProc();
+    ~ImageProc();
+    //
+    long Capture(const std::wstring &file);
 
-	long FindColor(const wstring& color,double sim,long dir, long&x, long&y);
+    long CmpColor(long x, long y, const std::wstring &scolor, double sim);
 
-	long FindColoEx(const wstring& color, double sim, long dir, wstring& retstr);
+    long FindColor(const wstring &color, double sim, long dir, long &x, long &y);
 
-	long FindMultiColor(const wstring& first_color,const wstring& offset_color, double sim, long dir, long&x, long&y);
+    long FindColoEx(const wstring &color, double sim, long dir, wstring &retstr);
 
-	long FindMultiColorEx(const wstring& first_color, const wstring& offset_color, double sim, long dir, wstring& retstr);
-	//图形定位
-	long FindPic(const std::wstring& files,const wstring& delta_colors, double sim,long dir, long& x, long &y);
-	//
-	long FindPicEx(const std::wstring& files, const wstring& delta_colors, double sim, long dir, wstring& retstr, bool returnID = true);
+    long FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,
+                        long &y);
 
-	long FindColorBlock(const wstring&  color, double sim, long count, long height, long width, long& x, long& y);
+    long FindMultiColorEx(const wstring &first_color, const wstring &offset_color, double sim, long dir,
+                          wstring &retstr);
+    // 图形定位
+    long FindPic(const std::wstring &files, const wstring &delta_colors, double sim, long dir, long &x, long &y);
+    //
+    long FindPicEx(const std::wstring &files, const wstring &delta_colors, double sim, long dir, wstring &retstr,
+                   bool returnID = true);
 
-	long FindColorBlockEx(const wstring&  color, double sim, long count, long height, long width, wstring& retstr);
+    long FindColorBlock(const wstring &color, double sim, long count, long height, long width, long &x, long &y);
 
-	std::wstring GetColor(long x, long y);
+    long FindColorBlockEx(const wstring &color, double sim, long count, long height, long width, wstring &retstr);
 
-	long GetColorNum(const wstring& color, double sim);
+    std::wstring GetColor(long x, long y);
 
-	long SetMemDict(int idx, void* data,long size);
+    long GetColorNum(const wstring &color, double sim);
 
-	long SetDict(int idx,const wstring& file);
+    long SetMemDict(int idx, void *data, long size);
 
-	std::wstring GetDict(long idx, long font_index);
+    long SetDict(int idx, const wstring &file);
 
-	long UseDict(int idx);
+    std::wstring GetDict(long idx, long font_index);
 
-	long AddDict(long idx, const wstring& dict_info);
+    long UseDict(int idx);
 
-	long SaveDict(long idx, const wstring& file_name);
+    long AddDict(long idx, const wstring &dict_info);
 
-	long ClearDict(long idx);
+    long SaveDict(long idx, const wstring &file_name);
 
-	long GetDictCount(long idx);
+    long ClearDict(long idx);
 
-	long GetNowDict();
+    long GetDictCount(long idx);
 
-	std::wstring FetchWord(rect_t rc, const wstring& color, const wstring& word);
+    long GetNowDict();
 
-	long OCR(const wstring& color, double sim, std::wstring& out_str);
+    std::wstring FetchWord(rect_t rc, const wstring &color, const wstring &word);
 
-	long OcrEx(const wstring& color, double sim, std::wstring& out_str);
+    long OCR(const wstring &color, double sim, std::wstring &out_str);
 
-	long FindStr(const wstring& str, const wstring& color, double sim, long& retx,long& rety);
+    long OcrEx(const wstring &color, double sim, std::wstring &out_str);
 
-	long FindStrEx(const wstring& str, const wstring& color, double sim, std::wstring& out_str);
+    long FindStr(const wstring &str, const wstring &color, double sim, long &retx, long &rety);
 
-	long OcrAuto(double sim, std::wstring& retstr);
+    long FindStrEx(const wstring &str, const wstring &color, double sim, std::wstring &out_str);
 
-	long OcrFromFile(const wstring& files,const wstring& color, double sim, std::wstring& retstr);
+    long OcrAuto(double sim, std::wstring &retstr);
 
-	long OcrAutoFromFile(const wstring& files, double sim, std::wstring& retstr);
+    long OcrFromFile(const wstring &files, const wstring &color, double sim, std::wstring &retstr);
 
-	long FindLine(const wstring& color, double sim, wstring& retStr);
-	
-	long LoadPic(const wstring& files);
+    long OcrAutoFromFile(const wstring &files, double sim, std::wstring &retstr);
 
-	long FreePic(const wstring& files);
+    long FindLine(const wstring &color, double sim, wstring &retStr);
 
-	long LoadMemPic(const wstring& file_name, void* data, long size);
+    long LoadPic(const wstring &files);
 
-	long GetPicSize(const wstring& file_name, long* x, long* y);
+    long FreePic(const wstring &files);
 
-	void str2binaryfbk(const wstring& color);
-private:
-	//字库
-	Dict _dicts[_max_dict];
-	//当前字库索引
-	int _curr_idx;
-	
-public:
-	//当前目录
-	wstring _curr_path;
-	//图片缓存
-	std::map<wstring, Image> _pic_cache;
-	//是否使用图片缓存，默认开启
-	int _enable_cache;
-	
-private:
-	//RETURN TYPE 0:word colors info; 1:bk color info
-	int str2colordfs(const wstring& color_str, std::vector<color_df_t>& colors);
-	void str2colors(const wstring& color, std::vector<color_t>& vcolor);
-	void files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr);
+    long LoadMemPic(const wstring &file_name, void *data, long size);
+
+    long GetPicSize(const wstring &file_name, long *x, long *y);
+
+    void str2binaryfbk(const wstring &color);
+
+  private:
+    // 字库
+    Dict _dicts[_max_dict];
+    // 当前字库索引
+    int _curr_idx;
+
+  public:
+    // 当前目录
+    wstring _curr_path;
+    // 图片缓存
+    std::map<wstring, Image> _pic_cache;
+    // 是否使用图片缓存，默认开启
+    int _enable_cache;
+
+  private:
+    // RETURN TYPE 0:word colors info; 1:bk color info
+    int str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors);
+    void str2colors(const wstring &color, std::vector<color_t> &vcolor);
+    void files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr);
 };
-
