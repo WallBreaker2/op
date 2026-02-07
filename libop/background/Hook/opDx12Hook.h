@@ -1,33 +1,30 @@
 
 #pragma once
-//ref https://github.com/eugen15/directx-present-hook.git
+// ref https://github.com/eugen15/directx-present-hook.git
 #include <Windows.h>
 
+#include <cstdint>
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <wrl/client.h>
-#include <cstdint>
 #include <string>
 #include <string_view>
+#include <wrl/client.h>
 
 class opDx12Hook final {
-public:
-    static opDx12Hook* Get();
+  public:
+    static opDx12Hook *Get();
 
     // This method must be called only once!
     // There is no additional check inside.
-    //HRESULT Hook();
+    // HRESULT Hook();
 
     // Captures some frames.
-    HRESULT CaptureFrames(HWND windowHandleToCapture,
-        std::wstring_view folderToSaveFrames, int maxFrames);
-    void CaptureFrame(IDXGISwapChain* swapChain);
-private:
+    HRESULT CaptureFrames(HWND windowHandleToCapture, std::wstring_view folderToSaveFrames, int maxFrames);
+    void CaptureFrame(IDXGISwapChain *swapChain);
+
+  private:
     opDx12Hook();
     ~opDx12Hook();
-
-   
-
 
     // The command chain offset from the swap chain object pointer.
     std::uintptr_t commandQueueOffset_ = 0;
@@ -46,7 +43,7 @@ private:
     UINT readbackDataHeight_ = 0;
     UINT readbackDataPitch_ = 0;
 
-    void* readbackData_ = nullptr;
+    void *readbackData_ = nullptr;
 
     // Capture details.
     HWND windowHandleToCapture_ = NULL;

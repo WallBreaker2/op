@@ -3,22 +3,21 @@
 #include "../core/optype.h"
 #include "../include/Image.hpp"
 class imageView {
- private:
-  
+  private:
+  public:
+    imageView(ImageBin const &src, rect_t const &block);
+    imageView(imageView const &) = delete;
+    ~imageView();
 
- public:
-  imageView(ImageBin const& src, rect_t const& block);
-  imageView(imageView const&) = delete;
-  ~imageView();
-
-  /* data */
-  const ImageBin& _src;
-  rect_t _block;
+    /* data */
+    const ImageBin &_src;
+    rect_t _block;
 };
 
-imageView::imageView(ImageBin const& src, rect_t const& block)
-    : _src(src), _block(block) {}
+imageView::imageView(ImageBin const &src, rect_t const &block) : _src(src), _block(block) {
+}
 
-imageView::~imageView() {}
+imageView::~imageView() {
+}
 
 #endif

@@ -2,6 +2,5 @@
 
 #pragma once
 
-#include "resource.h"       // 主符号
 #include "op_i.h"
-
+#include "resource.h" // 主符号

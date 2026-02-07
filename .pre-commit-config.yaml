@@ -1,0 +1,8 @@
+﻿repos:
+-   repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v16.0.6
+    hooks:
+    -   id: clang-format
+        # 移除 types_or，改用 files 正则表达式
+        types: [text]
+        files: \.(c|h|cpp|hpp|cc|cxx)$

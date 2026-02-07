@@ -11,68 +11,63 @@
 #define KIERO_ARCH_X64 0
 #define KIERO_ARCH_X86 0
 
-#if defined(_M_X64)	
-# undef  KIERO_ARCH_X64
-# define KIERO_ARCH_X64 1
+#if defined(_M_X64)
+#undef KIERO_ARCH_X64
+#define KIERO_ARCH_X64 1
 #else
-# undef  KIERO_ARCH_X86
-# define KIERO_ARCH_X86 1
+#undef KIERO_ARCH_X86
+#define KIERO_ARCH_X86 1
 #endif
 
 #ifdef _UNICODE
-# define KIERO_TEXT(text) L##text
+#define KIERO_TEXT(text) L##text
 #else
-# define KIERO_TEXT(text) text
+#define KIERO_TEXT(text) text
 #endif
 
-#define KIERO_ARRAY_SIZE(arr) ((size_t)(sizeof(arr)/sizeof(arr[0])))
+#define KIERO_ARRAY_SIZE(arr) ((size_t)(sizeof(arr) / sizeof(arr[0])))
 
-namespace kiero
-{
-	struct Status
-	{
-		enum Enum
-		{
-			UnknownError = -1,
-			NotSupportedError = -2,
-			ModuleNotFoundError = -3,
+namespace kiero {
+struct Status {
+    enum Enum {
+        UnknownError = -1,
+        NotSupportedError = -2,
+        ModuleNotFoundError = -3,
 
-			Success = 0,
-		};
-	};
+        Success = 0,
+    };
+};
 
-	struct RenderType
-	{
-		enum Enum
-		{
-			None,
+struct RenderType {
+    enum Enum {
+        None,
 
-			D3D9,   // Implemented
-			D3D10,  // Implemented
-			D3D11,  // Implemented
-			D3D12,  // Implemented
+        D3D9,  // Implemented
+        D3D10, // Implemented
+        D3D11, // Implemented
+        D3D12, // Implemented
 
-			OpenGL, // Implemented
-			OpenglES,
-			Vulkan  // Implemented
-		};
-	};
+        OpenGL, // Implemented
+        OpenglES,
+        Vulkan // Implemented
+    };
+};
 
-	Status::Enum init(int renderType);
+Status::Enum init(int renderType);
 
-	void shutdown();
+void shutdown();
 
-	RenderType::Enum getRenderType();
+RenderType::Enum getRenderType();
 
 #if KIERO_ARCH_X64
-	uint64_t* getMethodsTable();
+uint64_t *getMethodsTable();
 #else
-	uint32_t* getMethodsTable();
+uint32_t *getMethodsTable();
 #endif
 
-	int bind(uint16_t index, void** original, void* function);
+int bind(uint16_t index, void **original, void *function);
 
-	int unbind();
-}
+int unbind();
+} // namespace kiero
 
 #endif // __KIERO_H__
