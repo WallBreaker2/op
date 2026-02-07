@@ -155,31 +155,21 @@ long ImageProc::FindPicEx(const std::wstring& files, const wstring& delta_colors
 
 long ImageProc::FindColorBlock(const wstring& color, double sim, long count, long height, long width, long& x, long& y)
 {
-
-	vector<color_df_t> colors;
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	return ImageBase::FindColorBlock(sim, count, height, width, x, y);
 }
 
 long ImageProc::FindColorBlockEx(const wstring& color, double sim, long count, long height, long width, wstring& retstr)
 {
-	vector<color_df_t> colors;
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	return ImageBase::FindColorBlockEx(sim, count, height, width, retstr);
+}
+
+long ImageProc::GetColorNum(const wstring& color, double sim)
+{
+	std::vector<color_df_t> colors;
+	str2colordfs(color, colors);
+	return ImageBase::FindColorNum(colors);
 }
 
 long ImageProc::SetDict(int idx, const wstring& file_name)
@@ -191,9 +181,9 @@ long ImageProc::SetDict(int idx, const wstring& file_name)
 	if (Path2GlobalPath(file_name, _curr_path, fullpath))
 	{
 		if (fullpath.substr(fullpath.length() - 4) == L".txt")
-			_dicts[idx].read_dict_dm(_ws2string(fullpath));
+			_dicts[idx].read_dict_dm(fullpath);
 		else
-			_dicts[idx].read_dict(_ws2string(fullpath));
+			_dicts[idx].read_dict(fullpath);
 	}
 	else
 	{
@@ -201,6 +191,16 @@ long ImageProc::SetDict(int idx, const wstring& file_name)
 	}
 
 	return _dicts[idx].empty() ? 0 : 1;
+}
+
+std::wstring ImageProc::GetDict(long idx, long font_index)
+{
+	wstring tp;
+	if (idx < 0 || idx >= _max_dict)
+		return tp;
+	if (font_index < 0 || font_index >= _dicts[idx].words.size())
+		return tp;
+	return _dicts[idx].words[font_index].to_string();
 }
 
 long ImageProc::SetMemDict(int idx, void* data, long size)
@@ -220,18 +220,73 @@ long ImageProc::UseDict(int idx)
 	return 1;
 }
 
+long ImageProc::AddDict(long idx, const wstring& dict_info)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	word1_t word;
+	if (!word.from_string(dict_info))
+		return 0;
+	_dicts[idx].add_word(word);
+	return 1;
+}
+
+long ImageProc::SaveDict(long idx, const wstring& file_name)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+	return _dicts[idx].write_dict(file_name) ? 1 : 0;
+}
+
+long ImageProc::ClearDict(long idx)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	_dicts[idx].clear();
+	return 1;
+}
+
+long ImageProc::GetDictCount(long idx)
+{
+	if (idx < 0 || idx >= _max_dict)
+		return 0;
+
+	return _dicts[idx].info._word_count;
+}
+
+long ImageProc::GetNowDict()
+{
+	return _curr_idx;
+}
+
+wstring ImageProc::FetchWord(rect_t rc, const wstring& color, const wstring& word)
+{
+	str2binaryfbk(color);
+	auto orc = rc;
+	bin_image_cut(2, rc, orc);
+	//check is too large
+	if (orc.width() > 255) {
+		orc.x2 = orc.x1 + 255;
+		rc = orc;
+		bin_image_cut(2, rc, orc);
+	}
+	if (orc.height() > 255) {
+		orc.y2 = orc.y1 + 255;
+		rc = orc;
+		bin_image_cut(2, rc, orc);
+	}
+	Dict dict_new;
+	dict_new.add_word(_binary, orc);
+	const auto& wt = dict_new.words[0];
+	return wt.to_string();
+}
+
 long ImageProc::OCR(const wstring& color, double sim, std::wstring& out_str)
 {
 	out_str.clear();
-	vector<color_df_t> colors;
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	if (sim < 0. || sim > 1.)
 		sim = 1.;
 	long s = 0;
@@ -367,6 +422,38 @@ long ImageProc::LoadMemPic(const wstring& file_name, void* data, long size)
 	return 1;
 }
 
+long ImageProc::GetPicSize(const wstring& file_name, long* width, long* height)
+{
+	//看当前目录
+	auto cache_it = _pic_cache.find(file_name);
+	//没查到再看一下资源目录
+	if (cache_it == _pic_cache.end())
+	{
+		cache_it = _pic_cache.find(_curr_path + L"\\" + file_name);
+	}
+	//查到了就释放
+	if (cache_it != _pic_cache.end())
+	{
+		*width = cache_it->second.width;
+		*height = cache_it->second.height;
+		return 1;
+	}
+	return 0;
+}
+
+void ImageProc::str2binaryfbk(const wstring& color)
+{
+	vector<color_df_t> colors;
+	if (str2colordfs(color, colors) == 0)
+	{
+		bgr2binary(colors);
+	}
+	else
+	{
+		bgr2binarybk(colors);
+	}
+}
+
 void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std::vector<wstring>& vstr)
 {
 	//std::vector<wstring>vstr, vstr2;
@@ -404,15 +491,7 @@ void ImageProc::files2mats(const wstring& files, std::vector<Image*>& vpic, std:
 long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& retstr)
 {
 	retstr.clear();
-	vector<color_df_t> colors;
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	if (sim < 0. || sim > 1.)
 		sim = 1.;
 	if (_dicts[_curr_idx].size() == 0) {
@@ -445,16 +524,8 @@ long ImageProc::OcrEx(const wstring& color, double sim, std::wstring& retstr)
 long ImageProc::FindStr(const wstring& str, const wstring& color, double sim, long& retx, long& rety)
 {
 	vector<wstring> vstr;
-	vector<color_df_t> colors;
 	split(str, vstr, L"|");
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	if (sim < 0. || sim > 1.)
 		sim = 1.;
 	std::map<point_t, ocr_rec_t> ocr_res;
@@ -477,16 +548,8 @@ long ImageProc::FindStrEx(const wstring& str, const wstring& color, double sim, 
 {
 	out_str.clear();
 	vector<wstring> vstr;
-	vector<color_df_t> colors;
 	split(str, vstr, L"|");
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	if (sim < 0. || sim > 1.)
 		sim = 1.;
 	std::map<point_t, ocr_rec_t> ocr_res;
@@ -544,15 +607,7 @@ long ImageProc::OcrAutoFromFile(const wstring& files, double sim, std::wstring& 
 long ImageProc::FindLine(const wstring& color, double sim, wstring& retStr)
 {
 	retStr.clear();
-	vector<color_df_t> colors;
-	if (str2colordfs(color, colors) == 0)
-	{
-		bgr2binary(colors);
-	}
-	else
-	{
-		bgr2binarybk(colors);
-	}
+	str2binaryfbk(color);
 	if (sim < 0. || sim > 1.)
 		sim = 1.;
 

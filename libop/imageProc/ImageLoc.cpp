@@ -253,6 +253,25 @@ _quick_break:
 	return find_ct;
 }
 
+long ImageBase::FindColorNum(vector<color_df_t>& colors) {
+	int find_ct = 0;
+	for (int i = 0; i < _src.height; ++i) {
+		auto p = _src.ptr<color_t>(i);
+		for (int j = 0; j < _src.width; ++j) {
+			for (auto& it : colors) {  //对每个颜色描述
+				if (IN_RANGE(*p, it.color, it.df)) {
+					++find_ct;
+					if (find_ct >= INT_MAX) goto _quick_break;
+					break;
+				}
+			}
+			p++;
+		}
+	}
+_quick_break:
+	return find_ct;
+}
+
 long ImageBase::FindMultiColor(std::vector<color_df_t>& first_color,
 	std::vector<pt_cr_df_t>& offset_color,
 	double sim, long dir, long& x, long& y) {

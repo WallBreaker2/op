@@ -67,6 +67,7 @@ libop::libop() :m_context(nullptr)
 	_vkmap[L"shift"] = VK_SHIFT;
 	_vkmap[L"win"] = VK_LWIN;
 	_vkmap[L"space"] = L' ';
+	_vkmap[L"cap"] = VK_CAPITAL;
 	_vkmap[L"tab"] = VK_TAB;
 	_vkmap[L"esc"] = VK_CANCEL;
 	_vkmap[L"enter"] = L'\r';
@@ -74,6 +75,13 @@ libop::libop() :m_context(nullptr)
 	_vkmap[L"down"] = VK_DOWN;
 	_vkmap[L"left"] = VK_LEFT;
 	_vkmap[L"right"] = VK_RIGHT;
+	_vkmap[L"option"] = VK_APPS;
+	_vkmap[L"print"] = VK_SNAPSHOT;
+	_vkmap[L"delete"] = VK_DELETE;
+	_vkmap[L"home"] = VK_HOME;
+	_vkmap[L"end"] = VK_END;
+	_vkmap[L"pgup"] = VK_PRIOR;
+	_vkmap[L"pgdn"] = VK_NEXT;
 	_vkmap[L"f1"] = VK_F1;
 	_vkmap[L"f2"] = VK_F2;
 	_vkmap[L"f3"] = VK_F3;
@@ -728,7 +736,7 @@ void libop::KeyDownChar(const wchar_t* vk_code, long* ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyDown(vk);
 	}
 }
@@ -746,7 +754,7 @@ void libop::KeyUpChar(const wchar_t* vk_code, long* ret)
 	{
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyUp(vk);
 	}
 }
@@ -772,7 +780,7 @@ void libop::KeyPressChar(const wchar_t* vk_code, long* ret)
 		//setlog(vk_code);
 		wstring s = vk_code;
 		wstring2lower(s);
-		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : vk_code[0];
+		long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
 		*ret = m_context->bkproc._keypad->KeyPress(vk);
 	}
 }
@@ -1054,7 +1062,23 @@ void libop::GetColor(long x, long y, std::wstring& ret)
 	ret = cr.towstr();
 }
 
-void libop::SetDisplayInput(const wchar_t* mode, long* ret)
+void libop::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t* color, double sim, long* ret)
+{
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
+	{
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
+		{
+			setlog("error requestCapture");
+		}
+		else
+		{
+			m_context->image_proc.set_offset(x1, y1);
+			*ret = m_context->image_proc.GetColorNum(color, sim);
+		}
+	}
+}
+
+void libop::SetDisplayInput(const wchar_t *mode, long *ret)
 {
 	*ret = m_context->bkproc.set_display_method(mode);
 }
@@ -1074,7 +1098,12 @@ void libop::LoadMemPic(const wchar_t* file_name, void* data, long size, long* re
 	*ret = m_context->image_proc.LoadMemPic(file_name, data, size);
 }
 
-void libop::GetScreenData(long x1, long y1, long x2, long y2, size_t* data, long* ret)
+void libop::GetPicSize(const wchar_t* pic_name, long* width, long* height, long* ret)
+{
+	*ret = m_context->image_proc.GetPicSize(pic_name, width, height);
+}
+
+void libop::GetScreenData(long x1, long y1, long x2, long y2, size_t* data, long *ret)
 {
 	*data = 0;
 	*ret = 0;
@@ -1241,11 +1270,15 @@ long libop::SetOcrEngine(const wchar_t* path_of_engine, const wchar_t* dll_name,
 
 
 }
-
 //设置字库文件
 void libop::SetDict(long idx, const wchar_t* file_name, long* ret)
 {
 	*ret = m_context->image_proc.SetDict(idx, file_name);
+}
+
+void libop::GetDict(long idx, long font_index, std::wstring& retstr)
+{
+	retstr = m_context->image_proc.GetDict(idx, font_index);
 }
 
 //设置内存字库文件
@@ -1258,6 +1291,142 @@ void libop::SetMemDict(long idx, const wchar_t* data, long size, long* ret)
 void libop::UseDict(long idx, long* ret)
 {
 	*ret = m_context->image_proc.UseDict(idx);
+}
+
+//给指定的字库中添加一条字库信息
+void libop::AddDict(long idx, const wchar_t* dict_info, long* ret)
+{
+	*ret = m_context->image_proc.AddDict(idx, dict_info);
+}
+void libop::SaveDict(long idx, const wchar_t* file_name, long* ret)
+{
+	*ret = m_context->image_proc.SaveDict(idx, file_name);
+}
+//清空指定的字库
+void libop::ClearDict(long idx, long* ret)
+{
+	*ret = m_context->image_proc.ClearDict(idx);
+}
+//获取指定的字库中的字符数量
+void libop::GetDictCount(long idx, long* ret)
+{
+	*ret = m_context->image_proc.GetDictCount(idx);
+}
+//获取当前使用的字库序号
+void libop::GetNowDict(long* ret)
+{
+	*ret = m_context->image_proc.GetNowDict();
+}
+//根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+void libop::FetchWord(long x1, long y1, long x2, long y2, const wchar_t* color, const wchar_t* word, std::wstring& retstr)
+{
+	wstring str;
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
+	{
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
+		{
+			setlog("error requestCapture");
+		}
+		else
+		{
+			m_context->image_proc.set_offset(x1, y1);
+			rect_t rc;
+			rc.x1 = rc.y1 = 0;
+			rc.x2 = x2; rc.y2 = y2;
+			str = m_context->image_proc.FetchWord(rc, color, word);
+		}
+	}
+	retstr = str;
+}
+//识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
+void libop::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t* color, std::wstring& retstr)
+{
+	wstring str;
+	if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2))
+	{
+		if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src))
+		{
+			setlog("error requestCapture");
+		}
+		else
+		{
+			m_context->image_proc.set_offset(x1, y1);
+			m_context->image_proc.str2binaryfbk(color);
+			std::vector<rect_t> vroi;
+			m_context->image_proc.get_rois(5, vroi);
+			for (auto& it : vroi) {
+
+				wstring tempWord = m_context->image_proc.FetchWord(it, color, L"");
+				wchar_t buff[22];
+				wsprintfW(buff, L"%d,%d-", it.x1, it.y1);
+				str += (buff + tempWord + L'/');
+			}
+		}
+	}
+	retstr = str;
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
+void libop::GetWordResultCount(const wchar_t* result, long* ret)
+{
+	int cnt = 0;
+	const wchar_t* p = result;
+	while (*p) {
+		if (*p == L'/') ++cnt;
+		++p;
+	}
+	*ret = cnt;
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
+void libop::GetWordResultPos(const wchar_t* result, long index, long* x, long* y, long* ret)
+{
+	*ret = 0;
+	*x = 0;
+	*y = 0;
+	long cnt = 0;
+	const wchar_t* p = result;
+	*ret = 0;
+	 do{
+		 if (!(*p)) break;
+		 if (index == cnt) {
+			if (swscanf(p, L"%d,%d", x, y) == 2) {
+				*ret = 1;
+			}
+			else {
+				*ret = 0;
+			}
+			break;
+		}
+		if (*p == L'/') ++cnt;
+		++p;
+	 } while (*p && cnt <= index);
+}
+//在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
+void libop::GetWordResultStr(const wchar_t* result, long index, std::wstring& ret_str)
+{
+	bool find = false;
+	long cnt = 0;
+	const wchar_t* p = result;
+	do
+	{
+		if (!(*p)) break;
+		if (index == cnt) {
+			const wchar_t* p_start = p;
+			while (*p_start && *p_start != L'-')
+				++p_start;
+			++p_start;
+			const wchar_t* p_end = p_start;
+			while (*p_end && *p_end != L'/')
+				++p_end;
+
+			ret_str = wstring(p_start, p_end - p_start);
+			find = true;
+			break;
+		}
+		if (*p == L'/') ++cnt;
+		 ++p;
+	} while (*p && cnt <= index);
+	if (!find)
+		ret_str = L"";
 }
 //识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 void libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t* color, DOUBLE sim, std::wstring& retstr)
