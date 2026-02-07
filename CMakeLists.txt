@@ -56,6 +56,7 @@ IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
         ${blackbone_lib64_path}
     )
     set(op_com op_x64)
+    add_compile_definitions(_AMD64_)
 	MESSAGE(STATUS "----------------Platform x64----------------")
 ELSE()
     link_directories(
@@ -63,6 +64,7 @@ ELSE()
         ${blackbone_lib32_path}
         )
     set(op_com op_x86)
+    add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
 
