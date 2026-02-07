@@ -92,6 +92,8 @@ public:
 
 	long FindColorEx(std::vector<color_df_t>&colors, std::wstring& retstr);
 
+	long FindColorNum(std::vector<color_df_t>& colors);
+
 	long FindMultiColor(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, long&x, long&y);
 
 	long FindMultiColorEx(std::vector<color_df_t>&first_color, std::vector<pt_cr_df_t>& offset_color, double sim, long dir, std::wstring& retstr);
