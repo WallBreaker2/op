@@ -148,6 +148,41 @@ struct word1_t {
 			}
 		}
 	}
+	bool from_string(const std::wstring& s)
+	{
+		std::vector<std::wstring> vstr;
+		split(s, vstr, L"$");
+		if (vstr.size() != 3)
+			return false;
+		wstring name = vstr[0];
+		wstring temp = vstr[1];
+		wstring dataStr = vstr[2];
+		if (swscanf(temp.c_str(), L"%hhu,%hhu,%hu", &info.h, &info.w, &info.bit_cnt) != 3)
+			return false;
+		init();
+		set_chars(name);
+		for (size_t i = 0; i < dataStr.length(); i += 2)
+		{
+			wchar_t c1 = dataStr[i];
+			wchar_t c2 = dataStr[i + 1];
+			auto b1 = (uint8_t)hex2bin(c1);
+			auto b2 = (uint8_t)hex2bin(c2);
+			data[i / 2] = (b1 << 4) + b2;
+		}
+		return true;
+	}
+	std::wstring to_string() const
+	{
+		wchar_t buff[34] = { 0 };
+		wsprintf(buff, L"$%d,%d,%d$", info.h, info.w, info.bit_cnt);
+		std::wstring tp = wstring(info.name) + buff;
+		tp.reserve(tp.size() + data.size() * 2);
+		for (int j = 0; j < data.size(); ++j) {
+			wsprintf(buff, L"%02X", data[j]);
+			tp += buff;
+		}
+		return tp;
+	}
 
 	void init() {
 		data.resize((info.w * info.h + 7) / 8);
@@ -169,11 +204,11 @@ struct Dict {
 	};
 	dict_info_t info;
 	Dict() {}
-	std::vector<word1_t>words;
-	void read_dict(const std::string&s) {
+	std::vector<word1_t> words;
+	void read_dict(const std::wstring&s) {
 		if (s.empty())
 			return;
-		if (s.find(".txt") != -1)
+		if (s.find(L".txt") != -1)
 			return read_dict_dm(s);
 		clear();
 		std::fstream file;
@@ -211,7 +246,7 @@ struct Dict {
 		file.close();
 		sort_dict();
 	}
-	void read_dict_dm(const std::string&s) {
+	void read_dict_dm(const std::wstring&s) {
 		clear();
 		std::fstream file;
 		file.open(s, std::ios::in);
@@ -288,11 +323,11 @@ struct Dict {
 	}
 
 
-	void write_dict(const std::string&s) {
+	bool write_dict(const std::wstring& s) {
 		std::fstream file;
 		file.open(s, std::ios::out | std::ios::binary);
 		if (!file.is_open())
-			return;
+			return false;
 		//删除所有空的字符
 		auto it = words.begin();
 		while (it != words.end()) {
@@ -313,6 +348,7 @@ struct Dict {
 			file.write((char*)words[i].data.data(), words[i].data.size());
 		}
 		file.close();
+		return true;
 	}
 	void add_word(const ImageBin& binary, const rect_t& rc) {
 		word1_t word;

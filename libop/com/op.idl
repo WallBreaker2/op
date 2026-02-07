@@ -152,6 +152,7 @@ interface IOpInterface : IDispatch
     [id(176)] HRESULT Delays([in] LONG mis_min,[in] LONG mis_max, [out, retval] LONG* ret);
 	[id(177)] HRESULT KeyPressStr([in]BSTR key_str,[in]LONG delay,[out, retval] LONG* ret);
 	[id(178)] HRESULT GetColorNum([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval]LONG* ret);
+	[id(179)] HRESULT GetPicSize([in] BSTR pic_name, [out] VARIANT* width, [out] VARIANT* height, [out, retval] LONG* ret);
 	
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
@@ -165,11 +166,17 @@ interface IOpInterface : IDispatch
 	[id(208)] HRESULT OcrAutoFromFile([in] BSTR file_name, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(209)] HRESULT FindLine([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(220)] HRESULT SetMemDict([in] LONG idx, [in]BSTR data, [in]LONG size, [out, retval] LONG* ret);
-	[id(221)] HRESULT AddDict([in] LONG idx, [in] BSTR dict_info, [out, retval] LONG* ret);
-	[id(222)] HRESULT ClearDict([in] LONG idx, [out, retval] LONG* ret);
-	[id(223)] HRESULT GetDictCount([in] LONG idx, [out, retval] LONG* ret);
-	[id(224)] HRESULT GetNowDict([out, retval] LONG* ret);
-	[id(225)] HRESULT FetchWord([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] BSTR word, [out, retval] BSTR* retstr);
+	[id(221)] HRESULT GetDict([in] LONG idx, [in] LONG font_index, [out, retval] BSTR* retstr);
+	[id(222)] HRESULT AddDict([in] LONG idx, [in] BSTR dict_info, [out, retval] LONG* ret);
+	[id(223)] HRESULT SaveDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
+	[id(224)] HRESULT ClearDict([in] LONG idx, [out, retval] LONG* ret);
+	[id(225)] HRESULT GetDictCount([in] LONG idx, [out, retval] LONG* ret);
+	[id(226)] HRESULT GetNowDict([out, retval] LONG* ret);
+	[id(227)] HRESULT FetchWord([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] BSTR word, [out, retval] BSTR* retstr);
+	[id(228)] HRESULT GetWordsNoDict([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [out, retval] BSTR* retstr);
+	[id(229)] HRESULT GetWordResultCount([in] BSTR result, [out, retval] LONG* ret);
+	[id(230)] HRESULT GetWordResultPos([in] BSTR result, [in] LONG index, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
+	[id(231)] HRESULT GetWordResultStr([in] BSTR result, [in] LONG index, [out, retval] BSTR* retstr);
 
 	[id(250)] HRESULT WriteData([in] LONG hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
 	[id(251)] HRESULT ReadData([in] LONG hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
