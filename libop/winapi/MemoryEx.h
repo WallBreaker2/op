@@ -3,6 +3,7 @@
 #define __MEMORYEX_H_
 #include "./core/helpfunc.h"
 #include "BlackBone/Process/Process.h"
+#include <Windows.h>
 class MemoryEx {
   public:
     MemoryEx();

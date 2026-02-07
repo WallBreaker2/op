@@ -294,3 +294,6 @@ __pycache__/
 
 
 /libop/com/RCa09948
+
+# cmake
+./CMakeSettings.json
