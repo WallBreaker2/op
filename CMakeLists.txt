@@ -30,6 +30,12 @@ endif()
 
 
 
+# Integrate vcpkg toolchain if VCPKG_ROOT is set
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+endif()
+
 project ("op")
 include(CTest)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
