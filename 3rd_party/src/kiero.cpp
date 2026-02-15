@@ -7,13 +7,14 @@
 #endif
 // #include <MinHook.h>
 //  Uncomment a needed graphical library (you can include all)
-#include <d3d10.h>   // D3D10
-#include <d3d10_1.h> // D3D10
 
 #include <d3d9.h>         // D3D9
 #include <dxgi.h>         // D3D10/D3D11/D3D12 (must be included for d3d12 hook)
 #define KIERO_D3D10_USAGE // This need because d3d11.h includes d3d10.h
 #include <d3d11.h>        // D3D11
+
+#include <d3d10.h>   // D3D10
+#include <d3d10_1.h> // D3D10
 // #include <d3d12.h>         // D3D12
 // #include <gl/GL.h>         // OpenGL
 // #include <vulkan/vulkan.h> // Vulkan
