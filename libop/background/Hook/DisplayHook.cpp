@@ -1,9 +1,9 @@
 #include "DisplayHook.h"
-#include <d3d10.h>
-#include <d3d10_1.h>
 #include <d3d11.h>
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include <d3d10.h>
+#include <d3d10_1.h>
 // #include <D3DX11.h>
 
 // #include <d3dx10.h>
