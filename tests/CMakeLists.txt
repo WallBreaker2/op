@@ -4,6 +4,9 @@ ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
 
+# Find Google Test installed via vcpkg
+find_package(GTest CONFIG REQUIRED)
+
 set(SRC_FILES "main.cpp" "../libop/com/op_i.c")
 
 include_directories( 
@@ -12,19 +15,15 @@ include_directories(
 ) 
 
 add_executable(op_test ${SRC_FILES})
-target_link_libraries(op_test ${op_com})
 
-# Register modular tests with CTest
-add_test(NAME test_core COMMAND op_test core)
-add_test(NAME test_algorithm COMMAND op_test algorithm)
-add_test(NAME test_winapi COMMAND op_test winapi)
-add_test(NAME test_mouse_key COMMAND op_test mouse_key)
-add_test(NAME test_image_color COMMAND op_test image_color)
-add_test(NAME test_ocr COMMAND op_test ocr)
-add_test(NAME test_utils COMMAND op_test utils)
+# Only link GTest::gtest (NOT gtest_main) because we define our own main()
+target_link_libraries(op_test ${op_com} GTest::gtest)
 
-# Set environment path so the tests can find the DLL
-set_tests_properties(test_core test_algorithm test_winapi test_mouse_key test_image_color test_ocr test_utils
+# Register as a single CTest entry; Google Test handles sub-test filtering internally
+# (gtest_discover_tests is not used because it runs the exe at build time,
+#  which fails when dependent DLLs like op_x64.dll are not on PATH)
+add_test(NAME op_test COMMAND op_test)
+set_tests_properties(op_test
     PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:${op_com}>;$ENV{PATH}")
 
 # Install rules
