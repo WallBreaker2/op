@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.10)
 
 if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
     set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
@@ -43,17 +43,6 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_CXX_STANDARD 17)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
-    set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa")
-    set(CMAKE_CXX_FLAGS_DEBUG "/MT /Zi /EHa")
-    set(CMAKE_C_FLAGS_DEBUG "/MT /Zi /EHa")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /O2  /EHa")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /O2 /EHa")
-endif()
-
-
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
@@ -83,12 +72,10 @@ include_directories(
 # 包含子项目。
 ## libop主项目
 add_subdirectory ("libop")
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/libop/com/op_i.h")
-    ## tools项目
-    add_subdirectory("tools")
-    ## 测试项目
-    add_subdirectory("tests")
-endif()
+## tools项目
+add_subdirectory("tools")
+## 测试项目
+add_subdirectory("tests")
 ## swig 项目
 if(build_swig_py)
     add_subdirectory("swig")
