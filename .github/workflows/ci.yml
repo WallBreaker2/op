@@ -53,6 +53,7 @@ jobs:
           $src = "$env:BLACKBONE_ROOT\src"
           $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
           cmake -S $src -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
+            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
             -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
       - name: Build BlackBone (${{ matrix.arch }})
@@ -150,6 +151,7 @@ jobs:
             $src = Join-Path $root "src"
             $bld = Join-Path $root "build\$arch"
             cmake -S $src -B $bld -G "Visual Studio 17 2022" -A $arch `
+              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
             cmake --build $bld --config Release
 
