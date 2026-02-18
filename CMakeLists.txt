@@ -16,18 +16,6 @@ else()
     message(FATAL_ERROR "${blackbone_include_path}/BlackBone/Process/Process.h not finded" )
 endif()
 
-# 检查库是否设置正确
-if(EXISTS ${blackbone_lib32_path}/BlackBone.lib)
-    message(STATUS "32 blackbone lib find" )
-else()
-message(FATAL_ERROR "${blackbone_lib32_path}/BlackBone.lib NOT find" )
-endif()
-if(EXISTS ${blackbone_lib64_path}/BlackBone.lib)
-    message(STATUS "64 BlackBone lib find" )
-else()
-message(FATAL_ERROR "${blackbone_lib64_path}/blackbone.lib NOT find" )
-endif()
-
 
 
 # Integrate vcpkg toolchain if VCPKG_ROOT is set
@@ -70,6 +58,21 @@ ELSE()
     add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
+
+# 检查 BlackBone 库是否存在（仅针对当前架构）
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(EXISTS ${blackbone_lib64_path}/BlackBone.lib)
+        message(STATUS "64 BlackBone lib find" )
+    else()
+        message(FATAL_ERROR "${blackbone_lib64_path}/BlackBone.lib NOT find" )
+    endif()
+else()
+    if(EXISTS ${blackbone_lib32_path}/BlackBone.lib)
+        message(STATUS "32 BlackBone lib find" )
+    else()
+        message(FATAL_ERROR "${blackbone_lib32_path}/BlackBone.lib NOT find" )
+    endif()
+endif()
 
 include_directories( 
   ./
