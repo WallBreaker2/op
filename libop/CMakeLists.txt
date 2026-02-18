@@ -99,7 +99,7 @@ ADD_DEFINITIONS(-D _WINDLL)
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 ADD_DEFINITIONS(-DOP_EXPORTS)
-ADD_DEFINITIONS(-DOP_VERSION="0.1.0")
+ADD_DEFINITIONS(-DOP_VERSION="0.4.6.0")
  
 
 # 6.add lib file
@@ -142,10 +142,17 @@ include_directories(
 
 
 # 7.add link library
-#TARGET_LINK_LIBRARIES(libop BlackBone.lib)
-#TARGET_LINK_LIBRARIES(libop minhook.lib)
+# BlackBone 仍通过外部提供的 BlackBone.lib 链接
 TARGET_LINK_LIBRARIES(${op_com} BlackBone.lib)
-TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
+
+# MinHook 优先通过 vcpkg 提供的 CMake package 进行链接，
+# 若未找到（例如本地使用手工放置的 minhook.lib），则退回到直接链接库名。
+find_package(minhook CONFIG QUIET)
+if (minhook_FOUND)
+  TARGET_LINK_LIBRARIES(${op_com} minhook::minhook)
+else()
+  TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
+endif()
 
 # target_link_libraries(libop  ${OpenCV_LIBS})
 # target_link_libraries(libop msvcrt.lib)

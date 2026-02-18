@@ -1,0 +1,191 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ Win32, x64 ]
+
+    env:
+      # BlackBone 源码根目录（稍后会检出到该路径）
+      BLACKBONE_ROOT: ${{ github.workspace }}\BlackBone
+
+    steps:
+      - name: Checkout op
+        uses: actions/checkout@v4
+
+      - name: Setup vcpkg
+        id: vcpkg
+        uses: microsoft/setup-vcpkg@v1
+        with:
+          vcpkg-triplet: ${{ matrix.arch == 'Win32' && 'x86-windows' || 'x64-windows' }}
+          # 使用内置缓存以加速安装
+          cache: true
+
+      - name: Install dependencies via vcpkg (gtest, minhook)
+        shell: pwsh
+        run: |
+          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+          vcpkg install gtest:$triplet minhook:$triplet
+
+      - name: Checkout BlackBone
+        uses: actions/checkout@v4
+        with:
+          repository: DarthTon/Blackbone
+          path: BlackBone
+
+      - name: Configure BlackBone (${{ matrix.arch }})
+        shell: pwsh
+        run: |
+          $src = "$env:BLACKBONE_ROOT\src"
+          $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
+          cmake -S $src -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }}
+
+      - name: Build BlackBone (${{ matrix.arch }})
+        shell: pwsh
+        run: |
+          $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
+          cmake --build $bld --config Release
+
+      - name: Prepare BlackBone.lib layout for op
+        shell: pwsh
+        run: |
+          $root = $env:BLACKBONE_ROOT
+          $arch = '${{ matrix.arch }}'
+          $searchDir = Join-Path $root "build\$arch"
+          $lib = Get-ChildItem -Path $searchDir -Filter BlackBone.lib -Recurse -ErrorAction Stop | Select-Object -First 1
+          if (-not $lib) {
+            Write-Error "BlackBone.lib not found under $searchDir"
+          }
+
+          if ($arch -eq 'Win32') {
+            $dest = Join-Path $root "build\Win32\Release"
+          } else {
+            $dest = Join-Path $root "build\X64\Release"
+          }
+
+          New-Item -ItemType Directory -Path $dest -Force | Out-Null
+          Copy-Item $lib.FullName (Join-Path $dest "BlackBone.lib") -Force
+
+      - name: Configure op (${{ matrix.arch }})
+        shell: pwsh
+        env:
+          # 让顶层 CMake 自动接入 vcpkg toolchain
+          VCPKG_ROOT: ${{ steps.vcpkg.outputs.vcpkgRoot }}
+        run: |
+          $bld = "build\${{ matrix.arch }}"
+          New-Item -ItemType Directory -Path $bld -Force | Out-Null
+          cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
+            -Dbuild_swig_py=OFF
+
+      - name: Build op (${{ matrix.arch }})
+        shell: pwsh
+        run: |
+          $bld = "build\${{ matrix.arch }}"
+          cmake --build $bld --config Release
+
+      - name: Run ctest (${{ matrix.arch }})
+        shell: pwsh
+        run: |
+          $bld = "build\${{ matrix.arch }}"
+          cd $bld
+          ctest -C Release --output-on-failure
+
+  release:
+    runs-on: windows-latest
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/')
+
+    env:
+      BLACKBONE_ROOT: ${{ github.workspace }}\BlackBone
+
+    steps:
+      - name: Checkout op
+        uses: actions/checkout@v4
+
+      - name: Setup vcpkg
+        id: vcpkg
+        uses: microsoft/setup-vcpkg@v1
+        with:
+          vcpkg-triplet: x64-windows
+          cache: true
+
+      - name: Checkout BlackBone
+        uses: actions/checkout@v4
+        with:
+          repository: DarthTon/Blackbone
+          path: BlackBone
+
+      - name: Build op for Win32 and x64 and install
+        shell: pwsh
+        env:
+          VCPKG_ROOT: ${{ steps.vcpkg.outputs.vcpkgRoot }}
+        run: |
+          $root = $env:BLACKBONE_ROOT
+
+          foreach ($arch in @('Win32', 'x64')) {
+            Write-Host "=== Build configuration for $arch ==="
+
+            # 安装依赖
+            $triplet = if ($arch -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+            vcpkg install gtest:$triplet minhook:$triplet
+
+            # 构建 BlackBone
+            $src = Join-Path $root "src"
+            $bld = Join-Path $root "build\$arch"
+            cmake -S $src -B $bld -G "Visual Studio 17 2022" -A $arch
+            cmake --build $bld --config Release
+
+            # 准备 BlackBone.lib 到 op 期望的位置
+            $searchDir = $bld
+            $lib = Get-ChildItem -Path $searchDir -Filter BlackBone.lib -Recurse -ErrorAction Stop | Select-Object -First 1
+            if (-not $lib) {
+              Write-Error "BlackBone.lib not found under $searchDir"
+            }
+
+            if ($arch -eq 'Win32') {
+              $dest = Join-Path $root "build\Win32\Release"
+            } else {
+              $dest = Join-Path $root "build\X64\Release"
+            }
+
+            New-Item -ItemType Directory -Path $dest -Force | Out-Null
+            Copy-Item $lib.FullName (Join-Path $dest "BlackBone.lib") -Force
+
+            # 配置并编译 + 安装 op
+            $opBuildDir = "build\$arch"
+            New-Item -ItemType Directory -Path $opBuildDir -Force | Out-Null
+            cmake -S . -B $opBuildDir -G "Visual Studio 17 2022" -A $arch `
+              -Dbuild_swig_py=OFF
+            cmake --build $opBuildDir --config Release --target INSTALL
+          }
+
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if (Test-Path "bin\x86") {
+            Compress-Archive -Path "bin\x86\*" -DestinationPath "op-$tag-x86.zip" -Force
+          }
+          if (Test-Path "bin\x64") {
+            Compress-Archive -Path "bin\x64\*" -DestinationPath "op-$tag-x64.zip" -Force
+          }
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: op-${{ github.ref_name }}
+          path: |
+            op-${{ github.ref_name }}-x86.zip
+            op-${{ github.ref_name }}-x64.zip
+

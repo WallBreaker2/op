@@ -17,7 +17,12 @@ SET(TOOLS_SRC_FILES
 
 add_library(tools SHARED ${TOOLS_SRC_FILES})
 
-TARGET_LINK_LIBRARIES(tools minhook)
+# 使用 vcpkg 提供的 MinHook imported target（若存在），否则退回到直接链接库名
+if (TARGET minhook::minhook)
+  TARGET_LINK_LIBRARIES(tools minhook::minhook)
+else()
+  TARGET_LINK_LIBRARIES(tools minhook)
+endif()
 
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
