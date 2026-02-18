@@ -143,6 +143,19 @@ include_directories(
 
 # 7.add link library
 # BlackBone 仍通过外部提供的 BlackBone.lib 链接
+# DIA SDK (diaguids.lib) is required by BlackBone's PDBHelper
+# Derive VS root from compiler path: cl.exe is at <VS>/VC/Tools/MSVC/<ver>/bin/Host<arch>/<arch>/cl.exe
+if(MSVC)
+  get_filename_component(_vs_root "${CMAKE_CXX_COMPILER}/../../../../../../.." ABSOLUTE)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(_dia_lib_dir "${_vs_root}/DIA SDK/lib/amd64")
+  else()
+    set(_dia_lib_dir "${_vs_root}/DIA SDK/lib")
+  endif()
+  if(EXISTS "${_dia_lib_dir}/diaguids.lib")
+    target_link_directories(${op_com} PRIVATE "${_dia_lib_dir}")
+  endif()
+endif()
 TARGET_LINK_LIBRARIES(${op_com} BlackBone.lib diaguids.lib)
 
 # MinHook 优先通过 vcpkg 提供的 CMake package 进行链接，
