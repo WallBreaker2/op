@@ -3,6 +3,8 @@
 所有op的开放接口都从此cpp类衍生而出
 */
 #pragma once
+#include <memory>
+#include <atomic>
 #include <string>
 // forward declare
 // class WinApi;
@@ -53,8 +55,8 @@ class OP_API libop {
     // std::wstring m_opPath;
     // long m_screen_data_mode;
     // int m_id;
-    op_context *m_context;
-    static int s_id;
+    std::unique_ptr<op_context> m_context;
+    static std::atomic<int> s_id;
 
   public:
     //---------------基本设置/属性-------------------
