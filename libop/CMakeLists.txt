@@ -143,7 +143,7 @@ include_directories(
 
 # 7.add link library
 # BlackBone 仍通过外部提供的 BlackBone.lib 链接
-TARGET_LINK_LIBRARIES(${op_com} BlackBone.lib)
+TARGET_LINK_LIBRARIES(${op_com} BlackBone.lib diaguids.lib)
 
 # MinHook 优先通过 vcpkg 提供的 CMake package 进行链接，
 # 若未找到（例如本地使用手工放置的 minhook.lib），则退回到直接链接库名。
