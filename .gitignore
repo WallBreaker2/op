@@ -57,6 +57,9 @@ artifacts/
 *_i.h
 *_p.c
 *_i.c
+# But keep the specific MIDL-generated files required for building
+!libop/com/op_i.c
+!libop/com/op_i.h
 *.ilk
 *.meta
 *.obj
