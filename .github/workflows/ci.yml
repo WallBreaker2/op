@@ -24,19 +24,21 @@ jobs:
       - name: Checkout op
         uses: actions/checkout@v4
 
-      - name: Setup vcpkg
-        id: vcpkg
-        uses: microsoft/setup-vcpkg@v1
-        with:
-          vcpkg-triplet: ${{ matrix.arch == 'Win32' && 'x86-windows' || 'x64-windows' }}
-          # 使用内置缓存以加速安装
-          cache: true
+      - name: Install vcpkg
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "$env:USERPROFILE\vcpkg"
+          if (-not (Test-Path $vcpkgRoot)) {
+            git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
+          }
+          & "$vcpkgRoot\bootstrap-vcpkg.bat"
+          Add-Content -Path $Env:GITHUB_ENV -Value "VCPKG_ROOT=$vcpkgRoot"
 
       - name: Install dependencies via vcpkg (gtest, minhook)
         shell: pwsh
         run: |
           $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
-          vcpkg install gtest:$triplet minhook:$triplet
+          & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet
 
       - name: Checkout BlackBone
         uses: actions/checkout@v4
@@ -79,10 +81,8 @@ jobs:
 
       - name: Configure op (${{ matrix.arch }})
         shell: pwsh
-        env:
-          # 让顶层 CMake 自动接入 vcpkg toolchain
-          VCPKG_ROOT: ${{ steps.vcpkg.outputs.vcpkgRoot }}
         run: |
+          # 让顶层 CMake 自动接入 vcpkg toolchain（CMakeLists.txt 会读取 VCPKG_ROOT 环境变量）
           $bld = "build\${{ matrix.arch }}"
           New-Item -ItemType Directory -Path $bld -Force | Out-Null
           cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
@@ -113,12 +113,15 @@ jobs:
       - name: Checkout op
         uses: actions/checkout@v4
 
-      - name: Setup vcpkg
-        id: vcpkg
-        uses: microsoft/setup-vcpkg@v1
-        with:
-          vcpkg-triplet: x64-windows
-          cache: true
+      - name: Install vcpkg
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "$env:USERPROFILE\vcpkg"
+          if (-not (Test-Path $vcpkgRoot)) {
+            git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
+          }
+          & "$vcpkgRoot\bootstrap-vcpkg.bat"
+          Add-Content -Path $Env:GITHUB_ENV -Value "VCPKG_ROOT=$vcpkgRoot"
 
       - name: Checkout BlackBone
         uses: actions/checkout@v4
@@ -128,8 +131,6 @@ jobs:
 
       - name: Build op for Win32 and x64 and install
         shell: pwsh
-        env:
-          VCPKG_ROOT: ${{ steps.vcpkg.outputs.vcpkgRoot }}
         run: |
           $root = $env:BLACKBONE_ROOT
 
@@ -138,7 +139,7 @@ jobs:
 
             # 安装依赖
             $triplet = if ($arch -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
-            vcpkg install gtest:$triplet minhook:$triplet
+            & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet
 
             # 构建 BlackBone
             $src = Join-Path $root "src"
