@@ -43,6 +43,16 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_CXX_STANDARD 17)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
+    set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa")
+    set(CMAKE_CXX_FLAGS_DEBUG "/MT /Zi /EHa")
+    set(CMAKE_C_FLAGS_DEBUG "/MT /Zi /EHa")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /O2  /EHa")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /O2 /EHa")
+endif()
+
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
