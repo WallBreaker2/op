@@ -41,7 +41,7 @@ class promutex {
     }
 
     DWORD try_lock(size_t time_) {
-        return ::WaitForSingleObject(_hmutex, time_);
+        return ::WaitForSingleObject(_hmutex, static_cast<DWORD>(time_));
     }
     void unlock() {
         assert(_hmutex);

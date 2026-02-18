@@ -1,6 +1,7 @@
 ﻿// OpInterface.cpp: OpInterface 的实现
 
 #include "libop.h"
+#include <tchar.h>
 #include "./ImageProc/ImageProc.h"
 #include "./background/opBackground.h"
 #include "./core/Cmder.h"
@@ -23,7 +24,7 @@
 
 const int small_block_size = 10;
 
-int libop::s_id = 0;
+std::atomic<int> libop::s_id(0);
 const int SC_DATA_TOP = 0;
 const int SC_DATA_BOTTOM = 1;
 // using bytearray = std::vector<unsigned char>;
@@ -38,18 +39,17 @@ struct op_context {
     std::wstring curr_path;
 
     std::map<std::wstring, long> vkmap;
-    bytearray screenData;
-    bytearray screenDataBmp;
+    std::vector<unsigned char> screenData;
+    std::vector<unsigned char> screenDataBmp;
     std::wstring opPath;
     long screen_data_mode;
     int id;
 };
 
-libop::libop() : m_context(nullptr) {
+libop::libop() : m_context(std::make_unique<op_context>()) {
     // 将进程默认 DPI 感知设置为系统 DPI 感知
     ::SetProcessDPIAware();
 
-    m_context = new op_context;
     m_context->screen_data_mode = SC_DATA_TOP;
 
     // 初始化目录
@@ -99,10 +99,6 @@ libop::libop() : m_context(nullptr) {
 }
 
 libop::~libop() {
-    if (m_context) {
-        delete m_context;
-        m_context = nullptr;
-    }
 }
 
 std::wstring libop::Ver() {
@@ -269,31 +265,28 @@ void libop::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, st
 void libop::EnumWindow(long parent, const wchar_t *title, const wchar_t *class_name, long filter,
                        std::wstring &retstr) {
     // TODO: 在此添加实现代码
-    std::unique_ptr<wchar_t> retstring(new wchar_t[MAX_PATH * 200]);
-    memset(retstring.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-    m_context->winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring.get());
+    std::vector<wchar_t> retstring(MAX_PATH * 200, 0);
+    m_context->winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring.data());
     //*retstr=_bstr_t(retstring);
-    retstr = retstring.get();
+    retstr = retstring.data();
 }
 
 void libop::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name,
                                 long filter, std::wstring &retstring) {
     // TODO: 在此添加实现代码
-    std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
-    memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-    m_context->winapi.EnumWindow((HWND)0, title, class_name, filter, retstr.get(), process_name);
+    std::vector<wchar_t> retstr(MAX_PATH * 200, 0);
+    m_context->winapi.EnumWindow((HWND)0, title, class_name, filter, retstr.data(), process_name);
     //*retstring=_bstr_t(retstr);
 
-    retstring = retstr.get();
+    retstring = retstr.data();
 }
 
 void libop::EnumProcess(const wchar_t *name, std::wstring &retstring) {
     // TODO: 在此添加实现代码
-    std::unique_ptr<wchar_t> retstr(new wchar_t[MAX_PATH * 200]);
-    memset(retstr.get(), 0, sizeof(wchar_t) * MAX_PATH * 200);
-    m_context->winapi.EnumProcess(name, retstr.get());
+    std::vector<wchar_t> retstr(MAX_PATH * 200, 0);
+    m_context->winapi.EnumProcess(name, retstr.data());
     //*retstring=_bstr_t(retstr);
-    retstring = retstr.get();
+    retstring = retstr.data();
 }
 
 void libop::ClientToScreen(long ClientToScreen, long *x, long *y, long *bret) {
