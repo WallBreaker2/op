@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies via vcpkg (gtest, minhook)
         shell: pwsh
         run: |
-          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
           & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet
 
       - name: Checkout BlackBone
@@ -51,7 +51,8 @@ jobs:
         run: |
           $src = "$env:BLACKBONE_ROOT\src"
           $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
-          cmake -S $src -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }}
+          cmake -S $src -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
       - name: Build BlackBone (${{ matrix.arch }})
         shell: pwsh
@@ -85,8 +86,10 @@ jobs:
           # 让顶层 CMake 自动接入 vcpkg toolchain（CMakeLists.txt 会读取 VCPKG_ROOT 环境变量）
           $bld = "build\${{ matrix.arch }}"
           New-Item -ItemType Directory -Path $bld -Force | Out-Null
+          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
           cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
-            -Dbuild_swig_py=OFF
+            -Dbuild_swig_py=OFF `
+            -DVCPKG_TARGET_TRIPLET=$triplet
 
       - name: Build op (${{ matrix.arch }})
         shell: pwsh
@@ -138,13 +141,14 @@ jobs:
             Write-Host "=== Build configuration for $arch ==="
 
             # 安装依赖
-            $triplet = if ($arch -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+            $triplet = if ($arch -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
             & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet
 
             # 构建 BlackBone
             $src = Join-Path $root "src"
             $bld = Join-Path $root "build\$arch"
-            cmake -S $src -B $bld -G "Visual Studio 17 2022" -A $arch
+            cmake -S $src -B $bld -G "Visual Studio 17 2022" -A $arch `
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
             cmake --build $bld --config Release
 
             # 准备 BlackBone.lib 到 op 期望的位置
@@ -167,7 +171,8 @@ jobs:
             $opBuildDir = "build\$arch"
             New-Item -ItemType Directory -Path $opBuildDir -Force | Out-Null
             cmake -S . -B $opBuildDir -G "Visual Studio 17 2022" -A $arch `
-              -Dbuild_swig_py=OFF
+              -Dbuild_swig_py=OFF `
+              -DVCPKG_TARGET_TRIPLET=$triplet
             cmake --build $opBuildDir --config Release --target INSTALL
           }
 
