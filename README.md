@@ -95,7 +95,12 @@ else:
 *   **Kiero**: 用于 DirectX Hook (源码集成)。
 *   **Tesseract**: 用于 OCR 功能 (动态链接)。
 
-在配置之前，您需要提供 BlackBone 的头文件和库路径。推荐设置 `BLACKBONE_ROOT` 指向 BlackBone 仓库根目录，CMake 会自动探测常见输出路径（包括命令行构建和旧版 VS 方案输出）。
+从现在开始，推荐直接使用根目录 `build.py` 一键引导依赖并编译。脚本会自动处理：
+*   安装/复用 `vcpkg`（优先复用已安装的 `VCPKG_ROOT` 或 `%USERPROFILE%\\vcpkg`）。
+*   一次性安装 `x86/x64` 所需的 `gtest`、`minhook`。
+*   拉取并构建 `BlackBone`（缓存到 `build/_deps`）。
+
+如果您需要手动配置，仍可通过环境变量提供 BlackBone 路径。推荐设置 `BLACKBONE_ROOT` 指向 BlackBone 仓库根目录，CMake 会自动探测常见输出路径（包括命令行构建和旧版 VS 方案输出）。
 
 ```powershell
 set BLACKBONE_ROOT="D:\path\to\Blackbone"
@@ -115,15 +120,27 @@ cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBO
     cd op
     ```
 
-2.  创建构建目录:
+2.  一键安装依赖并编译（推荐）:
     ```bash
-    mkdir build && cd build
+    python build.py
     ```
 
-3.  配置并编译:
+3.  常用参数:
     ```bash
-    cmake ..
-    cmake --build . --config Release
+    # 指定架构构建
+    python build.py -a x86
+
+    # 跳过依赖引导（已有完整环境时）
+    python build.py --no-bootstrap-deps
+
+    # 指定已有 vcpkg 路径
+    python build.py --vcpkg-root D:/path/to/vcpkg
+    ```
+
+4.  传统 CMake 流程（高级用户可选）:
+    ```bash
+    cmake -S . -B build/Release
+    cmake --build build/Release --config Release
     ```
 
 ## 🤝 社区与支持
