@@ -4,8 +4,16 @@ on:
   push:
     branches: [ master, main ]
     tags: [ 'v*' ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
   pull_request:
     branches: [ master, main ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE'
 
 jobs:
   build-and-test:
