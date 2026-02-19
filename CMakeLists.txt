@@ -1,19 +1,41 @@
 cmake_minimum_required (VERSION 3.10)
 
-if(NOT $ENV{BLACKBONE_ROOT} STREQUAL "")
-    set(blackbone_include_path "$ENV{BLACKBONE_ROOT}/src")
-    set(blackbone_lib32_path "$ENV{BLACKBONE_ROOT}/build/Win32/Release")
-    set(blackbone_lib64_path "$ENV{BLACKBONE_ROOT}/build/X64/Release")
+set(BLACKBONE_ROOT "$ENV{BLACKBONE_ROOT}" CACHE PATH "Path to BlackBone repository root")
+set(BLACKBONE_INCLUDE_DIR "" CACHE PATH "Path to BlackBone include root (contains BlackBone/Process/Process.h)")
+set(BLACKBONE_LIBRARY "" CACHE FILEPATH "Full path to BlackBone.lib")
+
+if(NOT BLACKBONE_ROOT STREQUAL "")
+    file(TO_CMAKE_PATH "${BLACKBONE_ROOT}" BLACKBONE_ROOT)
+endif()
+
+if(NOT BLACKBONE_INCLUDE_DIR STREQUAL "")
+    file(TO_CMAKE_PATH "${BLACKBONE_INCLUDE_DIR}" BLACKBONE_INCLUDE_DIR)
+endif()
+
+if(NOT BLACKBONE_LIBRARY STREQUAL "")
+    file(TO_CMAKE_PATH "${BLACKBONE_LIBRARY}" BLACKBONE_LIBRARY)
+endif()
+
+if(BLACKBONE_INCLUDE_DIR STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
+    if(EXISTS "${BLACKBONE_ROOT}/src/BlackBone/Process/Process.h")
+        set(BLACKBONE_INCLUDE_DIR "${BLACKBONE_ROOT}/src")
+    elseif(EXISTS "${BLACKBONE_ROOT}/BlackBone/Process/Process.h")
+        set(BLACKBONE_INCLUDE_DIR "${BLACKBONE_ROOT}")
+    endif()
+endif()
+
+if(BLACKBONE_INCLUDE_DIR STREQUAL "")
+    message(FATAL_ERROR "BlackBone include path is not set. Please configure BLACKBONE_INCLUDE_DIR or BLACKBONE_ROOT.")
 endif()
 
 
 option(build_swig_py "build swig py,requrie python" ON)
 
 # 检查头文件是否设置正确
-if(EXISTS ${blackbone_include_path}/BlackBone/Process/Process.h)
-    message(STATUS "${blackbone_include_path}/BlackBone/Process/Process.h finded" )
+if(EXISTS "${BLACKBONE_INCLUDE_DIR}/BlackBone/Process/Process.h")
+    message(STATUS "${BLACKBONE_INCLUDE_DIR}/BlackBone/Process/Process.h finded" )
 else()
-    message(FATAL_ERROR "${blackbone_include_path}/BlackBone/Process/Process.h not finded" )
+    message(FATAL_ERROR "${BLACKBONE_INCLUDE_DIR}/BlackBone/Process/Process.h not finded" )
 endif()
 
 
@@ -44,7 +66,6 @@ endif()
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
-        ${blackbone_lib64_path}
     )
     set(op_com op_x64)
     add_compile_definitions(_AMD64_)
@@ -52,34 +73,88 @@ IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 ELSE()
     link_directories(
         ${CMAKE_SOURCE_DIR}/3rd_party/lib/x86
-        ${blackbone_lib32_path}
         )
     set(op_com op_x86)
     add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
 
-# 检查 BlackBone 库是否存在（仅针对当前架构）
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    if(EXISTS ${blackbone_lib64_path}/BlackBone.lib)
-        message(STATUS "64 BlackBone lib find" )
+if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(_blackbone_candidates
+            "${BLACKBONE_ROOT}/build/X64/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x64/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/X64/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x64/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/X64/src/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x64/src/BlackBone/Release/BlackBone.lib"
+        )
     else()
-        message(FATAL_ERROR "${blackbone_lib64_path}/BlackBone.lib NOT find" )
+        set(_blackbone_candidates
+            "${BLACKBONE_ROOT}/build/Win32/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x86/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/Win32/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x86/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/Win32/src/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/x86/src/BlackBone/Release/BlackBone.lib"
+        )
     endif()
-else()
-    if(EXISTS ${blackbone_lib32_path}/BlackBone.lib)
-        message(STATUS "32 BlackBone lib find" )
-    else()
-        message(FATAL_ERROR "${blackbone_lib32_path}/BlackBone.lib NOT find" )
+
+    foreach(_candidate IN LISTS _blackbone_candidates)
+        if(EXISTS "${_candidate}")
+            set(BLACKBONE_LIBRARY "${_candidate}")
+            break()
+        endif()
+    endforeach()
+
+    if(BLACKBONE_LIBRARY STREQUAL "")
+        file(GLOB_RECURSE _blackbone_all_libs
+            "${BLACKBONE_ROOT}/build/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/*/BlackBone.lib"
+        )
+
+        foreach(_lib IN LISTS _blackbone_all_libs)
+            file(TO_CMAKE_PATH "${_lib}" _lib_norm)
+            string(TOLOWER "${_lib_norm}" _lib_lower)
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                if(_lib_lower MATCHES "/x64/" OR _lib_lower MATCHES "/amd64/")
+                    set(BLACKBONE_LIBRARY "${_lib_norm}")
+                    break()
+                endif()
+            else()
+                if(_lib_lower MATCHES "/win32/" OR _lib_lower MATCHES "/x86/")
+                    set(BLACKBONE_LIBRARY "${_lib_norm}")
+                    break()
+                endif()
+            endif()
+        endforeach()
+
+        if(BLACKBONE_LIBRARY STREQUAL "" AND _blackbone_all_libs)
+            list(GET _blackbone_all_libs 0 BLACKBONE_LIBRARY)
+        endif()
     endif()
 endif()
+
+if(BLACKBONE_LIBRARY STREQUAL "")
+    message(FATAL_ERROR "BlackBone.lib not found. Please configure BLACKBONE_LIBRARY explicitly.")
+endif()
+
+if(NOT EXISTS "${BLACKBONE_LIBRARY}")
+    message(FATAL_ERROR "${BLACKBONE_LIBRARY} not finded")
+endif()
+
+set(BLACKBONE_INCLUDE_DIR "${BLACKBONE_INCLUDE_DIR}" CACHE PATH "Path to BlackBone include root (contains BlackBone/Process/Process.h)" FORCE)
+set(BLACKBONE_LIBRARY "${BLACKBONE_LIBRARY}" CACHE FILEPATH "Full path to BlackBone.lib" FORCE)
+
+message(STATUS "BlackBone include: ${BLACKBONE_INCLUDE_DIR}")
+message(STATUS "BlackBone library: ${BLACKBONE_LIBRARY}")
 
 include_directories( 
   ./
   ${CMAKE_SOURCE_DIR}/3rd_party/include/
   ${CMAKE_SOURCE_DIR}/3rd_party/include/3rd_party
-  ${blackbone_include_path}
-  ${blackbone_include_path}/3rd_party
+  ${BLACKBONE_INCLUDE_DIR}
+  ${BLACKBONE_INCLUDE_DIR}/3rd_party
 ) 
 
 # 包含子项目。
@@ -93,5 +168,3 @@ add_subdirectory("tests")
 if(build_swig_py)
     add_subdirectory("swig")
 endif()
-
-

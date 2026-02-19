@@ -91,10 +91,16 @@ The project relies on several third-party libraries:
 *   **Kiero**: For DirectX hooking (Source integration).
 *   **Tesseract**: For OCR capabilities (Dynamic Link).
 
-You must set the `BLACKBONE_ROOT` environment variable to your Blackbone build directory before configuring.
+Before configuring, you need to provide BlackBone headers and library. The recommended way is setting `BLACKBONE_ROOT` to the BlackBone repository root; CMake will auto-detect common output layouts (both command-line builds and legacy VS-generated layouts).
 
 ```powershell
 set BLACKBONE_ROOT="D:\path\to\Blackbone"
+```
+
+If auto-detection fails, pass explicit paths:
+
+```bash
+cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBONE_LIBRARY="D:/path/to/Blackbone/build/x64/BlackBone/Release/BlackBone.lib"
 ```
 
 ### Build Steps

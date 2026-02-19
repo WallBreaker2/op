@@ -62,7 +62,7 @@ jobs:
           $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
           cmake --build $bld --config Release
 
-      - name: Prepare BlackBone.lib layout for op
+      - name: Resolve BlackBone paths (${{ matrix.arch }})
         shell: pwsh
         run: |
           $root = $env:BLACKBONE_ROOT
@@ -73,14 +73,9 @@ jobs:
             Write-Error "BlackBone.lib not found under $searchDir"
           }
 
-          if ($arch -eq 'Win32') {
-            $dest = Join-Path $root "build\Win32\Release"
-          } else {
-            $dest = Join-Path $root "build\X64\Release"
-          }
-
-          New-Item -ItemType Directory -Path $dest -Force | Out-Null
-          Copy-Item $lib.FullName (Join-Path $dest "BlackBone.lib") -Force
+          $includeDir = Join-Path $root "src"
+          Add-Content -Path $Env:GITHUB_ENV -Value "BLACKBONE_INCLUDE_DIR=$includeDir"
+          Add-Content -Path $Env:GITHUB_ENV -Value "BLACKBONE_LIBRARY=$($lib.FullName)"
 
       - name: Configure op (${{ matrix.arch }})
         shell: pwsh
@@ -91,6 +86,8 @@ jobs:
           $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
           cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
             -Dbuild_swig_py=OFF `
+            -DBLACKBONE_INCLUDE_DIR="$env:BLACKBONE_INCLUDE_DIR" `
+            -DBLACKBONE_LIBRARY="$env:BLACKBONE_LIBRARY" `
             -DVCPKG_OVERLAY_TRIPLETS="$overlayDir"
 
       - name: Build op (${{ matrix.arch }})
@@ -155,27 +152,21 @@ jobs:
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
             cmake --build $bld --config Release
 
-            # 准备 BlackBone.lib 到 op 期望的位置
+            # 解析 BlackBone 实际输出路径
             $searchDir = $bld
             $lib = Get-ChildItem -Path $searchDir -Filter BlackBone.lib -Recurse -ErrorAction Stop | Select-Object -First 1
             if (-not $lib) {
               Write-Error "BlackBone.lib not found under $searchDir"
             }
-
-            if ($arch -eq 'Win32') {
-              $dest = Join-Path $root "build\Win32\Release"
-            } else {
-              $dest = Join-Path $root "build\X64\Release"
-            }
-
-            New-Item -ItemType Directory -Path $dest -Force | Out-Null
-            Copy-Item $lib.FullName (Join-Path $dest "BlackBone.lib") -Force
+            $includeDir = Join-Path $root "src"
 
             # 配置并编译 + 安装 op
             $opBuildDir = "build\$arch"
             New-Item -ItemType Directory -Path $opBuildDir -Force | Out-Null
             cmake -S . -B $opBuildDir -G "Visual Studio 17 2022" -A $arch `
               -Dbuild_swig_py=OFF `
+              -DBLACKBONE_INCLUDE_DIR="$includeDir" `
+              -DBLACKBONE_LIBRARY="$($lib.FullName)" `
               -DVCPKG_OVERLAY_TRIPLETS="$overlayDir"
             cmake --build $opBuildDir --config Release --target INSTALL
           }
@@ -198,4 +189,3 @@ jobs:
           path: |
             op-${{ github.ref_name }}-x86.zip
             op-${{ github.ref_name }}-x64.zip
-

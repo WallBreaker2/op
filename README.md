@@ -94,10 +94,16 @@ else:
 *   **Kiero**: 用于 DirectX Hook (源码集成)。
 *   **Tesseract**: 用于 OCR 功能 (动态链接)。
 
-在配置之前，您必须设置 `BLACKBONE_ROOT` 环境变量，指向您的 Blackbone 编译目录。
+在配置之前，您需要提供 BlackBone 的头文件和库路径。推荐设置 `BLACKBONE_ROOT` 指向 BlackBone 仓库根目录，CMake 会自动探测常见输出路径（包括命令行构建和旧版 VS 方案输出）。
 
 ```powershell
 set BLACKBONE_ROOT="D:\path\to\Blackbone"
+```
+
+如果自动探测失败，可显式指定：
+
+```bash
+cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBONE_LIBRARY="D:/path/to/Blackbone/build/x64/BlackBone/Release/BlackBone.lib"
 ```
 
 ### 编译步骤
