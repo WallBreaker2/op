@@ -92,7 +92,12 @@ The project relies on several third-party libraries:
 *   **Kiero**: For DirectX hooking (Source integration).
 *   **Tesseract**: For OCR capabilities (Dynamic Link).
 
-Before configuring, you need to provide BlackBone headers and library. The recommended way is setting `BLACKBONE_ROOT` to the BlackBone repository root; CMake will auto-detect common output layouts (both command-line builds and legacy VS-generated layouts).
+The recommended flow is now using root-level `build.py` for one-click dependency bootstrap and build. The script automatically:
+*   Installs or reuses `vcpkg` (prefers existing `VCPKG_ROOT` or `%USERPROFILE%\\vcpkg`).
+*   Installs `gtest` and `minhook` for both `x86/x64` in one pass.
+*   Clones and builds `BlackBone` (cached under `build/_deps`).
+
+If you still want manual CMake configuration, you can provide BlackBone paths via environment variables. The recommended way is setting `BLACKBONE_ROOT` to the BlackBone repository root; CMake will auto-detect common output layouts (both command-line builds and legacy VS-generated layouts).
 
 ```powershell
 set BLACKBONE_ROOT="D:\path\to\Blackbone"
@@ -112,15 +117,27 @@ cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBO
     cd op
     ```
 
-2.  Create a build directory:
+2.  One-click dependency bootstrap and build (recommended):
     ```bash
-    mkdir build && cd build
+    python build.py
     ```
 
-3.  Configure and Build:
+3.  Common options:
     ```bash
-    cmake ..
-    cmake --build . --config Release
+    # Build x86 target
+    python build.py -a x86
+
+    # Skip dependency bootstrap (when your environment is already prepared)
+    python build.py --no-bootstrap-deps
+
+    # Reuse an existing vcpkg installation
+    python build.py --vcpkg-root D:/path/to/vcpkg
+    ```
+
+4.  Traditional CMake flow (optional for advanced users):
+    ```bash
+    cmake -S . -B build/Release
+    cmake --build build/Release --config Release
     ```
 
 ## 🤝 Community & Support
