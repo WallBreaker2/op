@@ -56,6 +56,7 @@ SET(SRC_FILES
 
  
 "./core/globalVar.cpp"
+"./core/diaGuids.cpp"
 "./core/helpfunc.cpp"
 "./core/pipe.cpp"
 "./core/opEnv.cpp"
@@ -171,6 +172,3 @@ ELSE(CMAKE_CL_64)
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
 ENDIF(CMAKE_CL_64)
-
-
-
