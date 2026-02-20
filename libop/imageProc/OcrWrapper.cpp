@@ -1,34 +1,195 @@
 #include "OcrWrapper.h"
 #include "../core/helpfunc.h"
-#include "../core/opEnv.h"
-#include <condition_variable>
+#include <wincrypt.h>
+#include <winhttp.h>
 #include <iostream>
-ocr_engine_init_t OcrWrapper::ocr_engine_init;
-ocr_engine_ocr_t OcrWrapper::ocr_engine_ocr;
-ocr_engine_release_t OcrWrapper::ocr_engine_release;
+#include <regex>
+
+#pragma comment(lib, "winhttp.lib")
+#pragma comment(lib, "crypt32.lib")
+
 using std::cout;
 using std::endl;
-OcrWrapper::OcrWrapper() : m_engine(nullptr) {
-    // paddle
-    cout << "OcrWrapper::OcrWrapper()" << endl;
-#ifdef _M_X64
-    std::wstring paddle_path = opEnv::getBasePath() + L"/paddle";
-    auto dllName = L"paddle_ocr.dll";
-    std::wstring root = paddle_path;
-    wstring detName = root + L"/models/ch_PP-OCRv3_det_infer";
-    wstring recName = root + L"/models/ch_PP-OCRv3_rec_infer";
-    wstring otherName = root + L"/utils/ppocr_keys_v1.txt";
-    vector<string> argvs = {"tests", "--det_model_dir=" + _ws2string(detName), "--rec_model_dir=" + _ws2string(recName),
-                            "--rec_char_dict_path=" + _ws2string(otherName), "--enable_mkldnn=true"};
-#else
-    // tess
-    std::wstring paddle_path = opEnv::getBasePath() + L"/tess";
-    auto dllName = L"tess_engine.dll";
-    std::wstring root = opEnv::getBasePath() + L"/tess";
-    vector<string> argvs = {"tests", _ws2string(root) + "/tess_model", "chi_sim"};
-#endif
-    init(paddle_path, dllName, argvs);
+
+namespace {
+struct ParsedUrl {
+    bool secure = false;
+    INTERNET_PORT port = 80;
+    std::wstring host;
+    std::wstring path;
+};
+
+bool starts_with_http(const std::string &url) {
+    return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0;
 }
+
+std::string trim_copy(const std::string &s) {
+    const auto start = s.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos)
+        return "";
+    const auto end = s.find_last_not_of(" \t\r\n");
+    return s.substr(start, end - start + 1);
+}
+
+bool parse_url(const std::string &url, ParsedUrl &out) {
+    const std::wstring wurl = _s2wstring(url);
+    URL_COMPONENTS parts = {};
+    parts.dwStructSize = sizeof(parts);
+    parts.dwSchemeLength = (DWORD)-1;
+    parts.dwHostNameLength = (DWORD)-1;
+    parts.dwUrlPathLength = (DWORD)-1;
+    parts.dwExtraInfoLength = (DWORD)-1;
+    if (!WinHttpCrackUrl(wurl.c_str(), 0, 0, &parts)) {
+        return false;
+    }
+    out.secure = (parts.nScheme == INTERNET_SCHEME_HTTPS);
+    out.port = parts.nPort;
+    out.host.assign(parts.lpszHostName, parts.dwHostNameLength);
+    out.path.assign(parts.lpszUrlPath, parts.dwUrlPathLength);
+    if (parts.dwExtraInfoLength > 0) {
+        out.path.append(parts.lpszExtraInfo, parts.dwExtraInfoLength);
+    }
+    if (out.path.empty()) {
+        out.path = L"/";
+    }
+    return !out.host.empty();
+}
+
+bool base64_encode(const byte *data, int size, std::string &out) {
+    DWORD needed = 0;
+    if (!CryptBinaryToStringA(data, static_cast<DWORD>(size), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr,
+                              &needed)) {
+        return false;
+    }
+
+    if (needed == 0) {
+        out.clear();
+        return true;
+    }
+
+    out.assign(needed - 1, '\0');
+    return CryptBinaryToStringA(data, static_cast<DWORD>(size), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, &out[0],
+                                &needed) == TRUE;
+}
+
+bool http_post_json(const ParsedUrl &url, const std::string &body, int timeout_ms, std::string &response,
+                    DWORD &status_code) {
+    status_code = 0;
+    response.clear();
+
+    HINTERNET hSession = WinHttpOpen(L"op-ocr-client/1.0", WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME,
+                                     WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!hSession)
+        return false;
+
+    bool ok = false;
+    HINTERNET hConnect = nullptr;
+    HINTERNET hRequest = nullptr;
+
+    do {
+        hConnect = WinHttpConnect(hSession, url.host.c_str(), url.port, 0);
+        if (!hConnect)
+            break;
+
+        hRequest = WinHttpOpenRequest(hConnect, L"POST", url.path.c_str(), nullptr, WINHTTP_NO_REFERER,
+                                      WINHTTP_DEFAULT_ACCEPT_TYPES, url.secure ? WINHTTP_FLAG_SECURE : 0);
+        if (!hRequest)
+            break;
+
+        WinHttpSetTimeouts(hRequest, timeout_ms, timeout_ms, timeout_ms, timeout_ms);
+
+        static const wchar_t *kHeaders = L"Content-Type: application/json\r\n";
+        if (!WinHttpSendRequest(hRequest, kHeaders, static_cast<DWORD>(-1L), (LPVOID)body.data(),
+                                static_cast<DWORD>(body.size()), static_cast<DWORD>(body.size()), 0)) {
+            break;
+        }
+
+        if (!WinHttpReceiveResponse(hRequest, nullptr))
+            break;
+
+        DWORD size = sizeof(status_code);
+        WinHttpQueryHeaders(hRequest, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_HEADER_NAME_BY_INDEX,
+                            &status_code, &size, WINHTTP_NO_HEADER_INDEX);
+
+        while (true) {
+            DWORD avail = 0;
+            if (!WinHttpQueryDataAvailable(hRequest, &avail)) {
+                break;
+            }
+            if (avail == 0) {
+                ok = true;
+                break;
+            }
+
+            std::string chunk;
+            chunk.resize(avail);
+            DWORD read = 0;
+            if (!WinHttpReadData(hRequest, &chunk[0], avail, &read)) {
+                break;
+            }
+            chunk.resize(read);
+            response.append(chunk);
+        }
+    } while (false);
+
+    if (hRequest)
+        WinHttpCloseHandle(hRequest);
+    if (hConnect)
+        WinHttpCloseHandle(hConnect);
+    WinHttpCloseHandle(hSession);
+
+    return ok;
+}
+
+std::string json_unescape(const std::string &s) {
+    std::string out;
+    out.reserve(s.size());
+    for (size_t i = 0; i < s.size(); ++i) {
+        if (s[i] != '\\') {
+            out.push_back(s[i]);
+            continue;
+        }
+        if (i + 1 >= s.size())
+            break;
+        char c = s[++i];
+        switch (c) {
+        case '"':
+            out.push_back('"');
+            break;
+        case '\\':
+            out.push_back('\\');
+            break;
+        case '/':
+            out.push_back('/');
+            break;
+        case 'b':
+            out.push_back('\b');
+            break;
+        case 'f':
+            out.push_back('\f');
+            break;
+        case 'n':
+            out.push_back('\n');
+            break;
+        case 'r':
+            out.push_back('\r');
+            break;
+        case 't':
+            out.push_back('\t');
+            break;
+        default:
+            out.push_back(c);
+            break;
+        }
+    }
+    return out;
+}
+} // namespace
+
+OcrWrapper::OcrWrapper() : m_endpoint("http://127.0.0.1:8080/api/v1/ocr"), m_timeout_ms(3000) {
+    cout << "OcrWrapper::OcrWrapper(), endpoint=" << m_endpoint << endl;
+}
+
 OcrWrapper::~OcrWrapper() {
     release();
 }
@@ -39,88 +200,144 @@ OcrWrapper *OcrWrapper::getInstance() {
 }
 
 int OcrWrapper::init(const std::wstring &engine, const std::wstring &dllName, const vector<string> &argvs) {
+    std::lock_guard<std::mutex> lock(m_mutex);
 
-    // 只需加载一次
-    if (ocr_engine_init == nullptr) {
-        wchar_t old_path[512] = {};
-        DWORD nlen = GetDllDirectoryW(512, old_path);
+    std::string endpoint = m_endpoint;
+    int timeout_ms = m_timeout_ms;
 
-        ::SetDllDirectoryW(engine.c_str());
-        auto absdllName = engine + L"/" + dllName;
-        auto hdll = LoadLibraryW(absdllName.c_str());
-
-        if (hdll == NULL) {
-            ::SetDllDirectoryW(old_path);
-            cout << "error: LoadLibraryA false:" << GetLastErrorAsString() << endl;
-            return -1;
+    auto maybe_set_endpoint = [&](const std::string &candidate) {
+        const auto v = trim_copy(candidate);
+        if (starts_with_http(v)) {
+            endpoint = v;
         }
-        ocr_engine_init = (ocr_engine_init_t)GetProcAddress(hdll, "ocr_engine_init");
-        ocr_engine_ocr = (ocr_engine_ocr_t)GetProcAddress(hdll, "ocr_engine_ocr");
-        ocr_engine_release = (ocr_engine_release_t)GetProcAddress(hdll, "ocr_engine_release");
-        if (ocr_engine_init && ocr_engine_ocr && ocr_engine_release) {
+    };
+
+    if (!engine.empty()) {
+        maybe_set_endpoint(_ws2string(engine));
+    }
+    if (!dllName.empty()) {
+        maybe_set_endpoint(_ws2string(dllName));
+    }
+
+    for (const auto &arg : argvs) {
+        if (arg.rfind("--url=", 0) == 0) {
+            maybe_set_endpoint(arg.substr(6));
+            continue;
+        }
+        if (arg.rfind("--timeout=", 0) == 0) {
+            const int v = atoi(arg.substr(10).c_str());
+            if (v > 0) {
+                timeout_ms = v;
+            }
+            continue;
+        }
+        if (starts_with_http(arg)) {
+            endpoint = arg;
+        }
+    }
+
+    ParsedUrl parsed;
+    if (!parse_url(endpoint, parsed)) {
+        cout << "SetOcrEngine invalid endpoint: " << endpoint << endl;
+        return -1;
+    }
+    if (parsed.path == L"/") {
+        if (!endpoint.empty() && endpoint.back() == '/') {
+            endpoint += "api/v1/ocr";
         } else {
-            cout << "GetProcAddress false\n";
-            ocr_engine_init = nullptr;
-            ::SetDllDirectoryW(old_path);
-            return -2;
+            endpoint += "/api/v1/ocr";
         }
     }
-    if (m_engine == nullptr) {
-        const int argc = argvs.size();
-        char **argv = new char *[argc];
-        // cout << "ocr_engine_init before\n";
-        for (int i = 0; i < argc; i++) {
-            argv[i] = new char[argvs[i].size() + 1];
-            strcpy(argv[i], argvs[i].c_str());
-            // cout << i << " new: " << "address:" << (void*)(argv[i]) << argv[i] << "\n";
-        }
-        ocr_engine_init(&m_engine, argv, argc);
-        // cout << "ocr_engine_init after\n";
-        for (int i = 0; i < argc; i++) {
-            // cout <<i<< " delete: " << "address:"<<(void*)(argv[i]) << argv[i]<< "\n";
-            delete[] argv[i];
-        }
-        delete[] argv;
-        // cout << " delete\n";
-        //::SetDllDirectoryW(old_path);
-        if (!m_engine) {
-            cout << "ppaddle_init false\n";
-            return -3;
-        }
+
+    if (!parse_url(endpoint, parsed)) {
+        cout << "SetOcrEngine invalid endpoint: " << endpoint << endl;
+        return -1;
     }
+
+    m_endpoint = endpoint;
+    m_timeout_ms = timeout_ms;
+    cout << "SetOcrEngine endpoint=" << m_endpoint << ", timeout=" << m_timeout_ms << "ms" << endl;
     return 0;
 }
-int OcrWrapper::release() {
-    if (m_engine) {
-        ocr_engine_release(m_engine);
-        m_engine = nullptr;
-    }
 
+int OcrWrapper::release() {
+    std::lock_guard<std::mutex> lock(m_mutex);
     return 0;
 }
 
 int OcrWrapper::ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result) {
     const std::lock_guard<std::mutex> lock(m_mutex);
     result.clear();
-    using std::cout;
-    using std::endl;
-    if (m_engine == nullptr)
+
+    if (data == nullptr || w <= 0 || h <= 0 || (bpp != 1 && bpp != 3 && bpp != 4)) {
         return -1;
-    ocr_engine_ocr_result *results;
+    }
+
+    const size_t pixel_bytes_size_t = static_cast<size_t>(w) * static_cast<size_t>(h) * static_cast<size_t>(bpp);
+    if (pixel_bytes_size_t > 64 * 1024 * 1024) {
+        return -2;
+    }
+
+    std::string image_b64;
+    if (!base64_encode(data, static_cast<int>(pixel_bytes_size_t), image_b64)) {
+        cout << "ocr base64 encode failed" << endl;
+        return -3;
+    }
+
+    std::string req = "{\"image\":\"" + image_b64 + "\",\"width\":" + std::to_string(w) +
+                      ",\"height\":" + std::to_string(h) + ",\"bpp\":" + std::to_string(bpp) + "}";
+
+    ParsedUrl parsed;
+    if (!parse_url(m_endpoint, parsed)) {
+        cout << "ocr endpoint invalid: " << m_endpoint << endl;
+        return -4;
+    }
+
+    std::string resp;
+    DWORD status_code = 0;
+    if (!http_post_json(parsed, req, m_timeout_ms, resp, status_code)) {
+        cout << "ocr request failed: endpoint=" << m_endpoint << endl;
+        return -5;
+    }
+    if (status_code != 200) {
+        cout << "ocr http status=" << status_code << ", body=" << resp << endl;
+        return -6;
+    }
+
+    static const std::regex code_re("\\\"code\\\"\\s*:\\s*(-?\\d+)");
+    std::smatch code_match;
+    if (!std::regex_search(resp, code_match, code_re)) {
+        cout << "ocr parse response code failed" << endl;
+        return -7;
+    }
+    const int code = atoi(code_match[1].str().c_str());
+    if (code != 0) {
+        cout << "ocr server code=" << code << ", body=" << resp << endl;
+        return -8;
+    }
+
+    static const std::regex result_re(
+        "\\{\\s*\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"\\\\])*)\\\"\\s*,\\s*\\\"bbox\\\"\\s*:\\s*\\[\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\]\\s*,\\s*\\\"confidence\\\"\\s*:\\s*([-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?)\\s*\\}");
+
     int n = 0;
-    ocr_engine_ocr(m_engine, (void *)data, w, h, bpp, &results, &n);
-    if (n > 0 && results) {
-        for (int i = 0; i < n; i++) {
-            auto &p = *(results + i);
-            ocr_rec_t ts;
-            ts.confidence = p.confidence;
-            ts.left_top = point_t(p.x1, p.y1);
-            ts.right_bottom = point_t(p.x2, p.y2);
-            ts.text = _s2wstring(utf8_to_ansi(p.text));
-            result.push_back(ts);
-            free(results[i].text);
+    for (std::sregex_iterator it(resp.begin(), resp.end(), result_re), end; it != end; ++it) {
+        const auto &m = *it;
+        ocr_rec_t ts;
+        ts.left_top = point_t(atoi(m[2].str().c_str()), atoi(m[3].str().c_str()));
+        ts.right_bottom = point_t(atoi(m[4].str().c_str()), atoi(m[5].str().c_str()));
+        ts.confidence = static_cast<float>(atof(m[6].str().c_str()));
+        const std::string text = json_unescape(m[1].str());
+        ts.text = _s2wstring(utf8_to_ansi(text));
+        result.push_back(ts);
+        ++n;
+    }
+
+    if (n == 0) {
+        static const std::regex empty_result_re("\\\"results\\\"\\s*:\\s*\\[\\s*\\]");
+        if (!std::regex_search(resp, empty_result_re)) {
+            cout << "ocr parse results failed, body=" << resp << endl;
+            return -9;
         }
-        free(results);
     }
 
     return n;

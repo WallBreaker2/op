@@ -3,6 +3,7 @@
 #include "libop.h"
 #include <tchar.h>
 #include "./ImageProc/ImageProc.h"
+#include "./imageProc/OcrWrapper.h"
 #include "./background/opBackground.h"
 #include "./core/Cmder.h"
 #include "./core/globalVar.h"
@@ -1056,13 +1057,12 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr) {
 }
 
 long libop::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
-    string argvs = _ws2string(argv);
+    string argvs = argv ? _ws2string(argv) : "";
     vector<string> vstr;
     split(argvs, vstr, " ");
-
-    // return m_context->image_proc.m_ocr.init(path_of_engine, dll_name, vstr);
-
-    return 0;
+    const std::wstring engine = path_of_engine ? path_of_engine : L"";
+    const std::wstring dll = dll_name ? dll_name : L"";
+    return OcrWrapper::getInstance()->init(engine, dll, vstr) == 0 ? 1 : 0;
 }
 // 设置字库文件
 void libop::SetDict(long idx, const wchar_t *file_name, long *ret) {

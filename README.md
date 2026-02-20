@@ -35,10 +35,22 @@
 *   **安卓支持**: 专为各类主流安卓模拟器定制的截图功能。
 
 ### 📝 OCR (光学字符识别)
-*   **双引擎支持**: 
-    *   **Tesseract**: 由 Google Tesseract 引擎驱动，处理复杂文本识别。
-    *   **Native**: 轻量级、高速的字典匹配算法，适用于固定字体。
+*   **服务化 OCR**:
+    *   通过独立 `ocr_server`（来自 `op_ocr_engine`）提供 OCR 能力。
+    *   `op` 侧通过 HTTP 调用服务，统一 x86/x64 调用路径。
+*   **Native 字典识别**: 轻量级、高速的字典匹配算法，适用于固定字体。
 *   **极速响应**: 专为实时游戏文字识别优化。
+
+### OCR 服务模式（OcrEx / OcrAuto）
+
+- 默认 OCR 服务地址：`http://127.0.0.1:8080/api/v1/ocr`
+- 先启动服务（示例）：
+  ```bash
+  ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080
+  ```
+- 可通过 `SetOcrEngine` 指定服务地址与超时：
+  - `path_of_engine` 或 `dll_name` 可直接传完整 URL
+  - `argv` 支持：`--url=http://127.0.0.1:8080/api/v1/ocr --timeout=5000`
 
 ## 📦 安装 (Installation)
 
@@ -154,11 +166,13 @@ cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBO
     ```bash
     python build.py
     ```
+    默认会生成目录：`build/vs2022-x64-Release`
 
 3.  常用参数:
     ```bash
     # 指定架构构建
     python build.py -a x86
+    # 输出目录: build/vs2022-x86-Release
 
     # 跳过依赖引导（已有完整环境时）
     python build.py --no-bootstrap-deps
@@ -167,11 +181,19 @@ cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBO
     python build.py --vcpkg-root D:/path/to/vcpkg
     ```
 
-4.  传统 CMake 流程（高级用户可选）:
+4.  使用 CMake 直接编译（推荐在 build.py 生成目录上执行）:
+    ```bash
+    cmake --build build/vs2022-x64-Release --config Release
+    # x86:
+    cmake --build build/vs2022-x86-Release --config Release
+    ```
+
+5.  传统 CMake 流程（高级用户可选）:
     ```bash
     cmake -S . -B build/Release
     cmake --build build/Release --config Release
     ```
+    注意：该流程请避免在同一 `-B` 目录内混用 x86/x64，否则会触发 CMake 平台缓存冲突。
 
 ## 🤝 社区与支持
 
