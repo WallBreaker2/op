@@ -316,17 +316,28 @@ int OcrWrapper::ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result) {
         return -8;
     }
 
-    static const std::regex result_re(
-        "\\{\\s*\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"\\\\])*)\\\"\\s*,\\s*\\\"bbox\\\"\\s*:\\s*\\[\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\]\\s*,\\s*\\\"confidence\\\"\\s*:\\s*([-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?)\\s*\\}");
+    static const std::regex obj_re("\\{[^\\{\\}]*\\}");
+    static const std::regex text_re("\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"\\\\])*)\\\"");
+    static const std::regex bbox_re(
+        "\\\"bbox\\\"\\s*:\\s*\\[\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\]");
+    static const std::regex conf_re("\\\"confidence\\\"\\s*:\\s*([-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?)");
 
     int n = 0;
-    for (std::sregex_iterator it(resp.begin(), resp.end(), result_re), end; it != end; ++it) {
-        const auto &m = *it;
+    for (std::sregex_iterator it(resp.begin(), resp.end(), obj_re), end; it != end; ++it) {
+        const std::string obj = it->str();
+        std::smatch text_m;
+        std::smatch bbox_m;
+        std::smatch conf_m;
+        if (!std::regex_search(obj, text_m, text_re) || !std::regex_search(obj, bbox_m, bbox_re) ||
+            !std::regex_search(obj, conf_m, conf_re)) {
+            continue;
+        }
+
         ocr_rec_t ts;
-        ts.left_top = point_t(atoi(m[2].str().c_str()), atoi(m[3].str().c_str()));
-        ts.right_bottom = point_t(atoi(m[4].str().c_str()), atoi(m[5].str().c_str()));
-        ts.confidence = static_cast<float>(atof(m[6].str().c_str()));
-        const std::string text = json_unescape(m[1].str());
+        ts.left_top = point_t(atoi(bbox_m[1].str().c_str()), atoi(bbox_m[2].str().c_str()));
+        ts.right_bottom = point_t(atoi(bbox_m[3].str().c_str()), atoi(bbox_m[4].str().c_str()));
+        ts.confidence = static_cast<float>(atof(conf_m[1].str().c_str()));
+        const std::string text = json_unescape(text_m[1].str());
         ts.text = _s2wstring(utf8_to_ansi(text));
         result.push_back(ts);
         ++n;

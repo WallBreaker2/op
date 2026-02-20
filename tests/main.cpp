@@ -10,8 +10,11 @@
 #include <vector>
 #include <windows.h>
 #include <windowsx.h>
+#include <winhttp.h>
 
 #include <gtest/gtest.h>
+
+#pragma comment(lib, "winhttp.lib")
 
 #include "../libop/background/Hook/opMessage.h"
 #include "../libop/core/optype.h"
@@ -19,6 +22,45 @@
 #include "../libop/libop.h"
 
 using namespace std;
+
+static bool IsOcrServerHealthy() {
+    HINTERNET hSession = WinHttpOpen(L"op-test-health/1.0", WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME,
+                                     WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!hSession)
+        return false;
+
+    HINTERNET hConnect = WinHttpConnect(hSession, L"127.0.0.1", 8080, 0);
+    if (!hConnect) {
+        WinHttpCloseHandle(hSession);
+        return false;
+    }
+
+    HINTERNET hRequest = WinHttpOpenRequest(hConnect, L"GET", L"/health", nullptr, WINHTTP_NO_REFERER,
+                                            WINHTTP_DEFAULT_ACCEPT_TYPES, 0);
+    if (!hRequest) {
+        WinHttpCloseHandle(hConnect);
+        WinHttpCloseHandle(hSession);
+        return false;
+    }
+
+    WinHttpSetTimeouts(hRequest, 1000, 1000, 1000, 1000);
+
+    bool ok = false;
+    if (WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0) &&
+        WinHttpReceiveResponse(hRequest, nullptr)) {
+        DWORD status_code = 0;
+        DWORD size = sizeof(status_code);
+        if (WinHttpQueryHeaders(hRequest, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                WINHTTP_HEADER_NAME_BY_INDEX, &status_code, &size, WINHTTP_NO_HEADER_INDEX)) {
+            ok = (status_code == 200);
+        }
+    }
+
+    WinHttpCloseHandle(hRequest);
+    WinHttpCloseHandle(hConnect);
+    WinHttpCloseHandle(hSession);
+    return ok;
+}
 
 // ============================================================
 // Global Environment: runs SetShowErrorMsg once before all tests
@@ -637,6 +679,11 @@ class OcrTest : public ::testing::Test {
   protected:
     libop op;
     long ret = 0;
+
+    void SetUp() override {
+        ASSERT_TRUE(IsOcrServerHealthy()) << "ocr_server is required for OcrTest. Start it first: "
+                                          << "ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080";
+    }
 };
 
 // --- Dictionary Management ---
