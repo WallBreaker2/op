@@ -99,6 +99,13 @@ ret = op.SetDisplayInput(mode)
 
 说明：`<ptr>` 同时支持十进制与十六进制地址字符串（例如 `0x7FF...`）。
 
+### 文字发送说明（SendString / SendStringIme）
+
+- `SendString(hwnd, str)`：优先向目标窗口当前焦点控件发送 `WM_CHAR`，适合英文、数字和大多数符号输入。
+- `SendStringIme(hwnd, str)`：同时兼容 `WM_CHAR` 与 `WM_IME_CHAR` 路径，用于中文等 IME 相关输入场景。
+- 建议：在后台窗口场景下，先确保目标输入框已获得焦点，再调用发送接口。
+- 键盘布局差异（如全角/半角、非 US 布局）可能影响部分符号字符，请优先在目标机器实测。
+
 ## 🛠️ 源码编译 (Build from Source)
 
 ### 环境要求

@@ -63,6 +63,61 @@ static vector<uchar> BuildBmp32TopDown(int width, int height, const vector<uchar
     return buffer;
 }
 
+struct SendStringWindow {
+    HWND parent = nullptr;
+    HWND edit = nullptr;
+
+    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+        return DefWindowProcW(hwnd, msg, wparam, lparam);
+    }
+
+    bool Create() {
+        static const wchar_t *kClassName = L"OpSendStringTestWindow";
+        static bool class_registered = false;
+        HINSTANCE hinst = GetModuleHandleW(nullptr);
+
+        if (!class_registered) {
+            WNDCLASSW wc = {0};
+            wc.lpfnWndProc = SendStringWindow::WndProc;
+            wc.hInstance = hinst;
+            wc.lpszClassName = kClassName;
+            if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+                return false;
+            class_registered = true;
+        }
+
+        parent = CreateWindowExW(0, kClassName, L"op-sendstring-test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+                                 CW_USEDEFAULT, 320, 120, nullptr, nullptr, hinst, nullptr);
+        if (!parent)
+            return false;
+
+        edit = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | ES_LEFT | WS_TABSTOP, 8, 8, 280,
+                               24, parent, nullptr, hinst, nullptr);
+        if (!edit) {
+            DestroyWindow(parent);
+            parent = nullptr;
+            return false;
+        }
+
+        ShowWindow(parent, SW_SHOW);
+        UpdateWindow(parent);
+        SetActiveWindow(parent);
+        SetFocus(edit);
+        return IsWindow(parent) && IsWindow(edit);
+    }
+
+    wstring GetEditText() const {
+        wchar_t buffer[256] = {0};
+        GetWindowTextW(edit, buffer, static_cast<int>(sizeof(buffer) / sizeof(buffer[0])));
+        return buffer;
+    }
+
+    ~SendStringWindow() {
+        if (parent)
+            DestroyWindow(parent);
+    }
+};
+
 // ============================================================
 // 1. Core Module
 // ============================================================
@@ -153,6 +208,30 @@ TEST(WinApiTest, GetCmdStrLongCommandLine) {
     wstring out;
     op.GetCmdStr(cmd.c_str(), 2000, out);
     EXPECT_NE(out.find(payload.substr(0, 64)), wstring::npos) << "Long command line should not truncate or hang";
+}
+
+TEST(WinApiTest, SendStringToFocusedChildEdit) {
+    libop op;
+    SendStringWindow wnd;
+    ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
+
+    long ret = 0;
+    op.SendString((long)(intptr_t)wnd.parent, L"abc123", &ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_EQ(wnd.GetEditText(), L"abc123");
+}
+
+TEST(WinApiTest, SendStringImeToFocusedChildEdit) {
+    libop op;
+    SendStringWindow wnd;
+    ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
+
+    long ret = 0;
+    op.SendStringIme((long)(intptr_t)wnd.parent, L"中文A", &ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_EQ(wnd.GetEditText(), L"中文A");
 }
 
 TEST(IntegrationTest, BindUnbindFurMarkIfPresent) {
