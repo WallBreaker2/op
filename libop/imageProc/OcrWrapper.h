@@ -1,21 +1,6 @@
 #pragma once
 #include "../core/optype.h"
 #include <mutex>
-#define ocr_engine_ok 0
-#define ocr_engine_err 1
-struct ocr_engine;
-struct ocr_engine_ocr_result {
-    int x1, y1, x2, y2;
-    char *text;
-    float confidence;
-};
-
-typedef int(_stdcall *ocr_engine_init_t)(ocr_engine **obj, char *argv[], int argc);
-
-typedef int(_stdcall *ocr_engine_ocr_t)(ocr_engine *pocr, void *image, int w, int h, int bpp,
-                                        ocr_engine_ocr_result **ppresult, int *num_of_result);
-
-typedef int(_stdcall *ocr_engine_release_t)(ocr_engine *obj);
 
 class OcrWrapper {
   private:
@@ -31,9 +16,7 @@ class OcrWrapper {
     int ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result);
 
   private:
-    static ocr_engine_init_t ocr_engine_init;
-    static ocr_engine_ocr_t ocr_engine_ocr;
-    static ocr_engine_release_t ocr_engine_release;
     std::mutex m_mutex;
-    ocr_engine *m_engine;
+    std::string m_endpoint;
+    int m_timeout_ms;
 };

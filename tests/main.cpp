@@ -774,8 +774,27 @@ TEST_F(OcrTest, WordResultParsing) {
 
 // --- OCR Engine ---
 TEST_F(OcrTest, SetOcrEngine) {
-    long engine_ret = op.SetOcrEngine(L".", L"test_engine.dll", L"");
+    long engine_ret = op.SetOcrEngine(L"http://127.0.0.1:8080/api/v1/ocr", L"", L"--timeout=5000");
     cout << "SetOcrEngine: " << engine_ret << endl;
+    EXPECT_EQ(engine_ret, 1);
+}
+
+TEST_F(OcrTest, SetOcrEngineBaseUrl) {
+    long engine_ret = op.SetOcrEngine(L"http://127.0.0.1:8080", L"", L"");
+    cout << "SetOcrEngine(base url): " << engine_ret << endl;
+    EXPECT_EQ(engine_ret, 1);
+}
+
+TEST_F(OcrTest, SetOcrEngineInvalidUrl) {
+    long engine_ret = op.SetOcrEngine(L"http://", L"", L"--timeout=5000");
+    cout << "SetOcrEngine(invalid): " << engine_ret << endl;
+    EXPECT_EQ(engine_ret, 0);
+}
+
+TEST_F(OcrTest, SetOcrEngineViaDllNameArg) {
+    long engine_ret = op.SetOcrEngine(L"", L"http://127.0.0.1:8080/api/v1/ocr", L"--timeout=2000");
+    cout << "SetOcrEngine(via dll_name): " << engine_ret << endl;
+    EXPECT_EQ(engine_ret, 1);
 }
 
 // ============================================================

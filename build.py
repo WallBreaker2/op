@@ -469,7 +469,10 @@ examples:
         ])
 
     # ── Prepare build directory ──
-    build_dir = project_dir / "build" / build_type
+    # Keep architecture/generator isolated to avoid CMake cache platform clashes
+    # (e.g. Win32 vs x64 in the same binary dir).
+    build_dir_name = f"{generator}-{arch}-{build_type}"
+    build_dir = project_dir / "build" / build_dir_name
     build_dir.mkdir(parents=True, exist_ok=True)
 
     # ── CMake configure ──
@@ -494,6 +497,7 @@ examples:
 
     print(f"\n{'=' * 60}")
     print(f"  Build completed: {build_type} | {generator} | {arch}")
+    print(f"  Build directory: {build_dir}")
     print(f"{'=' * 60}")
 
 
