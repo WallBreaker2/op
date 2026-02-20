@@ -147,13 +147,42 @@ include_directories(
 # BlackBone 仍通过外部提供的 BlackBone.lib 链接
 TARGET_LINK_LIBRARIES(${op_com} "${BLACKBONE_LIBRARY}")
 
-# MinHook 优先通过 vcpkg 提供的 CMake package 进行链接，
-# 若未找到（例如本地使用手工放置的 minhook.lib），则退回到直接链接库名。
-find_package(minhook CONFIG QUIET)
-if (minhook_FOUND)
-  TARGET_LINK_LIBRARIES(${op_com} minhook::minhook)
-else()
-  TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
+# MinHook 优先使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
+set(OP_MINHOOK_LINKED FALSE)
+if (DEFINED ENV{VCPKG_ROOT})
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OP_MINHOOK_STATIC_TRIPLET "x64-windows-static")
+    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x64.lib")
+    set(OP_MINHOOK_LIB_DEBUG_NAME "minhook.x64d.lib")
+  else()
+    set(OP_MINHOOK_STATIC_TRIPLET "x86-windows-static")
+    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x32.lib")
+    set(OP_MINHOOK_LIB_DEBUG_NAME "minhook.x32d.lib")
+  endif()
+
+  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" OP_VCPKG_ROOT)
+  set(OP_MINHOOK_LIB_RELEASE "${OP_VCPKG_ROOT}/installed/${OP_MINHOOK_STATIC_TRIPLET}/lib/${OP_MINHOOK_LIB_RELEASE_NAME}")
+  set(OP_MINHOOK_LIB_DEBUG "${OP_VCPKG_ROOT}/installed/${OP_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_MINHOOK_LIB_DEBUG_NAME}")
+
+  if (EXISTS "${OP_MINHOOK_LIB_RELEASE}")
+    if (EXISTS "${OP_MINHOOK_LIB_DEBUG}")
+      TARGET_LINK_LIBRARIES(${op_com} optimized "${OP_MINHOOK_LIB_RELEASE}" debug "${OP_MINHOOK_LIB_DEBUG}")
+    else()
+      TARGET_LINK_LIBRARIES(${op_com} "${OP_MINHOOK_LIB_RELEASE}")
+    endif()
+    set(OP_MINHOOK_LINKED TRUE)
+    message(STATUS "Using static MinHook library: ${OP_MINHOOK_LIB_RELEASE}")
+  endif()
+endif()
+
+if (NOT OP_MINHOOK_LINKED)
+  # 兼容历史环境：优先 package target，最终退回库名
+  find_package(minhook CONFIG QUIET)
+  if (minhook_FOUND)
+    TARGET_LINK_LIBRARIES(${op_com} minhook::minhook)
+  else()
+    TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
+  endif()
 endif()
 
 # target_link_libraries(libop  ${OpenCV_LIBS})

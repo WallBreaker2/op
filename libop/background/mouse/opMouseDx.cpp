@@ -44,6 +44,9 @@ long opMouseDx::Bind(HWND h, int mode) {
             if (::PathFileExistsW(opFile.data())) {
                 auto iret = proc.modules().Inject(opFile);
                 injected = (iret ? true : false);
+                if (!injected) {
+                    setlog(L"Inject failed. pid=%d hwnd=%d status=0x%X dll=%s", id, _hwnd, iret.status, opFile.c_str());
+                }
             } else {
                 setlog(L"file:<%s> not exists!", opFile.data());
             }
@@ -64,13 +67,17 @@ long opMouseDx::Bind(HWND h, int mode) {
             setlog(L"Inject false.");
         }
     } else {
-        setlog(L"attach false.");
+        setlog(L"attach false. pid=%d hwnd=%d hr=0x%X", id, _hwnd, hr);
     }
 
     proc.Detach();
     // setlog("after Detach");
 
-    return 1;
+    if (ret != 1) {
+        _hwnd = NULL;
+        _mode = 0;
+    }
+    return ret;
 }
 
 long opMouseDx::UnBind() {
@@ -109,7 +116,7 @@ long opMouseDx::UnBind() {
     // setlog("after Detach");
     _hwnd = 0;
     _mode = 0;
-    return 1;
+    return ret;
 }
 
 long opMouseDx::GetCursorPos(long &x, long &y) {

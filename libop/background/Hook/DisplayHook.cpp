@@ -107,7 +107,11 @@ int DisplayHook::setup(HWND hwnd_, int render_type_) {
 
 int DisplayHook::release() {
     is_capture = 0;
-    int ret = kiero::unbind();
+    kiero::unbind();
+    kiero::shutdown();
+    old_address = nullptr;
+    render_hwnd = NULL;
+    render_type = kiero::RenderType::None;
     return 1;
 }
 

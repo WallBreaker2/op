@@ -34,7 +34,7 @@ GENERATORS = {
 BUILD_TYPES = ["Debug", "Release", "RelWithDebInfo"]
 ARCHITECTURES = ["x86", "x64"]
 VCPKG_PACKAGES = ("gtest", "minhook")
-VCPKG_TEST_STATIC_PACKAGES = ("gtest",)
+VCPKG_TEST_STATIC_PACKAGES = ("gtest", "minhook")
 ARCH_TO_TRIPLET = {"x86": "x86-windows", "x64": "x64-windows"}
 ARCH_TO_VS = {"x86": "Win32", "x64": "x64"}
 BOOTSTRAP_STATE_FILE = ".deps-bootstrap-state.json"
@@ -189,6 +189,17 @@ def ensure_vcpkg_packages(
     static_test_triplets: list[str],
     state: dict,
 ) -> bool:
+    requested_pkg_sig = ",".join(VCPKG_PACKAGES)
+    requested_static_sig = ",".join(VCPKG_TEST_STATIC_PACKAGES)
+
+    if state.get("vcpkg_packages_sig") != requested_pkg_sig:
+        state["vcpkg_packages_sig"] = requested_pkg_sig
+        state["vcpkg_triplets"] = []
+
+    if state.get("vcpkg_static_test_packages_sig") != requested_static_sig:
+        state["vcpkg_static_test_packages_sig"] = requested_static_sig
+        state["vcpkg_static_test_triplets"] = []
+
     installed_triplets = set(state.get("vcpkg_triplets", []))
     installed_static_triplets = set(state.get("vcpkg_static_test_triplets", []))
     pending = [triplet for triplet in triplets if triplet not in installed_triplets]
@@ -196,7 +207,7 @@ def ensure_vcpkg_packages(
     if not pending and not pending_static:
         print(f"[INFO] vcpkg dependencies already prepared for: {', '.join(triplets)}")
         if static_test_triplets:
-            print(f"[INFO] Static gtest triplets already prepared for: {', '.join(static_test_triplets)}")
+            print(f"[INFO] Static test triplets already prepared for: {', '.join(static_test_triplets)}")
         return False
 
     if not overlay_dir.exists():
