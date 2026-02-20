@@ -79,6 +79,23 @@ else:
     print("Image not found.")
 ```
 
+### Memory Image Input (SetDisplayInput)
+
+`SetDisplayInput` supports two `mem:` formats:
+
+- `mem:<ptr>`: `ptr` points to BMP bytes in memory (backward compatible).
+- `mem:<ptr>,<w>,<h>,<fmt>`: `ptr` points to raw pixel bytes, with `fmt` in `bgra` or `bgr` (`bgra` by default).
+
+Example (Python, OpenCV BGR buffer):
+
+```python
+img_bgr = cv2.cvtColor(np.asarray(client.screen), cv2.COLOR_RGB2BGR)
+mode = f"mem:{img_bgr.ctypes.data},{img_bgr.shape[1]},{img_bgr.shape[0]},bgr"
+ret = op.SetDisplayInput(mode)
+```
+
+Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF...`).
+
 ## 🛠️ Build from Source
 
 ### Prerequisites
