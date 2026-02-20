@@ -6,6 +6,13 @@
 #include "../core/opEnv.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
+
+namespace {
+long send_op_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
+    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1 : 0;
+}
+}
+
 opMouseDx::opMouseDx() : _hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI()) {
 }
 
@@ -139,8 +146,7 @@ long opMouseDx::MoveTo(int x, int y) {
     // 启用DPI感知后，不需要在进行坐标处理
     // x = x * _dpi;
     // y = y * _dpi;
-    long ret = 0;
-    ret = ::SendMessage(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(x, y)) == 0 ? 1 : 0;
+    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
 
     _x = x, _y = y;
     return ret;
@@ -176,19 +182,11 @@ long opMouseDx::LeftDoubleClick() {
 }
 
 long opMouseDx::LeftDown() {
-    long ret = 0;
-
-    ret = ::SendMessage(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::LeftUp() {
-    long ret = 0;
-
-    ret = ::SendMessage(_hwnd, OP_WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::MiddleClick() {
@@ -200,52 +198,34 @@ long opMouseDx::MiddleClick() {
 }
 
 long opMouseDx::MiddleDown() {
-    long ret = 0;
-
-    ret = ::SendMessage(_hwnd, OP_WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::MiddleUp() {
-    long ret = 0;
-
-    ret = ::SendMessage(_hwnd, OP_WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::RightClick() {
     long ret = 0;
     long r1, r2;
 
-    r1 = ::SendMessage(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+    r1 = send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
     ::Delay(MOUSE_DX_DELAY);
-    r2 = ::SendMessage(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
-    ret = r1 == 0 && r2 == 0 ? 1 : 0;
+    r2 = send_op_message(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+    ret = r1 && r2 ? 1 : 0;
 
     return ret;
 }
 
 long opMouseDx::RightDown() {
-    long ret = 0;
-
-    ret = ::PostMessage(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::RightUp() {
-    long ret = 0;
-
-    ret = ::PostMessage(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::WheelDown() {
-    long ret = 0;
-
     /*
         wParam
         The high-order word indicates the distance the wheel is rotated,
@@ -261,15 +241,9 @@ long opMouseDx::WheelDown() {
         relative to the upper-left corner of the screen.
         */
     // If an application processes this message, it should return zero.
-    ret = ::SendMessage(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(-WHEEL_DELTA, 0), MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(_x, _y));
 }
 
 long opMouseDx::WheelUp() {
-    long ret = 0;
-
-    ret = ::SendMessage(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(WHEEL_DELTA, 0), MAKELPARAM(_x, _y)) == 0 ? 1 : 0;
-
-    return ret;
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(_x, _y));
 }

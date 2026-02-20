@@ -20,6 +20,7 @@ wchar_t InputHook::mutex_name[256];
 void *InputHook::old_address;
 //
 opMouseState InputHook::m_mouseState;
+LONG InputHook::m_wheelDelta = 0;
 bool InputHook::is_hooked = false;
 
 WNDPROC gRawWindowProc = 0;
@@ -71,12 +72,24 @@ int InputHook::release() {
 }
 
 void InputHook::upDataPos(LPARAM lp, int key, bool down) {
-    m_mouseState.lAxisX = lp & 0xffff;
-    m_mouseState.lAxisY = (lp >> 16) & 0xffff;
+    m_mouseState.lAxisX = static_cast<SHORT>(LOWORD(lp));
+    m_mouseState.lAxisY = static_cast<SHORT>(HIWORD(lp));
     setlog("upDataPos x=%d, y=%d", m_mouseState.lAxisX, m_mouseState.lAxisY);
     if (0 <= key && key < 3) {
         m_mouseState.abButtons[key] = down ? 0x80 : 0;
     }
+}
+
+void InputHook::updateWheel(WPARAM wp, LPARAM lp) {
+    m_mouseState.lAxisX = static_cast<SHORT>(LOWORD(lp));
+    m_mouseState.lAxisY = static_cast<SHORT>(HIWORD(lp));
+    m_wheelDelta += static_cast<SHORT>(HIWORD(wp));
+}
+
+LONG InputHook::consumeWheelDelta() {
+    LONG delta = m_wheelDelta;
+    m_wheelDelta = 0;
+    return delta;
 }
 
 int getDinputVtb() {
@@ -170,18 +183,23 @@ HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *this_, DWORD size, LPVO
         return DI_OK;
     } else if (size == sizeof(DIMOUSESTATE)) {
         DIMOUSESTATE state = {};
-        setlog("called DIMOUSESTATE");
-
         state.lX = InputHook::m_mouseState.lAxisX;
         state.lY = InputHook::m_mouseState.lAxisY;
+        state.lZ = InputHook::consumeWheelDelta();
+        state.rgbButtons[0] = InputHook::m_mouseState.abButtons[0];
+        state.rgbButtons[1] = InputHook::m_mouseState.abButtons[1];
+        state.rgbButtons[2] = InputHook::m_mouseState.abButtons[2];
 
         memcpy(ptr, &state, sizeof(state));
         return DI_OK;
     } else if (size == sizeof(DIMOUSESTATE2)) {
         DIMOUSESTATE2 state = {};
-        setlog("called DIMOUSESTATE2");
         state.lX = InputHook::m_mouseState.lAxisX;
         state.lY = InputHook::m_mouseState.lAxisY;
+        state.lZ = InputHook::consumeWheelDelta();
+        state.rgbButtons[0] = InputHook::m_mouseState.abButtons[0];
+        state.rgbButtons[1] = InputHook::m_mouseState.abButtons[1];
+        state.rgbButtons[2] = InputHook::m_mouseState.abButtons[2];
         memcpy(ptr, &state, sizeof(state));
         return DI_OK;
     } else {
@@ -222,7 +240,7 @@ LRESULT CALLBACK opWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
         setlog("OP_WM_RBUTTONUP message");
         break;
     case OP_WM_MOUSEWHEEL:
-        // InputHook::upDataPos(wParam,2,true);
+        InputHook::updateWheel(wParam, lParam);
         setlog("OP_WM_MOUSEWHEEL message");
         break;
     }

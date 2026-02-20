@@ -25,7 +25,10 @@ class InputHook {
     static int release();
     // LParam is pos,key:-1-2,means null, left mid and right, down means keyState
     static void upDataPos(LPARAM, int key, bool down);
+    static void updateWheel(WPARAM, LPARAM);
+    static LONG consumeWheelDelta();
     static opMouseState m_mouseState;
+    static LONG m_wheelDelta;
 };
 
 #endif

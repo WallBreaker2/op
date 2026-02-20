@@ -106,7 +106,7 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
     else if (skeypad == L"windows")
         keypad = INPUT_TYPE::IN_WINDOWS;
     else {
-        setlog(L"error keypad mode: %s", sdisplay.c_str());
+        setlog(L"error keypad mode: %s", skeypad.c_str());
         return 0;
     }
     // step 4.init
