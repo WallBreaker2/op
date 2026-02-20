@@ -4,8 +4,35 @@ ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
 
-# Find Google Test installed via vcpkg
-find_package(GTest CONFIG REQUIRED)
+# Prefer static-triplet GoogleTest to match /MT runtime and avoid gtest.dll startup crashes.
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(OP_GTEST_STATIC_TRIPLET "x64-windows-static")
+else()
+  set(OP_GTEST_STATIC_TRIPLET "x86-windows-static")
+endif()
+
+set(OP_GTEST_STATIC_OK FALSE)
+set(OP_GTEST_LINK_LIBS "")
+
+if(DEFINED ENV{VCPKG_ROOT})
+  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" OP_VCPKG_ROOT)
+  set(OP_GTEST_STATIC_ROOT "${OP_VCPKG_ROOT}/installed/${OP_GTEST_STATIC_TRIPLET}")
+  set(OP_GTEST_STATIC_INCLUDE "${OP_GTEST_STATIC_ROOT}/include")
+  set(OP_GTEST_STATIC_LIB_RELEASE "${OP_GTEST_STATIC_ROOT}/lib/gtest.lib")
+
+  if(EXISTS "${OP_GTEST_STATIC_INCLUDE}/gtest/gtest.h"
+     AND EXISTS "${OP_GTEST_STATIC_LIB_RELEASE}")
+    include_directories("${OP_GTEST_STATIC_INCLUDE}")
+    set(OP_GTEST_LINK_LIBS "${OP_GTEST_STATIC_LIB_RELEASE}")
+    set(OP_GTEST_STATIC_OK TRUE)
+    message(STATUS "Using static GoogleTest triplet: ${OP_GTEST_STATIC_TRIPLET}")
+  endif()
+endif()
+
+if(NOT OP_GTEST_STATIC_OK)
+  find_package(GTest CONFIG REQUIRED)
+  set(OP_GTEST_LINK_LIBS GTest::gtest)
+endif()
 
 set(SRC_FILES "main.cpp" "../libop/com/op_i.c")
 
@@ -17,7 +44,7 @@ include_directories(
 add_executable(op_test ${SRC_FILES})
 
 # Only link GTest::gtest (NOT gtest_main) because we define our own main()
-target_link_libraries(op_test ${op_com} GTest::gtest)
+target_link_libraries(op_test ${op_com} ${OP_GTEST_LINK_LIBS})
 
 # Register as a single CTest entry; Google Test handles sub-test filtering internally
 # (gtest_discover_tests is not used because it runs the exe at build time,

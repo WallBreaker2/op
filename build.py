@@ -34,6 +34,7 @@ GENERATORS = {
 BUILD_TYPES = ["Debug", "Release", "RelWithDebInfo"]
 ARCHITECTURES = ["x86", "x64"]
 VCPKG_PACKAGES = ("gtest", "minhook")
+VCPKG_TEST_STATIC_PACKAGES = ("gtest",)
 ARCH_TO_TRIPLET = {"x86": "x86-windows", "x64": "x64-windows"}
 ARCH_TO_VS = {"x86": "Win32", "x64": "x64"}
 BOOTSTRAP_STATE_FILE = ".deps-bootstrap-state.json"
@@ -185,12 +186,17 @@ def ensure_vcpkg_packages(
     vcpkg_exe: Path,
     overlay_dir: Path,
     triplets: list[str],
+    static_test_triplets: list[str],
     state: dict,
 ) -> bool:
     installed_triplets = set(state.get("vcpkg_triplets", []))
+    installed_static_triplets = set(state.get("vcpkg_static_test_triplets", []))
     pending = [triplet for triplet in triplets if triplet not in installed_triplets]
-    if not pending:
+    pending_static = [triplet for triplet in static_test_triplets if triplet not in installed_static_triplets]
+    if not pending and not pending_static:
         print(f"[INFO] vcpkg dependencies already prepared for: {', '.join(triplets)}")
+        if static_test_triplets:
+            print(f"[INFO] Static gtest triplets already prepared for: {', '.join(static_test_triplets)}")
         return False
 
     if not overlay_dir.exists():
@@ -206,7 +212,16 @@ def ensure_vcpkg_packages(
             f"--overlay-triplets={overlay_dir}",
         ])
 
+    for triplet in pending_static:
+        pkg_args = [f"{pkg}:{triplet}" for pkg in VCPKG_TEST_STATIC_PACKAGES]
+        run([
+            str(vcpkg_exe),
+            "install",
+            *pkg_args,
+        ])
+
     state["vcpkg_triplets"] = sorted(installed_triplets.union(pending))
+    state["vcpkg_static_test_triplets"] = sorted(installed_static_triplets.union(pending_static))
     return True
 
 
@@ -297,7 +312,8 @@ def bootstrap_dependencies(
 
     overlay_dir = project_dir / "ci" / "triplets"
     triplets = [ARCH_TO_TRIPLET[arch] for arch in dep_arches]
-    vcpkg_changed = ensure_vcpkg_packages(vcpkg_exe, overlay_dir, triplets, state)
+    static_test_triplets = [f"{triplet}-static" for triplet in triplets]
+    vcpkg_changed = ensure_vcpkg_packages(vcpkg_exe, overlay_dir, triplets, static_test_triplets, state)
 
     blackbone_root = deps_dir / "BlackBone"
     ensure_blackbone_repo(blackbone_root)
