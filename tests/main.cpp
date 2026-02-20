@@ -139,6 +139,111 @@ TEST(WinApiTest, EnumWindow) {
     wcout << L"EnumWindow (top 50 chars): " << list.substr(0, 50) << L"..." << endl;
 }
 
+TEST(WinApiTest, GetCmdStrEcho) {
+    libop op;
+    wstring out;
+    op.GetCmdStr(L"cmd /c echo op_test_ok", 2000, out);
+    EXPECT_NE(out.find(L"op_test_ok"), wstring::npos) << "GetCmdStr should return command output";
+}
+
+TEST(WinApiTest, GetCmdStrLongCommandLine) {
+    libop op;
+    wstring payload(400, L'a');
+    wstring cmd = L"cmd /c echo " + payload;
+    wstring out;
+    op.GetCmdStr(cmd.c_str(), 2000, out);
+    EXPECT_NE(out.find(payload.substr(0, 64)), wstring::npos) << "Long command line should not truncate or hang";
+}
+
+TEST(IntegrationTest, BindUnbindFurMarkIfPresent) {
+    libop op;
+    const wchar_t *capture_file = L"D:\\code\\op\\build\\furmark_bound_capture.bmp";
+
+    auto parse_hwnds = [&](const wstring &list) -> vector<long> {
+        vector<long> hwnds;
+        wstringstream ss(list);
+        wstring token;
+        while (getline(ss, token, L',')) {
+            if (token.empty())
+                continue;
+            try {
+                hwnds.push_back(stol(token));
+            } catch (...) {
+            }
+        }
+        return hwnds;
+    };
+
+    auto pick_best_furmark_hwnd = [&]() -> long {
+        wstring list;
+        op.EnumWindowByProcess(L"FurMark_GUI.exe", L"", L"", 8 + 16 + 32, list);
+        auto hwnds = parse_hwnds(list);
+        long best_hwnd = 0;
+        long best_area = -1;
+        for (long h : hwnds) {
+            long w = 0, hgt = 0, ok = 0;
+            op.GetClientSize(h, &w, &hgt, &ok);
+            if (ok != 1 || w <= 0 || hgt <= 0)
+                continue;
+
+            wstring title;
+            wstring cls;
+            op.GetWindowTitle(h, title);
+            op.GetWindowClass(h, cls);
+
+            bool looks_like_launcher = (cls.find(L"WindowsForms10") != wstring::npos);
+            if (looks_like_launcher)
+                continue;
+
+            long area = w * hgt;
+            if (area > best_area) {
+                best_area = area;
+                best_hwnd = h;
+            }
+        }
+        return best_hwnd;
+    };
+
+    long hwnd = pick_best_furmark_hwnd();
+    if (hwnd == 0) {
+        GTEST_SKIP() << "FurMark render window not found";
+    }
+
+    const vector<wstring> displays = {L"opengl", L"normal", L"dx"};
+    bool any_bind_ok = false;
+    bool captured = false;
+    for (const auto &display : displays) {
+        for (int i = 0; i < 3; ++i) {
+            long ret = 0;
+            op.BindWindow(hwnd, display.c_str(), L"windows", L"windows", 0, &ret);
+            if (ret == 1) {
+                any_bind_ok = true;
+                wstring color;
+                op.GetColor(10, 10, color);
+                EXPECT_EQ(color.length(), 6u) << "GetColor should return 6 hex chars when bound";
+
+                if (!captured) {
+                    long width = 0, height = 0, size_ret = 0;
+                    op.GetClientSize(hwnd, &width, &height, &size_ret);
+                    ASSERT_EQ(size_ret, 1);
+                    ASSERT_GT(width, 0);
+                    ASSERT_GT(height, 0);
+                    long cap_ret = 0;
+                    op.Capture(0, 0, width, height, capture_file, &cap_ret);
+                    EXPECT_EQ(cap_ret, 1) << "Capture should succeed after FurMark bind";
+                    captured = (cap_ret == 1);
+                }
+            }
+            long unbind_ret = 0;
+            op.UnBindWindow(&unbind_ret);
+            EXPECT_EQ(unbind_ret, 1);
+        }
+    }
+
+    EXPECT_TRUE(any_bind_ok) << "No bind mode succeeded for the detected FurMark window";
+    EXPECT_TRUE(captured) << "No screenshot captured from bound FurMark window";
+}
+
 // ============================================================
 // 4. Mouse & Keyboard Module
 // ============================================================

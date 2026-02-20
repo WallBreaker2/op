@@ -4,11 +4,15 @@
 #include "helpfunc.h"
 #include <chrono>
 #include <iostream>
+#include <vector>
 Pipe::Pipe() {
     _hread = _hwrite = _hread2 = _hwrite2 = nullptr;
     _hprocess = nullptr;
-    _reading = 0;
+    _reading = false;
     _pthread = nullptr;
+    ZeroMemory(&_pi, sizeof(_pi));
+    ZeroMemory(&_si, sizeof(_si));
+    ZeroMemory(&_ai, sizeof(_ai));
 }
 
 Pipe::~Pipe() {
@@ -16,6 +20,8 @@ Pipe::~Pipe() {
 }
 
 int Pipe::open(const string &cmd) {
+    close();
+
     _ai.nLength = sizeof(SECURITY_ATTRIBUTES);
     _ai.bInheritHandle = true;
     _ai.lpSecurityDescriptor = nullptr;
@@ -30,27 +36,36 @@ int Pipe::open(const string &cmd) {
     _si.hStdInput = _hread2;
     _si.wShowWindow = SW_HIDE;
     _si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-    char buf[0xff];
-    memcpy(buf, cmd.data(), sizeof(char) * (1 + cmd.length()));
-    if (!CreateProcessA(NULL, buf, nullptr, nullptr, true, NULL, nullptr, nullptr, &_si, &_pi))
+    std::vector<char> cmdline(cmd.begin(), cmd.end());
+    cmdline.push_back('\0');
+    if (!CreateProcessA(NULL, cmdline.data(), nullptr, nullptr, true, CREATE_NO_WINDOW, nullptr, nullptr, &_si, &_pi))
         return -3;
-    _reading = 1;
+
+    SAFE_CLOSE(_hwrite);
+    SAFE_CLOSE(_hread2);
+
+    _reading = true;
     _pthread = new std::thread(&Pipe::reader, this);
     return 1;
 }
 
 int Pipe::close() {
-    if (_reading) {
-        _reading = 0;
-        on_write("exit");
+    const bool wasReading = _reading.load();
+    _reading = false;
+    if (wasReading) {
+        SAFE_CLOSE(_hwrite2);
 
-        if (::WaitForSingleObject(_pi.hProcess, 1000) == WAIT_TIMEOUT) {
+        if (_pi.hProcess && ::WaitForSingleObject(_pi.hProcess, 1000) == WAIT_TIMEOUT) {
             ::TerminateProcess(_pi.hProcess, 0);
-            TerminateThread(_pthread->native_handle(), -1);
-        } else {
         }
+    }
 
-        _pthread->join();
+    if (_pthread) {
+        if (_pthread->joinable()) {
+            ::CancelSynchronousIo(_pthread->native_handle());
+            SAFE_CLOSE(_hread);
+            _pthread->join();
+        }
     }
     SAFE_DELETE(_pthread);
     SAFE_CLOSE(_hread);
@@ -67,7 +82,7 @@ void Pipe::on_read(const string &info) {
 }
 
 int Pipe::on_write(const string &info) {
-    if (_reading) {
+    if (_reading.load() && _hwrite2) {
         unsigned long wlen = 0;
 
         return WriteFile(_hwrite2, info.data(), info.length() * sizeof(char), &wlen, nullptr);
@@ -79,20 +94,20 @@ void Pipe::reader() {
     const static int buf_size = 1 << 10;
     char buf[buf_size];
     unsigned long read_len = 0;
-    while (_reading) {
+    while (_reading.load()) {
         memset(buf, 0, buf_size * sizeof(char));
-        if (ReadFile(_hread, buf, buf_size - 1, &read_len, NULL)) {
+        if (ReadFile(_hread, buf, buf_size - 1, &read_len, NULL) && read_len > 0) {
             // setlog("readed:%s", buf);
-            on_read(buf);
+            on_read(string(buf, read_len));
         } else {
-            _reading = 0;
+            _reading = false;
             break;
         }
     }
 }
 
 bool Pipe::is_open() {
-    if (_reading) {
+    if (_reading.load() && _pi.hProcess) {
         DWORD code = 0;
         ::GetExitCodeProcess(_pi.hProcess, &code);
         return code == STILL_ACTIVE;

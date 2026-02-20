@@ -17,11 +17,39 @@ SET(TOOLS_SRC_FILES
 
 add_library(tools SHARED ${TOOLS_SRC_FILES})
 
-# 使用 vcpkg 提供的 MinHook imported target（若存在），否则退回到直接链接库名
-if (TARGET minhook::minhook)
-  TARGET_LINK_LIBRARIES(tools minhook::minhook)
-else()
-  TARGET_LINK_LIBRARIES(tools minhook)
+# MinHook 优先使用 vcpkg static triplet 的静态库
+set(OP_TOOLS_MINHOOK_LINKED FALSE)
+if (DEFINED ENV{VCPKG_ROOT})
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OP_TOOLS_MINHOOK_STATIC_TRIPLET "x64-windows-static")
+    set(OP_TOOLS_MINHOOK_LIB_RELEASE_NAME "minhook.x64.lib")
+    set(OP_TOOLS_MINHOOK_LIB_DEBUG_NAME "minhook.x64d.lib")
+  else()
+    set(OP_TOOLS_MINHOOK_STATIC_TRIPLET "x86-windows-static")
+    set(OP_TOOLS_MINHOOK_LIB_RELEASE_NAME "minhook.x32.lib")
+    set(OP_TOOLS_MINHOOK_LIB_DEBUG_NAME "minhook.x32d.lib")
+  endif()
+
+  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" OP_VCPKG_ROOT)
+  set(OP_TOOLS_MINHOOK_LIB_RELEASE "${OP_VCPKG_ROOT}/installed/${OP_TOOLS_MINHOOK_STATIC_TRIPLET}/lib/${OP_TOOLS_MINHOOK_LIB_RELEASE_NAME}")
+  set(OP_TOOLS_MINHOOK_LIB_DEBUG "${OP_VCPKG_ROOT}/installed/${OP_TOOLS_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_TOOLS_MINHOOK_LIB_DEBUG_NAME}")
+
+  if (EXISTS "${OP_TOOLS_MINHOOK_LIB_RELEASE}")
+    if (EXISTS "${OP_TOOLS_MINHOOK_LIB_DEBUG}")
+      TARGET_LINK_LIBRARIES(tools optimized "${OP_TOOLS_MINHOOK_LIB_RELEASE}" debug "${OP_TOOLS_MINHOOK_LIB_DEBUG}")
+    else()
+      TARGET_LINK_LIBRARIES(tools "${OP_TOOLS_MINHOOK_LIB_RELEASE}")
+    endif()
+    set(OP_TOOLS_MINHOOK_LINKED TRUE)
+  endif()
+endif()
+
+if (NOT OP_TOOLS_MINHOOK_LINKED)
+  if (TARGET minhook::minhook)
+    TARGET_LINK_LIBRARIES(tools minhook::minhook)
+  else()
+    TARGET_LINK_LIBRARIES(tools minhook)
+  endif()
 endif()
 
 

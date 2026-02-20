@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <string>
 #include <thread>
 #include <windows.h>
@@ -21,7 +22,7 @@ class Pipe {
     SECURITY_ATTRIBUTES _ai;
     PROCESS_INFORMATION _pi;
     STARTUPINFOA _si;
-    int _reading;
+    std::atomic<bool> _reading;
     std::thread *_pthread;
     void reader();
 };

@@ -64,6 +64,10 @@ long opDxGL::BindEx(HWND hwnd, long render_type) {
                 if (::PathFileExistsW(opFile.data())) {
                     auto iret = proc.modules().Inject(opFile);
                     injected = (iret ? true : false);
+                    if (!injected) {
+                        setlog(L"Inject failed. pid=%d hwnd=%d status=0x%X dll=%s", id, _hwnd, iret.status,
+                               opFile.c_str());
+                    }
                 } else {
                     setlog(L"file:<%s> not exists!", opFile.data());
                 }
@@ -85,7 +89,7 @@ long opDxGL::BindEx(HWND hwnd, long render_type) {
                 setlog(L"Inject false.");
             }
         } else {
-            setlog(L"attach false.");
+            setlog(L"attach false. pid=%d hwnd=%d hr=0x%X", id, _hwnd, hr);
         }
 
         proc.Detach();
@@ -177,6 +181,10 @@ long opDxGL::BindNox(HWND hwnd, long render_type) {
             if (::PathFileExistsW(opFile.data())) {
                 auto iret = proc.modules().Inject(opFile);
                 injected = (iret ? true : false);
+                if (!injected) {
+                    setlog(L"Inject failed. pid=%d hwnd=%d status=0x%X dll=%s", proc.pid(), _hwnd, iret.status,
+                           opFile.c_str());
+                }
             } else {
                 setlog(L"file:<%s> not exists!", opFile.data());
             }
@@ -237,23 +245,31 @@ bool opDxGL::requestCapture(int x1, int y1, int w, int h, Image &img) {
     _pmutex->lock();
     uchar *const ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
     FrameInfo *pInfo = (FrameInfo *)_shmem->data<byte>();
-    static bool first = true;
-    if (first && (pInfo->width != _width || pInfo->height != _height)) {
-        first = false;
-        std::wstringstream ss(std::wstringstream::in | std::wstringstream::out);
-        ss << (*pInfo);
-        setlog(L"error pInfo->width != _width || pInfo->height != _height\nframe info:\n%s", ss.str().data());
+
+    const int src_width = pInfo->width > 0 ? (int)pInfo->width : (int)_width;
+    const int src_height = pInfo->height > 0 ? (int)pInfo->height : (int)_height;
+
+    if (pInfo->width > 0 && pInfo->height > 0 &&
+        ((long)pInfo->width != _width || (long)pInfo->height != _height)) {
+        _width = (long)pInfo->width;
+        _height = (long)pInfo->height;
+    }
+
+    if (src_width <= 0 || src_height <= 0 || x1 < 0 || y1 < 0 || w <= 0 || h <= 0 || x1 + w > src_width ||
+        y1 + h > src_height) {
+        _pmutex->unlock();
+        return false;
     }
 
     if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) { // NORMAL
 
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), ppixels + (i + y1) * 4 * _width + x1 * 4, 4 * w);
+            memcpy(img.ptr<uchar>(i), ppixels + (i + y1) * 4 * src_width + x1 * 4, 4 * w);
         }
     } else {
 
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), ppixels + (_height - 1 - i - y1) * _width * 4 + x1 * 4, 4 * w);
+            memcpy(img.ptr<uchar>(i), ppixels + (src_height - 1 - i - y1) * src_width * 4 + x1 * 4, 4 * w);
         }
     }
 
