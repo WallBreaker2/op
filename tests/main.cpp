@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -28,6 +29,39 @@ class OpEnvironment : public ::testing::Environment {
         op.SetShowErrorMsg(3, &ret);
     }
 };
+
+static std::wstring PtrToWString(const void *ptr, bool hex = false) {
+    std::wstringstream ss;
+    if (hex) {
+        ss << L"0x" << std::hex << reinterpret_cast<uintptr_t>(ptr);
+    } else {
+        ss << reinterpret_cast<uintptr_t>(ptr);
+    }
+    return ss.str();
+}
+
+static vector<uchar> BuildBmp32TopDown(int width, int height, const vector<uchar> &bgra_pixels) {
+    const size_t pixel_bytes = static_cast<size_t>(width) * height * 4;
+    const size_t header_size = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+    vector<uchar> buffer(header_size + pixel_bytes, 0);
+
+    auto *bfh = reinterpret_cast<BITMAPFILEHEADER *>(buffer.data());
+    auto *bih = reinterpret_cast<BITMAPINFOHEADER *>(buffer.data() + sizeof(BITMAPFILEHEADER));
+    bfh->bfType = static_cast<WORD>(0x4d42);
+    bfh->bfOffBits = static_cast<DWORD>(header_size);
+    bfh->bfSize = static_cast<DWORD>(buffer.size());
+
+    bih->biSize = sizeof(BITMAPINFOHEADER);
+    bih->biWidth = width;
+    bih->biHeight = -height;
+    bih->biPlanes = 1;
+    bih->biBitCount = 32;
+    bih->biCompression = BI_RGB;
+    bih->biSizeImage = static_cast<DWORD>(pixel_bytes);
+
+    memcpy(buffer.data() + header_size, bgra_pixels.data(), pixel_bytes);
+    return buffer;
+}
 
 // ============================================================
 // 1. Core Module
@@ -160,6 +194,81 @@ TEST(ImageColorTest, FindColor) {
     long x, y, ret;
     op.FindColor(0, 0, 100, 100, color.c_str(), 0.9, 0, &x, &y, &ret);
     cout << "FindColor ret: " << ret << " at " << x << "," << y << endl;
+}
+
+TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
+    libop op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = 0x01;
+            pixels[idx + 1] = 0x02;
+            pixels[idx + 2] = 0x03;
+            pixels[idx + 3] = 0xff;
+        }
+    }
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring color;
+    op.GetColor(10, 10, color);
+    EXPECT_EQ(color, L"030201");
+}
+
+TEST(ImageColorTest, SetDisplayInputMemRawBgr) {
+    libop op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> raw_bgr(static_cast<size_t>(width) * height * 3, 0);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            auto idx = static_cast<size_t>(y * width + x) * 3;
+            raw_bgr[idx + 0] = 0x28;
+            raw_bgr[idx + 1] = 0x32;
+            raw_bgr[idx + 2] = 0x3c;
+        }
+    }
+    wstring mode = L"mem:" + PtrToWString(raw_bgr.data()) + L",32,32,bgr";
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring color;
+    op.GetColor(10, 10, color);
+    EXPECT_EQ(color, L"3C3228");
+}
+
+TEST(ImageColorTest, SetDisplayInputMemRawHexPointer) {
+    libop op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> raw_bgra(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            auto idx = static_cast<size_t>(y * width + x) * 4;
+            raw_bgra[idx + 0] = 0x11;
+            raw_bgra[idx + 1] = 0x22;
+            raw_bgra[idx + 2] = 0x33;
+            raw_bgra[idx + 3] = 0xff;
+        }
+    }
+    wstring mode = L"mem:" + PtrToWString(raw_bgra.data(), true) + L",32,32,bgra";
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring color;
+    op.GetColor(10, 10, color);
+    EXPECT_EQ(color, L"332211");
 }
 
 // ============================================================

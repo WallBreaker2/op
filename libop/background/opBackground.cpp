@@ -9,8 +9,10 @@
 #include "./display/opGDI.h"
 #include "./display/opWGC.h"
 
+#include "displayInputHelper.h"
 #include "./keypad/winkeypad.h"
 #include "./mouse/opMouseDx.h"
+
 opBackground::opBackground()
     : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin), _keypad(new winkeypad) {
     _display_method = std::make_pair<wstring, wstring>(L"screen", L"");
@@ -227,15 +229,7 @@ long opBackground::get_height() {
     if (displayMethod.first == L"pic") {
         return _pic.height;
     } else if (displayMethod.first == L"mem") {
-        auto strPtr = displayMethod.second;
-#if OP64 == 1
-        auto ptr = (byte *)_wtoi64(strPtr.data());
-#else
-        auto ptr = (byte *)_wtoi(strPtr.data());
-#endif //
-
-        auto bih = (BITMAPINFOHEADER *)(ptr + sizeof(BITMAPFILEHEADER));
-        return bih->biHeight < 0 ? -bih->biHeight : bih->biHeight;
+        return _pic.height;
     } else {
         return _pbkdisplay ? _pbkdisplay->get_height() : 0;
     }
@@ -246,15 +240,7 @@ long opBackground::get_width() {
     if (displayMethod.first == L"pic") {
         return _pic.width;
     } else if (displayMethod.first == L"mem") {
-        auto strPtr = displayMethod.second;
-#if OP64 == 1
-        auto ptr = (byte *)_wtoi64(strPtr.data());
-#else
-        auto ptr = (byte *)_wtoi(strPtr.data());
-#endif //
-
-        auto bih = (BITMAPINFOHEADER *)(ptr + sizeof(BITMAPFILEHEADER));
-        return bih->biWidth;
+        return _pic.width;
     } else {
         return _pbkdisplay ? _pbkdisplay->get_width() : 0;
     }
@@ -352,41 +338,12 @@ long opBackground::set_display_method(const wstring &method) {
         }
         idx = method.find(L"mem:");
         if (idx != wstring::npos) {
-            auto strPtr = method.substr(idx + 4);
-#if OP64 == 1
-            auto ptr = (byte *)_wtoi64(strPtr.data());
-#else
-            auto ptr = (byte *)_wtoi(strPtr.data());
-#endif //
-
-            if (ptr == nullptr) {
+            std::wstring mem_arg;
+            if (!display_input_helper::parse_mem_display_input(method.substr(idx + 4), _pic, mem_arg)) {
                 return 0;
-            }
-            BITMAPFILEHEADER bfh = {0}; // bmp file header
-            BITMAPINFOHEADER bih = {0}; // bmp info header
-            memcpy(&bfh, ptr, sizeof(bfh));
-            memcpy(&bih, ptr + sizeof(bfh), sizeof(bih));
-
-            if (bfh.bfType != static_cast<WORD>(0x4d42))
-                return 0;
-
-            if (bih.biHeight < 0) { // 正常拷贝
-                int h = -bih.biHeight;
-                _pic.create(bih.biWidth, h);
-                /*setlog("mem w=%d h=%d chk=%d",
-                    bih.biWidth, h,
-                    _pic.size() * 4 == bih.biSizeImage ? 1 : 0);*/
-                memcpy(_pic.pdata, ptr + sizeof(bfh) + sizeof(bih), _pic.size() * 4);
-            } else { // 倒过来拷贝
-                int h = bih.biHeight;
-                _pic.create(bih.biWidth, h);
-                for (int i = 0; i < h; i++) {
-                    memcpy(_pic.ptr<uchar>(i), ptr + sizeof(bfh) + sizeof(bih) + (h - 1 - i) * bih.biWidth * 4,
-                           bih.biWidth * 4);
-                }
             }
             _display_method.first = L"mem";
-            _display_method.second = strPtr;
+            _display_method.second = mem_arg;
 
             return 1;
         }

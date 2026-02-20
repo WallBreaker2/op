@@ -34,6 +34,7 @@ AUX_SOURCE_DIRECTORY(./ DIR_SRCS)
 
 SET(SRC_FILES 
 	"./background/opBackground.cpp" 
+	"./background/displayInputHelper.cpp"
 
   "./background/display/opGDI.cpp" 
   "./background/display/opDXGI.cpp" 
