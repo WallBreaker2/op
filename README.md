@@ -106,6 +106,12 @@ ret = op.SetDisplayInput(mode)
 - 建议：在后台窗口场景下，先确保目标输入框已获得焦点，再调用发送接口。
 - 键盘布局差异（如全角/半角、非 US 布局）可能影响部分符号字符，请优先在目标机器实测。
 
+### 后台键鼠模式说明
+
+- `mouse=normal/windows/dx` 均可用，推荐在游戏窗口优先尝试 `dx`。
+- `keypad=normal/normal.hd/windows` 可用；`keypad=dx` 当前未提供。
+- `dx` 模式下，滚轮与按键状态依赖目标进程输入 Hook；若目标进程重启，建议重新 `BindWindow`。
+
 ## 🛠️ 源码编译 (Build from Source)
 
 ### 环境要求

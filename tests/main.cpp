@@ -9,9 +9,11 @@
 #include <thread>
 #include <vector>
 #include <windows.h>
+#include <windowsx.h>
 
 #include <gtest/gtest.h>
 
+#include "../libop/background/Hook/opMessage.h"
 #include "../libop/core/optype.h"
 #include "../libop/imageProc/compute/ThreadPool.h"
 #include "../libop/libop.h"
@@ -115,6 +117,113 @@ struct SendStringWindow {
     ~SendStringWindow() {
         if (parent)
             DestroyWindow(parent);
+    }
+};
+
+struct MouseEventWindow {
+    HWND hwnd = nullptr;
+    int left_down = 0;
+    int left_up = 0;
+    int right_down = 0;
+    int right_up = 0;
+    int wheel_count = 0;
+    int wheel_delta_sum = 0;
+
+    int op_left_down = 0;
+    int op_left_up = 0;
+    int op_right_down = 0;
+    int op_right_up = 0;
+    int op_wheel_count = 0;
+    int op_wheel_delta_sum = 0;
+
+    long last_x = 0;
+    long last_y = 0;
+
+    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+        MouseEventWindow *self = reinterpret_cast<MouseEventWindow *>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+        if (msg == WM_NCCREATE) {
+            auto *cs = reinterpret_cast<CREATESTRUCTW *>(lparam);
+            self = reinterpret_cast<MouseEventWindow *>(cs->lpCreateParams);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+        }
+
+        if (self) {
+            switch (msg) {
+            case WM_LBUTTONDOWN:
+                self->left_down++;
+                self->last_x = GET_X_LPARAM(lparam);
+                self->last_y = GET_Y_LPARAM(lparam);
+                return 0;
+            case WM_LBUTTONUP:
+                self->left_up++;
+                self->last_x = GET_X_LPARAM(lparam);
+                self->last_y = GET_Y_LPARAM(lparam);
+                return 0;
+            case WM_RBUTTONDOWN:
+                self->right_down++;
+                self->last_x = GET_X_LPARAM(lparam);
+                self->last_y = GET_Y_LPARAM(lparam);
+                return 0;
+            case WM_RBUTTONUP:
+                self->right_up++;
+                self->last_x = GET_X_LPARAM(lparam);
+                self->last_y = GET_Y_LPARAM(lparam);
+                return 0;
+            case WM_MOUSEWHEEL:
+                self->wheel_count++;
+                self->wheel_delta_sum += GET_WHEEL_DELTA_WPARAM(wparam);
+                return 0;
+            case OP_WM_LBUTTONDOWN:
+                self->op_left_down++;
+                return 0;
+            case OP_WM_LBUTTONUP:
+                self->op_left_up++;
+                return 0;
+            case OP_WM_RBUTTONDOWN:
+                self->op_right_down++;
+                return 0;
+            case OP_WM_RBUTTONUP:
+                self->op_right_up++;
+                return 0;
+            case OP_WM_MOUSEWHEEL:
+                self->op_wheel_count++;
+                self->op_wheel_delta_sum += static_cast<short>(HIWORD(wparam));
+                return 0;
+            default:
+                break;
+            }
+        }
+        return DefWindowProcW(hwnd, msg, wparam, lparam);
+    }
+
+    bool Create() {
+        static const wchar_t *kClassName = L"OpMouseEventTestWindow";
+        static bool class_registered = false;
+        HINSTANCE hinst = GetModuleHandleW(nullptr);
+
+        if (!class_registered) {
+            WNDCLASSW wc = {0};
+            wc.lpfnWndProc = MouseEventWindow::WndProc;
+            wc.hInstance = hinst;
+            wc.lpszClassName = kClassName;
+            if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+                return false;
+            class_registered = true;
+        }
+
+        hwnd = CreateWindowExW(0, kClassName, L"op-mouseevent-test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+                               400, 260, nullptr, nullptr, hinst, this);
+        if (!hwnd)
+            return false;
+
+        ShowWindow(hwnd, SW_SHOW);
+        UpdateWindow(hwnd);
+        return IsWindow(hwnd);
+    }
+
+    ~MouseEventWindow() {
+        if (hwnd)
+            DestroyWindow(hwnd);
     }
 };
 
@@ -345,6 +454,72 @@ TEST(MouseKeyTest, ClickAndKeyPress) {
 
     op.SetKeypadDelay(L"press", 10, &ret);
     op.KeyPress(VK_ESCAPE, &ret);
+}
+
+TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
+    libop op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow(reinterpret_cast<long>(window.hwnd), L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1) << "BindWindow windows mode should succeed";
+
+    op.MoveTo(30, 40, &ret);
+    EXPECT_EQ(ret, 1);
+    op.LeftClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.RightClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.WheelDown(&ret);
+    EXPECT_EQ(ret, 1);
+    op.WheelUp(&ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_GE(window.left_down, 1);
+    EXPECT_GE(window.left_up, 1);
+    EXPECT_GE(window.right_down, 1);
+    EXPECT_GE(window.right_up, 1);
+    EXPECT_GE(window.wheel_count, 2);
+    EXPECT_EQ(window.wheel_delta_sum, 0);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeWheelAndCustomMessages) {
+    libop op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow(reinterpret_cast<long>(window.hwnd), L"normal", L"dx", L"windows", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX mouse bind unavailable on current environment";
+    }
+
+    op.MoveTo(18, 26, &ret);
+    EXPECT_EQ(ret, 1);
+    op.LeftClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.RightClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.WheelDown(&ret);
+    EXPECT_EQ(ret, 1);
+    op.WheelUp(&ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_GE(window.op_left_down, 1);
+    EXPECT_GE(window.op_left_up, 1);
+    EXPECT_GE(window.op_right_down, 1);
+    EXPECT_GE(window.op_right_up, 1);
+    EXPECT_GE(window.op_wheel_count, 2);
+    EXPECT_EQ(window.op_wheel_delta_sum, 0);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
 }
 
 // ============================================================
