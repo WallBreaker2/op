@@ -82,6 +82,23 @@ else:
     print("未找到图片.")
 ```
 
+### 内存图像输入（SetDisplayInput）
+
+`SetDisplayInput` 支持两种 `mem:` 形式：
+
+- `mem:<ptr>`：`ptr` 指向 BMP 内存（兼容历史行为）。
+- `mem:<ptr>,<w>,<h>,<fmt>`：`ptr` 指向原始像素内存，`fmt` 支持 `bgra` 或 `bgr`（默认 `bgra`）。
+
+示例（Python，OpenCV BGR 内存）：
+
+```python
+img_bgr = cv2.cvtColor(np.asarray(client.screen), cv2.COLOR_RGB2BGR)
+mode = f"mem:{img_bgr.ctypes.data},{img_bgr.shape[1]},{img_bgr.shape[0]},bgr"
+ret = op.SetDisplayInput(mode)
+```
+
+说明：`<ptr>` 同时支持十进制与十六进制地址字符串（例如 `0x7FF...`）。
+
 ## 🛠️ 源码编译 (Build from Source)
 
 ### 环境要求
