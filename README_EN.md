@@ -96,6 +96,13 @@ ret = op.SetDisplayInput(mode)
 
 Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF...`).
 
+### Text Input Notes (SendString / SendStringIme)
+
+- `SendString(hwnd, str)`: prefers `WM_CHAR` to the current focused control under the target window. Best for ASCII letters, digits, and most symbols.
+- `SendStringIme(hwnd, str)`: supports both `WM_CHAR` and `WM_IME_CHAR` paths for IME-related text (for example Chinese).
+- Recommendation: in background-window scenarios, ensure the target edit control already has focus before sending text.
+- Keyboard layout differences (for example full-width/half-width or non-US layouts) can affect symbol input; validate on the target machine.
+
 ## 🛠️ Build from Source
 
 ### Prerequisites

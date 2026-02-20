@@ -7,6 +7,36 @@
 #include <memory>
 #pragma comment(lib, "psapi.lib")
 
+namespace {
+HWND ResolveInputTargetWindow(HWND hwnd) {
+    if (!::IsWindow(hwnd))
+        return nullptr;
+
+    DWORD target_thread = ::GetWindowThreadProcessId(hwnd, nullptr);
+    if (target_thread != 0) {
+        GUITHREADINFO gti = {0};
+        gti.cbSize = sizeof(gti);
+        if (::GetGUIThreadInfo(target_thread, &gti)) {
+            if (::IsWindow(gti.hwndFocus) && (gti.hwndFocus == hwnd || ::IsChild(hwnd, gti.hwndFocus)))
+                return gti.hwndFocus;
+            if (::IsWindow(gti.hwndActive) && (gti.hwndActive == hwnd || ::IsChild(hwnd, gti.hwndActive)))
+                return gti.hwndActive;
+        }
+    }
+
+    return hwnd;
+}
+
+bool SendCharMessage(HWND hwnd, UINT msg, wchar_t ch) {
+    DWORD_PTR result = 0;
+    LRESULT ret = ::SendMessageTimeoutW(hwnd, msg, (WPARAM)ch, (LPARAM)1, SMTO_BLOCK | SMTO_ABORTIFHUNG, 200, &result);
+    if (ret != 0)
+        return true;
+
+    return ::PostMessageW(hwnd, msg, (WPARAM)ch, 0) != 0;
+}
+} // namespace
+
 WinApi::WinApi(void) {
     retstringlen = 0;
     WindowVerion = 0;
@@ -2838,27 +2868,43 @@ bool WinApi::GetClipboard(std::wstring &retstr) {
 }
 
 long WinApi::SendString(HWND hwnd, const wstring &s) {
-    if (::IsWindow(hwnd)) {
-        auto p = s.data();
-        for (int i = 0; i < s.length(); ++i) {
-            ::PostMessageW(hwnd, WM_CHAR, p[i], 0);
-            ::Sleep(5);
-        }
-        return 1;
+    if (!::IsWindow(hwnd))
+        return 0;
+
+    HWND target = ResolveInputTargetWindow(hwnd);
+    if (!::IsWindow(target))
+        return 0;
+
+    auto p = s.data();
+    for (size_t i = 0; i < s.length(); ++i) {
+        bool delivered = SendCharMessage(target, WM_CHAR, p[i]);
+        if (!delivered && p[i] > 0x7f)
+            delivered = SendCharMessage(target, WM_IME_CHAR, p[i]);
+        if (!delivered)
+            return 0;
+        ::Sleep(5);
     }
-    return 0;
+    return 1;
 }
 
 long WinApi::SendStringIme(HWND hwnd, const wstring &s) {
-    if (::IsWindow(hwnd)) {
-        auto p = s.data();
-        for (int i = 0; i < s.length(); ++i) {
-            ::PostMessage(hwnd, WM_IME_CHAR, p[i], 0);
-            ::Sleep(5);
-        }
-        return 1;
+    if (!::IsWindow(hwnd))
+        return 0;
+
+    HWND target = ResolveInputTargetWindow(hwnd);
+    if (!::IsWindow(target))
+        return 0;
+
+    auto p = s.data();
+    for (size_t i = 0; i < s.length(); ++i) {
+        bool delivered = SendCharMessage(target, WM_CHAR, p[i]);
+        if (!delivered)
+            delivered = SendCharMessage(target, WM_IME_CHAR, p[i]);
+        if (!delivered)
+            return 0;
+        ::Sleep(5);
     }
-    return 0;
+    return 1;
 }
 
 long WinApi::RunApp(const wstring &cmd, long mode) {
