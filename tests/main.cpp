@@ -681,8 +681,10 @@ class OcrTest : public ::testing::Test {
     long ret = 0;
 
     void SetUp() override {
-        ASSERT_TRUE(IsOcrServerHealthy()) << "ocr_server is required for OcrTest. Start it first: "
-                                          << "ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080";
+        if (!IsOcrServerHealthy()) {
+            GTEST_SKIP() << "ocr_server is not available; skip OCR integration tests. Start it with: "
+                         << "ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080";
+        }
     }
 };
 
