@@ -1,5 +1,8 @@
 #include "OcrWrapper.h"
 #include "../core/helpfunc.h"
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <wincrypt.h>
 #include <winhttp.h>
 #include <iostream>
@@ -12,12 +15,20 @@ using std::cout;
 using std::endl;
 
 namespace {
+constexpr const char *kTesseractDefaultEndpoint = "http://127.0.0.1:8080/api/v1/ocr";
+constexpr const char *kPaddleDefaultEndpoint = "http://127.0.0.1:8081/api/v1/ocr";
+
 struct ParsedUrl {
     bool secure = false;
     INTERNET_PORT port = 80;
     std::wstring host;
     std::wstring path;
 };
+
+std::string to_lower_copy(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
 
 bool starts_with_http(const std::string &url) {
     return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0;
@@ -29,6 +40,48 @@ std::string trim_copy(const std::string &s) {
         return "";
     const auto end = s.find_last_not_of(" \t\r\n");
     return s.substr(start, end - start + 1);
+}
+
+std::string getenv_trimmed(const char *name) {
+    const char *value = std::getenv(name);
+    if (value == nullptr) {
+        return "";
+    }
+    return trim_copy(value);
+}
+
+bool try_resolve_backend_alias(const std::string &candidate, std::string &endpoint) {
+    const std::string key = to_lower_copy(trim_copy(candidate));
+    if (key.empty()) {
+        return false;
+    }
+
+    if (key == "tesseract" || key == "tess" || key == "ocr_server") {
+        endpoint = kTesseractDefaultEndpoint;
+        return true;
+    }
+    if (key == "paddle" || key == "paddleocr" || key == "paddle_ocr") {
+        endpoint = kPaddleDefaultEndpoint;
+        return true;
+    }
+
+    return false;
+}
+
+bool resolve_endpoint_candidate(const std::string &candidate, std::string &endpoint) {
+    const std::string value = trim_copy(candidate);
+    if (value.empty()) {
+        return false;
+    }
+
+    if (try_resolve_backend_alias(value, endpoint)) {
+        return true;
+    }
+    if (starts_with_http(value)) {
+        endpoint = value;
+        return true;
+    }
+    return false;
 }
 
 bool parse_url(const std::string &url, ParsedUrl &out) {
@@ -53,6 +106,44 @@ bool parse_url(const std::string &url, ParsedUrl &out) {
         out.path = L"/";
     }
     return !out.host.empty();
+}
+
+bool normalize_endpoint(std::string &endpoint) {
+    ParsedUrl parsed;
+    if (!parse_url(endpoint, parsed)) {
+        return false;
+    }
+    if (parsed.path == L"/") {
+        if (!endpoint.empty() && endpoint.back() == '/') {
+            endpoint += "api/v1/ocr";
+        } else {
+            endpoint += "/api/v1/ocr";
+        }
+    }
+    return parse_url(endpoint, parsed);
+}
+
+int parse_positive_int(const std::string &value, int fallback) {
+    if (value.empty()) {
+        return fallback;
+    }
+    const int parsed = atoi(value.c_str());
+    return parsed > 0 ? parsed : fallback;
+}
+
+std::string resolve_default_endpoint() {
+    std::string endpoint;
+    if (resolve_endpoint_candidate(getenv_trimmed("OP_OCR_URL"), endpoint)) {
+        return endpoint;
+    }
+    if (resolve_endpoint_candidate(getenv_trimmed("OP_OCR_BACKEND"), endpoint)) {
+        return endpoint;
+    }
+    return kTesseractDefaultEndpoint;
+}
+
+int resolve_default_timeout_ms() {
+    return parse_positive_int(getenv_trimmed("OP_OCR_TIMEOUT_MS"), 3000);
 }
 
 bool base64_encode(const byte *data, int size, std::string &out) {
@@ -186,7 +277,10 @@ std::string json_unescape(const std::string &s) {
 }
 } // namespace
 
-OcrWrapper::OcrWrapper() : m_endpoint("http://127.0.0.1:8080/api/v1/ocr"), m_timeout_ms(3000) {
+OcrWrapper::OcrWrapper() : m_endpoint(resolve_default_endpoint()), m_timeout_ms(resolve_default_timeout_ms()) {
+    if (!normalize_endpoint(m_endpoint)) {
+        m_endpoint = kTesseractDefaultEndpoint;
+    }
     cout << "OcrWrapper::OcrWrapper(), endpoint=" << m_endpoint << endl;
 }
 
@@ -202,13 +296,13 @@ OcrWrapper *OcrWrapper::getInstance() {
 int OcrWrapper::init(const std::wstring &engine, const std::wstring &dllName, const vector<string> &argvs) {
     std::lock_guard<std::mutex> lock(m_mutex);
 
-    std::string endpoint = m_endpoint;
-    int timeout_ms = m_timeout_ms;
+    std::string endpoint = m_endpoint.empty() ? resolve_default_endpoint() : m_endpoint;
+    int timeout_ms = m_timeout_ms > 0 ? m_timeout_ms : resolve_default_timeout_ms();
 
     auto maybe_set_endpoint = [&](const std::string &candidate) {
-        const auto v = trim_copy(candidate);
-        if (starts_with_http(v)) {
-            endpoint = v;
+        std::string resolved;
+        if (resolve_endpoint_candidate(candidate, resolved)) {
+            endpoint = resolved;
         }
     };
 
@@ -236,20 +330,7 @@ int OcrWrapper::init(const std::wstring &engine, const std::wstring &dllName, co
         }
     }
 
-    ParsedUrl parsed;
-    if (!parse_url(endpoint, parsed)) {
-        cout << "SetOcrEngine invalid endpoint: " << endpoint << endl;
-        return -1;
-    }
-    if (parsed.path == L"/") {
-        if (!endpoint.empty() && endpoint.back() == '/') {
-            endpoint += "api/v1/ocr";
-        } else {
-            endpoint += "/api/v1/ocr";
-        }
-    }
-
-    if (!parse_url(endpoint, parsed)) {
+    if (!normalize_endpoint(endpoint)) {
         cout << "SetOcrEngine invalid endpoint: " << endpoint << endl;
         return -1;
     }

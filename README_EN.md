@@ -33,10 +33,50 @@ Project Features:
 *   **Android Support**: Specialized capture for popular Android emulators.
 
 ### 📝 OCR (Optical Character Recognition)
-*   **Dual Engine**: 
-    *   **Tesseract**: Powered by Google's Tesseract engine for complex text.
-    *   **Native**: Lightweight, high-speed dict-based algorithm for fixed fonts.
+*   **Service-backed OCR**:
+    *   **Tesseract** service is supported by default at `http://127.0.0.1:8080/api/v1/ocr`.
+    *   **PaddleOCR** service can be used at `http://127.0.0.1:8081/api/v1/ocr`.
+*   **Native**: Lightweight, high-speed dict-based algorithm for fixed fonts.
 *   **Speed**: Optimized for real-time game text recognition.
+
+### OCR Service Mode (OcrEx / OcrAuto)
+
+- Default backend is Tesseract at `http://127.0.0.1:8080/api/v1/ocr`.
+- Recommended PaddleOCR endpoint is `http://127.0.0.1:8081/api/v1/ocr`.
+- Start the service first:
+  ```bash
+  # Tesseract HTTP service
+  ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080
+
+  # PaddleOCR HTTP service
+  python -m py_paddle_server.app --host 127.0.0.1 --port 8081 --print-results
+  ```
+- `SetOcrEngine` now supports explicit URLs, backend aliases, and timeout arguments:
+  - `path_of_engine` or `dll_name` can be a full URL
+  - Backend aliases: `tesseract` / `paddle`
+  - `argv` supports `--url=http://127.0.0.1:8080/api/v1/ocr --timeout=5000`
+- Default switching environment variables:
+  - `OP_OCR_BACKEND=tesseract` -> `http://127.0.0.1:8080/api/v1/ocr`
+  - `OP_OCR_BACKEND=paddle` -> `http://127.0.0.1:8081/api/v1/ocr`
+  - `OP_OCR_URL=http://127.0.0.1:9000/api/v1/ocr` overrides the default endpoint
+  - `OP_OCR_TIMEOUT_MS=5000` overrides the default timeout
+
+Python example:
+
+```python
+from win32com.client import Dispatch
+
+op = Dispatch("op.opsoft")
+
+# 1) Switch by backend alias
+op.SetOcrEngine("paddle", "", "--timeout=5000")
+
+# 2) Or use a full URL
+# op.SetOcrEngine("http://127.0.0.1:8081/api/v1/ocr", "", "--timeout=5000")
+
+text = op.OcrAutoFromFile("screen.bmp", 0.8)
+print(text)
+```
 
 ## 📦 Installation
 
