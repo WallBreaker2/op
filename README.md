@@ -43,14 +43,42 @@
 
 ### OCR 服务模式（OcrEx / OcrAuto）
 
-- 默认 OCR 服务地址：`http://127.0.0.1:8080/api/v1/ocr`
+- 默认后端为 Tesseract，默认地址：`http://127.0.0.1:8080/api/v1/ocr`
+- 若切换到 PaddleOCR，推荐地址：`http://127.0.0.1:8081/api/v1/ocr`
 - 先启动服务（示例）：
   ```bash
+  # Tesseract HTTP 服务
   ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080
+
+  # PaddleOCR HTTP 服务
+  python -m py_paddle_server.app --host 127.0.0.1 --port 8081 --print-results
   ```
-- 可通过 `SetOcrEngine` 指定服务地址与超时：
+- 可通过 `SetOcrEngine` 指定服务地址、后端别名与超时：
   - `path_of_engine` 或 `dll_name` 可直接传完整 URL
+  - 也可直接传后端别名：`tesseract` / `paddle`
   - `argv` 支持：`--url=http://127.0.0.1:8080/api/v1/ocr --timeout=5000`
+- 新增默认切换环境变量：
+  - `OP_OCR_BACKEND=tesseract`：默认走 `http://127.0.0.1:8080/api/v1/ocr`
+  - `OP_OCR_BACKEND=paddle`：默认走 `http://127.0.0.1:8081/api/v1/ocr`
+  - `OP_OCR_URL=http://127.0.0.1:9000/api/v1/ocr`：显式覆盖默认服务地址
+  - `OP_OCR_TIMEOUT_MS=5000`：覆盖默认超时
+
+Python 示例：
+
+```python
+from win32com.client import Dispatch
+
+op = Dispatch("op.opsoft")
+
+# 1) 直接指定后端别名
+op.SetOcrEngine("paddle", "", "--timeout=5000")
+
+# 2) 或直接指定完整 URL
+# op.SetOcrEngine("http://127.0.0.1:8081/api/v1/ocr", "", "--timeout=5000")
+
+text = op.OcrAutoFromFile("screen.bmp", 0.8)
+print(text)
+```
 
 ## 📦 安装 (Installation)
 
