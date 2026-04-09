@@ -34,7 +34,16 @@ if(NOT OP_GTEST_STATIC_OK)
   set(OP_GTEST_LINK_LIBS GTest::gtest)
 endif()
 
-set(SRC_FILES "main.cpp" "../libop/com/op_i.c")
+set(SRC_FILES
+  "main.cpp"
+  "test_support.cpp"
+  "core_algorithm_winapi_test.cpp"
+  "mouse_keyboard_test.cpp"
+  "image_color_test.cpp"
+  "ocr_test.cpp"
+  "utils_test.cpp"
+  "../libop/com/op_i.c"
+)
 
 include_directories( 
   ./
