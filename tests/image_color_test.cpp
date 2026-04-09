@@ -111,3 +111,33 @@ TEST(ImageColorTest, SetDisplayInputMemRawHexPointer) {
     op.GetColor(10, 10, color);
     EXPECT_EQ(color, L"332211");
 }
+TEST(ImageColorTest, SetDisplayInputMemBareRawPointerFailsWithoutChangingCurrentInput) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = 0x01;
+            pixels[idx + 1] = 0x02;
+            pixels[idx + 2] = 0x03;
+            pixels[idx + 3] = 0xff;
+        }
+    }
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring valid_mode = L"mem:" + PtrToWString(bmp.data());
+    op.SetDisplayInput(valid_mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    vector<uchar> raw_bgr(static_cast<size_t>(width) * height * 3, 0x7f);
+    wstring invalid_mode = L"mem:" + PtrToWString(raw_bgr.data());
+    op.SetDisplayInput(invalid_mode.c_str(), &ret);
+    EXPECT_EQ(ret, 0) << "Bare raw pointers must include width/height/format metadata";
+
+    wstring color;
+    op.GetColor(1, 1, color);
+    EXPECT_EQ(color, L"030201") << "Failed mem mode parsing should not clobber the previous display input";
+}

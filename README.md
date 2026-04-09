@@ -137,6 +137,8 @@ mode = f"mem:{img_bgr.ctypes.data},{img_bgr.shape[1]},{img_bgr.shape[0]},bgr"
 ret = op.SetDisplayInput(mode)
 ```
 
+注意：OpenCV/Numpy 的原始像素内存必须使用完整的 `mem:<ptr>,<w>,<h>,<fmt>` 形式。裸 `mem:<ptr>` 会按 BMP 内存解析，传入原始像素指针时将返回 `0`。
+
 说明：`<ptr>` 同时支持十进制与十六进制地址字符串（例如 `0x7FF...`）。
 
 ### 文字发送说明（SendString / SendStringIme）

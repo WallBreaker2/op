@@ -58,7 +58,6 @@ HRESULT __stdcall myCoCreateInstance(_In_ REFCLSID rclsid, _In_opt_ LPUNKNOWN pU
     }
     // return -1;
     *ppv = 0;
-    printf("myCoCreateInstance\n");
 
     HMODULE hdll = LoadLibraryA(dllpathA);
     if (!hdll) {

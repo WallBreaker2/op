@@ -1,5 +1,6 @@
 #include "test_support.h"
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -94,6 +95,26 @@ TEST(WinApiTest, GetCmdStrLongCommandLine) {
     wstring out;
     op.GetCmdStr(cmd.c_str(), 2000, out);
     EXPECT_NE(out.find(payload.substr(0, 64)), wstring::npos) << "Long command line should not truncate or hang";
+}
+
+TEST(WinApiTest, GetCmdStrReturnsPartialOutputOnTimeout) {
+    libop op;
+    wstring out;
+    const auto start = std::chrono::steady_clock::now();
+    op.GetCmdStr(L"cmd /c \"echo before & ping 127.0.0.1 -n 3 >nul & echo after\"", 200, out);
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+
+    EXPECT_NE(out.find(L"before"), wstring::npos) << "Expected early output before timeout";
+    EXPECT_EQ(out.find(L"after"), wstring::npos) << "Timed out command should not wait for trailing output";
+    EXPECT_LT(elapsed.count(), 1500) << "GetCmdStr should return promptly after timeout";
+}
+
+TEST(WinApiTest, GetCmdStrHandlesLargeOutputWithoutHanging) {
+    libop op;
+    wstring out;
+    op.GetCmdStr(L"cmd /c for /L %i in (1,1,256) do @echo 0123456789abcdefghijklmnopqrstuvwxyz", 2000, out);
+    EXPECT_NE(out.find(L"0123456789abcdefghijklmnopqrstuvwxyz"), wstring::npos);
+    EXPECT_GT(out.size(), 1024u) << "Expected a sizable chunk of output from the loop command";
 }
 
 TEST(WinApiTest, SendStringToFocusedChildEdit) {

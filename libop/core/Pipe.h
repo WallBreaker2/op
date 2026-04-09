@@ -10,10 +10,11 @@ class Pipe {
     Pipe();
     virtual ~Pipe();
     int open(const string &cmd);
-    int close();
+    int close(DWORD process_wait_ms = 1000);
     virtual void on_read(const string &info);
     virtual int on_write(const string &info);
     bool is_open();
+    bool wait_for_exit(DWORD timeout_ms);
 
   private:
     handle_t _hread, _hwrite;
@@ -26,3 +27,5 @@ class Pipe {
     std::thread *_pthread;
     void reader();
 };
+
+

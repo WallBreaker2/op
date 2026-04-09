@@ -150,11 +150,12 @@ bool read_bmp_image(byte *ptr, Image &dst) {
 namespace display_input_helper {
 
 bool parse_mem_display_input(const std::wstring &method, Image &output, std::wstring &normalized_method) {
-    normalized_method = trim_ws(method);
-    auto parts = split_csv(normalized_method);
+    const std::wstring candidate_method = trim_ws(method);
+    auto parts = split_csv(candidate_method);
+    Image parsed;
 
     if (parts.size() >= 3) {
-        if (parts.size() > 4) {
+        if (parts.size() != 3 && parts.size() != 4) {
             return false;
         }
         byte *ptr = nullptr;
@@ -172,14 +173,26 @@ bool parse_mem_display_input(const std::wstring &method, Image &output, std::wst
             fmt = parts[3];
             std::transform(fmt.begin(), fmt.end(), fmt.begin(), ::towlower);
         }
-        return copy_raw_image(ptr, width, height, fmt, output);
+        if (!copy_raw_image(ptr, width, height, fmt, parsed)) {
+            return false;
+        }
+        output = parsed;
+        normalized_method = candidate_method;
+        return true;
     }
 
     byte *ptr = nullptr;
-    if (!parse_ptr(normalized_method, ptr)) {
+    if (!parse_ptr(candidate_method, ptr)) {
         return false;
     }
-    return read_bmp_image(ptr, output);
+    if (!read_bmp_image(ptr, parsed)) {
+        return false;
+    }
+    output = parsed;
+    normalized_method = candidate_method;
+    return true;
 }
 
 } // namespace display_input_helper
+
+

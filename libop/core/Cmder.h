@@ -8,17 +8,15 @@ class Cmder : public Pipe {
     }
     string GetCmdStr(const string &cmd, size_t milseconds) {
         _readed.clear();
-        open(cmd);
-        if (is_open()) {
-            const ULONGLONG deadline = ::GetTickCount64() + static_cast<ULONGLONG>(milseconds);
-            while (is_open() && ::GetTickCount64() < deadline) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            close();
-        }
+        if (open(cmd) <= 0)
+            return _readed;
+
+        wait_for_exit(static_cast<DWORD>(milseconds));
+        close(0);
         return _readed;
     }
 
   private:
     string _readed;
 };
+

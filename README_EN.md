@@ -134,6 +134,8 @@ mode = f"mem:{img_bgr.ctypes.data},{img_bgr.shape[1]},{img_bgr.shape[0]},bgr"
 ret = op.SetDisplayInput(mode)
 ```
 
+Note: raw OpenCV/Numpy buffers must use the full `mem:<ptr>,<w>,<h>,<fmt>` form. A bare `mem:<ptr>` is interpreted as BMP bytes and will return `0` for raw pixel buffers.
+
 Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF...`).
 
 ### Text Input Notes (SendString / SendStringIme)
