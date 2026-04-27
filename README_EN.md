@@ -92,6 +92,50 @@ print(text)
     regsvr32 op_x64.dll
     ```
 
+### Registration-Free COM
+
+If running `regsvr32` as Administrator is not possible, use registration-free COM (side-by-side activation):
+
+**1. Create an application manifest `YourApp.exe.manifest`:**
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <file name="op_x86.dll">
+    <comClass
+        clsid="{12bec402-a06e-4fad-a7d4-830f967374c6}"
+        threadingModel="Apartment"
+        progid="op.opsoft" />
+  </file>
+</assembly>
+```
+
+**2. C# example** (.NET Framework / .NET 8+):
+
+```csharp
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    [ComImport, Guid("12bec402-a06e-4fad-a7d4-830f967374c6")]
+    private class OpSoft { }
+
+    static void Main()
+    {
+        // Registration-free COM activation (place op_x86.dll or op_x64.dll in the
+        // application directory, and ensure YourApp.exe.manifest matches the exe name)
+        dynamic op = new OpSoft();
+        Console.WriteLine($"OP Version: {op.Ver()}");
+    }
+}
+```
+
+Notes:
+- The manifest file must be named `<YourExeName>.exe.manifest` (e.g. `MyApp.exe.manifest`) and placed alongside the exe.
+- For 64-bit applications, replace `op_x86.dll` with `op_x64.dll` in the manifest.
+- This approach requires no Administrator privileges and no `regsvr32` call.
+
 ## 🚀 Quick Start (Python)
 
 Here is a simple example using Python to load the plugin and find an image.
@@ -119,6 +163,19 @@ else:
     print("Image not found.")
 ```
 
+Quick C# example (host bitness must match `op_x86.dll` / `op_x64.dll`):
+
+```csharp
+using System;
+
+var opType = Type.GetTypeFromProgID("op.opsoft");
+dynamic op = Activator.CreateInstance(opType!);
+
+Console.WriteLine($"Version: {op.Ver()}");
+int ret = op.BindWindow(hwnd, "gdi", "windows", "windows", 0);
+Console.WriteLine($"BindWindow: {ret}");
+```
+
 ### Memory Image Input (SetDisplayInput)
 
 `SetDisplayInput` supports two `mem:` formats:
@@ -144,6 +201,22 @@ Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF.
 - `SendStringIme(hwnd, str)`: supports both `WM_CHAR` and `WM_IME_CHAR` paths for IME-related text (for example Chinese).
 - Recommendation: in background-window scenarios, ensure the target edit control already has focus before sending text.
 - Keyboard layout differences (for example full-width/half-width or non-US layouts) can affect symbol input; validate on the target machine.
+
+### Background Input Notes
+
+- `mouse=normal/windows/dx` are supported. For game windows, try `dx` first.
+- `keypad=normal/normal.hd/windows` are supported. `keypad=dx` is not currently available.
+- In `dx` mode, wheel behavior and key state handling depend on the target-process input hook. Re-run `BindWindow` after the target process restarts.
+- Background hotkeys, wheel input, and some game-specific input paths depend on whether the target accepts window messages or injected hook events. They cannot be guaranteed across all games.
+- If a background key combination is business-critical, validate it on the target machine with a minimal script first. Renderer choice, anti-cheat, and focus behavior all matter.
+
+### Troubleshooting Notes
+
+- `MoveToEx(x, y, w, h)` currently returns a numeric status (`LONG`), not a string. If an external wiki says otherwise, trust the exported interface in this repository.
+- `OcrFromFile(file, color_format, sim)` applies `color_format` during recognition. If the result is unexpected, verify that the foreground/background color range matches the source image.
+- For `C#` / `.NET`, make sure the host process bitness matches `op_x86.dll` or `op_x64.dll`. Bitness mismatch often looks like object creation succeeds but image/color or OCR calls fail later.
+- In `PySide6` / `QThread` style flows, avoid force-killing worker threads with `terminate()`. Prefer cooperative shutdown and create/release the COM object inside the worker thread.
+- See `doc/open_issues_scan.md` for a maintained triage summary of current open issues.
 
 ## 🛠️ Build from Source
 

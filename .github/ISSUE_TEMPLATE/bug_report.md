@@ -23,16 +23,11 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Environment:**
+ - OS: [e.g. Windows 10 22H2, Windows 11 23H2]
+ - OP Version: [e.g. 0.4.6.0, check with `op.Ver()`]
+ - Architecture: [x86 / x64]
+ - Language: [e.g. Python 3.12, C#, C++, Lua]
 
 **Additional context**
 Add any other context about the problem here.

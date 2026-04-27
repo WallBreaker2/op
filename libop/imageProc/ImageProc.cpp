@@ -502,11 +502,9 @@ long ImageProc::OcrFromFile(const wstring &files, const wstring &color, double s
     if (sim < 0. || sim > 1.)
         sim = 1.;
     wstring fullpath;
-    vector<color_df_t> colors;
-    str2colordfs(color, colors);
     if (Path2GlobalPath(files, _curr_path, fullpath)) {
         _src.read(fullpath.data());
-        return OCR(L"", sim, retstr);
+        return OCR(color, sim, retstr);
     }
     return 0;
 }

@@ -1,5 +1,6 @@
 #include "test_support.h"
 
+#include <chrono>
 #include <iostream>
 #include <thread>
 
@@ -63,6 +64,35 @@ TEST(MouseKeyTest, ClickAndKeyPress) {
     op.KeyPress(VK_ESCAPE, &ret);
 }
 
+TEST(MouseKeyTest, EscKeyMapsToEscapeNotCancel) {
+    libop op;
+    long ret = 0;
+    InputResetGuard guard;
+
+    ASSERT_TRUE(SendKeyboardInput(VK_ESCAPE, 0));
+    guard.key_down = true;
+    guard.key_vk = VK_ESCAPE;
+    ::Sleep(20);
+    op.GetKeyState(VK_ESCAPE, &ret);
+    EXPECT_EQ(ret, 1);
+}
+
+TEST(MouseKeyTest, NumpadKeyMappings) {
+    EXPECT_NE(VK_NUMPAD0, '0');
+    EXPECT_NE(VK_NUMPAD1, '1');
+
+    libop op;
+    long ret = 0;
+    InputResetGuard guard;
+
+    ASSERT_TRUE(SendKeyboardInput(VK_NUMPAD5, 0));
+    guard.key_down = true;
+    guard.key_vk = VK_NUMPAD5;
+    ::Sleep(20);
+    op.GetKeyState(VK_NUMPAD5, &ret);
+    EXPECT_EQ(ret, 1);
+}
+
 TEST(MouseKeyTest, GetKeyStateTracksMouseButtons) {
     libop op;
     long ret = 0;
@@ -112,6 +142,59 @@ TEST(MouseKeyTest, WaitKeyUsesNormalizedKeyStateForMouseButtons) {
     ::Sleep(20);
     op.GetKeyState(VK_LBUTTON, &ret);
     EXPECT_EQ(ret, 0);
+}
+
+TEST(MouseKeyTest, WaitKeyImmediateCheckReturnsQuickly) {
+    libop op;
+    long ret = -1;
+    auto start = std::chrono::steady_clock::now();
+    op.WaitKey(VK_LBUTTON, 0, &ret);
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+    EXPECT_LT(elapsed, 50);
+    EXPECT_TRUE(ret == 0 || ret == 1);
+}
+
+TEST(MouseKeyTest, WaitKeyScanAllImmediate) {
+    libop op;
+    long ret = -1;
+    auto start = std::chrono::steady_clock::now();
+    op.WaitKey(0, 0, &ret);
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+    EXPECT_LT(elapsed, 50);
+    EXPECT_TRUE(ret == 0 || (ret >= 1 && ret <= 254));
+}
+
+TEST(MouseKeyTest, WaitKeyScanAllWithWaitFindsKey) {
+    libop op;
+    long ret = 0;
+    std::thread worker([] {
+        ::Sleep(100);
+        INPUT input = {0};
+        input.type = INPUT_KEYBOARD;
+        input.ki.wVk = VK_SPACE;
+        ::SendInput(1, &input, sizeof(INPUT));
+        ::Sleep(50);
+        input.ki.dwFlags = KEYEVENTF_KEYUP;
+        ::SendInput(1, &input, sizeof(INPUT));
+    });
+    op.WaitKey(0, 500, &ret);
+    worker.join();
+    EXPECT_TRUE(ret >= 1 && ret <= 254);
+}
+
+TEST(MouseKeyTest, WaitKeySpecificKeyZeroTimeout) {
+    libop op;
+    long ret = 0;
+    InputResetGuard guard;
+
+    ASSERT_TRUE(SendKeyboardInput('A', 0));
+    guard.key_down = true;
+    guard.key_vk = 'A';
+    ::Sleep(20);
+    op.WaitKey('A', 0, &ret);
+    EXPECT_TRUE(ret == 0 || ret == 'A');
 }
 
 TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
