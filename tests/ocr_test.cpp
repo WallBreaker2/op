@@ -103,6 +103,16 @@ TEST_F(OcrFixture, OcrFromFile) {
     ExpectHelloWorldDigits(text);
 }
 
+TEST_F(OcrFixture, OcrFromFileWithColorFilter) {
+    const std::wstring path = GetGeneratedOcrBmpPath();
+    ASSERT_TRUE(test_support::CreateConsoleLikeBmp(path, L"Hello World! 12345"));
+
+    std::wstring text;
+    op.OcrFromFile(path.c_str(), L"ffffff-000000", 0.8, text);
+    wcout << L"OcrFromFile(color filtered, " << path << L"): " << (text.empty() ? L"(empty)" : text) << endl;
+    ExpectHelloWorldDigits(text);
+}
+
 TEST_F(OcrFixture, OcrAutoFromFile) {
     const std::wstring path = GetGeneratedOcrBmpPath();
     ASSERT_TRUE(test_support::CreateConsoleLikeBmp(path, L"Hello World! 12345"));

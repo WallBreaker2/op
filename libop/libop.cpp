@@ -68,7 +68,7 @@ libop::libop() : m_context(std::make_unique<op_context>()) {
     _vkmap[L"space"] = L' ';
     _vkmap[L"cap"] = VK_CAPITAL;
     _vkmap[L"tab"] = VK_TAB;
-    _vkmap[L"esc"] = VK_CANCEL;
+    _vkmap[L"esc"] = VK_ESCAPE;
     _vkmap[L"enter"] = L'\r';
     _vkmap[L"up"] = VK_UP;
     _vkmap[L"down"] = VK_DOWN;
@@ -93,6 +93,23 @@ libop::libop() : m_context(std::make_unique<op_context>()) {
     _vkmap[L"f10"] = VK_F10;
     _vkmap[L"f11"] = VK_F11;
     _vkmap[L"f12"] = VK_F12;
+    // Numpad keys
+    _vkmap[L"num0"] = VK_NUMPAD0;
+    _vkmap[L"num1"] = VK_NUMPAD1;
+    _vkmap[L"num2"] = VK_NUMPAD2;
+    _vkmap[L"num3"] = VK_NUMPAD3;
+    _vkmap[L"num4"] = VK_NUMPAD4;
+    _vkmap[L"num5"] = VK_NUMPAD5;
+    _vkmap[L"num6"] = VK_NUMPAD6;
+    _vkmap[L"num7"] = VK_NUMPAD7;
+    _vkmap[L"num8"] = VK_NUMPAD8;
+    _vkmap[L"num9"] = VK_NUMPAD9;
+    _vkmap[L"numlock"] = VK_NUMLOCK;
+    _vkmap[L"num."] = VK_DECIMAL;
+    _vkmap[L"num*"] = VK_MULTIPLY;
+    _vkmap[L"num+"] = VK_ADD;
+    _vkmap[L"num-"] = VK_SUBTRACT;
+    _vkmap[L"num/"] = VK_DIVIDE;
 
     m_context->opPath = opEnv::getBasePath();
 
@@ -652,7 +669,7 @@ void libop::KeyUpChar(const wchar_t *vk_code, long *ret) {
 }
 
 void libop::WaitKey(long vk_code, long time_out, long *ret) {
-    unsigned long t = time_out <= 0 ? 0xffffffffu : time_out;
+    unsigned long t = time_out < 0 ? 0xffffffffu : static_cast<unsigned long>(time_out);
     *ret = m_context->bkproc._keypad->WaitKey(vk_code, t);
 }
 

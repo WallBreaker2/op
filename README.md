@@ -94,6 +94,50 @@ print(text)
     regsvr32 op_x64.dll
     ```
 
+### 免注册 COM 调用 (Registration-Free COM)
+
+若无法以管理员身份运行 `regsvr32`，可使用免注册 COM（Registration-Free Activation）：
+
+**1. 创建应用清单文件 `YourApp.exe.manifest`：**
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <file name="op_x86.dll">
+    <comClass
+        clsid="{12bec402-a06e-4fad-a7d4-830f967374c6}"
+        threadingModel="Apartment"
+        progid="op.opsoft" />
+  </file>
+</assembly>
+```
+
+**2. C# 调用示例** (.NET Framework / .NET 8+)：
+
+```csharp
+using System;
+using System.Runtime.InteropServices;
+
+class Program
+{
+    [ComImport, Guid("12bec402-a06e-4fad-a7d4-830f967374c6")]
+    private class OpSoft { }
+
+    static void Main()
+    {
+        // 免注册创建 COM 对象（需确保 op_x86.dll 或 op_x64.dll 在程序目录下，
+        // 且 YourApp.exe.manifest 与 exe 同名同目录）
+        dynamic op = new OpSoft();
+        Console.WriteLine($"OP 版本: {op.Ver()}");
+    }
+}
+```
+
+注意事项：
+- 清单文件名必须为 `<YourExeName>.exe.manifest`（例如 `MyApp.exe.manifest`），且与 exe 同一目录。
+- 若使用 64 位程序，将清单中的 `op_x86.dll` 替换为 `op_x64.dll`。
+- 此方式无需管理员权限，无需运行 `regsvr32`。
+
 ## 🚀 快速开始 (Python)
 
 以下是一个使用 Python 调用插件进行找图的简单示例。
@@ -120,6 +164,19 @@ if ret == 1:
     op.LeftClick()
 else:
     print("未找到图片.")
+```
+
+快速示例（C#，需与 `op_x86.dll` / `op_x64.dll` 位数一致）：
+
+```csharp
+using System;
+
+var opType = Type.GetTypeFromProgID("op.opsoft");
+dynamic op = Activator.CreateInstance(opType!);
+
+Console.WriteLine($"插件版本: {op.Ver()}");
+int ret = op.BindWindow(hwnd, "gdi", "windows", "windows", 0);
+Console.WriteLine($"BindWindow: {ret}");
 ```
 
 ### 内存图像输入（SetDisplayInput）
@@ -153,6 +210,16 @@ ret = op.SetDisplayInput(mode)
 - `mouse=normal/windows/dx` 均可用，推荐在游戏窗口优先尝试 `dx`。
 - `keypad=normal/normal.hd/windows` 可用；`keypad=dx` 当前未提供。
 - `dx` 模式下，滚轮与按键状态依赖目标进程输入 Hook；若目标进程重启，建议重新 `BindWindow`。
+- 后台组合键、滚轮、以及部分游戏内输入是否生效，取决于目标程序是否接受窗口消息或 Hook 注入后的输入路径；这类场景无法保证对所有游戏一致生效。
+- 若后台组合键必须稳定触发，请优先在目标机器上用最小脚本实测，不同渲染后端、反作弊、焦点策略都会影响结果。
+
+### 常见排查与限制
+
+- `MoveToEx(x, y, w, h)` 当前返回的是数值状态（`LONG`），不是字符串；若外部 wiki 与实际行为不一致，请以仓库源码导出的接口为准。
+- `OcrFromFile(file, color_format, sim)` 会按 `color_format` 参与识别；若结果异常，请先确认传入颜色串与图片前景/背景是否匹配。
+- `C#` / `.NET` 调用时，请确保宿主进程位数与 `op_x86.dll` / `op_x64.dll` 一致；位数不匹配时，常见表现是接口可创建但图色/OCR调用异常。
+- 若在 `PySide6` / `QThread` 等线程场景中使用 COM 对象，请避免 `terminate()` 之类的强制终止；优先使用协作式退出并在线程内创建/释放对象。
+- 更多 triage 背景可参考 `doc/open_issues_scan.md`。
 
 ## 🛠️ 源码编译 (Build from Source)
 

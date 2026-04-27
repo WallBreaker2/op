@@ -222,11 +222,20 @@ long winkeypad::KeyUp(long vk_code) {
 
 long winkeypad::WaitKey(long vk_code, unsigned long time_out) {
     auto deadline = ::GetTickCount64() + time_out;
-    while (::GetTickCount64() < deadline) {
-        if (GetKeyState(vk_code))
-            return 1;
-        ::Sleep(1);
-    }
+    do {
+        if (vk_code == 0) {
+            for (int i = 1; i < 255; ++i) {
+                if (::GetAsyncKeyState(i) & 0x8000)
+                    return i;
+            }
+            if (time_out == 0) return 0;
+        } else {
+            if (GetKeyState(vk_code))
+                return vk_code;
+            if (time_out == 0) return 0;
+        }
+        if (time_out > 0) ::Sleep(1);
+    } while (::GetTickCount64() < deadline);
     return 0;
 }
 
