@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue *)",
+      "WebSearch",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl -s \"https://api.github.com/repos/WallBreaker2/op/issues?state=open&sort=created&direction=asc&per_page=50\")",
+      "Bash(curl -s \"https://api.github.com/repos/WallBreaker2/op/issues?state=open&sort=created&direction=asc&per_page=100\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}
