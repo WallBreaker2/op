@@ -9,8 +9,8 @@
 #include <string>
 
 opDXGI::opDXGI()
-    : device_(nullptr), deviceContext_(nullptr), duplication_(nullptr), lastTexture_(nullptr), m_first(true),
-      m_frameInfo(), dx_(0), dy_(0), m_desc() {
+    : device_(nullptr), deviceContext_(nullptr), duplication_(nullptr), m_first(true), m_frameInfo(), dx_(0), dy_(0),
+      m_desc() {
 }
 
 opDXGI::~opDXGI() {
@@ -45,10 +45,6 @@ long opDXGI::UnBindEx() {
         duplication_->Release();
         duplication_ = nullptr;
     }
-    if (lastTexture_) {
-        lastTexture_->Release();
-        lastTexture_ = nullptr;
-    }
     if (device_) {
         device_->Release();
         device_ = nullptr;
@@ -63,52 +59,52 @@ long opDXGI::UnBindEx() {
 bool opDXGI::requestCapture(int x1, int y1, int w, int h, Image &img) {
     img.create(w, h);
     ID3D11Texture2D *texture2D = nullptr;
+    uint8_t *pDest = _shmem->data<byte>() + sizeof(FrameInfo);
     if (!GetDesktopFrame(&texture2D)) {
         setlog("Acquire frame failed");
         return false;
     }
-
-    if (texture2D != nullptr) {
-        if (lastTexture_) {
-            lastTexture_->Release();
-        }
-        lastTexture_ = texture2D;
-    } else if (lastTexture_ == nullptr) {
+    if (texture2D == nullptr) {
         setlog("Acquire frame timeout");
-        return false;
-    }
+        // we do not update and use previous frame
+    } else {
+        // copy screen data to memory
+        texture2D->GetDesc(&m_desc);
+        D3D11_MAPPED_SUBRESOURCE mappedResource;
+        deviceContext_->Map(texture2D, 0, D3D11_MAP_READ, 0, &mappedResource);
+        size_t imageSize = m_desc.Width * m_desc.Height * 4;
 
-    lastTexture_->GetDesc(&m_desc);
+        uint8_t *pData = (uint8_t *)mappedResource.pData;
+        _pmutex->lock();
+        fmtFrameInfo(_shmem->data<byte>(), _hwnd, w, h);
+        for (size_t i = 0; i < m_desc.Height; i++) {
+            memcpy(pDest + i * m_desc.Width * 4, pData + i * mappedResource.RowPitch, m_desc.Width * 4);
+        }
+        _pmutex->unlock();
+        texture2D->Release();
+        texture2D = nullptr;
+    }
 
     RECT rc;
     ::GetWindowRect(_hwnd, &rc);
     int src_x = x1 + rc.left + dx_;
     int src_y = y1 + rc.top + dy_;
-    if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(m_desc.Width) ||
-        src_y + h > static_cast<int>(m_desc.Height)) {
+    if (src_x + w > m_desc.Width || src_y + h > m_desc.Height) {
         setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, m_desc.Width, src_y,
                h, m_desc.Height);
         return false;
     }
+    // copy memory to image
+    _pmutex->lock();
+    uchar *pshare = _shmem->data<byte>();
 
-    D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-    HRESULT hr = deviceContext_->Map(lastTexture_, 0, D3D11_MAP_READ, 0, &mappedResource);
-    if (FAILED(hr)) {
-        setlog("Map desktop frame failed hr=0x%08X", hr);
-        return false;
-    }
-
-    uint8_t *pData = static_cast<uint8_t *>(mappedResource.pData);
-    if (_pmutex && _shmem) {
-        _pmutex->lock();
-        fmtFrameInfo(_shmem->data<byte>(), _hwnd, w, h);
-        _pmutex->unlock();
-    }
-
+    // 将数据拷贝到目标
     for (int i = 0; i < h; i++) {
-        memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * w);
+        // memcpy(img.ptr<uchar>(i), pDest + (desc.Height - 1 - i - src_y) * 4 * desc.Width + src_x * 4,
+        // 4 * w);
+        memcpy(img.ptr<uchar>(i), pDest + (src_y + i) * 4 * m_desc.Width + src_x * 4, 4 * w);
     }
-    deviceContext_->Unmap(lastTexture_, 0);
+    _pmutex->unlock();
     return true;
 }
 
@@ -221,10 +217,6 @@ bool opDXGI::GetDesktopFrame(ID3D11Texture2D **texture) {
     device_->CreateTexture2D(&desc, NULL, texture);
     if (texture && *texture) {
         deviceContext_->CopyResource(*texture, acquireFrame);
-    } else {
-        acquireFrame->Release();
-        duplication_->ReleaseFrame();
-        return false;
     }
     acquireFrame->Release();
 
@@ -239,10 +231,9 @@ bool opDXGI::GetDesktopFrame(ID3D11Texture2D **texture) {
 void opDXGI::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
     m_frameInfo.hwnd = (unsigned __int64)hwnd;
     m_frameInfo.frameId = inc ? m_frameInfo.frameId + 1 : m_frameInfo.frameId;
-    m_frameInfo.time = static_cast<unsigned __int32>(::GetTickCount64());
+    m_frameInfo.time = ::GetTickCount64();
     m_frameInfo.width = w;
     m_frameInfo.height = h;
     m_frameInfo.fmtChk();
     memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
 }
-

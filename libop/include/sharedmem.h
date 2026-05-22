@@ -16,8 +16,7 @@ class sharedmem {
     bool open_create(const wstring &name_, size_t size_) {
         auto temph = OpenFileMappingW(FILE_MAP_ALL_ACCESS, FALSE, name_.data());
         if (!temph) {
-            temph = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, static_cast<DWORD>(size_),
-                                       name_.data());
+            temph = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size_, name_.data());
             if (!temph)
                 return false;
         }

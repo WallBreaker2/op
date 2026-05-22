@@ -9,7 +9,6 @@
 #include "IDisplay.h"
 #include <dxgi1_2.h>
 #include <inspectable.h>
-#include <mutex>
 #pragma comment(lib, "d3d11.lib")
 #ifdef _WIN32_WINNT_WIN11
 // this code ref https://www.jianshu.com/p/e775b0f45376
@@ -19,9 +18,9 @@ class opWGC : public IDisplay {
   public:
     opWGC();
     ~opWGC();
-    // ï¿½ï¿½
+    // °ó¶¨
     long BindEx(HWND _hwnd, long render_type) override;
-    // ï¿½ï¿½ï¿½
+    // ½â°ó
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
@@ -31,26 +30,11 @@ class opWGC : public IDisplay {
   private:
     ID3D11Device *d3dDevice_;
     ID3D11DeviceContext *d3dDeviceContext_;
-    ID3D11Texture2D *stagingTexture_;
     IDirect3DDevice device_{nullptr};
     GraphicsCaptureItem item_{nullptr};
     Direct3D11CaptureFramePool framePool_{nullptr};
     GraphicsCaptureSession session_{nullptr};
     FrameInfo m_frameInfo;
-    long captureWidth_{0};
-    long captureHeight_{0};
-    bool hasFrame_;
-    int sharedWidth_{0};
-    int sharedHeight_{0};
-    int dx_{0};
-    int dy_{0};
-    std::mutex frameMutex_;
-
-    bool ensureStagingTexture(int width, int height);
-    bool ensureSharedResources(int width, int height);
-    void refreshWindowMetrics();
-    bool copyFrameToStaging(const Direct3D11CaptureFrame &frame);
-    bool updateLatestFrame();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };
 

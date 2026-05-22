@@ -71,22 +71,6 @@ struct MouseEventWindow {
     ~MouseEventWindow();
 };
 
-struct ColorPulseWindow {
-    HWND hwnd = nullptr;
-    COLORREF current_color = RGB(255, 0, 0);
-    std::vector<COLORREF> colors;
-    size_t color_index = 0;
-    bool animate = false;
-
-    static constexpr UINT_PTR kTimerId = 1;
-
-    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-    bool Create(bool enable_animation, int width = 220, int height = 180);
-    void SetColor(COLORREF color);
-    std::wstring CurrentColorHex() const;
-    ~ColorPulseWindow();
-};
-
 class OcrTest : public ::testing::Test {
   protected:
     libop op;

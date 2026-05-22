@@ -11,9 +11,9 @@ class opDXGI : public IDisplay {
   public:
     opDXGI();
     ~opDXGI();
-    // ï¿½ï¿½
+    // °ó¶¨
     long BindEx(HWND _hwnd, long render_type) override;
-    // ï¿½ï¿½ï¿½
+    // ½â°ó
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
@@ -28,7 +28,6 @@ class opDXGI : public IDisplay {
     ID3D11Device *device_;
     ID3D11DeviceContext *deviceContext_;
     IDXGIOutputDuplication *duplication_;
-    ID3D11Texture2D *lastTexture_;
     bool m_first;
     FrameInfo m_frameInfo;
     long dx_, dy_;
