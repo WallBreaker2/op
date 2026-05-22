@@ -6,8 +6,8 @@ Usage:
     python build.py [options]
 
 Examples:
-    python build.py                                # Release + VS2022 + x64
-    python build.py -t Debug                       # Debug + VS2022 + x64
+    python build.py                                # Release + latest supported VS + x64
+    python build.py -t Debug                       # Debug + latest supported VS + x64
     python build.py -t Release -g nmake            # Release + NMake + x64
     python build.py -t RelWithDebInfo -g nmake     # RelWithDebInfo + NMake + x64
     python build.py -t Release -g vs2019           # Release + VS2019 + x64
@@ -29,6 +29,7 @@ GENERATORS = {
     "ninja":  {"cmake": "Ninja",           "ide": False},
     "vs2019": {"cmake": "Visual Studio 16 2019", "ide": True},
     "vs2022": {"cmake": "Visual Studio 17 2022", "ide": True},
+    "vs2026": {"cmake": "Visual Studio 18 2026", "ide": True},
 }
 
 BUILD_TYPES = ["Debug", "Release", "RelWithDebInfo"]
@@ -41,10 +42,114 @@ BOOTSTRAP_STATE_FILE = ".deps-bootstrap-state.json"
 
 # ── Helper functions ───────────────────────────────────────────────
 
+def find_vswhere() -> Path | None:
+    """Locate vswhere.exe if Visual Studio Installer is present."""
+    program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+    vswhere = Path(program_files_x86) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
+    return vswhere if vswhere.is_file() else None
+
+
+def find_latest_visual_studio_installation() -> Path | None:
+    """Return the latest Visual Studio installation path, if available."""
+    vswhere = find_vswhere()
+    if vswhere is None:
+        return None
+
+    try:
+        result = subprocess.run(
+            [
+                str(vswhere),
+                "-latest",
+                "-products", "*",
+                "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                "-property", "installationPath",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
+
+    installation_path = result.stdout.strip()
+    if not installation_path:
+        return None
+
+    path = Path(installation_path)
+    return path.resolve() if path.exists() else None
+
+
+def detect_supported_visual_studio_generator() -> str | None:
+    """Map the latest installed Visual Studio to a supported generator key."""
+    installation = find_latest_visual_studio_installation()
+    if installation is None:
+        return None
+
+    version_hint = installation.parent.name.lower()
+    version_map = {
+        "2019": "vs2019",
+        "2022": "vs2022",
+        "18": "vs2026",
+        "2026": "vs2026",
+    }
+    return version_map.get(version_hint)
+
+
+def default_generator_key() -> str:
+    """Pick the best IDE generator available on this machine."""
+    return detect_supported_visual_studio_generator() or "vs2022"
+
+
+def find_visual_studio_cmake() -> Path | None:
+    """Locate the CMake bundled with Visual Studio when it is not on PATH."""
+    direct = shutil.which("cmake")
+    if direct:
+        return Path(direct).resolve()
+
+    installation = find_latest_visual_studio_installation()
+    if installation is None:
+        return None
+
+    cmake = (
+        installation
+        / "Common7"
+        / "IDE"
+        / "CommonExtensions"
+        / "Microsoft"
+        / "CMake"
+        / "CMake"
+        / "bin"
+        / "cmake.exe"
+    )
+    return cmake.resolve() if cmake.is_file() else None
+
+
+def ensure_cmake_on_path() -> None:
+    """Make the Visual Studio bundled CMake available to this process."""
+    if shutil.which("cmake") is not None:
+        return
+
+    cmake = find_visual_studio_cmake()
+    if cmake is None:
+        return
+
+    cmake_dir = str(cmake.parent)
+    current_path = os.environ.get("PATH", "")
+    os.environ["PATH"] = cmake_dir if not current_path else cmake_dir + os.pathsep + current_path
+    print(f"[INFO] Using Visual Studio bundled CMake: {cmake}")
+
+
 def find_vcvarsall() -> str | None:
     """Search common paths for vcvarsall.bat."""
+    installation = find_latest_visual_studio_installation()
+    if installation is not None:
+        vcvarsall = installation / "VC" / "Auxiliary" / "Build" / "vcvarsall.bat"
+        if vcvarsall.is_file():
+            return str(vcvarsall.resolve())
+
     candidates = [
         r"C:\Program Files\Microsoft Visual Studio\2022\{}\VC\Auxiliary\Build\vcvarsall.bat",
+        r"D:\Program Files\Microsoft Visual Studio\18\{}\VC\Auxiliary\Build\vcvarsall.bat",
         r"C:\Program Files (x86)\Microsoft Visual Studio\2019\{}\VC\Auxiliary\Build\vcvarsall.bat",
     ]
     for pattern in candidates:
@@ -130,11 +235,20 @@ def save_bootstrap_state(state_file: Path, state: dict) -> None:
 
 
 def find_blackbone_lib(blackbone_root: Path, vs_arch: str) -> Path | None:
-    search_root = blackbone_root / "build" / vs_arch
-    if not search_root.exists():
+    build_root = blackbone_root / "build"
+    search_roots = sorted(
+        [path for path in build_root.glob(f"*-{vs_arch}") if path.is_dir()],
+        reverse=True,
+    )
+    fallback_root = build_root / vs_arch
+    if fallback_root.exists():
+        search_roots.append(fallback_root)
+    if not search_roots:
         return None
 
-    libs = sorted(search_root.rglob("BlackBone.lib"))
+    libs: list[Path] = []
+    for search_root in search_roots:
+        libs.extend(sorted(search_root.rglob("BlackBone.lib")))
     if not libs:
         return None
 
@@ -251,6 +365,7 @@ def ensure_blackbone_repo(blackbone_root: Path) -> None:
 
 def ensure_blackbone_builds(
     blackbone_root: Path,
+    generator_key: str,
     vs_generator: str,
     dep_arches: list[str],
     state: dict,
@@ -266,12 +381,13 @@ def ensure_blackbone_builds(
 
     for arch in dep_arches:
         vs_arch = ARCH_TO_VS[arch]
+        state_key = f"{generator_key}:{arch}"
         lib = find_blackbone_lib(blackbone_root, vs_arch)
-        if arch in built_arches and lib is not None:
+        if state_key in built_arches and lib is not None:
             libs[arch] = lib
             continue
 
-        build_dir = blackbone_root / "build" / vs_arch
+        build_dir = blackbone_root / "build" / f"{generator_key}-{vs_arch}"
         run([
             "cmake",
             "-S", str(src_dir),
@@ -289,7 +405,7 @@ def ensure_blackbone_builds(
             sys.exit(1)
 
         libs[arch] = lib
-        built_arches.add(arch)
+        built_arches.add(state_key)
         changed = True
 
     state["blackbone_arches"] = sorted(built_arches)
@@ -300,6 +416,7 @@ def bootstrap_dependencies(
     project_dir: Path,
     deps_dir: Path,
     dep_arches: list[str],
+    generator_key: str,
     vs_generator: str,
     vcpkg_root_arg: str | None,
 ) -> tuple[Path, Path, dict[str, Path]]:
@@ -330,6 +447,7 @@ def bootstrap_dependencies(
     ensure_blackbone_repo(blackbone_root)
     blackbone_libs, blackbone_changed = ensure_blackbone_builds(
         blackbone_root,
+        generator_key,
         vs_generator,
         dep_arches,
         state,
@@ -344,16 +462,19 @@ def bootstrap_dependencies(
 # ── Main ───────────────────────────────────────────────────────────
 
 def main():
+    detected_default_generator = default_generator_key()
     parser = argparse.ArgumentParser(
         description="Unified build script for the op project.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 examples:
-  python build.py                                # Release + VS2022 + x64
-  python build.py -t Debug                       # Debug + VS2022 + x64
+  python build.py                                # Release + latest supported VS + x64
+  python build.py -t Debug                       # Debug + latest supported VS + x64
   python build.py -t Release -g nmake            # Release + NMake + x64
   python build.py -t RelWithDebInfo -g vs2019    # RelWithDebInfo + VS2019 + x64
+  python build.py -t Release -g vs2026           # Release + VS2026 + x64
   python build.py -t Release -a x86              # Release + VS2022 + x86
+  python build.py --disable-wgc                  # Build without WGC (enabled by default)
 """,
     )
     parser.add_argument(
@@ -365,8 +486,8 @@ examples:
     parser.add_argument(
         "-g", "--generator",
         choices=GENERATORS.keys(),
-        default="vs2022",
-        help="CMake generator (default: vs2022)",
+        default=detected_default_generator,
+        help=f"CMake generator (default: {detected_default_generator})",
     )
     parser.add_argument(
         "-a", "--arch",
@@ -395,11 +516,18 @@ examples:
         default=None,
         help="Use an existing vcpkg root directory",
     )
+    parser.add_argument(
+        "--disable-wgc",
+        action="store_true",
+        help="Disable Windows Graphics Capture backend build (enabled by default)",
+    )
     args = parser.parse_args()
+    ensure_cmake_on_path()
 
     build_type: str = args.type
     generator: str = args.generator
     arch: str = args.arch
+    enable_wgc = not args.disable_wgc
     gen_info = GENERATORS[generator]
     project_dir = Path(__file__).parent.resolve()
     deps_dir = resolve_path(project_dir, args.deps_dir)
@@ -410,6 +538,7 @@ examples:
     print(f"    BuildType:    {build_type}")
     print(f"    Generator:    {generator} ({gen_info['cmake']})")
     print(f"    Architecture: {arch}")
+    print(f"    WGC:          {'On' if enable_wgc else 'Off'}")
     print(f"    BootstrapDeps:{'No' if args.no_bootstrap_deps else 'Yes'}")
     print("=" * 60)
 
@@ -422,12 +551,14 @@ examples:
     blackbone_root: Path | None = None
     blackbone_libs: dict[str, Path] = {}
     if not args.no_bootstrap_deps:
-        dep_vs_generator = GENERATORS[generator]["cmake"] if generator.startswith("vs") else GENERATORS["vs2022"]["cmake"]
+        dep_vs_generator_key = generator if generator.startswith("vs") else default_generator_key()
+        dep_vs_generator = GENERATORS[dep_vs_generator_key]["cmake"]
         print("\n[INFO] Bootstrapping third-party dependencies...")
         vcpkg_root, blackbone_root, blackbone_libs = bootstrap_dependencies(
             project_dir=project_dir,
             deps_dir=deps_dir,
             dep_arches=dep_arches,
+            generator_key=dep_vs_generator_key,
             vs_generator=dep_vs_generator,
             vcpkg_root_arg=args.vcpkg_root,
         )
@@ -483,6 +614,7 @@ examples:
         "-B", str(build_dir),
         "-G", gen_info["cmake"],
         f"-DCMAKE_BUILD_TYPE={build_type}",
+        f"-Denable_wgc={'ON' if enable_wgc else 'OFF'}",
         *vcpkg_args,
         *blackbone_args,
     ]
