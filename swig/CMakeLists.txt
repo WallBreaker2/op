@@ -1,13 +1,40 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 
 ADD_DEFINITIONS(-D _CMAKE_BUILD)
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	SET(PYTHON_HOME $ENV{PYTHON64_ROOT})
+
+set(PYTHON_HOME "")
+set(PYTHON_LIBRARY_NAME "")
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(PYTHON_HOME "$ENV{PYTHON64_ROOT}")
 else()
-	SET(PYTHON_HOME $ENV{PYTHON32_ROOT})
+  set(PYTHON_HOME "$ENV{PYTHON32_ROOT}")
+endif()
+
+if(PYTHON_HOME STREQUAL "")
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  get_filename_component(PYTHON_HOME "${Python3_EXECUTABLE}" DIRECTORY)
+endif()
+
+if(PYTHON_HOME STREQUAL "")
+  message(FATAL_ERROR "Python home not found. Please configure PYTHON64_ROOT/PYTHON32_ROOT or install Python 3.")
+endif()
+
+if(EXISTS "${PYTHON_HOME}/python312.dll")
+  set(PYTHON_LIBRARY_NAME "python312")
+elseif(EXISTS "${PYTHON_HOME}/python311.dll")
+  set(PYTHON_LIBRARY_NAME "python311")
+elseif(EXISTS "${PYTHON_HOME}/python310.dll")
+  set(PYTHON_LIBRARY_NAME "python310")
+elseif(EXISTS "${PYTHON_HOME}/python39.dll")
+  set(PYTHON_LIBRARY_NAME "python39")
+endif()
+
+if(PYTHON_LIBRARY_NAME STREQUAL "")
+  message(FATAL_ERROR "Unable to determine Python import library under ${PYTHON_HOME}")
 endif()
 
 SET(SRC_FILES "op_wrap.cxx")
@@ -19,7 +46,7 @@ target_include_directories(pyop PUBLIC
 "${CMAKE_CURRENT_SOURCE_DIR}"
 "${PYTHON_HOME}\\include"
 )
-message(STATUS "${PYTHON_HOME}\\libs")
+message(STATUS "Python libs: ${PYTHON_HOME}\\libs")
 target_link_directories(pyop PUBLIC "${PYTHON_HOME}\\libs")
 #find_library(OP_LIB op ../bin/Release NO_DEFAULT_PATH)
 set_target_properties(pyop PROPERTIES PREFIX "_")
@@ -27,7 +54,7 @@ set_target_properties(pyop PROPERTIES SUFFIX ".pyd")
 
 
 target_link_libraries(pyop ${op_com})
-target_link_libraries(pyop python310)
+target_link_libraries(pyop ${PYTHON_LIBRARY_NAME})
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
   install(TARGETS pyop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
