@@ -1,5 +1,5 @@
 # 1.cmake version
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.10)
 
 
 
@@ -41,9 +41,6 @@ SET(SRC_FILES
   "./background/display/opDxGL.cpp" 
   "./background/display/IDisplay.cpp" 
 
-  "./background/display/opWGC.cpp" 
-  
-  
   "./background/mouse/opMouseWin.cpp" 
   "./background/mouse/opMouseDx.cpp" 
 
@@ -69,11 +66,15 @@ SET(SRC_FILES
 	 "imageProc/OcrWrapper.cpp"
 "./winapi/injecter.cpp"
 "./winapi/memoryEx.cpp"
-"./winapi/query_api.cpp"
-"./winapi/winapi.cpp"
+ "./winapi/query_api.cpp"
+ "./winapi/winapi.cpp"
 "../3rd_party/src/kiero.cpp"
 "libop.cpp"
 )
+
+if(_WIN32_WINNT_WIN11)
+  list(APPEND SRC_FILES "./background/display/opWGC.cpp")
+endif()
 
 SET(COM_SRC_FILES 
 "./core/globalVar.cpp"
@@ -113,7 +114,7 @@ add_library(libop ${SRC_FILES})
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.c
-  COMMAND COMMAND midl ${CMAKE_CURRENT_SOURCE_DIR}/com/op.idl /iid 
+  COMMAND COMMAND midl ./com/op.idl /iid 
   "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb 
   "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"
  # DEPENDS MakeTable
