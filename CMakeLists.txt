@@ -31,6 +31,70 @@ endif()
 
 option(build_swig_py "build swig py,requrie python" ON)
 
+if(build_swig_py)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(_op_python_home "$ENV{PYTHON64_ROOT}")
+    else()
+        set(_op_python_home "$ENV{PYTHON32_ROOT}")
+    endif()
+    set(_op_python_bitness "")
+
+    if(_op_python_home STREQUAL "" AND DEFINED ENV{PYTHONHOME})
+        set(_op_python_home "$ENV{PYTHONHOME}")
+    endif()
+
+    if(_op_python_home STREQUAL "")
+        find_package(Python3 COMPONENTS Interpreter QUIET)
+        if(Python3_Interpreter_FOUND)
+            get_filename_component(_op_python_home "${Python3_EXECUTABLE}" DIRECTORY)
+            execute_process(
+                COMMAND "${Python3_EXECUTABLE}" -c "import struct; print(struct.calcsize('P') * 8)"
+                OUTPUT_VARIABLE _op_python_bitness
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+        endif()
+    endif()
+
+    if(NOT _op_python_home STREQUAL "")
+        file(TO_CMAKE_PATH "${_op_python_home}" _op_python_home)
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            if(NOT EXISTS "${_op_python_home}/python312.dll"
+               AND NOT EXISTS "${_op_python_home}/python311.dll"
+               AND NOT EXISTS "${_op_python_home}/python310.dll"
+               AND NOT EXISTS "${_op_python_home}/python39.dll")
+                message(STATUS "Disable swig python build: no supported 64-bit Python runtime found under ${_op_python_home}")
+                set(build_swig_py OFF)
+            endif()
+        else()
+            if(_op_python_bitness STREQUAL "64")
+                message(STATUS "Disable swig python build: detected Python interpreter is 64-bit but current target is x86")
+                set(build_swig_py OFF)
+            elseif(NOT EXISTS "${_op_python_home}/python312.dll"
+                   AND NOT EXISTS "${_op_python_home}/python311.dll"
+                   AND NOT EXISTS "${_op_python_home}/python310.dll"
+                   AND NOT EXISTS "${_op_python_home}/python39.dll")
+                message(STATUS "Disable swig python build: no supported 32-bit Python runtime found under ${_op_python_home}")
+                set(build_swig_py OFF)
+            elseif(EXISTS "${_op_python_home}/python312.dll"
+                   OR EXISTS "${_op_python_home}/python311.dll"
+                   OR EXISTS "${_op_python_home}/python310.dll"
+                   OR EXISTS "${_op_python_home}/python39.dll")
+                if(NOT EXISTS "${_op_python_home}/libs/python312.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
+                    message(STATUS "Disable swig python build: no matching 32-bit Python import library found under ${_op_python_home}/libs")
+                    set(build_swig_py OFF)
+                endif()
+            endif()
+        endif()
+    else()
+        message(STATUS "Disable swig python build: Python runtime not found")
+        set(build_swig_py OFF)
+    endif()
+endif()
+
 # 检查头文件是否设置正确
 if(EXISTS "${BLACKBONE_INCLUDE_DIR}/BlackBone/Process/Process.h")
     message(STATUS "${BLACKBONE_INCLUDE_DIR}/BlackBone/Process/Process.h finded" )
@@ -52,6 +116,8 @@ add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_CXX_STANDARD 17)
+
+option(enable_wgc "Enable Windows Graphics Capture backend" OFF)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
@@ -78,6 +144,12 @@ ELSE()
     add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
+
+if(enable_wgc)
+    set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
+    add_compile_definitions(_WIN32_WINNT_WIN11)
+    message(STATUS "----------------WGC enabled----------------")
+endif()
 
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
