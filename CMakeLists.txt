@@ -117,6 +117,8 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(enable_wgc "Enable Windows Graphics Capture backend" OFF)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
     set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
@@ -142,6 +144,12 @@ ELSE()
     add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
+
+if(enable_wgc)
+    set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
+    add_compile_definitions(_WIN32_WINNT_WIN11)
+    message(STATUS "----------------WGC enabled----------------")
+endif()
 
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)

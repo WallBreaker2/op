@@ -72,7 +72,7 @@ SET(SRC_FILES
 "libop.cpp"
 )
 
-if(_WIN32_WINNT_WIN11)
+if(enable_wgc)
   list(APPEND SRC_FILES "./background/display/opWGC.cpp")
 endif()
 
@@ -110,6 +110,15 @@ ADD_DEFINITIONS(-DOP_VERSION="0.4.6.0")
 
 add_library(libop ${SRC_FILES})
 
+if(enable_wgc AND MSVC)
+  set_source_files_properties(
+    "./background/opBackground.cpp"
+    "./background/display/opWGC.cpp"
+    PROPERTIES
+      COMPILE_OPTIONS "/std:c++20;/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+  )
+endif()
+
 # ----------op_x86/x64
 
 add_custom_command(
@@ -123,6 +132,15 @@ add_custom_command(
 
 add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
+
+if(enable_wgc AND MSVC)
+  set_source_files_properties(
+    "./background/opBackground.cpp"
+    "./background/display/opWGC.cpp"
+    PROPERTIES
+      COMPILE_OPTIONS "/std:c++20;/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
+  )
+endif()
 # add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
 
@@ -147,6 +165,9 @@ include_directories(
 # 7.add link library
 # BlackBone 仍通过外部提供的 BlackBone.lib 链接
 TARGET_LINK_LIBRARIES(${op_com} "${BLACKBONE_LIBRARY}")
+if(enable_wgc)
+  TARGET_LINK_LIBRARIES(${op_com} windowsapp runtimeobject.lib)
+endif()
 
 # MinHook 优先使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
 set(OP_MINHOOK_LINKED FALSE)
@@ -184,6 +205,10 @@ if (NOT OP_MINHOOK_LINKED)
   else()
     TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
   endif()
+endif()
+
+if(enable_wgc)
+  target_link_libraries(libop windowsapp runtimeobject.lib)
 endif()
 
 # target_link_libraries(libop  ${OpenCV_LIBS})
