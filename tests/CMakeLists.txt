@@ -40,6 +40,7 @@ set(SRC_FILES
   "core_algorithm_winapi_test.cpp"
   "mouse_keyboard_test.cpp"
   "image_color_test.cpp"
+  "wgc_test.cpp"
   "ocr_test.cpp"
   "utils_test.cpp"
   "../libop/com/op_i.c"
