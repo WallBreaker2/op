@@ -39,7 +39,7 @@ long ImageProc::FindColor(const wstring &color, double sim, long dir, long &x, l
 long ImageProc::FindColoEx(const wstring &color, double sim, long dir, wstring &retstr) {
     std::vector<color_df_t> colors;
     str2colordfs(color, colors);
-    return ImageBase::FindColorEx(colors, sim, retstr);
+    return ImageBase::FindColorEx(colors, sim, dir, retstr);
 }
 
 long ImageProc::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,

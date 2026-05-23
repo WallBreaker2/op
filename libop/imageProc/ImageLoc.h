@@ -84,7 +84,7 @@ class ImageBase {
 
     long FindColor(std::vector<color_df_t> &colors, double sim, int dir, long &x, long &y);
 
-    long FindColorEx(std::vector<color_df_t> &colors, double sim, std::wstring &retstr);
+    long FindColorEx(std::vector<color_df_t> &colors, double sim, int dir, std::wstring &retstr);
 
     long FindColorNum(std::vector<color_df_t> &colors, double sim);
 
