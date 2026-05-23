@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <time.h>
 
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 
@@ -189,79 +190,142 @@ long ImageBase::CmpColor(color_t color, std::vector<color_df_t> &colors, double 
 
     return 0;
 }
-struct opRange {
-    int x1;
-    int x2;
-};
-struct opRange2D {
-    int x1;
-    int x2;
-    int y1;
-    int y2;
-    int stepX;
-    int stepY;
-};
-static void gen_rangeyx(int dir, const opRange2D &range, opRange2D &out) {
-    if (dir == 0) {
-        out.x1 = range.x1;
-        out.x2 = range.x2;
-        out.y1 = range.y1;
-        out.y2 = range.y2;
-        out.stepX = 1;
-        out.stepY = 1;
-    } else if (dir == 1) {
-        out.x1 = range.x2 - 1;
-        out.x2 = range.x1 - 1;
-        out.y1 = range.y1;
-        out.y2 = range.y2;
-        out.stepX = -1;
-        out.stepY = 1;
-    } else if (dir == 2) {
-        out.x1 = range.x1;
-        out.x2 = range.x2;
-        out.y1 = range.y2 - 1;
-        out.y2 = range.y1 - 1;
-        out.stepX = 1;
-        out.stepY = -1;
-    } else {
-        out.x1 = range.x2 - 1;
-        out.x2 = range.x1 - 1;
-        out.y1 = range.y2 - 1;
-        out.y2 = range.y1 - 1;
-        out.stepX = -1;
-        out.stepY = -1;
-    }
+static int normalize_dir(int dir) {
+    return dir >= 0 && dir <= 8 ? dir : 0;
 }
 
-static bool point_precedes_in_dir(const point_t &lhs, const point_t &rhs, int dir) {
+static long long center_distance2(const point_t &p, const rect_t &range) {
+    const long long center2x = static_cast<long long>(range.x1) + range.x2 - 1;
+    const long long center2y = static_cast<long long>(range.y1) + range.y2 - 1;
+    const long long dx = static_cast<long long>(p.x) * 2 - center2x;
+    const long long dy = static_cast<long long>(p.y) * 2 - center2y;
+    return dx * dx + dy * dy;
+}
+
+static bool point_precedes_in_dir(const point_t &lhs, const point_t &rhs, int dir, const rect_t &range) {
     if (rhs.x == -1 || rhs.y == -1)
         return true;
 
+    dir = normalize_dir(dir);
     if (dir == 0)
         return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
     if (dir == 1)
-        return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
-    if (dir == 2)
         return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
+    if (dir == 2)
+        return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
+    if (dir == 3)
+        return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
+    if (dir == 4) {
+        const long long lhs_dist = center_distance2(lhs, range);
+        const long long rhs_dist = center_distance2(rhs, range);
+        if (lhs_dist != rhs_dist)
+            return lhs_dist < rhs_dist;
+        return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
+    }
+    if (dir == 5)
+        return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
+    if (dir == 6)
+        return lhs.x > rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
+    if (dir == 7)
+        return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y > rhs.y);
 
-    return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
+    return lhs.x > rhs.x || (lhs.x == rhs.x && lhs.y > rhs.y);
+}
+
+template <typename Fn> static bool for_each_scan_point(const rect_t &scan_range, int dir, const rect_t &order_range, Fn fn) {
+    if (!scan_range.valid())
+        return false;
+
+    dir = normalize_dir(dir);
+    if (dir == 0) {
+        for (int y = scan_range.y1; y < scan_range.y2; ++y)
+            for (int x = scan_range.x1; x < scan_range.x2; ++x)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 1) {
+        for (int y = scan_range.y2 - 1; y >= scan_range.y1; --y)
+            for (int x = scan_range.x1; x < scan_range.x2; ++x)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 2) {
+        for (int y = scan_range.y1; y < scan_range.y2; ++y)
+            for (int x = scan_range.x2 - 1; x >= scan_range.x1; --x)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 3) {
+        for (int y = scan_range.y2 - 1; y >= scan_range.y1; --y)
+            for (int x = scan_range.x2 - 1; x >= scan_range.x1; --x)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 4) {
+        vpoint_t points;
+        points.reserve(scan_range.area());
+        for (int y = scan_range.y1; y < scan_range.y2; ++y)
+            for (int x = scan_range.x1; x < scan_range.x2; ++x)
+                points.push_back(point_t(x, y));
+        std::stable_sort(points.begin(), points.end(), [order_range](const point_t &lhs, const point_t &rhs) {
+            return point_precedes_in_dir(lhs, rhs, 4, order_range);
+        });
+        for (const auto &p : points)
+            if (fn(p.x, p.y))
+                return true;
+    } else if (dir == 5) {
+        for (int x = scan_range.x1; x < scan_range.x2; ++x)
+            for (int y = scan_range.y1; y < scan_range.y2; ++y)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 6) {
+        for (int x = scan_range.x2 - 1; x >= scan_range.x1; --x)
+            for (int y = scan_range.y1; y < scan_range.y2; ++y)
+                if (fn(x, y))
+                    return true;
+    } else if (dir == 7) {
+        for (int x = scan_range.x1; x < scan_range.x2; ++x)
+            for (int y = scan_range.y2 - 1; y >= scan_range.y1; --y)
+                if (fn(x, y))
+                    return true;
+    } else {
+        for (int x = scan_range.x2 - 1; x >= scan_range.x1; --x)
+            for (int y = scan_range.y2 - 1; y >= scan_range.y1; --y)
+                if (fn(x, y))
+                    return true;
+    }
+
+    return false;
+}
+
+template <typename Fn> static bool for_each_scan_point(const rect_t &scan_range, int dir, Fn fn) {
+    return for_each_scan_point(scan_range, dir, scan_range, fn);
+}
+
+static bool point_desc_precedes_in_dir(const point_desc_t &lhs, const point_desc_t &rhs, int dir, const rect_t &range) {
+    if (lhs.pos == rhs.pos)
+        return lhs.id < rhs.id;
+
+    return point_precedes_in_dir(lhs.pos, rhs.pos, dir, range);
+}
+
+static long sort_and_limit_point_desc(vpoint_desc_t &vpd, long dir, size_t max_count, const rect_t &range) {
+    std::stable_sort(vpd.begin(), vpd.end(), [dir, range](const point_desc_t &lhs, const point_desc_t &rhs) {
+        return point_desc_precedes_in_dir(lhs, rhs, dir, range);
+    });
+    if (vpd.size() > max_count)
+        vpd.resize(max_count);
+    return static_cast<long>(vpd.size());
 }
 
 long ImageBase::FindColor(vector<color_df_t> &colors, double sim, int dir, long &x, long &y) {
-    opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
-    gen_rangeyx(dir, rng, range);
+    rect_t range(0, 0, _src.width, _src.height);
     for (auto &it : colors) { // 对每个颜色描述
-
-        for (int i = range.y1; i != range.y2; i += range.stepY) {
-            auto p = _src.ptr<color_t>(i);
-            for (int j = range.x1; j != range.x2; j += range.stepX) {
-                if (color_matches(*p, it, sim)) {
+        if (for_each_scan_point(range, dir, [&](int j, int i) {
+                if (color_matches(_src.at<color_t>(i, j), it, sim)) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
-                    return 1;
+                    return true;
                 }
-                p++;
-            }
+                return false;
+            })) {
+            return 1;
         }
     }
 
@@ -269,27 +333,22 @@ long ImageBase::FindColor(vector<color_df_t> &colors, double sim, int dir, long 
     return 0;
 }
 
-long ImageBase::FindColorEx(vector<color_df_t> &colors, double sim, std::wstring &retstr) {
+long ImageBase::FindColorEx(vector<color_df_t> &colors, double sim, int dir, std::wstring &retstr) {
     retstr.clear();
     int find_ct = 0;
-    for (int i = 0; i < _src.height; ++i) {
-        auto p = _src.ptr<color_t>(i);
-        for (int j = 0; j < _src.width; ++j) {
-            for (auto &it : colors) { // 对每个颜色描述
-                if (color_matches(*p, it, sim)) {
-                    retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
-                    retstr += L"|";
-                    ++find_ct;
-                    // return 1;
-                    if (find_ct > _max_return_obj_ct)
-                        goto _quick_break;
-                    break;
-                }
+    rect_t range(0, 0, _src.width, _src.height);
+
+    for_each_scan_point(range, dir, [&](int j, int i) {
+        for (auto &it : colors) { // 对每个颜色描述
+            if (color_matches(_src.at<color_t>(i, j), it, sim)) {
+                retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
+                retstr += L"|";
+                ++find_ct;
+                return find_ct > _max_return_obj_ct;
             }
-            p++;
         }
-    }
-_quick_break:
+        return false;
+    });
     if (!retstr.empty() && retstr.back() == L'|')
         retstr.pop_back();
     return find_ct;
@@ -318,39 +377,39 @@ _quick_break:
 long ImageBase::FindMultiColor(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color, double sim,
                                long dir, long &x, long &y) {
     int max_err_ct = offset_color.size() * (1. - sim);
-    int err_ct;
-    opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
-    gen_rangeyx(dir, rng, range);
-    for (int i = range.y1; i != range.y2; i += range.stepY) {
-        auto p = _src.ptr<color_t>(i);
-        for (int j = range.x1; j != range.x2; j += range.stepX) {
+    rect_t range(0, 0, _src.width, _src.height);
+    if (for_each_scan_point(range, dir, [&](int j, int i) {
             // step 1. find first color
             for (auto &it : first_color) { // 对每个颜色描述
-                if (color_matches(*p, it, sim)) {
-                    // 匹配其他坐标
-                    err_ct = 0;
-                    for (auto &off_cr : offset_color) {
-                        int ptX = j + off_cr.x;
-                        int ptY = i + off_cr.y;
-                        if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
-                            color_t currentColor = _src.at<color_t>(ptY, ptX);
-                            if (!CmpColor(currentColor, off_cr.crdfs, sim))
-                                ++err_ct;
-                        } else {
+                if (!color_matches(_src.at<color_t>(i, j), it, sim))
+                    continue;
+
+                // 匹配其他坐标
+                int err_ct = 0;
+                for (auto &off_cr : offset_color) {
+                    int ptX = j + off_cr.x;
+                    int ptY = i + off_cr.y;
+                    if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
+                        color_t currentColor = _src.at<color_t>(ptY, ptX);
+                        if (!CmpColor(currentColor, off_cr.crdfs, sim))
                             ++err_ct;
-                        }
-                        if (err_ct > max_err_ct)
-                            goto _quick_break;
+                    } else {
+                        ++err_ct;
                     }
-                    // ok
-                    x = j + _x1 + _dx, y = i + _y1 + _dy;
-                    return 1;
+                    if (err_ct > max_err_ct)
+                        break;
+                }
+                if (err_ct <= max_err_ct) {
+                    x = j + _x1 + _dx;
+                    y = i + _y1 + _dy;
+                    return true;
                 }
             }
-        _quick_break:
-            p++;
-        }
+            return false;
+        })) {
+        return 1;
     }
+
     x = y = -1;
     return 0;
 }
@@ -358,53 +417,39 @@ long ImageBase::FindMultiColor(std::vector<color_df_t> &first_color, std::vector
 long ImageBase::FindMultiColorEx(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color,
                                  double sim, long dir, std::wstring &retstr) {
     int max_err_ct = offset_color.size() * (1. - sim);
-    int err_ct;
     int find_ct = 0;
-    opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
-    gen_rangeyx(dir, rng, range);
+    rect_t range(0, 0, _src.width, _src.height);
 
-    for (int i = range.y1; i != range.y2; i += range.stepY) {
-        auto p = _src.ptr<color_t>(i);
-        for (int j = range.x1; j != range.x2; j += range.stepX) {
-            // step 1. find first color
-            for (auto &it : first_color) { // 对每个颜色描述
-                if (color_matches(*p, it, sim)) {
-                    // 匹配其他坐标
-                    err_ct = 0;
-                    for (auto &off_cr : offset_color) {
-                        /* color_t currentColor = _src.at<color_t>(j + off_cr.x, i +
-                         off_cr.y); if (!CmpColor(currentColor, off_cr.crdfs, sim))
-                         ++err_ct; if (err_ct > max_err_ct) goto _quick_break;*/
+    for_each_scan_point(range, dir, [&](int j, int i) {
+        // step 1. find first color
+        for (auto &it : first_color) { // 对每个颜色描述
+            if (!color_matches(_src.at<color_t>(i, j), it, sim))
+                continue;
 
-                        //
-                        int ptX = j + off_cr.x;
-                        int ptY = i + off_cr.y;
-                        if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
-                            color_t currentColor = _src.at<color_t>(ptY, ptX);
-                            if (!CmpColor(currentColor, off_cr.crdfs, sim))
-                                ++err_ct;
-                        } else {
-                            ++err_ct;
-                        }
-                        if (err_ct > max_err_ct)
-                            goto _quick_break;
-                    }
-
-                    // ok
-                    retstr += to_wstring(j + _x1 + _dx) + L"," + to_wstring(i + _y1 + _dy);
-                    retstr += L"|";
-                    ++find_ct;
-                    if (find_ct > _max_return_obj_ct)
-                        goto _quick_return;
-                    else
-                        goto _quick_break;
+            // 匹配其他坐标
+            int err_ct = 0;
+            for (auto &off_cr : offset_color) {
+                int ptX = j + off_cr.x;
+                int ptY = i + off_cr.y;
+                if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
+                    color_t currentColor = _src.at<color_t>(ptY, ptX);
+                    if (!CmpColor(currentColor, off_cr.crdfs, sim))
+                        ++err_ct;
+                } else {
+                    ++err_ct;
                 }
+                if (err_ct > max_err_ct)
+                    break;
             }
-        _quick_break:
-            p++;
+            if (err_ct <= max_err_ct) {
+                retstr += to_wstring(j + _x1 + _dx) + L"," + to_wstring(i + _y1 + _dy);
+                retstr += L"|";
+                ++find_ct;
+                return find_ct > _max_return_obj_ct;
+            }
         }
-    }
-_quick_return:
+        return false;
+    });
     if (!retstr.empty() && retstr.back() == L'|')
         retstr.pop_back();
     return find_ct;
@@ -414,13 +459,10 @@ _quick_return:
 long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
     x = y = -1;
     vector<uint> points;
-    int match_ret = 0;
     ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
     int tnorm;
-    opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
-    gen_rangeyx(dir, rng, range);
     // 将小循环放在最外面，提高处理速度
     for (int pic_id = 0; pic_id < pics.size(); ++pic_id) {
         auto pic = pics[pic_id];
@@ -432,29 +474,23 @@ long ImageBase::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim,
             tnorm = sum(gimg.begin(), gimg.end());
         }
 
-        for (int i = range.y1; i != range.y2; i += range.stepY) {
-            for (int j = range.x1; j != range.x2; j += range.stepX) {
-                // step 1. 边界检查
-                if (i + pic->height > _src.height || j + pic->width > _src.width)
-                    continue;
-                // step 2. 计算最大误差
+        rect_t matchRect(0, 0, _src.width, _src.height);
+        matchRect.shrinkRect(pic->width, pic->height);
+        if (!matchRect.valid())
+            continue;
+        if (for_each_scan_point(matchRect, dir, [&](int j, int i) {
                 int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
-                // step 3. 开始匹配
-
-                /*match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor,
-                   points, max_err_ct) : simple_match<false>(j, i, pic, dfcolor,
-                   max_err_ct));*/
-                match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                          : real_match(j, i, &gimg, tnorm, sim));
-                // simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
+                int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
+                                              : real_match(j, i, &gimg, tnorm, sim));
                 if (match_ret) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
-                    return pic_id;
+                    return true;
                 }
-
-            } // end for j
-        }     // end for i
+                return false;
+            })) {
+            return pic_id;
+        }
     }         // end for pics
     return -1;
 }
@@ -487,23 +523,22 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
         std::vector<std::future<point_t>> results;
         for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, dir, points, pgimg, tnorm](rect_t block, Image *pic, int use_ts_match, double sim) {
+                [this, dfcolor, dir, points, pgimg, tnorm, matchRect](rect_t block, Image *pic, int use_ts_match,
+                                                                      double sim) {
                     // 计算最大误差
                     int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
-                    opRange2D rng = {block.x1, block.x2, block.y1, block.y2, 0, 0}, range;
-                    gen_rangeyx(dir, rng, range);
-                    for (int i = range.y1; i != range.y2; i += range.stepY) {
-                        for (int j = range.x1; j != range.x2; j += range.stepX) {
-                            // 开始匹配
-                            int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                                          : real_match(j, i, pgimg, tnorm, sim));
-                            // simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
-                            if (match_ret) {
-                                return point_t(j + _x1 + _dx, i + _y1 + _dy);
-                            }
-
-                        } // end for j
-                    }     // end for i
+                    point_t found(-1, -1);
+                    for_each_scan_point(block, dir, matchRect, [&](int j, int i) {
+                        int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
+                                                      : real_match(j, i, pgimg, tnorm, sim));
+                        if (match_ret) {
+                            found = point_t(j + _x1 + _dx, i + _y1 + _dy);
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (found.x != -1)
+                        return found;
                     return point_t(-1, -1);
                 },
                 blocks[i], pic, use_ts_match, sim));
@@ -511,9 +546,11 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
         }
         // wait all
         point_t best(-1, -1);
+        rect_t globalMatchRect(matchRect.x1 + _x1 + _dx, matchRect.y1 + _y1 + _dy, matchRect.x2 + _x1 + _dx,
+                               matchRect.y2 + _y1 + _dy);
         for (auto &&f : results) {
             point_t p = f.get();
-            if (p.x != -1 && point_precedes_in_dir(p, best, dir))
+            if (p.x != -1 && point_precedes_in_dir(p, best, dir, globalMatchRect))
                 best = p;
         }
         if (best.x != -1) {
@@ -527,10 +564,8 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
 }
 
 long ImageBase::FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
-    int obj_ct = 0;
     vpd.clear();
     vector<uint> points;
-    bool nodfcolor = color2uint(dfcolor) == 0;
     int match_ret = 0;
     ImageBin gimg;
     _gray.fromImage4(_src);
@@ -561,24 +596,19 @@ long ImageBase::FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double si
                     point_desc_t pd = {pic_id, point_t(j + _x1 + _dx, i + _y1 + _dy)};
 
                     vpd.push_back(pd);
-                    ++obj_ct;
-                    if (obj_ct > _max_return_obj_ct)
-                        goto _quick_return;
                 }
 
             } // end for j
         }     // end for i
     }         // end for pics
-_quick_return:
 
-    return obj_ct;
+    rect_t resultRange(_x1 + _dx, _y1 + _dy, _x1 + _dx + _src.width, _y1 + _dy + _src.height);
+    return sort_and_limit_point_desc(vpd, dir, _max_return_obj_ct, resultRange);
 }
 
 long ImageBase::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
     vpd.clear();
-    int obj_ct = 0;
     vector<uint> points;
-    int match_ret = 0;
     ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
@@ -630,12 +660,8 @@ long ImageBase::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double 
             vpoint_t vp = f.get();
             if (vp.size() > 0) {
                 for (auto &p : vp) {
-                    if (obj_ct < _max_return_obj_ct) {
-                        point_desc_t pd = {pic_id, p};
-
-                        vpd.push_back(pd);
-                        ++obj_ct;
-                    }
+                    point_desc_t pd = {pic_id, p};
+                    vpd.push_back(pd);
                 }
 
                 // return pic_id;
@@ -643,7 +669,8 @@ long ImageBase::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double 
         }
     }
 
-    return obj_ct;
+    rect_t resultRange(_x1 + _dx, _y1 + _dy, _x1 + _dx + _src.width, _y1 + _dy + _src.height);
+    return sort_and_limit_point_desc(vpd, dir, _max_return_obj_ct, resultRange);
 }
 
 long ImageBase::FindColorBlock(double sim, long count, long height, long width, long &x, long &y) {

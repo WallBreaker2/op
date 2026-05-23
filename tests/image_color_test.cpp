@@ -106,6 +106,118 @@ TEST(ImageColorTest, FindColorUsesSimilarity) {
     EXPECT_EQ(y, 8);
 }
 
+TEST(ImageColorTest, FindColorHonorsAllDirections) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    auto paint_marker = [&](int x, int y) {
+        const auto idx = static_cast<size_t>(y * width + x) * 4;
+        pixels[idx + 0] = 0x11;
+        pixels[idx + 1] = 0x22;
+        pixels[idx + 2] = 0x33;
+        pixels[idx + 3] = 0xff;
+    };
+    paint_marker(1, 1);
+    paint_marker(6, 1);
+    paint_marker(3, 3);
+    paint_marker(1, 6);
+    paint_marker(6, 6);
+
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    const vector<wstring> expected = {
+        L"1,1|6,1|3,3|1,6|6,6",
+        L"1,6|6,6|3,3|1,1|6,1",
+        L"6,1|1,1|3,3|6,6|1,6",
+        L"6,6|1,6|3,3|6,1|1,1",
+        L"3,3|1,1|6,1|1,6|6,6",
+        L"1,1|1,6|3,3|6,1|6,6",
+        L"6,1|6,6|3,3|1,1|1,6",
+        L"1,6|1,1|3,3|6,6|6,1",
+        L"6,6|6,1|3,3|1,6|1,1",
+    };
+    const vector<long> expected_x = {1, 1, 6, 6, 3, 1, 6, 1, 6};
+    const vector<long> expected_y = {1, 6, 1, 6, 3, 1, 1, 6, 6};
+
+    for (long dir = 0; dir <= 8; ++dir) {
+        long x = -1;
+        long y = -1;
+        op.FindColor(0, 0, width, height, L"332211", 1.0, dir, &x, &y, &ret);
+        ASSERT_EQ(ret, 1) << "dir=" << dir;
+        EXPECT_EQ(x, expected_x[dir]) << "dir=" << dir;
+        EXPECT_EQ(y, expected_y[dir]) << "dir=" << dir;
+
+        wstring results;
+        op.FindColorEx(0, 0, width, height, L"332211", 1.0, dir, results);
+        EXPECT_EQ(results, expected[dir]) << "dir=" << dir;
+    }
+}
+
+TEST(ImageColorTest, FindMultiColorHonorsAllDirections) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    auto paint = [&](int x, int y, uchar b, uchar g, uchar r) {
+        const auto idx = static_cast<size_t>(y * width + x) * 4;
+        pixels[idx + 0] = b;
+        pixels[idx + 1] = g;
+        pixels[idx + 2] = r;
+        pixels[idx + 3] = 0xff;
+    };
+    auto paint_marker = [&](int x, int y) {
+        paint(x - 1, y, 0x44, 0x55, 0x66);
+        paint(x, y, 0x11, 0x22, 0x33);
+    };
+    paint_marker(1, 1);
+    paint_marker(6, 1);
+    paint_marker(3, 3);
+    paint_marker(1, 6);
+    paint_marker(6, 6);
+
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    const vector<wstring> expected = {
+        L"1,1|6,1|3,3|1,6|6,6",
+        L"1,6|6,6|3,3|1,1|6,1",
+        L"6,1|1,1|3,3|6,6|1,6",
+        L"6,6|1,6|3,3|6,1|1,1",
+        L"3,3|1,1|6,1|1,6|6,6",
+        L"1,1|1,6|3,3|6,1|6,6",
+        L"6,1|6,6|3,3|1,1|1,6",
+        L"1,6|1,1|3,3|6,6|6,1",
+        L"6,6|6,1|3,3|1,6|1,1",
+    };
+    const vector<long> expected_x = {1, 1, 6, 6, 3, 1, 6, 1, 6};
+    const vector<long> expected_y = {1, 6, 1, 6, 3, 1, 1, 6, 6};
+
+    for (long dir = 0; dir <= 8; ++dir) {
+        long x = -1;
+        long y = -1;
+        op.FindMultiColor(0, 0, width, height, L"332211", L"-1|0|665544", 1.0, dir, &x, &y, &ret);
+        ASSERT_EQ(ret, 1) << "dir=" << dir;
+        EXPECT_EQ(x, expected_x[dir]) << "dir=" << dir;
+        EXPECT_EQ(y, expected_y[dir]) << "dir=" << dir;
+
+        wstring results;
+        op.FindMultiColorEx(0, 0, width, height, L"332211", L"-1|0|665544", 1.0, dir, results);
+        EXPECT_EQ(results, expected[dir]) << "dir=" << dir;
+    }
+}
+
 TEST(ImageColorTest, FindPicHonorsDirection) {
     libop op;
     long ret = 0;
@@ -128,6 +240,9 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     };
 
     paint_marker(2, 3);
+    paint_marker(24, 3);
+    paint_marker(15, 15);
+    paint_marker(2, 25);
     paint_marker(24, 25);
     auto bmp = BuildBmp32TopDown(width, height, pixels);
     wstring mode = L"mem:" + PtrToWString(bmp.data());
@@ -151,18 +266,52 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     op.LoadMemPic(L"findpic_dir_marker", tpl_bmp.data(), static_cast<long>(tpl_bmp.size()), &ret);
     ASSERT_EQ(ret, 1);
 
-    long x = -1;
-    long y = -1;
-    op.FindPic(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, 0, &x, &y, &ret);
-    ASSERT_EQ(ret, 0);
-    EXPECT_EQ(x, 2);
-    EXPECT_EQ(y, 3);
+    const vector<wstring> expected = {
+        L"0,2,3|0,24,3|0,15,15|0,2,25|0,24,25",
+        L"0,2,25|0,24,25|0,15,15|0,2,3|0,24,3",
+        L"0,24,3|0,2,3|0,15,15|0,24,25|0,2,25",
+        L"0,24,25|0,2,25|0,15,15|0,24,3|0,2,3",
+        L"0,15,15|0,24,25|0,24,3|0,2,25|0,2,3",
+        L"0,2,3|0,2,25|0,15,15|0,24,3|0,24,25",
+        L"0,24,3|0,24,25|0,15,15|0,2,3|0,2,25",
+        L"0,2,25|0,2,3|0,15,15|0,24,25|0,24,3",
+        L"0,24,25|0,24,3|0,15,15|0,2,25|0,2,3",
+    };
+    const vector<long> expected_x = {2, 2, 24, 24, 15, 2, 24, 2, 24};
+    const vector<long> expected_y = {3, 25, 3, 25, 15, 3, 3, 25, 25};
 
-    x = y = -1;
-    op.FindPic(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, 3, &x, &y, &ret);
-    ASSERT_EQ(ret, 0);
-    EXPECT_EQ(x, 24);
-    EXPECT_EQ(y, 25);
+    auto named_results = [](const wstring &id_results) {
+        wstring named;
+        size_t start = 0;
+        while (start < id_results.size()) {
+            const size_t end = id_results.find(L'|', start);
+            const wstring item = id_results.substr(start, end == wstring::npos ? wstring::npos : end - start);
+            const size_t comma = item.find(L',');
+            named += L"findpic_dir_marker" + item.substr(comma) + L"|";
+            if (end == wstring::npos)
+                break;
+            start = end + 1;
+        }
+        if (!named.empty())
+            named.pop_back();
+        return named;
+    };
+
+    for (long dir = 0; dir <= 8; ++dir) {
+        long x = -1;
+        long y = -1;
+        op.FindPic(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, dir, &x, &y, &ret);
+        ASSERT_EQ(ret, 0) << "dir=" << dir;
+        EXPECT_EQ(x, expected_x[dir]) << "dir=" << dir;
+        EXPECT_EQ(y, expected_y[dir]) << "dir=" << dir;
+
+        wstring results;
+        op.FindPicEx(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, dir, results);
+        EXPECT_EQ(results, expected[dir]) << "dir=" << dir;
+
+        op.FindPicExS(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, dir, results);
+        EXPECT_EQ(results, named_results(expected[dir])) << "dir=" << dir;
+    }
 }
 
 TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
