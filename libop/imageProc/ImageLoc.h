@@ -82,11 +82,11 @@ class ImageBase {
 
     long CmpColor(color_t color, std::vector<color_df_t> &colors, double sim);
 
-    long FindColor(std::vector<color_df_t> &colors, int dir, long &x, long &y);
+    long FindColor(std::vector<color_df_t> &colors, double sim, int dir, long &x, long &y);
 
-    long FindColorEx(std::vector<color_df_t> &colors, std::wstring &retstr);
+    long FindColorEx(std::vector<color_df_t> &colors, double sim, std::wstring &retstr);
 
-    long FindColorNum(std::vector<color_df_t> &colors);
+    long FindColorNum(std::vector<color_df_t> &colors, double sim);
 
     long FindMultiColor(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color, double sim,
                         long dir, long &x, long &y);

@@ -4,12 +4,39 @@
 #include <assert.h>
 #include <time.h>
 
+#include <cmath>
 #include <numeric>
 
 #include "../core/helpfunc.h"
 #include "imageView.hpp"
 
 using std::to_wstring;
+
+namespace {
+
+color_t sim_to_color_diff(double sim) {
+    if (sim < 0.0 || sim > 1.0)
+        sim = 1.0;
+
+    const auto diff = static_cast<uchar>(std::ceil((1.0 - sim) * 255.0));
+    color_t color_diff;
+    color_diff.b = diff;
+    color_diff.g = diff;
+    color_diff.r = diff;
+    return color_diff;
+}
+
+bool has_color_diff(const color_t &df) {
+    return df.b != 0 || df.g != 0 || df.r != 0;
+}
+
+bool color_matches(const color_t &color, const color_df_t &expected, double sim) {
+    const color_t df = has_color_diff(expected.df) ? expected.df : sim_to_color_diff(sim);
+    return IN_RANGE(color, expected.color, df);
+}
+
+} // namespace
+
 // 检查是否为透明图，返回透明像素个数, 四角颜色相同且透明颜色数量在50%-99%范围内
 int check_transparent(Image *img) {
     if (img->width < 2 || img->height < 2)
@@ -156,7 +183,7 @@ long ImageBase::GetPixel(long x, long y, color_t &cr) {
 
 long ImageBase::CmpColor(color_t color, std::vector<color_df_t> &colors, double sim) {
     for (auto &it : colors) {
-        if (IN_RANGE(color, it.color, it.df))
+        if (color_matches(color, it, sim))
             return 1;
     }
 
@@ -220,7 +247,7 @@ static bool point_precedes_in_dir(const point_t &lhs, const point_t &rhs, int di
     return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
 }
 
-long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x, long &y) {
+long ImageBase::FindColor(vector<color_df_t> &colors, double sim, int dir, long &x, long &y) {
     opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
     gen_rangeyx(dir, rng, range);
     for (auto &it : colors) { // 对每个颜色描述
@@ -228,7 +255,7 @@ long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x, long &y)
         for (int i = range.y1; i != range.y2; i += range.stepY) {
             auto p = _src.ptr<color_t>(i);
             for (int j = range.x1; j != range.x2; j += range.stepX) {
-                if (IN_RANGE(*p, it.color, it.df)) {
+                if (color_matches(*p, it, sim)) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
                     return 1;
@@ -242,14 +269,14 @@ long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x, long &y)
     return 0;
 }
 
-long ImageBase::FindColorEx(vector<color_df_t> &colors, std::wstring &retstr) {
+long ImageBase::FindColorEx(vector<color_df_t> &colors, double sim, std::wstring &retstr) {
     retstr.clear();
     int find_ct = 0;
     for (int i = 0; i < _src.height; ++i) {
         auto p = _src.ptr<color_t>(i);
         for (int j = 0; j < _src.width; ++j) {
             for (auto &it : colors) { // 对每个颜色描述
-                if (IN_RANGE(*p, it.color, it.df)) {
+                if (color_matches(*p, it, sim)) {
                     retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
                     retstr += L"|";
                     ++find_ct;
@@ -268,13 +295,13 @@ _quick_break:
     return find_ct;
 }
 
-long ImageBase::FindColorNum(vector<color_df_t> &colors) {
+long ImageBase::FindColorNum(vector<color_df_t> &colors, double sim) {
     int find_ct = 0;
     for (int i = 0; i < _src.height; ++i) {
         auto p = _src.ptr<color_t>(i);
         for (int j = 0; j < _src.width; ++j) {
             for (auto &it : colors) { // 对每个颜色描述
-                if (IN_RANGE(*p, it.color, it.df)) {
+                if (color_matches(*p, it, sim)) {
                     ++find_ct;
                     if (find_ct >= INT_MAX)
                         goto _quick_break;
@@ -299,7 +326,7 @@ long ImageBase::FindMultiColor(std::vector<color_df_t> &first_color, std::vector
         for (int j = range.x1; j != range.x2; j += range.stepX) {
             // step 1. find first color
             for (auto &it : first_color) { // 对每个颜色描述
-                if (IN_RANGE(*p, it.color, it.df)) {
+                if (color_matches(*p, it, sim)) {
                     // 匹配其他坐标
                     err_ct = 0;
                     for (auto &off_cr : offset_color) {
@@ -341,7 +368,7 @@ long ImageBase::FindMultiColorEx(std::vector<color_df_t> &first_color, std::vect
         for (int j = range.x1; j != range.x2; j += range.stepX) {
             // step 1. find first color
             for (auto &it : first_color) { // 对每个颜色描述
-                if (IN_RANGE(*p, it.color, it.df)) {
+                if (color_matches(*p, it, sim)) {
                     // 匹配其他坐标
                     err_ct = 0;
                     for (auto &off_cr : offset_color) {

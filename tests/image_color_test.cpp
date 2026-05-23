@@ -26,6 +26,36 @@ TEST(ImageColorTest, CmpColor) {
     EXPECT_TRUE(ret) << "CmpColor should match the same color just read";
 }
 
+TEST(ImageColorTest, CmpColorUsesSimilarityAndExplicitDelta) {
+    libop op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = 0x20;
+            pixels[idx + 1] = 0x30;
+            pixels[idx + 2] = 0x40;
+        }
+    }
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.CmpColor(10, 10, L"433222", 1.0, &ret);
+    EXPECT_EQ(ret, 0) << "Different colors should not match at exact similarity";
+
+    op.CmpColor(10, 10, L"433222", 0.98, &ret);
+    EXPECT_EQ(ret, 1) << "Similarity should provide an implicit color tolerance";
+
+    op.CmpColor(10, 10, L"433222-030202", 1.0, &ret);
+    EXPECT_EQ(ret, 1) << "Explicit delta in the color string should still be honored";
+}
+
 TEST(ImageColorTest, FindColor) {
     libop op;
     wstring color;
@@ -35,6 +65,45 @@ TEST(ImageColorTest, FindColor) {
     long x, y, ret;
     op.FindColor(0, 0, 100, 100, color.c_str(), 0.9, 0, &x, &y, &ret);
     cout << "FindColor ret: " << ret << " at " << x << "," << y << endl;
+}
+
+TEST(ImageColorTest, FindColorUsesSimilarity) {
+    libop op;
+    long ret = 0;
+    const int width = 16;
+    const int height = 16;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = 0x00;
+            pixels[idx + 1] = 0x00;
+            pixels[idx + 2] = 0x00;
+        }
+    }
+
+    const auto marker_idx = static_cast<size_t>(8 * width + 7) * 4;
+    pixels[marker_idx + 0] = 0x20;
+    pixels[marker_idx + 1] = 0x30;
+    pixels[marker_idx + 2] = 0x40;
+
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindColor(0, 0, width, height, L"433222", 1.0, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    op.FindColor(0, 0, width, height, L"433222", 0.98, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 7);
+    EXPECT_EQ(y, 8);
 }
 
 TEST(ImageColorTest, FindPicHonorsDirection) {
