@@ -556,7 +556,7 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
         std::vector<std::future<point_t>> results;
         for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, dir, points, pgimg, tnorm, matchRect](rect_t block, Image *pic, int use_ts_match,
+                [this, dfcolor, dir, &points, pgimg, tnorm, matchRect](rect_t block, Image *pic, int use_ts_match,
                                                                       double sim) {
                     // 计算最大误差
                     int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
@@ -666,7 +666,7 @@ long ImageBase::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double 
         std::vector<std::future<vpoint_t>> results;
         for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, points, pgimg, tnorm](rect_t &block, Image *pic, int use_ts_match,
+                [this, dfcolor, &points, pgimg, tnorm](rect_t &block, Image *pic, int use_ts_match,
                                                       double sim) -> vpoint_t {
                     vpoint_t vp;
                     // 计算最大误差
@@ -936,29 +936,31 @@ long ImageBase::simple_match(long x, long y, Image *timg, color_t dfcolor, int t
     return 1;
 }
 template <bool nodfcolor>
-long ImageBase::trans_match(long x, long y, Image *timg, color_t dfcolor, vector<uint> pts, int max_error) {
-    int err_ct = 0, k, dx, dy;
-    int left, right;
-    left = 0;
-    right = pts.size() - 1;
+long ImageBase::trans_match(long x, long y, Image *timg, color_t dfcolor, const vector<uint> &pts, int max_error) {
+    int err_ct = 0;
+    int left = 0;
+    int right = static_cast<int>(pts.size()) - 1;
     while (left <= right) {
-        auto it = pts[left];
         if (nodfcolor) {
             if (_src.at<uint>(y + PTY(pts[left]), x + PTX(pts[left])) != timg->at<uint>(PTY(pts[left]), PTX(pts[left])))
                 ++err_ct;
-            if (_src.at<uint>(y + PTY(pts[right]), x + PTX(pts[right])) !=
-                timg->at<uint>(PTY(pts[right]), PTX(pts[right])))
-                ++err_ct;
+            if (left != right) {
+                if (_src.at<uint>(y + PTY(pts[right]), x + PTX(pts[right])) !=
+                    timg->at<uint>(PTY(pts[right]), PTX(pts[right])))
+                    ++err_ct;
+            }
         } else {
             color_t cr1, cr2;
             cr1 = _src.at<color_t>(y + PTY(pts[left]), x + PTX(pts[left]));
             cr2 = timg->at<color_t>(PTY(pts[left]), PTX(pts[left]));
             if (!IN_RANGE(cr1, cr2, dfcolor))
                 ++err_ct;
-            cr1 = _src.at<color_t>(y + PTY(pts[right]), x + PTX(pts[right]));
-            cr2 = timg->at<color_t>(PTY(pts[right]), PTX(pts[right]));
-            if (!IN_RANGE(cr1, cr2, dfcolor))
-                ++err_ct;
+            if (left != right) {
+                cr1 = _src.at<color_t>(y + PTY(pts[right]), x + PTX(pts[right]));
+                cr2 = timg->at<color_t>(PTY(pts[right]), PTX(pts[right]));
+                if (!IN_RANGE(cr1, cr2, dfcolor))
+                    ++err_ct;
+            }
         }
 
         ++left;

@@ -450,6 +450,53 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     }
 }
 
+TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
+    libop op;
+    long ret = 0;
+    const int width = 16;
+    const int height = 16;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    auto paint_screen = [&](int x, int y, uchar b, uchar g, uchar r) {
+        PaintPixel(pixels, width, x, y, b, g, r);
+    };
+
+    const vector<pair<int, int>> points = {
+        {1, 1}, {4, 1}, {2, 2}, {5, 2}, {3, 3}, {1, 4}, {4, 4}, {2, 5}, {5, 5}, {3, 6}, {5, 6},
+    };
+    const int left = 4;
+    const int top = 3;
+    for (auto [x, y] : points)
+        paint_screen(left + x, top + y, 0x10, 0x20, 0x30);
+    paint_screen(left + 1, top + 4, 0xe0, 0xd0, 0xc0);
+
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    vector<uchar> tpl(static_cast<size_t>(7) * 7 * 4, 0x00);
+    auto paint_tpl = [&](int x, int y, uchar b, uchar g, uchar r, uchar a = 0xff) {
+        const auto idx = static_cast<size_t>(y * 7 + x) * 4;
+        tpl[idx + 0] = b;
+        tpl[idx + 1] = g;
+        tpl[idx + 2] = r;
+        tpl[idx + 3] = a;
+    };
+    for (auto [x, y] : points)
+        paint_tpl(x, y, 0x10, 0x20, 0x30);
+    auto tpl_bmp = BuildBmp32TopDown(7, 7, tpl);
+    op.LoadMemPic(L"findpic_transparent_odd", tpl_bmp.data(), static_cast<long>(tpl_bmp.size()), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindPic(0, 0, width, height, L"findpic_transparent_odd", L"000000", 0.8, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, left);
+    EXPECT_EQ(y, top);
+}
+
 TEST(ImageColorTest, FetchWordUsesProvidedWordName) {
     libop op;
     long ret = 0;
