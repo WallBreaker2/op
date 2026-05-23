@@ -36,6 +36,39 @@ bool color_matches(const color_t &color, const color_df_t &expected, double sim)
     return IN_RANGE(color, expected.color, df);
 }
 
+struct ocr_text_span_t {
+    size_t begin = 0;
+    size_t end = 0;
+    point_t point;
+};
+
+std::wstring build_ocr_text_spans(const std::map<point_t, ocr_rec_t> &ps, std::vector<ocr_text_span_t> &spans) {
+    spans.clear();
+    std::wstring text;
+
+    for (const auto &it : ps) {
+        if (it.second.text.empty())
+            continue;
+
+        ocr_text_span_t span;
+        span.begin = text.size();
+        text.append(it.second.text);
+        span.end = text.size();
+        span.point = it.first;
+        spans.push_back(span);
+    }
+
+    return text;
+}
+
+const ocr_text_span_t *find_ocr_text_span(const std::vector<ocr_text_span_t> &spans, size_t index) {
+    for (const auto &span : spans) {
+        if (span.begin <= index && index < span.end)
+            return &span;
+    }
+    return nullptr;
+}
+
 } // namespace
 
 // 检查是否为透明图，返回透明像素个数, 四角颜色相同且透明颜色数量在50%-99%范围内
@@ -745,40 +778,26 @@ long ImageBase::OcrEx(Dict &dict, double sim, std::wstring &retstr) {
 long ImageBase::FindStr(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, double sim, long &retx,
                         long &rety) {
     retx = rety = -1;
+    (void)sim;
 
-    // 查找字符 返回坐标
-    //  step 1. 找出频幕中所有字符及其坐标信息
-    // std::map<point_t, ocr_rec_t> ps;
-    // bin_ocr(dict, sim, ps);
-    //  step 2. 拼接字符 形成完整字符串
-    wstring str;
-    for (auto &it : ps)
-        str.append(it.second.text);
-    // step 3. 在完整字符中查找目标字符串，并记录 索引
-    int idx = -1;
-    int oneIndex = -1;
-    for (int i = 0; i < vstr.size(); ++i) {
-        idx = str.find(vstr[i]);
-        if (idx != -1) {
-            oneIndex = i;
-            break;
-        }
-    }
-    // step 4.根据索引给出对应 坐标 并返回
-    if (idx != -1) { // locate it
-        int curr_len = 0;
-        for (auto &it : ps) {
-            curr_len += it.second.text.length();
-            if (curr_len < idx + 1)
-                continue;
-            if (it.second.text.find(str[idx]) != -1) {
-                retx = it.first.x + _x1 + _dx;
-                rety = it.first.y + _y1 + _dy;
-                return oneIndex;
-            }
-        }
-        // 这里进行断言，表示不会走到这一步
-        assert(0);
+    std::vector<ocr_text_span_t> spans;
+    const std::wstring str = build_ocr_text_spans(ps, spans);
+
+    for (size_t i = 0; i < vstr.size(); ++i) {
+        if (vstr[i].empty())
+            continue;
+
+        const size_t idx = str.find(vstr[i]);
+        if (idx == std::wstring::npos)
+            continue;
+
+        const ocr_text_span_t *span = find_ocr_text_span(spans, idx);
+        if (span == nullptr)
+            continue;
+
+        retx = span->point.x + _x1 + _dx;
+        rety = span->point.y + _y1 + _dy;
+        return static_cast<long>(i);
     }
 
     return -1;
@@ -795,43 +814,36 @@ long ImageBase::FindStrEx(std::map<point_t, ocr_rec_t> &ps, const vector<wstring
     //  step 5. 回到第3步
 
     retstr.clear();
+    (void)sim;
 
-    // setp 2.
-    wstring str;
-    for (auto &it : ps) {
-        str.append(it.second.text);
-    }
-    // step 3.
+    std::vector<ocr_text_span_t> spans;
+    const std::wstring str = build_ocr_text_spans(ps, spans);
+
     int find_ct = 0;
-    for (int i = 0; i < vstr.size(); ++i) {
-        int index = -1, old = -1;
+    for (size_t i = 0; i < vstr.size(); ++i) {
+        if (vstr[i].empty())
+            continue;
+
+        size_t search_from = 0;
         do {
-            index = str.find(vstr[i], old + 1);
-            if (index == -1) { // failed!!
+            const size_t index = str.find(vstr[i], search_from);
+            if (index == std::wstring::npos)
                 break;
+
+            const ocr_text_span_t *span = find_ocr_text_span(spans, index);
+            if (span != nullptr) {
+                retstr += std::to_wstring(i);
+                retstr += L",";
+                retstr += std::to_wstring(span->point.x + _x1 + _dx);
+                retstr += L",";
+                retstr += std::to_wstring(span->point.y + _y1 + _dy);
+                retstr += L"|";
+                ++find_ct;
+                if (find_ct > _max_return_obj_ct)
+                    goto _quick_return;
             }
-            // step 4
-            int current_len = 0;
-            for (auto &it : ps) {
-                // 注意 字符长度要大于index 才记录坐标
-                current_len += it.second.text.length();
-                if (current_len < index + 1)
-                    continue;
-                if (it.second.text.find(str[index]) != -1) {
-                    // 记录坐标
-                    wchar_t buff[20] = {0};
-                    // 注意加偏移
-                    wsprintf(buff, L"%d,%d,%d|", i, it.first.x + _x1 + _dx, it.first.y + _y1 + _dy);
-                    retstr.append(buff);
-                    ++find_ct;
-                    if (find_ct > _max_return_obj_ct)
-                        goto _quick_return;
-                    else
-                        break;
-                    // to do 这里还需要修改
-                }
-            } // end for ps
-            old = index;
+
+            search_from = index + 1;
         } while (1);
     }
 _quick_return:

@@ -144,6 +144,54 @@ TEST(ImageColorTest, CmpColorUsesSimilarityAndExplicitDelta) {
     EXPECT_EQ(ret, 1) << "Explicit delta in the color string should still be honored";
 }
 
+TEST(ImageColorTest, FindStrIgnoresEmptyAlternatives) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+    UseSingleWordDict(op, width, height, L"000000-000000", L"A", ret);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"|A", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+
+    wstring results;
+    op.FindStrEx(0, 0, width, height, L"|A", L"000000-000000", 1.0, results);
+    EXPECT_EQ(results, L"1,1,1");
+}
+
+TEST(ImageColorTest, FindStrMapsMatchesInsideMultiCharacterDictWords) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+    UseSingleWordDict(op, width, height, L"000000-000000", L"AB", ret);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"B", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+
+    wstring results;
+    op.FindStrEx(0, 0, width, height, L"A|B", L"000000-000000", 1.0, results);
+    EXPECT_EQ(results, L"0,1,1|1,1,1");
+}
+
 TEST(ImageColorTest, FindColor) {
     libop op;
     wstring color;
