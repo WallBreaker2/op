@@ -33,13 +33,13 @@ long ImageProc::FindColor(const wstring &color, double sim, long dir, long &x, l
     str2colordfs(color, colors);
     // setlog("%s cr size=%d",colors[0].color.tostr().data(), colors.size());
     // setlog("sim:,dir:%d", dir);
-    return ImageBase::FindColor(colors, dir, x, y);
+    return ImageBase::FindColor(colors, sim, dir, x, y);
 }
 
 long ImageProc::FindColoEx(const wstring &color, double sim, long dir, wstring &retstr) {
     std::vector<color_df_t> colors;
     str2colordfs(color, colors);
-    return ImageBase::FindColorEx(colors, retstr);
+    return ImageBase::FindColorEx(colors, sim, retstr);
 }
 
 long ImageProc::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,
@@ -153,7 +153,7 @@ long ImageProc::FindColorBlockEx(const wstring &color, double sim, long count, l
 long ImageProc::GetColorNum(const wstring &color, double sim) {
     std::vector<color_df_t> colors;
     str2colordfs(color, colors);
-    return ImageBase::FindColorNum(colors);
+    return ImageBase::FindColorNum(colors, sim);
 }
 
 long ImageProc::SetDict(int idx, const wstring &file_name) {
