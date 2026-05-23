@@ -527,9 +527,5 @@ long ImageProc::FindLine(const wstring &color, double sim, wstring &retStr) {
     str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
-
-    _src.write(L"_src.bmp");
-    _gray.write(L"gray.bmp");
-    _binary.write(L"_binary.bmp");
     return ImageBase::FindLine(sim, retStr);
 }
