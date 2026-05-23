@@ -236,21 +236,25 @@ long ImageProc::GetNowDict() {
 wstring ImageProc::FetchWord(rect_t rc, const wstring &color, const wstring &word) {
     str2binaryfbk(color);
     auto orc = rc;
-    bin_image_cut(2, rc, orc);
+    if (!bin_image_cut(2, rc, orc))
+        return L"";
     // check is too large
     if (orc.width() > 255) {
         orc.x2 = orc.x1 + 255;
         rc = orc;
-        bin_image_cut(2, rc, orc);
+        if (!bin_image_cut(2, rc, orc))
+            return L"";
     }
     if (orc.height() > 255) {
         orc.y2 = orc.y1 + 255;
         rc = orc;
-        bin_image_cut(2, rc, orc);
+        if (!bin_image_cut(2, rc, orc))
+            return L"";
     }
     Dict dict_new;
     dict_new.add_word(_binary, orc);
-    const auto &wt = dict_new.words[0];
+    auto &wt = dict_new.words[0];
+    wt.set_chars(word);
     return wt.to_string();
 }
 

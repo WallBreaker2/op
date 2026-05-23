@@ -1136,8 +1136,8 @@ void libop::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, 
             m_context->image_proc.set_offset(x1, y1);
             rect_t rc;
             rc.x1 = rc.y1 = 0;
-            rc.x2 = x2;
-            rc.y2 = y2;
+            rc.x2 = x2 - x1;
+            rc.y2 = y2 - y1;
             str = m_context->image_proc.FetchWord(rc, color, word);
         }
     }

@@ -152,7 +152,7 @@ class ImageBase {
     // 二值化 auto
     void bgr2binarybk(const vector<color_df_t> &bk_colors);
     // 图像裁剪
-    void bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc);
+    bool bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc);
     void get_rois(int min_word_h, std::vector<rect_t> &vroi);
     // ocr识别，返回识别到的字及对应坐标
 

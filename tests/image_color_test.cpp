@@ -314,6 +314,67 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     }
 }
 
+TEST(ImageColorTest, FetchWordUsesProvidedWordName) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    auto paint = [&](int x, int y) {
+        const auto idx = static_cast<size_t>(y * width + x) * 4;
+        pixels[idx + 0] = 0x00;
+        pixels[idx + 1] = 0x00;
+        pixels[idx + 2] = 0x00;
+        pixels[idx + 3] = 0xff;
+    };
+
+    // A small glyph-like block so FetchWord has foreground pixels to crop.
+    paint(2, 1);
+    paint(1, 2);
+    paint(3, 2);
+    paint(1, 3);
+    paint(2, 3);
+    paint(3, 3);
+    paint(1, 4);
+    paint(3, 4);
+
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring word_data;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", word_data);
+
+    wcout << L"FetchWord output: " << word_data << endl;
+    EXPECT_FALSE(word_data.empty());
+    EXPECT_EQ(word_data.rfind(L"A$", 0), 0u) << "FetchWord should preserve the provided word name";
+
+    op.FetchWord(1, 1, 4, 5, L"000000-000000", L"B", word_data);
+    wcout << L"FetchWord offset output: " << word_data << endl;
+    EXPECT_EQ(word_data, L"B$4,3,8$5E0E") << "FetchWord should use local coordinates after capturing an offset rect";
+}
+
+TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring word_data;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"Blank", word_data);
+
+    EXPECT_TRUE(word_data.empty()) << "FetchWord should not emit a dictionary entry for a blank region";
+}
+
 TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
     libop op;
     long ret = 0;

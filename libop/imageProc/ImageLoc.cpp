@@ -1203,44 +1203,59 @@ void ImageBase::binshadowy(const rect_t &rc, std::vector<rect_t> &out_put) {
     }
 }
 
-void ImageBase::bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc) {
-    // 水平裁剪，缩小高度
-    std::vector<int> v;
-    outrc = inrc;
-    int i, j;
-    v.resize(_binary.height);
-    for (auto &it : v)
-        it = 0;
-    for (i = inrc.y1; i < inrc.y2; ++i) {
-        for (j = inrc.x1; j < inrc.x2; ++j)
-            v[i] += (_binary.at(i, j) == WORD_COLOR ? 1 : 0);
+bool ImageBase::bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc) {
+    rect_t rc(max(0, inrc.x1), max(0, inrc.y1), min(_binary.width, inrc.x2), min(_binary.height, inrc.y2));
+    outrc = rc;
+    if (_binary.empty() || !rc.valid()) {
+        outrc = rect_t();
+        return false;
     }
-    i = inrc.y1;
-    while (v[i] == 0)
-        i++;
-    outrc.y1 = i;
-    i = inrc.y2 - 1;
-    while (v[i] == 0)
-        i--;
-    if (i + 1 - outrc.y1 > min_word_h)
-        outrc.y2 = i + 1;
-    // 垂直裁剪.缩小宽度
-    v.resize(_binary.width);
-    for (auto &it : v)
-        it = 0;
 
-    for (i = inrc.y1; i < inrc.y2; ++i) {
-        for (j = inrc.x1; j < inrc.x2; ++j)
-            v[j] += _binary.at(i, j) == WORD_COLOR ? 1 : 0;
+    auto row_has_word = [&](int y) {
+        for (int x = rc.x1; x < rc.x2; ++x) {
+            if (_binary.at(y, x) == WORD_COLOR)
+                return true;
+        }
+        return false;
+    };
+
+    int top = rc.y1;
+    while (top < rc.y2 && !row_has_word(top))
+        ++top;
+    if (top == rc.y2) {
+        outrc = rect_t(rc.x1, rc.y1, rc.x1, rc.y1);
+        return false;
     }
-    i = inrc.x1;
-    while (v[i] == 0)
-        i++;
-    outrc.x1 = i;
-    i = inrc.x2 - 1;
-    while (v[i] == 0)
-        i--;
-    outrc.x2 = i + 1;
+
+    int bottom = rc.y2 - 1;
+    while (bottom >= top && !row_has_word(bottom))
+        --bottom;
+    outrc.y1 = top;
+    if (bottom + 1 - top > min_word_h)
+        outrc.y2 = bottom + 1;
+
+    auto col_has_word = [&](int x) {
+        for (int y = rc.y1; y < rc.y2; ++y) {
+            if (_binary.at(y, x) == WORD_COLOR)
+                return true;
+        }
+        return false;
+    };
+
+    int left = rc.x1;
+    while (left < rc.x2 && !col_has_word(left))
+        ++left;
+    if (left == rc.x2) {
+        outrc = rect_t(rc.x1, rc.y1, rc.x1, rc.y1);
+        return false;
+    }
+
+    int right = rc.x2 - 1;
+    while (right >= left && !col_has_word(right))
+        --right;
+    outrc.x1 = left;
+    outrc.x2 = right + 1;
+    return outrc.valid();
 }
 
 void ImageBase::get_rois(int min_word_h, std::vector<rect_t> &vroi) {
@@ -1254,8 +1269,8 @@ void ImageBase::get_rois(int min_word_h, std::vector<rect_t> &vroi) {
     for (int i = 0; i < vrcy.size(); ++i) {
         binshadowx(vrcy[i], vrcx);
         for (int j = 0; j < vrcx.size(); j++) {
-            if (vrcx[j].width() >= min_word_h)
-                bin_image_cut(min_word_h, vrcx[j], vrcx[j]);
+            if (vrcx[j].width() >= min_word_h && !bin_image_cut(min_word_h, vrcx[j], vrcx[j]))
+                continue;
             vroi.push_back(vrcx[j]);
         }
     }
