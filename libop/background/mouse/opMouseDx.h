@@ -16,7 +16,7 @@ class opMouseDx : public opMouseWin {
 
     virtual long MoveTo(int x, int y);
 
-    virtual long MoveToEx(int x, int y, int w, int h);
+    virtual long MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y);
 
     virtual long LeftClick();
 

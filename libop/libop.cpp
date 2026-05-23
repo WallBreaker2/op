@@ -567,8 +567,14 @@ void libop::MoveTo(long x, long y, long *ret) {
     *ret = m_context->bkproc._bkmouse->MoveTo(x, y);
 }
 
-void libop::MoveToEx(long x, long y, long w, long h, long *ret) {
-    *ret = m_context->bkproc._bkmouse->MoveToEx(x, y, w, h);
+void libop::MoveToEx(long x, long y, long w, long h, std::wstring &ret) {
+    int dst_x = x;
+    int dst_y = y;
+    if (m_context->bkproc._bkmouse->MoveToEx(x, y, w, h, dst_x, dst_y)) {
+        ret = std::to_wstring(dst_x) + L"," + std::to_wstring(dst_y);
+    } else {
+        ret.clear();
+    }
 }
 
 void libop::LeftClick(long *ret) {

@@ -215,7 +215,7 @@ ret = op.SetDisplayInput(mode)
 
 ### 常见排查与限制
 
-- `MoveToEx(x, y, w, h)` 当前返回的是数值状态（`LONG`），不是字符串；若外部 wiki 与实际行为不一致，请以仓库源码导出的接口为准。
+- `MoveToEx(x, y, w, h)` 会随机移动到指定范围内，并返回实际落点字符串 `"x,y"`；`w`/`h` 为负数时分别向左/向上取随机范围。
 - `OcrFromFile(file, color_format, sim)` 会按 `color_format` 参与识别；若结果异常，请先确认传入颜色串与图片前景/背景是否匹配。
 - `C#` / `.NET` 调用时，请确保宿主进程位数与 `op_x86.dll` / `op_x64.dll` 一致；位数不匹配时，常见表现是接口可创建但图色/OCR调用异常。
 - 若在 `PySide6` / `QThread` 等线程场景中使用 COM 对象，请避免 `terminate()` 之类的强制终止；优先使用协作式退出并在线程内创建/释放对象。

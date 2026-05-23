@@ -198,7 +198,7 @@ class ATL_NO_VTABLE OpInterface
     // 把鼠标移动到目的点(x,y)
     STDMETHOD(MoveTo)(LONG x, LONG y, LONG *ret);
     // 把鼠标移动到目的范围内的任意一点
-    STDMETHOD(MoveToEx)(LONG x, LONG y, LONG w, LONG h, LONG *ret);
+    STDMETHOD(MoveToEx)(LONG x, LONG y, LONG w, LONG h, BSTR *ret);
     // 按下鼠标左键
     STDMETHOD(LeftClick)(LONG *ret);
     // 双击鼠标左键

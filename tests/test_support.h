@@ -55,6 +55,7 @@ struct MouseEventWindow {
     int right_up = 0;
     int wheel_count = 0;
     int wheel_delta_sum = 0;
+    int move_count = 0;
 
     int op_left_down = 0;
     int op_left_up = 0;
@@ -62,6 +63,7 @@ struct MouseEventWindow {
     int op_right_up = 0;
     int op_wheel_count = 0;
     int op_wheel_delta_sum = 0;
+    int op_move_count = 0;
 
     long last_x = 0;
     long last_y = 0;
