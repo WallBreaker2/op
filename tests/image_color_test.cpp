@@ -667,6 +667,90 @@ TEST(ImageColorTest, LocalOcrApisUseBinaryColorTolerance) {
     EXPECT_EQ(str, L"0,1,1|0,9,1");
 }
 
+TEST(ImageColorTest, PointTextUsesSimilarityAsImplicitColorTolerance) {
+    libop op;
+    long ret = 0;
+    const int width = 16;
+    const int height = 8;
+
+    auto dict_pixels = MakePixels(8, height);
+    PaintGlyphA(dict_pixels, 8, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, 8, height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, 8, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x19, 0x19, 0x19);
+    PaintGlyphA(pixels, width, 8, 0, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, -1) << "Exact similarity keeps color matching exact when no explicit delta is provided";
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    op.FindStr(0, 0, width, height, L"A", L"000000", 0.9, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+
+    wstring str;
+    op.Ocr(0, 0, width, height, L"000000", 0.9, str);
+    EXPECT_EQ(str, L"AA");
+
+    op.OcrEx(0, 0, width, height, L"000000", 0.9, str);
+    EXPECT_EQ(str, L"1,1,A|9,1,A");
+
+    op.FindStrEx(0, 0, width, height, L"A", L"000000", 0.9, str);
+    EXPECT_EQ(str, L"0,1,1|0,9,1");
+}
+
+TEST(ImageColorTest, PointTextExplicitZeroDeltaOverridesSimilarityTolerance) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto dict_pixels = MakePixels(width, height);
+    PaintGlyphA(dict_pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-000000", 0.9, &x, &y, &ret);
+    EXPECT_EQ(ret, -1) << "Explicit -000000 keeps point-text color matching exact";
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+}
+
 TEST(ImageColorTest, FetchWordTreatsMultipleBackgroundColorsAsBackground) {
     libop op;
     long ret = 0;
