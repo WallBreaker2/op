@@ -29,6 +29,18 @@ long opWGC::BindEx(HWND _hwnd, long render_type) {
 }
 
 long opWGC::UnBindEx() {
+    if (framePool_ && hasFrameArrivedToken_) {
+        try {
+            framePool_.FrameArrived(frameArrivedToken_);
+        } catch (winrt::hresult_error &err) {
+            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X): %s", err.code().value,
+                   winrt::to_string(err.message()).c_str());
+        } catch (...) {
+            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X)", winrt::to_hresult().value);
+        }
+        hasFrameArrivedToken_ = false;
+    }
+
     if (framePool_) {
         try {
             framePool_.Close();
@@ -78,6 +90,8 @@ long opWGC::UnBindEx() {
     d3dDeviceContext_ = nullptr;
     d3dDevice_ = nullptr;
     stagingTexture_ = nullptr;
+    frameArrivedToken_ = {};
+    hasFrameArrivedToken_ = false;
     hasFrame_ = false;
     sharedWidth_ = 0;
     sharedHeight_ = 0;
@@ -167,21 +181,6 @@ bool opWGC::Init(HWND _hwnd) {
 
     session.IsCursorCaptureEnabled(false);
 
-    item_ = item;
-    device_ = device;
-    framePool_ = frame_pool;
-    session_ = session;
-
-    try {
-        session_.StartCapture();
-        setlog("StartCapture ok");
-    } catch (winrt::hresult_error &err) {
-        setlog("StartCapture (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
-        return false;
-    } catch (...) {
-        setlog("StartCapture (0x%08X)", winrt::to_hresult().value);
-        return false;
-    }
     const auto item_size = item.Size();
     captureWidth_ = item_size.Width;
     captureHeight_ = item_size.Height;
@@ -201,7 +200,34 @@ bool opWGC::Init(HWND _hwnd) {
         return false;
     }
 
-    return ensureSharedResources(captureWidth_, captureHeight_);
+    if (!ensureSharedResources(captureWidth_, captureHeight_)) {
+        return false;
+    }
+
+    item_ = item;
+    device_ = device;
+    framePool_ = frame_pool;
+    session_ = session;
+    frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
+        auto frame = tryGetLatestFrame(sender);
+        if (frame) {
+            copyFrameToStaging(frame);
+        }
+    });
+    hasFrameArrivedToken_ = true;
+
+    try {
+        session_.StartCapture();
+        setlog("StartCapture ok");
+    } catch (winrt::hresult_error &err) {
+        setlog("StartCapture (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        return false;
+    } catch (...) {
+        setlog("StartCapture (0x%08X)", winrt::to_hresult().value);
+        return false;
+    }
+
+    return true;
 }
 
 bool opWGC::requestCapture(int x1, int y1, int w, int h, Image &img) {
@@ -362,40 +388,29 @@ bool opWGC::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
     return true;
 }
 
-bool opWGC::updateLatestFrame() {
-    Direct3D11CaptureFrame frame = framePool_.TryGetNextFrame();
-    if (frame) {
-        for (;;) {
-            auto newer = framePool_.TryGetNextFrame();
-            if (!newer) {
-                break;
-            }
-            frame = newer;
+Direct3D11CaptureFrame opWGC::tryGetLatestFrame(const Direct3D11CaptureFramePool &frame_pool) {
+    Direct3D11CaptureFrame frame = frame_pool.TryGetNextFrame();
+    if (!frame) {
+        return frame;
+    }
+
+    for (;;) {
+        auto newer = frame_pool.TryGetNextFrame();
+        if (!newer) {
+            break;
         }
+        frame = newer;
+    }
+    return frame;
+}
+
+bool opWGC::updateLatestFrame() {
+    Direct3D11CaptureFrame frame = tryGetLatestFrame(framePool_);
+    if (frame) {
         return copyFrameToStaging(frame);
     }
 
-    if (hasFrame_) {
-        return true;
-    }
-
-    for (int retries = 0; retries < 10; ++retries) {
-        ::Sleep(16);
-        auto next = framePool_.TryGetNextFrame();
-        if (next) {
-            frame = next;
-            for (;;) {
-                auto newer = framePool_.TryGetNextFrame();
-                if (!newer) {
-                    break;
-                }
-                frame = newer;
-            }
-            return copyFrameToStaging(frame);
-        }
-    }
-
-    return false;
+    return hasFrame_;
 }
 
 void opWGC::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
