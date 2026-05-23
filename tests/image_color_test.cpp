@@ -37,6 +37,65 @@ TEST(ImageColorTest, FindColor) {
     cout << "FindColor ret: " << ret << " at " << x << "," << y << endl;
 }
 
+TEST(ImageColorTest, FindPicHonorsDirection) {
+    libop op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    auto paint = [&](int x, int y, uchar b, uchar g, uchar r) {
+        const auto idx = static_cast<size_t>(y * width + x) * 4;
+        pixels[idx + 0] = b;
+        pixels[idx + 1] = g;
+        pixels[idx + 2] = r;
+        pixels[idx + 3] = 0xff;
+    };
+    auto paint_marker = [&](int left, int top) {
+        paint(left, top, 0x11, 0x22, 0x33);
+        paint(left + 1, top, 0x44, 0x55, 0x66);
+        paint(left, top + 1, 0x77, 0x88, 0x99);
+        paint(left + 1, top + 1, 0xaa, 0xbb, 0xcc);
+    };
+
+    paint_marker(2, 3);
+    paint_marker(24, 25);
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    vector<uchar> tpl(static_cast<size_t>(2) * 2 * 4, 0xff);
+    auto write_tpl = [&](int x, int y, uchar b, uchar g, uchar r) {
+        const auto idx = static_cast<size_t>(y * 2 + x) * 4;
+        tpl[idx + 0] = b;
+        tpl[idx + 1] = g;
+        tpl[idx + 2] = r;
+        tpl[idx + 3] = 0xff;
+    };
+    write_tpl(0, 0, 0x11, 0x22, 0x33);
+    write_tpl(1, 0, 0x44, 0x55, 0x66);
+    write_tpl(0, 1, 0x77, 0x88, 0x99);
+    write_tpl(1, 1, 0xaa, 0xbb, 0xcc);
+    auto tpl_bmp = BuildBmp32TopDown(2, 2, tpl);
+    op.LoadMemPic(L"findpic_dir_marker", tpl_bmp.data(), static_cast<long>(tpl_bmp.size()), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindPic(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, 0, &x, &y, &ret);
+    ASSERT_EQ(ret, 0);
+    EXPECT_EQ(x, 2);
+    EXPECT_EQ(y, 3);
+
+    x = y = -1;
+    op.FindPic(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, 3, &x, &y, &ret);
+    ASSERT_EQ(ret, 0);
+    EXPECT_EQ(x, 24);
+    EXPECT_EQ(y, 25);
+}
+
 TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
     libop op;
     long ret = 0;

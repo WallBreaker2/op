@@ -206,6 +206,20 @@ static void gen_rangeyx(int dir, const opRange2D &range, opRange2D &out) {
     }
 }
 
+static bool point_precedes_in_dir(const point_t &lhs, const point_t &rhs, int dir) {
+    if (rhs.x == -1 || rhs.y == -1)
+        return true;
+
+    if (dir == 0)
+        return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
+    if (dir == 1)
+        return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
+    if (dir == 2)
+        return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
+
+    return lhs.y > rhs.y || (lhs.y == rhs.y && lhs.x > rhs.x);
+}
+
 long ImageBase::FindColor(vector<color_df_t> &colors, int dir, long &x, long &y) {
     opRange2D rng = {0, _src.width, 0, _src.height, 0, 0}, range;
     gen_rangeyx(dir, rng, range);
@@ -444,23 +458,20 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
             continue;
         matchRect.divideBlock(m_threadPool.getThreadNum(), matchRect.width() > matchRect.height(), blocks);
         std::vector<std::future<point_t>> results;
-        bool stop = false;
         for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, points, pgimg, tnorm](rect_t &block, Image *pic, int use_ts_match, double sim,
-                                                      bool *stop) {
+                [this, dfcolor, dir, points, pgimg, tnorm](rect_t block, Image *pic, int use_ts_match, double sim) {
                     // 计算最大误差
                     int max_err_ct = (pic->height * pic->width - use_ts_match) * (1.0 - sim);
-                    for (int i = block.y1; i < block.y2; ++i) {
-                        for (int j = block.x1; j < block.x2; ++j) {
-                            if (*stop)
-                                return point_t(-1, -1);
+                    opRange2D rng = {block.x1, block.x2, block.y1, block.y2, 0, 0}, range;
+                    gen_rangeyx(dir, rng, range);
+                    for (int i = range.y1; i != range.y2; i += range.stepY) {
+                        for (int j = range.x1; j != range.x2; j += range.stepX) {
                             // 开始匹配
                             int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
                                                           : real_match(j, i, pgimg, tnorm, sim));
                             // simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
                             if (match_ret) {
-                                *stop = true;
                                 return point_t(j + _x1 + _dx, i + _y1 + _dy);
                             }
 
@@ -468,19 +479,19 @@ long ImageBase::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double si
                     }     // end for i
                     return point_t(-1, -1);
                 },
-                blocks[i], pic, use_ts_match, sim, &stop));
+                blocks[i], pic, use_ts_match, sim));
             // results.push_back(r);
         }
         // wait all
+        point_t best(-1, -1);
         for (auto &&f : results) {
             point_t p = f.get();
-            if (p.x != -1) {
-                x = p.x;
-                y = p.y;
-                // return pic_id;
-            }
+            if (p.x != -1 && point_precedes_in_dir(p, best, dir))
+                best = p;
         }
-        if (x != -1) {
+        if (best.x != -1) {
+            x = best.x;
+            y = best.y;
             return pic_id;
         }
 
