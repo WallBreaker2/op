@@ -826,7 +826,7 @@ void libop::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, co
             setlog("error requestCapture");
         } else {
             m_context->image_proc.set_offset(x1, y1);
-            *ret = m_context->image_proc.FindPic(files, delta_color, sim, 0, *x, *y);
+            *ret = m_context->image_proc.FindPic(files, delta_color, sim, dir, *x, *y);
         }
 
         /*if (*ret) {
