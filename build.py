@@ -474,7 +474,6 @@ examples:
   python build.py -t RelWithDebInfo -g vs2019    # RelWithDebInfo + VS2019 + x64
   python build.py -t Release -g vs2026           # Release + VS2026 + x64
   python build.py -t Release -a x86              # Release + VS2022 + x86
-  python build.py --disable-wgc                  # Build without WGC (enabled by default)
 """,
     )
     parser.add_argument(
@@ -516,18 +515,12 @@ examples:
         default=None,
         help="Use an existing vcpkg root directory",
     )
-    parser.add_argument(
-        "--disable-wgc",
-        action="store_true",
-        help="Disable Windows Graphics Capture backend build (enabled by default)",
-    )
     args = parser.parse_args()
     ensure_cmake_on_path()
 
     build_type: str = args.type
     generator: str = args.generator
     arch: str = args.arch
-    enable_wgc = not args.disable_wgc
     gen_info = GENERATORS[generator]
     project_dir = Path(__file__).parent.resolve()
     deps_dir = resolve_path(project_dir, args.deps_dir)
@@ -538,7 +531,6 @@ examples:
     print(f"    BuildType:    {build_type}")
     print(f"    Generator:    {generator} ({gen_info['cmake']})")
     print(f"    Architecture: {arch}")
-    print(f"    WGC:          {'On' if enable_wgc else 'Off'}")
     print(f"    BootstrapDeps:{'No' if args.no_bootstrap_deps else 'Yes'}")
     print("=" * 60)
 
@@ -614,7 +606,6 @@ examples:
         "-B", str(build_dir),
         "-G", gen_info["cmake"],
         f"-DCMAKE_BUILD_TYPE={build_type}",
-        f"-Denable_wgc={'ON' if enable_wgc else 'OFF'}",
         *vcpkg_args,
         *blackbone_args,
     ]
