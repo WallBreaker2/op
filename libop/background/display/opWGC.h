@@ -36,6 +36,8 @@ class opWGC : public IDisplay {
     GraphicsCaptureItem item_{nullptr};
     Direct3D11CaptureFramePool framePool_{nullptr};
     GraphicsCaptureSession session_{nullptr};
+    winrt::event_token frameArrivedToken_{};
+    bool hasFrameArrivedToken_{false};
     FrameInfo m_frameInfo;
     long captureWidth_{0};
     long captureHeight_{0};
@@ -50,6 +52,7 @@ class opWGC : public IDisplay {
     bool ensureSharedResources(int width, int height);
     void refreshWindowMetrics();
     bool copyFrameToStaging(const Direct3D11CaptureFrame &frame);
+    Direct3D11CaptureFrame tryGetLatestFrame(const Direct3D11CaptureFramePool &frame_pool);
     bool updateLatestFrame();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };

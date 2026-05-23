@@ -68,17 +68,12 @@ bool opDXGI::requestCapture(int x1, int y1, int w, int h, Image &img) {
         return false;
     }
 
-    if (texture2D != nullptr) {
-        if (lastTexture_) {
-            lastTexture_->Release();
-        }
-        lastTexture_ = texture2D;
-    } else if (lastTexture_ == nullptr) {
+    if (texture2D == nullptr) {
         setlog("Acquire frame timeout");
         return false;
     }
 
-    lastTexture_->GetDesc(&m_desc);
+    texture2D->GetDesc(&m_desc);
 
     RECT rc;
     ::GetWindowRect(_hwnd, &rc);
@@ -88,13 +83,15 @@ bool opDXGI::requestCapture(int x1, int y1, int w, int h, Image &img) {
         src_y + h > static_cast<int>(m_desc.Height)) {
         setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, m_desc.Width, src_y,
                h, m_desc.Height);
+        texture2D->Release();
         return false;
     }
 
     D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-    HRESULT hr = deviceContext_->Map(lastTexture_, 0, D3D11_MAP_READ, 0, &mappedResource);
+    HRESULT hr = deviceContext_->Map(texture2D, 0, D3D11_MAP_READ, 0, &mappedResource);
     if (FAILED(hr)) {
         setlog("Map desktop frame failed hr=0x%08X", hr);
+        texture2D->Release();
         return false;
     }
 
@@ -108,7 +105,8 @@ bool opDXGI::requestCapture(int x1, int y1, int w, int h, Image &img) {
     for (int i = 0; i < h; i++) {
         memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * w);
     }
-    deviceContext_->Unmap(lastTexture_, 0);
+    deviceContext_->Unmap(texture2D, 0);
+    texture2D->Release();
     return true;
 }
 
