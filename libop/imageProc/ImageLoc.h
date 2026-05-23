@@ -123,7 +123,7 @@ class ImageBase {
     template <bool nodfcolor> long simple_match(long x, long y, Image *timg, color_t dfcolor, int tnrom, double sim);
     // 透明图匹配
     template <bool nodfcolor>
-    long trans_match(long x, long y, Image *timg, color_t dfcolor, vector<uint> points, int max_error);
+    long trans_match(long x, long y, Image *timg, color_t dfcolor, const vector<uint> &points, int max_error);
     // 灰度匹配
     long real_match(long x, long y, ImageBin *timg, int tnorm, double sim);
     // 记录和
