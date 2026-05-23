@@ -1032,10 +1032,9 @@ void ImageBase::bgr2binary(vector<color_df_t> &colors) {
 
         auto pbin = _binary.ptr(i);
         for (int j = 0; j < ncols; ++j) {
-            uchar g1 = psrc->toGray();
             *pbin = WORD_BKCOLOR;
             for (auto &it : colors) { // 对每个颜色描述
-                if (abs(g1 - it.color.toGray()) <= it.df.toGray()) {
+                if (IN_RANGE(*psrc, it.color, it.df)) {
                     *pbin = WORD_COLOR;
                     break;
                 }
@@ -1044,21 +1043,6 @@ void ImageBase::bgr2binary(vector<color_df_t> &colors) {
             ++psrc;
         }
     }
-    //_binary.create(ncols, nrows);
-    // for (int i = 0; i < nrows; ++i) {
-    //	auto psrc = _src.ptr<color_t>(i);
-    //	auto pbin = _binary.ptr(i);
-    //	for (int j = 0; j < ncols; ++j) {
-    //		*pbin = WORD_BKCOLOR;
-    //		for (auto& it : colors) {//对每个颜色描述
-    //			if (IN_RANGE(*psrc, it.color, it.df)) {
-    //				*pbin = WORD_COLOR;
-    //				break;
-    //			}
-    //		}
-    //		++pbin; ++psrc;
-    //	}
-    //}
     // test
     // cv::imwrite("src.png", _src);
     // cv::imwrite("binary.png", _binary);
@@ -1083,11 +1067,17 @@ void ImageBase::bgr2binarybk(const vector<color_df_t> &bk_colors) {
             pdst[i] = (std::abs((int)pgray[i] - bkcolor) < 20 ? WORD_BKCOLOR : WORD_COLOR);
         }
     } else {
-        for (auto bk : bk_colors) {
-            for (int i = 0; i < n; ++i) {
-                auto c = (color_t *)(_src.pdata + i * 4);
-                if (!IN_RANGE(*c, bk.color, bk.df))
-                    pdst[i] = WORD_COLOR;
+        for (int i = 0; i < n; ++i) {
+            auto c = (color_t *)(_src.pdata + i * 4);
+            bool is_bk_color = false;
+            for (const auto &bk : bk_colors) {
+                if (IN_RANGE(*c, bk.color, bk.df)) {
+                    is_bk_color = true;
+                    break;
+                }
+            }
+            if (!is_bk_color) {
+                pdst[i] = WORD_COLOR;
             }
         }
     }

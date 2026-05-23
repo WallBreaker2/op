@@ -1,11 +1,99 @@
 #include "test_support.h"
 
 #include <iostream>
+#include <utility>
 #include <vector>
 
 using namespace std;
 using test_support::BuildBmp32TopDown;
 using test_support::PtrToWString;
+
+namespace {
+vector<uchar> MakePixels(int width, int height, uchar b = 0xff, uchar g = 0xff, uchar r = 0xff) {
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = b;
+            pixels[idx + 1] = g;
+            pixels[idx + 2] = r;
+        }
+    }
+    return pixels;
+}
+
+void PaintPixel(vector<uchar> &pixels, int width, int x, int y, uchar b, uchar g, uchar r) {
+    const auto idx = static_cast<size_t>(y * width + x) * 4;
+    pixels[idx + 0] = b;
+    pixels[idx + 1] = g;
+    pixels[idx + 2] = r;
+    pixels[idx + 3] = 0xff;
+}
+
+void PaintGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, uchar b, uchar g, uchar r) {
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
+                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    for (auto [x, y] : points)
+        PaintPixel(pixels, width, x + offset_x, y + offset_y, b, g, r);
+}
+
+void PaintScaledGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, int scale, uchar b, uchar g,
+                       uchar r) {
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
+                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    for (auto [x, y] : points) {
+        for (int dy = 0; dy < scale; ++dy) {
+            for (int dx = 0; dx < scale; ++dx) {
+                PaintPixel(pixels, width, offset_x + x * scale + dx, offset_y + y * scale + dy, b, g, r);
+            }
+        }
+    }
+}
+
+void PaintOutlinedGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, uchar outline_b,
+                         uchar outline_g, uchar outline_r, uchar fill_b, uchar fill_g, uchar fill_r) {
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
+                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    for (auto [x, y] : points) {
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                PaintPixel(pixels, width, offset_x + x + dx, offset_y + y + dy, outline_b, outline_g, outline_r);
+            }
+        }
+    }
+    for (auto [x, y] : points)
+        PaintPixel(pixels, width, x + offset_x, y + offset_y, fill_b, fill_g, fill_r);
+}
+
+void PaintGameBackground(vector<uchar> &pixels, int width, int height) {
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const auto b = static_cast<uchar>(0x50 + (x * 17 + y * 29) % 0x50);
+            const auto g = static_cast<uchar>(0x58 + (x * 31 + y * 11) % 0x48);
+            const auto r = static_cast<uchar>(0x48 + (x * 13 + y * 23) % 0x58);
+            PaintPixel(pixels, width, x, y, b, g, r);
+        }
+    }
+}
+
+void SetMemBmp(libop &op, int width, int height, const vector<uchar> &pixels, long &ret) {
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(bmp.data());
+    op.SetDisplayInput(mode.c_str(), &ret);
+}
+
+void UseSingleWordDict(libop &op, int width, int height, const wchar_t *color, const wchar_t *word, long &ret) {
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, color, word, dict_entry);
+    ASSERT_FALSE(dict_entry.empty());
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+}
+} // namespace
 
 TEST(ImageColorTest, GetColor) {
     libop op;
@@ -373,6 +461,480 @@ TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
     op.FetchWord(0, 0, width, height, L"000000-000000", L"Blank", word_data);
 
     EXPECT_TRUE(word_data.empty()) << "FetchWord should not emit a dictionary entry for a blank region";
+}
+
+TEST(ImageColorTest, FindStrUsesChannelColorToleranceForBinaryText) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto make_pixels = [&](bool add_blue_noise) {
+        vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+        auto paint = [&](int x, int y, uchar b, uchar g, uchar r) {
+            const auto idx = static_cast<size_t>(y * width + x) * 4;
+            pixels[idx + 0] = b;
+            pixels[idx + 1] = g;
+            pixels[idx + 2] = r;
+            pixels[idx + 3] = 0xff;
+        };
+        for (auto [x, y] : {pair{2, 1}, pair{1, 2}, pair{3, 2}, pair{1, 3}, pair{2, 3}, pair{3, 3}, pair{1, 4},
+                            pair{3, 4}}) {
+            paint(x, y, 0x00, 0x00, 0x00);
+        }
+        if (add_blue_noise)
+            paint(2, 2, 0xff, 0x00, 0x00);
+        return pixels;
+    };
+
+    auto clean_bmp = BuildBmp32TopDown(width, height, make_pixels(false));
+    wstring mode = L"mem:" + PtrToWString(clean_bmp.data());
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-303030", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto noisy_bmp = BuildBmp32TopDown(width, height, make_pixels(true));
+    mode = L"mem:" + PtrToWString(noisy_bmp.data());
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-303030", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0) << "Blue noise must not match the black text tolerance";
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, FindStrKeepsAntialiasedTextWithinTolerance) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto clean_pixels = MakePixels(width, height);
+    PaintGlyphA(clean_pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, clean_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto antialiased_pixels = MakePixels(width, height);
+    PaintGlyphA(antialiased_pixels, width, 0, 0, 0x22, 0x22, 0x22);
+    SetMemBmp(op, width, height, antialiased_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-303030", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, FindStrSupportsColoredTextWithChannelTolerance) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto clean_pixels = MakePixels(width, height);
+    PaintGlyphA(clean_pixels, width, 0, 0, 0x00, 0x00, 0xff);
+    SetMemBmp(op, width, height, clean_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"FF0000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto noisy_pixels = MakePixels(width, height);
+    PaintGlyphA(noisy_pixels, width, 0, 0, 0x10, 0x12, 0xe8);
+    PaintPixel(noisy_pixels, width, 2, 2, 0x00, 0x80, 0x00);
+    SetMemBmp(op, width, height, noisy_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FF0000-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0) << "Same-gray green noise must not match red text tolerance";
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, FindStrSupportsMultipleForegroundColors) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto paint_mixed_glyph = [&](vector<uchar> &pixels, uchar red_b, uchar red_g, uchar red_r, uchar black) {
+        PaintPixel(pixels, width, 2, 1, red_b, red_g, red_r);
+        PaintPixel(pixels, width, 1, 2, black, black, black);
+        PaintPixel(pixels, width, 3, 2, red_b, red_g, red_r);
+        PaintPixel(pixels, width, 1, 3, black, black, black);
+        PaintPixel(pixels, width, 2, 3, red_b, red_g, red_r);
+        PaintPixel(pixels, width, 3, 3, black, black, black);
+        PaintPixel(pixels, width, 1, 4, red_b, red_g, red_r);
+        PaintPixel(pixels, width, 3, 4, black, black, black);
+    };
+
+    auto clean_pixels = MakePixels(width, height);
+    paint_mixed_glyph(clean_pixels, 0x00, 0x00, 0xff, 0x00);
+    SetMemBmp(op, width, height, clean_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000|FF0000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto tolerant_pixels = MakePixels(width, height);
+    paint_mixed_glyph(tolerant_pixels, 0x08, 0x10, 0xf0, 0x18);
+    SetMemBmp(op, width, height, tolerant_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-202020|FF0000-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, LocalOcrApisUseBinaryColorTolerance) {
+    libop op;
+    long ret = 0;
+    const int width = 16;
+    const int height = 8;
+
+    auto dict_pixels = MakePixels(8, height);
+    PaintGlyphA(dict_pixels, 8, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, 8, height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, 8, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x20, 0x20, 0x20);
+    PaintGlyphA(pixels, width, 8, 0, 0x20, 0x20, 0x20);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring str;
+    op.Ocr(0, 0, width, height, L"000000-303030", 1.0, str);
+    EXPECT_EQ(str, L"AA");
+
+    op.OcrEx(0, 0, width, height, L"000000-303030", 1.0, str);
+    EXPECT_EQ(str, L"1,1,A|9,1,A");
+
+    op.FindStrEx(0, 0, width, height, L"A", L"000000-303030", 1.0, str);
+    EXPECT_EQ(str, L"0,1,1|0,9,1");
+}
+
+TEST(ImageColorTest, FetchWordTreatsMultipleBackgroundColorsAsBackground) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto pixels = MakePixels(width, height);
+    for (int y = 0; y < height; ++y) {
+        for (int x = width / 2; x < width; ++x) {
+            PaintPixel(pixels, width, x, y, 0xee, 0xee, 0xee);
+        }
+    }
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring word_data;
+    op.FetchWord(0, 0, width, height, L"@FFFFFF-000000|EEEEEE-000000", L"Blank", word_data);
+
+    EXPECT_TRUE(word_data.empty()) << "All pixels are declared background colors, so no word should be extracted";
+}
+
+TEST(ImageColorTest, FindStrSupportsAutoBackgroundBinarization) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto clean_pixels = MakePixels(width, height);
+    PaintGlyphA(clean_pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, clean_pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_EQ(dict_entry, L"A$4,3,8$5E0E");
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dict_entry.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, GameHudFindsBrightTextOnDynamicBackground) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 8;
+    const int dict_height = 8;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x40, 0x40, 0x40);
+    PaintGlyphA(dict_pixels, dict_width, 0, 0, 0xff, 0xff, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000", L"A", ret));
+
+    const int width = 32;
+    const int height = 18;
+    auto pixels = MakePixels(width, height, 0x40, 0x50, 0x60);
+    PaintGlyphA(pixels, width, 12, 6, 0xf2, 0xf5, 0xff);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFFFFF-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 13);
+    EXPECT_EQ(y, 7);
+}
+
+TEST(ImageColorTest, GameHudFindsOutlinedTextWithMultipleForegroundColors) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 10;
+    const int dict_height = 10;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x50, 0x60, 0x70);
+    PaintOutlinedGlyphA(dict_pixels, dict_width, 2, 2, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(
+        UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000|000000-000000", L"A", ret));
+
+    const int width = 36;
+    const int height = 20;
+    auto pixels = MakePixels(width, height);
+    PaintGameBackground(pixels, width, height);
+    PaintOutlinedGlyphA(pixels, width, 14, 5, 0x08, 0x08, 0x08, 0xee, 0xf0, 0xff);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFFFFF-202020|000000-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 14);
+    EXPECT_EQ(y, 5);
+}
+
+TEST(ImageColorTest, GameHudIgnoresGlowAroundText) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 8;
+    const int dict_height = 8;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x40, 0x40, 0x40);
+    PaintGlyphA(dict_pixels, dict_width, 0, 0, 0x60, 0xe0, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFE060-000000", L"A", ret));
+
+    const int width = 28;
+    const int height = 16;
+    auto pixels = MakePixels(width, height);
+    PaintGameBackground(pixels, width, height);
+    PaintOutlinedGlyphA(pixels, width, 10, 4, 0x20, 0x60, 0xa0, 0x70, 0xd4, 0xf4);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFE060-303030", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 11);
+    EXPECT_EQ(y, 5);
+}
+
+TEST(ImageColorTest, GameHudFindsGradientDamageTextWithinTolerance) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 8;
+    const int dict_height = 8;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x40, 0x40, 0x40);
+    PaintGlyphA(dict_pixels, dict_width, 0, 0, 0x00, 0xaa, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFAA00-000000", L"A", ret));
+
+    const int width = 30;
+    const int height = 18;
+    auto pixels = MakePixels(width, height);
+    PaintGameBackground(pixels, width, height);
+    const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
+                                           {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    int idx = 0;
+    for (auto [x, y] : points) {
+        const auto b = static_cast<uchar>((idx % 3) * 0x10);
+        const auto g = static_cast<uchar>(0x92 + (idx % 4) * 0x12);
+        const auto r = static_cast<uchar>(0xe8 + (idx % 2) * 0x10);
+        PaintPixel(pixels, width, x + 13, y + 6, b, g, r);
+        ++idx;
+    }
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFAA00-305030", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 14);
+    EXPECT_EQ(y, 7);
+}
+
+TEST(ImageColorTest, GameHudFindsScaledUiTextWhenDictionaryMatchesScale) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 14;
+    const int dict_height = 14;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x40, 0x40, 0x40);
+    PaintScaledGlyphA(dict_pixels, dict_width, 1, 1, 2, 0xff, 0xff, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000", L"A", ret));
+
+    const int width = 40;
+    const int height = 22;
+    auto pixels = MakePixels(width, height);
+    PaintGameBackground(pixels, width, height);
+    PaintScaledGlyphA(pixels, width, 16, 6, 2, 0xf0, 0xf0, 0xff);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFFFFF-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 18);
+    EXPECT_EQ(y, 8);
+}
+
+TEST(ImageColorTest, GameHudScaleMismatchDoesNotMatchUnscaledDictionary) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 8;
+    const int dict_height = 8;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x40, 0x40, 0x40);
+    PaintGlyphA(dict_pixels, dict_width, 0, 0, 0xff, 0xff, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000", L"A", ret));
+
+    const int width = 40;
+    const int height = 22;
+    auto pixels = MakePixels(width, height);
+    PaintGameBackground(pixels, width, height);
+    PaintScaledGlyphA(pixels, width, 16, 6, 2, 0xf0, 0xf0, 0xff);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"FFFFFF-202020", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, -1) << "Point-matrix matching requires a dictionary captured at the same UI scale";
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+}
+
+TEST(ImageColorTest, GameHudBackgroundModeSupportsTwoTonePanels) {
+    libop op;
+    long ret = 0;
+    const int dict_width = 12;
+    const int dict_height = 10;
+
+    auto dict_pixels = MakePixels(dict_width, dict_height, 0x30, 0x40, 0x50);
+    for (int y = 0; y < dict_height; ++y) {
+        for (int x = dict_width / 2; x < dict_width; ++x) {
+            PaintPixel(dict_pixels, dict_width, x, y, 0x38, 0x48, 0x58);
+        }
+    }
+    PaintGlyphA(dict_pixels, dict_width, 3, 2, 0xff, 0xff, 0xff);
+    SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
+    ASSERT_EQ(ret, 1);
+    ASSERT_NO_FATAL_FAILURE(
+        UseSingleWordDict(op, dict_width, dict_height, L"@504030-080808|584838-080808", L"A", ret));
+
+    const int width = 34;
+    const int height = 18;
+    auto pixels = MakePixels(width, height, 0x34, 0x44, 0x54);
+    for (int y = 0; y < height; ++y) {
+        for (int x = width / 2; x < width; ++x) {
+            PaintPixel(pixels, width, x, y, 0x3a, 0x4a, 0x5a);
+        }
+    }
+    PaintGlyphA(pixels, width, 14, 5, 0xf0, 0xf0, 0xff);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"@504030-080808|584838-080808", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 15);
+    EXPECT_EQ(y, 6);
 }
 
 TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
