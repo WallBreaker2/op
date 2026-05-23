@@ -375,7 +375,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG y,
             /* [in] */ LONG w,
             /* [in] */ long h,
-            /* [retval][out] */ LONG *ret) = 0;
+            /* [retval][out] */ BSTR *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE LeftClick( 
             /* [retval][out] */ LONG *ret) = 0;
@@ -1281,7 +1281,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG y,
             /* [in] */ LONG w,
             /* [in] */ long h,
-            /* [retval][out] */ LONG *ret);
+            /* [retval][out] */ BSTR *ret);
         
         DECLSPEC_XFGVIRT(IOpInterface, LeftClick)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *LeftClick )( 

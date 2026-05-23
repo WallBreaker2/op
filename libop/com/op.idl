@@ -93,7 +93,7 @@ interface IOpInterface : IDispatch
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
 	[id(122)] HRESULT MoveTo([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
-	[id(123)] HRESULT MoveToEx([in] LONG x, [in] LONG y, [in] LONG w, [in] long h, [out, retval] LONG* ret);
+	[id(123)] HRESULT MoveToEx([in] LONG x, [in] LONG y, [in] LONG w, [in] long h, [out, retval] BSTR* ret);
 
 	[id(124)] HRESULT LeftClick([out, retval] LONG* ret);
 	[id(125)] HRESULT LeftDoubleClick([out, retval] LONG* ret);

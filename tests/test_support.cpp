@@ -355,6 +355,11 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
 
     if (self) {
         switch (msg) {
+        case WM_MOUSEMOVE:
+            self->move_count++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
         case WM_LBUTTONDOWN:
             self->left_down++;
             self->last_x = GET_X_LPARAM(lparam);
@@ -394,6 +399,11 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
         case OP_WM_MOUSEWHEEL:
             self->op_wheel_count++;
             self->op_wheel_delta_sum += static_cast<short>(HIWORD(wparam));
+            return 0;
+        case OP_WM_MOUSEMOVE:
+            self->op_move_count++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
             return 0;
         default:
             break;
