@@ -165,6 +165,7 @@ interface IOpInterface : IDispatch
 	[id(207)] HRESULT OcrFromFile([in] BSTR file_name, [in] BSTR color_format, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(208)] HRESULT OcrAutoFromFile([in] BSTR file_name, [in] DOUBLE sim, [out, retval] BSTR* retstr);
 	[id(209)] HRESULT FindLine([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval] BSTR* retstr);
+	[id(210)] HRESULT SetOcrEngine([in] BSTR path_of_engine, [in] BSTR dll_name, [in] BSTR argv, [out, retval] LONG* ret);
 	[id(220)] HRESULT SetMemDict([in] LONG idx, [in]BSTR data, [in]LONG size, [out, retval] LONG* ret);
 	[id(221)] HRESULT GetDict([in] LONG idx, [in] LONG font_index, [out, retval] BSTR* retstr);
 	[id(222)] HRESULT AddDict([in] LONG idx, [in] BSTR dict_info, [out, retval] LONG* ret);

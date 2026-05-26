@@ -745,6 +745,12 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetOcrEngine( 
+            /* [in] */ BSTR path_of_engine,
+            /* [in] */ BSTR dll_name,
+            /* [in] */ BSTR argv,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetMemDict( 
             /* [in] */ LONG idx,
             /* [in] */ BSTR data,
@@ -1771,6 +1777,14 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ DOUBLE sim,
             /* [retval][out] */ BSTR *retstr);
         
+        DECLSPEC_XFGVIRT(IOpInterface, SetOcrEngine)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetOcrEngine )( 
+            IOpInterface * This,
+            /* [in] */ BSTR path_of_engine,
+            /* [in] */ BSTR dll_name,
+            /* [in] */ BSTR argv,
+            /* [retval][out] */ LONG *ret);
+        
         DECLSPEC_XFGVIRT(IOpInterface, SetMemDict)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetMemDict )( 
             IOpInterface * This,
@@ -2264,6 +2278,9 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_FindLine(This,x1,y1,x2,y2,color,sim,retstr)	\
     ( (This)->lpVtbl -> FindLine(This,x1,y1,x2,y2,color,sim,retstr) ) 
 
+#define IOpInterface_SetOcrEngine(This,path_of_engine,dll_name,argv,ret)	\
+    ( (This)->lpVtbl -> SetOcrEngine(This,path_of_engine,dll_name,argv,ret) ) 
+
 #define IOpInterface_SetMemDict(This,idx,data,size,ret)	\
     ( (This)->lpVtbl -> SetMemDict(This,idx,data,size,ret) ) 
 
@@ -2311,6 +2328,20 @@ EXTERN_C const IID IID_IOpInterface;
 
 #endif 	/* C style interface */
 
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_SaveDict_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG idx,
+    /* [in] */ BSTR file_name,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_SaveDict_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
 
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ClearDict_Proxy( 
