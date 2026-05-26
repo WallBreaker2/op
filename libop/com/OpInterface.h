@@ -345,6 +345,8 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(OcrAutoFromFile)(BSTR file_name, DOUBLE sim, BSTR *retstr);
     // 查找频幕中的直线
     STDMETHOD(FindLine)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR *retstr);
+    // 设置 HTTP OCR 引擎地址和参数.
+    STDMETHOD(SetOcrEngine)(BSTR path_of_engine, BSTR dll_name, BSTR argv, LONG *ret);
 
     //-----------------------memory---------------------------------
     // 向某进程写入数据

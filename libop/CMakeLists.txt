@@ -122,12 +122,16 @@ endif()
 # ----------op_x86/x64
 
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.c
-  COMMAND COMMAND midl ./com/op.idl /iid 
+  OUTPUT
+    ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/com/op.tlb
+    ${CMAKE_CURRENT_SOURCE_DIR}/op_p.c
+  COMMAND midl ./com/op.idl /iid
   "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb 
   "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"
- # DEPENDS MakeTable
- WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/com/op.idl
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
 add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
@@ -169,9 +173,18 @@ if(enable_wgc)
   TARGET_LINK_LIBRARIES(${op_com} windowsapp runtimeobject.lib)
 endif()
 
-# MinHook 优先使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
+# MinHook 使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
 set(OP_MINHOOK_LINKED FALSE)
-if (DEFINED ENV{VCPKG_ROOT})
+set(OP_VCPKG_INSTALLED_DIR "")
+if (DEFINED VCPKG_INSTALLED_DIR)
+  set(OP_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
+elseif(DEFINED _VCPKG_INSTALLED_DIR)
+  set(OP_VCPKG_INSTALLED_DIR "${_VCPKG_INSTALLED_DIR}")
+elseif(DEFINED ENV{VCPKG_ROOT})
+  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}/installed" OP_VCPKG_INSTALLED_DIR)
+endif()
+
+if (OP_VCPKG_INSTALLED_DIR)
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(OP_MINHOOK_STATIC_TRIPLET "x64-windows-static")
     set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x64.lib")
@@ -182,9 +195,8 @@ if (DEFINED ENV{VCPKG_ROOT})
     set(OP_MINHOOK_LIB_DEBUG_NAME "minhook.x32d.lib")
   endif()
 
-  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" OP_VCPKG_ROOT)
-  set(OP_MINHOOK_LIB_RELEASE "${OP_VCPKG_ROOT}/installed/${OP_MINHOOK_STATIC_TRIPLET}/lib/${OP_MINHOOK_LIB_RELEASE_NAME}")
-  set(OP_MINHOOK_LIB_DEBUG "${OP_VCPKG_ROOT}/installed/${OP_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_MINHOOK_LIB_DEBUG_NAME}")
+  set(OP_MINHOOK_LIB_RELEASE "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/lib/${OP_MINHOOK_LIB_RELEASE_NAME}")
+  set(OP_MINHOOK_LIB_DEBUG "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_MINHOOK_LIB_DEBUG_NAME}")
 
   if (EXISTS "${OP_MINHOOK_LIB_RELEASE}")
     if (EXISTS "${OP_MINHOOK_LIB_DEBUG}")

@@ -1031,6 +1031,11 @@ STDMETHODIMP OpInterface::FindLine(LONG x1, LONG y1, LONG x2, LONG y2, BSTR colo
     return S_OK;
 }
 
+STDMETHODIMP OpInterface::SetOcrEngine(BSTR path_of_engine, BSTR dll_name, BSTR argv, LONG *ret) {
+    *ret = obj.SetOcrEngine(path_of_engine, dll_name, argv);
+    return S_OK;
+}
+
 STDMETHODIMP OpInterface::WriteData(LONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret) {
     obj.WriteData(hwnd, address, data, size, ret);
 
