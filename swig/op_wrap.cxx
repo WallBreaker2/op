@@ -7110,7 +7110,7 @@ extern "C"
         long arg3;
         long arg4;
         long arg5;
-        long *arg6 = (long *)0;
+        std::wstring *arg6 = 0;
         void *argp1 = 0;
         int res1 = 0;
         long val2;
@@ -7121,7 +7121,7 @@ extern "C"
         int ecode4 = 0;
         long val5;
         int ecode5 = 0;
-        long temp6;
+        std::wstring temp6;
         int res6 = SWIG_TMPOBJ;
         PyObject *swig_obj[5];
 
@@ -7183,14 +7183,14 @@ extern "C"
                                                        "'");
         }
         arg5 = static_cast<long>(val5);
-        (arg1)->MoveToEx(arg2, arg3, arg4, arg5, arg6);
+        (arg1)->MoveToEx(arg2, arg3, arg4, arg5, *arg6);
         resultobj = SWIG_Py_Void();
         if (SWIG_IsTmpObj(res6)) {
-            resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)));
+            resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg6)));
         } else {
             int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN | 0) : 0;
             resultobj =
-                SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void *)(arg6), SWIGTYPE_p_long, new_flags));
+                SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void *)(arg6), SWIGTYPE_p_std__wstring, new_flags));
         }
         return resultobj;
     fail:

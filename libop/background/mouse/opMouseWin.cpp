@@ -114,12 +114,18 @@ long opMouseWin::MoveTo(int x, int y) {
     return ret;
 }
 
-long opMouseWin::MoveToEx(int x, int y, int w, int h) {
+long opMouseWin::MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) {
+    auto random_offset = [](int value) {
+        if (value == 0)
+            return 0;
+        const int span = std::abs(value);
+        const int offset = rand() % span;
+        return value > 0 ? offset : -offset;
+    };
 
-    if (w >= 2 && h >= 2)
-        return MoveTo(x + rand() % w, y + rand() % h);
-    else
-        return MoveTo(x, y);
+    dst_x = x + random_offset(w);
+    dst_y = y + random_offset(h);
+    return MoveTo(dst_x, dst_y);
 }
 
 long opMouseWin::LeftClick() {

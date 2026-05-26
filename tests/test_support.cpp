@@ -355,6 +355,11 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
 
     if (self) {
         switch (msg) {
+        case WM_MOUSEMOVE:
+            self->move_count++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
         case WM_LBUTTONDOWN:
             self->left_down++;
             self->last_x = GET_X_LPARAM(lparam);
@@ -395,6 +400,11 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
             self->op_wheel_count++;
             self->op_wheel_delta_sum += static_cast<short>(HIWORD(wparam));
             return 0;
+        case OP_WM_MOUSEMOVE:
+            self->op_move_count++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
         default:
             break;
         }
@@ -428,6 +438,99 @@ bool MouseEventWindow::Create() {
 }
 
 MouseEventWindow::~MouseEventWindow() {
+    if (hwnd)
+        DestroyWindow(hwnd);
+}
+
+LRESULT CALLBACK ColorPulseWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+    ColorPulseWindow *self = reinterpret_cast<ColorPulseWindow *>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+    if (msg == WM_NCCREATE) {
+        auto *cs = reinterpret_cast<CREATESTRUCTW *>(lparam);
+        self = reinterpret_cast<ColorPulseWindow *>(cs->lpCreateParams);
+        SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+    }
+
+    if (self) {
+        switch (msg) {
+        case WM_TIMER:
+            if (wparam == kTimerId && self->animate && !self->colors.empty()) {
+                self->color_index = (self->color_index + 1) % self->colors.size();
+                self->current_color = self->colors[self->color_index];
+                InvalidateRect(hwnd, nullptr, TRUE);
+            }
+            return 0;
+        case WM_ERASEBKGND:
+            return 1;
+        case WM_PAINT: {
+            PAINTSTRUCT ps = {};
+            HDC dc = BeginPaint(hwnd, &ps);
+            RECT rect = {};
+            GetClientRect(hwnd, &rect);
+            HBRUSH brush = CreateSolidBrush(self->current_color);
+            FillRect(dc, &rect, brush);
+            DeleteObject(brush);
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+        case WM_DESTROY:
+            KillTimer(hwnd, kTimerId);
+            return 0;
+        default:
+            break;
+        }
+    }
+
+    return DefWindowProcW(hwnd, msg, wparam, lparam);
+}
+
+bool ColorPulseWindow::Create(bool enable_animation, int width, int height) {
+    static const wchar_t *kClassName = L"OpColorPulseTestWindow";
+    static bool class_registered = false;
+    HINSTANCE hinst = GetModuleHandleW(nullptr);
+
+    if (!class_registered) {
+        WNDCLASSW wc = {0};
+        wc.lpfnWndProc = ColorPulseWindow::WndProc;
+        wc.hInstance = hinst;
+        wc.lpszClassName = kClassName;
+        wc.hbrBackground = nullptr;
+        if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+            return false;
+        class_registered = true;
+    }
+
+    colors = {RGB(255, 0, 0), RGB(0, 255, 0), RGB(0, 0, 255)};
+    color_index = 0;
+    current_color = colors.front();
+    animate = enable_animation;
+
+    hwnd = CreateWindowExW(0, kClassName, enable_animation ? L"op-wgc-animated" : L"op-wgc-static",
+                           WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, hinst,
+                           this);
+    if (!hwnd)
+        return false;
+
+    ShowWindow(hwnd, SW_SHOW);
+    UpdateWindow(hwnd);
+    if (animate)
+        SetTimer(hwnd, kTimerId, 120, nullptr);
+
+    return IsWindow(hwnd);
+}
+
+void ColorPulseWindow::SetColor(COLORREF color) {
+    current_color = color;
+    if (hwnd)
+        InvalidateRect(hwnd, nullptr, TRUE);
+}
+
+std::wstring ColorPulseWindow::CurrentColorHex() const {
+    wchar_t buffer[7] = {};
+    wsprintfW(buffer, L"%02X%02X%02X", GetRValue(current_color), GetGValue(current_color), GetBValue(current_color));
+    return buffer;
+}
+
+ColorPulseWindow::~ColorPulseWindow() {
     if (hwnd)
         DestroyWindow(hwnd);
 }

@@ -7,7 +7,9 @@
 #include "./display/opDXGI.h"
 #include "./display/opDxGL.h"
 #include "./display/opGDI.h"
+#ifdef _WIN32_WINNT_WIN11
 #include "./display/opWGC.h"
+#endif
 
 #include "displayInputHelper.h"
 #include "./keypad/winkeypad.h"
