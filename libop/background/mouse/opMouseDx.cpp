@@ -130,7 +130,7 @@ long opMouseDx::GetCursorPos(long &x, long &y) {
     BOOL ret = FALSE;
     POINT pt;
     ret = ::GetCursorPos(&pt);
-    if (_hwnd != ::GetDesktopWindow()) {
+    if (_hwnd && _hwnd != ::GetDesktopWindow()) {
         ret = ::ScreenToClient(_hwnd, &pt);
     }
     x = pt.x;
