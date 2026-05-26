@@ -150,10 +150,10 @@ STDMETHODIMP OpInterface::EnumProcess(BSTR name, BSTR *retstring) {
 }
 
 STDMETHODIMP OpInterface::ClientToScreen(LONG ClientToScreen, VARIANT *x, VARIANT *y, LONG *bret) {
-    // TODO: 在此添加实现代码
     x->vt = VT_I4;
     y->vt = VT_I4;
-    long lx, ly;
+    long lx = x->lVal;
+    long ly = y->lVal;
     obj.ClientToScreen(ClientToScreen, &lx, &ly, bret);
     x->lVal = lx;
     y->lVal = ly;
@@ -161,35 +161,30 @@ STDMETHODIMP OpInterface::ClientToScreen(LONG ClientToScreen, VARIANT *x, VARIAN
 }
 
 STDMETHODIMP OpInterface::FindWindow(BSTR class_name, BSTR title, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.FindWindow(class_name, title, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::FindWindowByProcess(BSTR process_name, BSTR class_name, BSTR title, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.FindWindowByProcess(process_name, class_name, title, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::FindWindowByProcessId(LONG process_id, BSTR class_name, BSTR title, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.FindWindowByProcessId(process_id, class_name, title, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::FindWindowEx(LONG parent, BSTR class_name, BSTR title, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.FindWindowEx(parent, class_name, title, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetClientRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
-    // TODO: 在此添加实现代码
     x1->vt = VT_I4;
     y1->vt = VT_I4;
     x2->vt = VT_I4;
@@ -200,7 +195,6 @@ STDMETHODIMP OpInterface::GetClientRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VAR
 }
 
 STDMETHODIMP OpInterface::GetClientSize(LONG hwnd, VARIANT *width, VARIANT *height, LONG *nret) {
-    // TODO: 在此添加实现代码
     width->vt = VT_I4;
     height->vt = VT_I4;
     obj.GetClientSize(hwnd, &width->lVal, &height->lVal, nret);
@@ -209,21 +203,18 @@ STDMETHODIMP OpInterface::GetClientSize(LONG hwnd, VARIANT *width, VARIANT *heig
 }
 
 STDMETHODIMP OpInterface::GetForegroundFocus(LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.GetForegroundFocus(rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetForegroundWindow(LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.GetForegroundWindow(rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetMousePointWindow(LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     //::Sleep(2000);
     obj.GetMousePointWindow(rethwnd);
 
@@ -231,14 +222,12 @@ STDMETHODIMP OpInterface::GetMousePointWindow(LONG *rethwnd) {
 }
 
 STDMETHODIMP OpInterface::GetPointWindow(LONG x, LONG y, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.GetPointWindow(x, y, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetProcessInfo(LONG pid, BSTR *retstring) {
-    // TODO: 在此添加实现代码
     wstring s;
     obj.GetProcessInfo(pid, s);
 
@@ -249,21 +238,18 @@ STDMETHODIMP OpInterface::GetProcessInfo(LONG pid, BSTR *retstring) {
 }
 
 STDMETHODIMP OpInterface::GetSpecialWindow(LONG flag, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.GetSpecialWindow(flag, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindow(LONG hwnd, LONG flag, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.GetWindow(hwnd, flag, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindowClass(LONG hwnd, BSTR *retstring) {
-    // TODO: 在此添加实现代码
     wstring s;
     obj.GetWindowClass(hwnd, s);
 
@@ -274,14 +260,12 @@ STDMETHODIMP OpInterface::GetWindowClass(LONG hwnd, BSTR *retstring) {
 }
 
 STDMETHODIMP OpInterface::GetWindowProcessId(LONG hwnd, LONG *nretpid) {
-    // TODO: 在此添加实现代码
     obj.GetWindowProcessId(hwnd, nretpid);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindowProcessPath(LONG hwnd, BSTR *retstring) {
-    // TODO: 在此添加实现代码
     wstring s;
     obj.GetWindowProcessPath(hwnd, s);
 
@@ -292,7 +276,6 @@ STDMETHODIMP OpInterface::GetWindowProcessPath(LONG hwnd, BSTR *retstring) {
 }
 
 STDMETHODIMP OpInterface::GetWindowRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
-    // TODO: 在此添加实现代码
     x1->vt = VT_I4;
     x2->vt = VT_I4;
     y1->vt = VT_I4;
@@ -304,7 +287,6 @@ STDMETHODIMP OpInterface::GetWindowRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VAR
 }
 
 STDMETHODIMP OpInterface::GetWindowState(LONG hwnd, LONG flag, LONG *rethwnd) {
-    // TODO: 在此添加实现代码
     obj.GetWindowState(hwnd, flag, rethwnd);
 
     return S_OK;
@@ -321,14 +303,12 @@ STDMETHODIMP OpInterface::GetWindowTitle(LONG hwnd, BSTR *rettitle) {
 }
 
 STDMETHODIMP OpInterface::MoveWindow(LONG hwnd, LONG x, LONG y, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.MoveWindow(hwnd, x, y, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::ScreenToClient(LONG hwnd, VARIANT *x, VARIANT *y, LONG *nret) {
-    // TODO: 在此添加实现代码
     x->vt = VT_I4;
     y->vt = VT_I4;
     obj.ScreenToClient(hwnd, &x->lVal, &y->lVal, nret);
@@ -337,35 +317,30 @@ STDMETHODIMP OpInterface::ScreenToClient(LONG hwnd, VARIANT *x, VARIANT *y, LONG
 }
 
 STDMETHODIMP OpInterface::SendPaste(LONG hwnd, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.SendPaste(hwnd, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetClientSize(LONG hwnd, LONG width, LONG hight, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.SetClientSize(hwnd, width, hight, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowState(LONG hwnd, LONG flag, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.SetWindowState(hwnd, flag, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowSize(LONG hwnd, LONG width, LONG height, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.SetWindowSize(hwnd, width, height, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowText(LONG hwnd, BSTR title, LONG *nret) {
-    // TODO: 在此添加实现代码
     //*nret=gWindowObj.TSSetWindowState(hwnd,flag);
     obj.SetWindowText(hwnd, title, nret);
 
@@ -373,7 +348,6 @@ STDMETHODIMP OpInterface::SetWindowText(LONG hwnd, BSTR title, LONG *nret) {
 }
 
 STDMETHODIMP OpInterface::SetWindowTransparent(LONG hwnd, LONG trans, LONG *nret) {
-    // TODO: 在此添加实现代码
     obj.SetWindowTransparent(hwnd, trans, nret);
 
     return S_OK;
