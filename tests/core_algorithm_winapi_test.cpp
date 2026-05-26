@@ -59,6 +59,20 @@ TEST(WinApiTest, GetForegroundWindow) {
     cout << "Foreground Window: " << hex << hwnd << dec << endl;
 }
 
+TEST(WinApiTest, ClientToScreenDesktopOriginIsStable) {
+    libop op;
+    const long hwnd = (long)(intptr_t)::GetDesktopWindow();
+    long x = 10;
+    long y = 20;
+    long ret = 0;
+
+    op.ClientToScreen(hwnd, &x, &y, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 10);
+    EXPECT_EQ(y, 20);
+}
+
 TEST(WinApiTest, GetWindowTitleAndRect) {
     libop op;
     long hwnd = 0;
