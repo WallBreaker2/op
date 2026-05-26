@@ -4,16 +4,17 @@
 
 ## 高优先级结论
 
-### 1. `MoveToEx` 返回值不一致属于文档漂移
+### 1. `MoveToEx` 返回值不一致已修复
 
 - 对应 issue：`#181`
-- 当前实现返回的是数值状态，不是字符串。
+- 旧实现返回的是数值状态，不是字符串。
+- 当前实现随机移动后返回实际落点字符串 `"x,y"`，并支持负 `w`/`h` 分别表示向左/向上随机。
 - 代码依据：
-  - `libop/libop.h`：`void MoveToEx(long x, long y, long w, long h, long *ret);`
-  - `libop/com/op.idl`：`HRESULT MoveToEx(..., [out, retval] LONG* ret);`
-  - `libop/libop.cpp`：将鼠标后端返回值写入 `LONG`。
+  - `libop/libop.h`：`void MoveToEx(long x, long y, long w, long h, std::wstring &ret);`
+  - `libop/com/op.idl`：`HRESULT MoveToEx(..., [out, retval] BSTR* ret);`
+  - `libop/libop.cpp`：将鼠标后端实际落点格式化为字符串。
 
-结论：实现本身一致，若外部 wiki 写成字符串返回值，应视为旧文档。
+结论：实现已对齐外部 wiki 的字符串返回语义。
 
 ### 2. `OcrFromFile` 之前确实忽略了 `color_format`
 
@@ -88,5 +89,5 @@
 ## 建议的后续动作
 
 1. 为 `#149`、`#138` 收集最小复现：宿主位数、DLL 位数、是否免注册、是否先 `BindWindow`、失败是否可稳定重现。
-2. 审核外部 wiki 中容易漂移的接口，优先检查鼠标类方法，例如 `MoveToEx`。
+2. 审核外部 wiki 中容易漂移的接口，优先检查鼠标类方法。
 3. 继续在 README 中补充 Python / C# 的最小可运行示例，尤其是 OCR、内存图像输入、免注册或位数相关说明。

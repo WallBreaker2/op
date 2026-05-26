@@ -194,7 +194,7 @@ class OP_API libop {
     // 把鼠标移动到目的点(x,y)
     void MoveTo(long x, long y, long *ret);
     // 把鼠标移动到目的范围内的任意一点
-    void MoveToEx(long x, long y, long w, long h, long *ret);
+    void MoveToEx(long x, long y, long w, long h, std::wstring &ret);
     // 按下鼠标左键
     void LeftClick(long *ret);
     // 双击鼠标左键

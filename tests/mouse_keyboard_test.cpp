@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <cwchar>
 #include <thread>
 
 using namespace std;
@@ -42,6 +43,47 @@ struct InputResetGuard {
 };
 
 } // namespace
+
+TEST(MouseKeyTest, MoveToExReturnsRandomTarget) {
+    libop op;
+    std::wstring pos;
+
+    op.MoveToEx(100, 100, 1, 1, pos);
+    EXPECT_EQ(pos, L"100,100");
+
+    op.MoveToEx(200, 210, 0, -1, pos);
+    EXPECT_EQ(pos, L"200,210");
+}
+
+TEST(MouseKeyTest, MoveToExSupportsNegativeRangesInWindowsMode) {
+    libop op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1) << "BindWindow windows mode should succeed";
+
+    std::wstring pos;
+    for (int i = 0; i < 20; ++i) {
+        const int previous_move_count = window.move_count;
+        op.MoveToEx(30, 40, -5, -7, pos);
+        long x = 0;
+        long y = 0;
+        ASSERT_EQ(swscanf_s(pos.c_str(), L"%ld,%ld", &x, &y), 2);
+        EXPECT_GE(x, 26);
+        EXPECT_LE(x, 30);
+        EXPECT_GE(y, 34);
+        EXPECT_LE(y, 40);
+        EXPECT_EQ(window.move_count, previous_move_count + 1);
+        EXPECT_EQ(window.last_x, x);
+        EXPECT_EQ(window.last_y, y);
+    }
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
 
 TEST(MouseKeyTest, MoveToAndGetCursorPos) {
     libop op;

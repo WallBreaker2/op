@@ -55,6 +55,7 @@ struct MouseEventWindow {
     int right_up = 0;
     int wheel_count = 0;
     int wheel_delta_sum = 0;
+    int move_count = 0;
 
     int op_left_down = 0;
     int op_left_up = 0;
@@ -62,6 +63,7 @@ struct MouseEventWindow {
     int op_right_up = 0;
     int op_wheel_count = 0;
     int op_wheel_delta_sum = 0;
+    int op_move_count = 0;
 
     long last_x = 0;
     long last_y = 0;
@@ -69,6 +71,22 @@ struct MouseEventWindow {
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
     bool Create();
     ~MouseEventWindow();
+};
+
+struct ColorPulseWindow {
+    HWND hwnd = nullptr;
+    COLORREF current_color = RGB(255, 0, 0);
+    std::vector<COLORREF> colors;
+    size_t color_index = 0;
+    bool animate = false;
+
+    static constexpr UINT_PTR kTimerId = 1;
+
+    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+    bool Create(bool enable_animation, int width = 220, int height = 180);
+    void SetColor(COLORREF color);
+    std::wstring CurrentColorHex() const;
+    ~ColorPulseWindow();
 };
 
 class OcrTest : public ::testing::Test {

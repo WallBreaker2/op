@@ -479,8 +479,13 @@ STDMETHODIMP OpInterface::MoveTo(LONG x, LONG y, LONG *ret) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::MoveToEx(LONG x, LONG y, LONG w, LONG h, LONG *ret) {
-    obj.MoveToEx(x, y, w, h, ret);
+STDMETHODIMP OpInterface::MoveToEx(LONG x, LONG y, LONG w, LONG h, BSTR *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    std::wstring s;
+    obj.MoveToEx(x, y, w, h, s);
+    *ret = ::SysAllocString(s.c_str());
 
     return S_OK;
 }

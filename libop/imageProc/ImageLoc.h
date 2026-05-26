@@ -82,11 +82,11 @@ class ImageBase {
 
     long CmpColor(color_t color, std::vector<color_df_t> &colors, double sim);
 
-    long FindColor(std::vector<color_df_t> &colors, int dir, long &x, long &y);
+    long FindColor(std::vector<color_df_t> &colors, double sim, int dir, long &x, long &y);
 
-    long FindColorEx(std::vector<color_df_t> &colors, std::wstring &retstr);
+    long FindColorEx(std::vector<color_df_t> &colors, double sim, int dir, std::wstring &retstr);
 
-    long FindColorNum(std::vector<color_df_t> &colors);
+    long FindColorNum(std::vector<color_df_t> &colors, double sim);
 
     long FindMultiColor(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color, double sim,
                         long dir, long &x, long &y);
@@ -123,7 +123,7 @@ class ImageBase {
     template <bool nodfcolor> long simple_match(long x, long y, Image *timg, color_t dfcolor, int tnrom, double sim);
     // 透明图匹配
     template <bool nodfcolor>
-    long trans_match(long x, long y, Image *timg, color_t dfcolor, vector<uint> points, int max_error);
+    long trans_match(long x, long y, Image *timg, color_t dfcolor, const vector<uint> &points, int max_error);
     // 灰度匹配
     long real_match(long x, long y, ImageBin *timg, int tnorm, double sim);
     // 记录和
@@ -152,7 +152,7 @@ class ImageBase {
     // 二值化 auto
     void bgr2binarybk(const vector<color_df_t> &bk_colors);
     // 图像裁剪
-    void bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc);
+    bool bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc);
     void get_rois(int min_word_h, std::vector<rect_t> &vroi);
     // ocr识别，返回识别到的字及对应坐标
 

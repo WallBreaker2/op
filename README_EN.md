@@ -212,7 +212,7 @@ Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF.
 
 ### Troubleshooting Notes
 
-- `MoveToEx(x, y, w, h)` currently returns a numeric status (`LONG`), not a string. If an external wiki says otherwise, trust the exported interface in this repository.
+- `MoveToEx(x, y, w, h)` moves to a random point inside the requested range and returns the actual target as an `"x,y"` string. Negative `w`/`h` randomize left/up respectively.
 - `OcrFromFile(file, color_format, sim)` applies `color_format` during recognition. If the result is unexpected, verify that the foreground/background color range matches the source image.
 - For `C#` / `.NET`, make sure the host process bitness matches `op_x86.dll` or `op_x64.dll`. Bitness mismatch often looks like object creation succeeds but image/color or OCR calls fail later.
 - In `PySide6` / `QThread` style flows, avoid force-killing worker threads with `terminate()`. Prefer cooperative shutdown and create/release the COM object inside the worker thread.

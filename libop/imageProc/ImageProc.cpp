@@ -4,8 +4,24 @@
 #include "OcrWrapper.h"
 #include <algorithm>
 #include <bitset>
+#include <cmath>
 #include <fstream>
 #include <sstream>
+
+namespace {
+color_t sim_to_point_color_diff(double sim) {
+    if (sim < 0.0 || sim > 1.0)
+        sim = 1.0;
+
+    const auto diff = static_cast<uchar>(std::ceil((1.0 - sim) * 255.0));
+    color_t color_diff;
+    color_diff.b = diff;
+    color_diff.g = diff;
+    color_diff.r = diff;
+    return color_diff;
+}
+} // namespace
+
 ImageProc::ImageProc() {
     _curr_idx = 0;
     _enable_cache = 1;
@@ -33,13 +49,13 @@ long ImageProc::FindColor(const wstring &color, double sim, long dir, long &x, l
     str2colordfs(color, colors);
     // setlog("%s cr size=%d",colors[0].color.tostr().data(), colors.size());
     // setlog("sim:,dir:%d", dir);
-    return ImageBase::FindColor(colors, dir, x, y);
+    return ImageBase::FindColor(colors, sim, dir, x, y);
 }
 
 long ImageProc::FindColoEx(const wstring &color, double sim, long dir, wstring &retstr) {
     std::vector<color_df_t> colors;
     str2colordfs(color, colors);
-    return ImageBase::FindColorEx(colors, retstr);
+    return ImageBase::FindColorEx(colors, sim, dir, retstr);
 }
 
 long ImageProc::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,
@@ -153,7 +169,7 @@ long ImageProc::FindColorBlockEx(const wstring &color, double sim, long count, l
 long ImageProc::GetColorNum(const wstring &color, double sim) {
     std::vector<color_df_t> colors;
     str2colordfs(color, colors);
-    return ImageBase::FindColorNum(colors);
+    return ImageBase::FindColorNum(colors, sim);
 }
 
 long ImageProc::SetDict(int idx, const wstring &file_name) {
@@ -236,27 +252,30 @@ long ImageProc::GetNowDict() {
 wstring ImageProc::FetchWord(rect_t rc, const wstring &color, const wstring &word) {
     str2binaryfbk(color);
     auto orc = rc;
-    bin_image_cut(2, rc, orc);
+    if (!bin_image_cut(2, rc, orc))
+        return L"";
     // check is too large
     if (orc.width() > 255) {
         orc.x2 = orc.x1 + 255;
         rc = orc;
-        bin_image_cut(2, rc, orc);
+        if (!bin_image_cut(2, rc, orc))
+            return L"";
     }
     if (orc.height() > 255) {
         orc.y2 = orc.y1 + 255;
         rc = orc;
-        bin_image_cut(2, rc, orc);
+        if (!bin_image_cut(2, rc, orc))
+            return L"";
     }
     Dict dict_new;
     dict_new.add_word(_binary, orc);
-    const auto &wt = dict_new.words[0];
+    auto &wt = dict_new.words[0];
+    wt.set_chars(word);
     return wt.to_string();
 }
 
 long ImageProc::OCR(const wstring &color, double sim, std::wstring &out_str) {
     out_str.clear();
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
     long s = 0;
@@ -269,6 +288,7 @@ long ImageProc::OCR(const wstring &color, double sim, std::wstring &out_str) {
             }
         }
     } else {
+        str2binaryfbk(color, sim);
         s = ImageBase::Ocr(_dicts[_curr_idx], sim, out_str);
     }
 
@@ -285,9 +305,15 @@ wstring ImageProc::GetColor(long x, long y) {
 }
 
 int ImageProc::str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors) {
+    return str2colordfs(color_str, colors, nullptr);
+}
+
+int ImageProc::str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors, std::vector<bool> *explicit_dfs) {
     std::vector<wstring> vstr, vstr2;
     color_df_t cr;
     colors.clear();
+    if (explicit_dfs)
+        explicit_dfs->clear();
     int ret = 0;
     if (color_str.empty()) { // default
         return 1;
@@ -299,8 +325,11 @@ int ImageProc::str2colordfs(const wstring &color_str, std::vector<color_df_t> &c
     for (auto &it : vstr) {
         split(it, vstr2, L"-");
         cr.color.str2color(vstr2[0]);
-        cr.df.str2color(vstr2.size() == 2 ? vstr2[1] : L"000000");
+        const bool has_explicit_df = vstr2.size() == 2;
+        cr.df.str2color(has_explicit_df ? vstr2[1] : L"000000");
         colors.push_back(cr);
+        if (explicit_dfs)
+            explicit_dfs->push_back(has_explicit_df);
     }
     return ret;
 }
@@ -394,6 +423,21 @@ void ImageProc::str2binaryfbk(const wstring &color) {
     }
 }
 
+void ImageProc::str2binaryfbk(const wstring &color, double sim) {
+    vector<color_df_t> colors;
+    vector<bool> explicit_dfs;
+    if (str2colordfs(color, colors, &explicit_dfs) == 0) {
+        const auto implicit_df = sim_to_point_color_diff(sim);
+        for (size_t i = 0; i < colors.size() && i < explicit_dfs.size(); ++i) {
+            if (!explicit_dfs[i])
+                colors[i].df = implicit_df;
+        }
+        bgr2binary(colors);
+    } else {
+        bgr2binarybk(colors);
+    }
+}
+
 void ImageProc::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr) {
     // std::vector<wstring>vstr, vstr2;
     Image *pm;
@@ -422,7 +466,6 @@ void ImageProc::files2mats(const wstring &files, std::vector<Image *> &vpic, std
 
 long ImageProc::OcrEx(const wstring &color, double sim, std::wstring &retstr) {
     retstr.clear();
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
     if (_dicts[_curr_idx].size() == 0) {
@@ -446,6 +489,7 @@ long ImageProc::OcrEx(const wstring &color, double sim, std::wstring &retstr) {
             retstr.pop_back();
         return find_ct;
     } else {
+        str2binaryfbk(color, sim);
         return ImageBase::OcrEx(_dicts[_curr_idx], sim, retstr);
     }
 }
@@ -453,7 +497,6 @@ long ImageProc::OcrEx(const wstring &color, double sim, std::wstring &retstr) {
 long ImageProc::FindStr(const wstring &str, const wstring &color, double sim, long &retx, long &rety) {
     vector<wstring> vstr;
     split(str, vstr, L"|");
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
@@ -466,6 +509,7 @@ long ImageProc::FindStr(const wstring &str, const wstring &color, double sim, lo
             }
         }
     } else {
+        str2binaryfbk(color, sim);
         ImageBase::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
     }
     return ImageBase::FindStr(ocr_res, vstr, sim, retx, rety);
@@ -475,7 +519,6 @@ long ImageProc::FindStrEx(const wstring &str, const wstring &color, double sim, 
     out_str.clear();
     vector<wstring> vstr;
     split(str, vstr, L"|");
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
@@ -488,6 +531,7 @@ long ImageProc::FindStrEx(const wstring &str, const wstring &color, double sim, 
             }
         }
     } else {
+        str2binaryfbk(color, sim);
         ImageBase::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
     }
     return ImageBase::FindStrEx(ocr_res, vstr, sim, out_str);
@@ -527,9 +571,5 @@ long ImageProc::FindLine(const wstring &color, double sim, wstring &retStr) {
     str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
-
-    _src.write(L"_src.bmp");
-    _gray.write(L"gray.bmp");
-    _binary.write(L"_binary.bmp");
     return ImageBase::FindLine(sim, retStr);
 }
