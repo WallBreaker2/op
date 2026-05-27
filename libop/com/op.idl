@@ -89,6 +89,7 @@ interface IOpInterface : IDispatch
 	[id(101)] HRESULT UnBindWindow([out, retval] LONG* ret);
 	[id(102)] HRESULT GetBindWindow([out, retval] LONG* ret);
 	[id(103)] HRESULT IsBind([out, retval] LONG* ret);
+	[id(104)] HRESULT BindWindowEx([in] LONG display_hwnd, [in] LONG input_hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG* ret);
 	//mouse & ketboard 120-149
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);

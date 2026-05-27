@@ -182,8 +182,11 @@ class ATL_NO_VTABLE OpInterface
     // 延时指定范围内随机毫秒,过程中不阻塞UI操作
     STDMETHOD(Delays)(LONG mis_min, LONG mis_max, LONG *ret);
     //--------------------Background -----------------------
-    // bind window and beign capture screen
+    // 兼容旧接口的单句柄绑定。显示和输入都使用同一个 hwnd。
     STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
+    // 扩展绑定接口。显示截图使用 display_hwnd，鼠标和键盘输入使用 input_hwnd。
+    STDMETHOD(BindWindowEx)
+    (LONG display_hwnd, LONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
     //
     STDMETHOD(UnBindWindow)(LONG *ret);
     // 获取当前对象已经绑定的窗口句柄. 无绑定返回0

@@ -537,9 +537,14 @@ void libop::Delays(long mis_min, long mis_max, long *ret) {
 
 void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
                        long *ret) {
+    BindWindowEx(hwnd, hwnd, display, mouse, keypad, mode, ret);
+}
+
+void libop::BindWindowEx(long display_hwnd, long input_hwnd, const wchar_t *display, const wchar_t *mouse,
+                         const wchar_t *keypad, long mode, long *ret) {
     if (m_context->bkproc.IsBind())
         m_context->bkproc.UnBindWindow();
-    *ret = m_context->bkproc.BindWindow(hwnd, display, mouse, keypad, mode);
+    *ret = m_context->bkproc.BindWindowEx(display_hwnd, input_hwnd, display, mouse, keypad, mode);
 }
 
 void libop::UnBindWindow(long *ret) {
