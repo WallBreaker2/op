@@ -6,6 +6,7 @@
 #include <thread>
 
 using namespace std;
+using test_support::ColorPulseWindow;
 using test_support::MouseEventWindow;
 
 namespace {
@@ -41,6 +42,18 @@ struct InputResetGuard {
             SendKeyboardInput(key_vk, KEYEVENTF_KEYUP);
     }
 };
+
+void PumpMessagesFor(int milliseconds) {
+    const auto end = std::chrono::steady_clock::now() + std::chrono::milliseconds(milliseconds);
+    MSG msg = {};
+    while (std::chrono::steady_clock::now() < end) {
+        while (::PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            ::TranslateMessage(&msg);
+            ::DispatchMessageW(&msg);
+        }
+        ::Sleep(10);
+    }
+}
 
 } // namespace
 
@@ -265,6 +278,43 @@ TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
     EXPECT_GE(window.right_up, 1);
     EXPECT_GE(window.wheel_count, 2);
     EXPECT_EQ(window.wheel_delta_sum, 0);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, BindWindowExSeparatesDisplayAndInputTargets) {
+    libop op;
+    MouseEventWindow input_window;
+    ColorPulseWindow display_window;
+    ASSERT_TRUE(input_window.Create());
+    ASSERT_TRUE(display_window.Create(false, 240, 180));
+
+    display_window.SetColor(RGB(255, 0, 0));
+    PumpMessagesFor(120);
+
+    long ret = 0;
+    op.BindWindowEx((long)(intptr_t)display_window.hwnd, (long)(intptr_t)input_window.hwnd, L"normal", L"windows",
+                    L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1) << "BindWindowEx should support separate display/input hwnds";
+
+    std::wstring color;
+    op.GetColor(60, 60, color);
+    EXPECT_EQ(color, display_window.CurrentColorHex());
+
+    op.MoveTo(30, 40, &ret);
+    EXPECT_EQ(ret, 1);
+    op.LeftClick(&ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_GE(input_window.move_count, 1);
+    EXPECT_GE(input_window.left_down, 1);
+    EXPECT_GE(input_window.left_up, 1);
+
+    long bind_hwnd = 0;
+    op.GetBindWindow(&bind_hwnd);
+    EXPECT_EQ(bind_hwnd, (long)(intptr_t)display_window.hwnd);
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);

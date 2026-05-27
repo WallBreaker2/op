@@ -175,12 +175,15 @@ class OP_API libop {
     // 延时指定范围内随机毫秒,过程中不阻塞UI操作
     void Delays(long mis_min, long mis_max, long *ret);
     //--------------------Background -----------------------
-    // bind window and beign capture screen
+    // 兼容旧接口的单句柄绑定。显示和输入都使用同一个 hwnd。
     void BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
                     long *ret);
+    // 扩展绑定接口。显示截图使用 display_hwnd，鼠标和键盘输入使用 input_hwnd。
+    void BindWindowEx(long display_hwnd, long input_hwnd, const wchar_t *display, const wchar_t *mouse,
+                      const wchar_t *keypad, long mode, long *ret);
     // 解绑窗口
     void UnBindWindow(long *ret);
-    // 获取当前对象已经绑定的窗口句柄. 无绑定返回0
+    // 获取当前对象已经绑定的显示窗口句柄. 无绑定返回0
     void GetBindWindow(long *ret);
     // 判定当前对象是否已绑定窗口.
     void IsBind(long *ret);
