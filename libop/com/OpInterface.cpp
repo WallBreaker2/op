@@ -418,6 +418,12 @@ STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR k
     return S_OK;
 }
 
+STDMETHODIMP OpInterface::BindWindowEx(LONG display_hwnd, LONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad,
+                                       LONG mode, LONG *ret) {
+    obj.BindWindowEx(display_hwnd, input_hwnd, display, mouse, keypad, mode, ret);
+    return S_OK;
+}
+
 STDMETHODIMP OpInterface::UnBindWindow(LONG *ret) {
     obj.UnBindWindow(ret);
 
