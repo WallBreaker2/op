@@ -16,7 +16,8 @@
 #include "./mouse/opMouseDx.h"
 
 opBackground::opBackground()
-    : _hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin), _keypad(new winkeypad) {
+    : _display_hwnd(0), _input_hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin),
+      _keypad(new winkeypad) {
     _display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
 
@@ -37,13 +38,19 @@ opBackground::~opBackground() {
 
 long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
                               long mode) {
+    return BindWindowEx(hwnd, hwnd, sdisplay, smouse, skeypad, mode);
+}
+
+long opBackground::BindWindowEx(long display_hwnd, long input_hwnd, const wstring &sdisplay, const wstring &smouse,
+                                const wstring &skeypad, long mode) {
     // step 1.避免重复绑定
     UnBindWindow();
 
-    HWND hWnd = hwnd == 0 ? GetDesktopWindow() : HWND(hwnd);
+    HWND displayWnd = display_hwnd == 0 ? GetDesktopWindow() : HWND(display_hwnd);
+    HWND inputWnd = input_hwnd == 0 ? displayWnd : HWND(input_hwnd);
     // step 2.check hwnd
-    if (!::IsWindow(hWnd)) {
-        setlog("Invalid window handles");
+    if (!::IsWindow(displayWnd) || !::IsWindow(inputWnd)) {
+        setlog("Invalid window handles display=%p input=%p", displayWnd, inputWnd);
         return 0;
     }
 
@@ -114,7 +121,8 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
     // step 4.init
     _mode = mode;
     _display = display;
-    _hwnd = hWnd;
+    _display_hwnd = displayWnd;
+    _input_hwnd = inputWnd;
     set_display_method(L"screen");
 
     // step 5. create instance
@@ -128,7 +136,13 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
         return 0;
     }
     // step 6.try bind
-    if (_pbkdisplay->Bind(hWnd, display) != 1 || _bkmouse->Bind(hWnd, mouse) != 1 || _keypad->Bind(hWnd, keypad) != 1) {
+    const long display_ret = _pbkdisplay->Bind(displayWnd, display);
+    const long mouse_ret = display_ret == 1 ? _bkmouse->Bind(inputWnd, mouse) : 0;
+    const long keypad_ret = (display_ret == 1 && mouse_ret == 1) ? _keypad->Bind(inputWnd, keypad) : 0;
+    if (display_ret != 1 || mouse_ret != 1 || keypad_ret != 1) {
+        setlog(L"BindWindowEx failed. display_hwnd=%p input_hwnd=%p display=%s(%d) ret=%d mouse=%s(%d) ret=%d keypad=%s(%d) ret=%d",
+               displayWnd, inputWnd, sdisplay.c_str(), display, display_ret, smouse.c_str(), mouse, mouse_ret,
+               skeypad.c_str(), keypad, keypad_ret);
         UnBindWindow();
         return 0;
     }
@@ -143,7 +157,8 @@ long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring 
 long opBackground::UnBindWindow() {
     // to do
     // clear ....
-    _hwnd = NULL;
+    _display_hwnd = NULL;
+    _input_hwnd = NULL;
     _is_bind = 0;
     _mode = 0;
 
@@ -167,7 +182,7 @@ long opBackground::UnBindWindow() {
 }
 
 long opBackground::GetBindWindow() {
-    return (long)_hwnd;
+    return (long)_display_hwnd;
 }
 
 long opBackground::IsBind() {

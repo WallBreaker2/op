@@ -355,6 +355,15 @@ EXTERN_C const IID IID_IOpInterface;
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE IsBind( 
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE BindWindowEx( 
+            /* [in] */ LONG display_hwnd,
+            /* [in] */ LONG input_hwnd,
+            /* [in] */ BSTR display,
+            /* [in] */ BSTR mouse,
+            /* [in] */ BSTR keypad,
+            /* [in] */ LONG mode,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetCursorPos( 
             /* [out] */ VARIANT *x,
             /* [out] */ VARIANT *y,
@@ -1259,6 +1268,17 @@ EXTERN_C const IID IID_IOpInterface;
             IOpInterface * This,
             /* [retval][out] */ LONG *ret);
         
+        DECLSPEC_XFGVIRT(IOpInterface, BindWindowEx)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *BindWindowEx )( 
+            IOpInterface * This,
+            /* [in] */ LONG display_hwnd,
+            /* [in] */ LONG input_hwnd,
+            /* [in] */ BSTR display,
+            /* [in] */ BSTR mouse,
+            /* [in] */ BSTR keypad,
+            /* [in] */ LONG mode,
+            /* [retval][out] */ LONG *ret);
+        
         DECLSPEC_XFGVIRT(IOpInterface, GetCursorPos)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetCursorPos )( 
             IOpInterface * This,
@@ -2086,6 +2106,9 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_IsBind(This,ret)	\
     ( (This)->lpVtbl -> IsBind(This,ret) ) 
 
+#define IOpInterface_BindWindowEx(This,display_hwnd,input_hwnd,display,mouse,keypad,mode,ret)	\
+    ( (This)->lpVtbl -> BindWindowEx(This,display_hwnd,input_hwnd,display,mouse,keypad,mode,ret) ) 
+
 #define IOpInterface_GetCursorPos(This,x,y,ret)	\
     ( (This)->lpVtbl -> GetCursorPos(This,x,y,ret) ) 
 
@@ -2328,6 +2351,20 @@ EXTERN_C const IID IID_IOpInterface;
 
 #endif 	/* C style interface */
 
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_AddDict_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG idx,
+    /* [in] */ BSTR dict_info,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_AddDict_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
 
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_SaveDict_Proxy( 
