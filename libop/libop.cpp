@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <vector>
 
 #undef FindWindow
 #undef FindWindowEx
@@ -28,6 +29,98 @@ const int small_block_size = 10;
 std::atomic<int> libop::s_id(0);
 const int SC_DATA_TOP = 0;
 const int SC_DATA_BOTTOM = 1;
+
+namespace {
+
+struct key_combo_t {
+    long vk = 0;
+    std::vector<long> modifiers;
+};
+
+// 先按名称键查表，例如 ctrl、enter、f1。
+bool is_named_vk(const std::map<std::wstring, long> &vkmap, const wchar_t *text, long &vk) {
+    if (text == nullptr || text[0] == L'\0')
+        return false;
+
+    std::wstring key = text;
+    wstring2lower(key);
+    auto it = vkmap.find(key);
+    if (it == vkmap.end())
+        return false;
+
+    vk = it->second;
+    return true;
+}
+
+// 把单个字符拆成“主键 + 修饰键”组合。
+bool resolve_char_key_combo(const wchar_t ch, key_combo_t &combo) {
+    const SHORT mapped = ::VkKeyScanW(ch);
+    if (mapped == -1)
+        return false;
+
+    combo = {};
+    combo.vk = LOBYTE(mapped);
+
+    const BYTE shift_state = HIBYTE(mapped);
+    if (shift_state & 1)
+        combo.modifiers.push_back(VK_SHIFT);
+    if (shift_state & 2)
+        combo.modifiers.push_back(VK_CONTROL);
+    if (shift_state & 4)
+        combo.modifiers.push_back(VK_MENU);
+
+    return combo.vk != 0;
+}
+
+// 统一解析字符串按键，优先支持命名键，其次支持单字符。
+bool resolve_text_key_combo(const std::map<std::wstring, long> &vkmap, const wchar_t *text, key_combo_t &combo) {
+    long named_vk = 0;
+    if (is_named_vk(vkmap, text, named_vk)) {
+        combo = {};
+        combo.vk = named_vk;
+        return true;
+    }
+
+    if (text == nullptr || text[0] == L'\0' || text[1] != L'\0')
+        return false;
+
+    return resolve_char_key_combo(text[0], combo);
+}
+
+long key_combo_down(bkkeypad *keypad, const key_combo_t &combo) {
+    // 先按修饰键，再按主键。
+    for (long modifier : combo.modifiers) {
+        if (keypad->KeyDown(modifier) != 1)
+            return 0;
+    }
+    return keypad->KeyDown(combo.vk);
+}
+
+long key_combo_up(bkkeypad *keypad, const key_combo_t &combo) {
+    long ret = keypad->KeyUp(combo.vk);
+    if (ret != 1)
+        return ret;
+
+    // 抬键时反向释放修饰键。
+    for (auto it = combo.modifiers.rbegin(); it != combo.modifiers.rend(); ++it) {
+        if (keypad->KeyUp(*it) != 1)
+            return 0;
+    }
+    return 1;
+}
+
+// 一次性完成组合键按下和释放。
+long key_combo_press(bkkeypad *keypad, const key_combo_t &combo) {
+    // 无修饰键时直接复用原有按键节奏，避免改变不同模式的时序。
+    if (combo.modifiers.empty())
+        return keypad->KeyPress(combo.vk);
+
+    if (key_combo_down(keypad, combo) != 1)
+        return 0;
+    return key_combo_up(keypad, combo);
+}
+
+} // namespace
 // using bytearray = std::vector<unsigned char>;
 struct op_context {
     // 1. Windows API
@@ -62,21 +155,32 @@ libop::libop() : m_context(std::make_unique<op_context>()) {
     std::map<std::wstring, long> &_vkmap = m_context->vkmap;
     _vkmap[L"back"] = VK_BACK;
     _vkmap[L"ctrl"] = VK_CONTROL;
-    _vkmap[L"alt"] = 18;
+    _vkmap[L"lctrl"] = VK_LCONTROL;
+    _vkmap[L"rctrl"] = VK_RCONTROL;
+    _vkmap[L"alt"] = VK_MENU;
+    _vkmap[L"lalt"] = VK_LMENU;
+    _vkmap[L"ralt"] = VK_RMENU;
     _vkmap[L"shift"] = VK_SHIFT;
+    _vkmap[L"lshift"] = VK_LSHIFT;
+    _vkmap[L"rshift"] = VK_RSHIFT;
     _vkmap[L"win"] = VK_LWIN;
+    _vkmap[L"lwin"] = VK_LWIN;
+    _vkmap[L"rwin"] = VK_RWIN;
     _vkmap[L"space"] = L' ';
     _vkmap[L"cap"] = VK_CAPITAL;
     _vkmap[L"tab"] = VK_TAB;
     _vkmap[L"esc"] = VK_ESCAPE;
-    _vkmap[L"enter"] = L'\r';
+    _vkmap[L"enter"] = VK_RETURN;
     _vkmap[L"up"] = VK_UP;
     _vkmap[L"down"] = VK_DOWN;
     _vkmap[L"left"] = VK_LEFT;
     _vkmap[L"right"] = VK_RIGHT;
-    _vkmap[L"option"] = VK_APPS;
+    _vkmap[L"menu"] = VK_APPS;
     _vkmap[L"print"] = VK_SNAPSHOT;
+    _vkmap[L"insert"] = VK_INSERT;
     _vkmap[L"delete"] = VK_DELETE;
+    _vkmap[L"pause"] = VK_PAUSE;
+    _vkmap[L"scroll"] = VK_SCROLL;
     _vkmap[L"home"] = VK_HOME;
     _vkmap[L"end"] = VK_END;
     _vkmap[L"pgup"] = VK_PRIOR;
@@ -654,14 +758,10 @@ void libop::KeyDown(long vk_code, long *ret) {
 }
 
 void libop::KeyDownChar(const wchar_t *vk_code, long *ret) {
-    auto nlen = wcslen(vk_code);
     *ret = 0;
-    if (nlen > 0) {
-        wstring s = vk_code;
-        wstring2lower(s);
-        long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
-        *ret = m_context->bkproc._keypad->KeyDown(vk);
-    }
+    key_combo_t combo;
+    if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
+        *ret = key_combo_down(m_context->bkproc._keypad, combo);
 }
 
 void libop::KeyUp(long vk_code, long *ret) {
@@ -669,14 +769,10 @@ void libop::KeyUp(long vk_code, long *ret) {
 }
 
 void libop::KeyUpChar(const wchar_t *vk_code, long *ret) {
-    auto nlen = wcslen(vk_code);
     *ret = 0;
-    if (nlen > 0) {
-        wstring s = vk_code;
-        wstring2lower(s);
-        long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
-        *ret = m_context->bkproc._keypad->KeyUp(vk);
-    }
+    key_combo_t combo;
+    if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
+        *ret = key_combo_up(m_context->bkproc._keypad, combo);
 }
 
 void libop::WaitKey(long vk_code, long time_out, long *ret) {
@@ -690,15 +786,10 @@ void libop::KeyPress(long vk_code, long *ret) {
 }
 
 void libop::KeyPressChar(const wchar_t *vk_code, long *ret) {
-    auto nlen = wcslen(vk_code);
     *ret = 0;
-    if (nlen > 0) {
-        // setlog(vk_code);
-        wstring s = vk_code;
-        wstring2lower(s);
-        long vk = m_context->vkmap.count(s) ? m_context->vkmap[s] : ::toupper(vk_code[0]);
-        *ret = m_context->bkproc._keypad->KeyPress(vk);
-    }
+    key_combo_t combo;
+    if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
+        *ret = key_combo_press(m_context->bkproc._keypad, combo);
 }
 
 void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
@@ -708,7 +799,7 @@ void libop::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
     *ret = 1;
     if (wcscmp(type, L"normal") == 0)
         KEYPAD_NORMAL_DELAY = delay;
-    else if (wcscmp(type, L"normal2") == 0)
+    else if (wcscmp(type, L"normal.hd") == 0)
         KEYPAD_NORMAL2_DELAY = delay;
     else if (wcscmp(type, L"windows") == 0)
         KEYPAD_WINDOWS_DELAY = delay;
@@ -722,8 +813,11 @@ void libop::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
     *ret = 0;
     auto nlen = wcslen(key_str);
     for (size_t i = 0; i < nlen; ++i) {
-        long vkCode = ::VkKeyScanW(key_str[i]);
-        *ret = m_context->bkproc._keypad->KeyPress(vkCode);
+        key_combo_t combo;
+        if (!resolve_char_key_combo(key_str[i], combo))
+            return;
+
+        *ret = key_combo_press(m_context->bkproc._keypad, combo);
         if (*ret == 0)
             return;
         ::Delay(delay);
