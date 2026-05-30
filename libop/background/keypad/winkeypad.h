@@ -23,5 +23,10 @@ class winkeypad : public bkkeypad {
     virtual long WaitKey(long vk_code, unsigned long time_out);
 
     virtual long KeyPress(long vk_code);
+
+  private:
+    bool _shift_down = false;
+    bool _ctrl_down = false;
+    bool _alt_down = false;
 };
 #endif // !_WIN_KEYPAD_H_

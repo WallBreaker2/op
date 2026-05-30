@@ -166,7 +166,7 @@ libop::libop() : m_context(std::make_unique<op_context>()) {
     _vkmap[L"win"] = VK_LWIN;
     _vkmap[L"lwin"] = VK_LWIN;
     _vkmap[L"rwin"] = VK_RWIN;
-    _vkmap[L"space"] = L' ';
+    _vkmap[L"space"] = VK_SPACE;
     _vkmap[L"cap"] = VK_CAPITAL;
     _vkmap[L"tab"] = VK_TAB;
     _vkmap[L"esc"] = VK_ESCAPE;
@@ -820,7 +820,8 @@ void libop::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
         *ret = key_combo_press(m_context->bkproc._keypad, combo);
         if (*ret == 0)
             return;
-        ::Delay(delay);
+        // 连续输入时给控件留一点处理时间，避免字符连发被吞掉。
+        ::Delay(delay > 0 ? delay : 1);
     }
 }
 
