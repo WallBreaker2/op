@@ -2,6 +2,7 @@
 #include "winkeypad.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
+#include <string>
 
 static uint oem_code(uint key) {
     short code[256] = {0};
@@ -43,6 +44,78 @@ static long normalize_vk_code(long vk_code) {
     return vk_code;
 }
 
+static bool is_alt_vk(long vk_code) {
+    return vk_code == VK_MENU || vk_code == VK_LMENU || vk_code == VK_RMENU;
+}
+
+static bool is_ctrl_vk(long vk_code) {
+    return vk_code == VK_CONTROL || vk_code == VK_LCONTROL || vk_code == VK_RCONTROL;
+}
+
+static bool is_shift_vk(long vk_code) {
+    return vk_code == VK_SHIFT || vk_code == VK_LSHIFT || vk_code == VK_RSHIFT;
+}
+
+static bool is_extended_vk(long vk_code) {
+    switch (vk_code) {
+    case VK_RMENU:
+    case VK_RCONTROL:
+    case VK_INSERT:
+    case VK_DELETE:
+    case VK_HOME:
+    case VK_END:
+    case VK_PRIOR:
+    case VK_NEXT:
+    case VK_LEFT:
+    case VK_RIGHT:
+    case VK_UP:
+    case VK_DOWN:
+    case VK_NUMLOCK:
+    case VK_SNAPSHOT:
+    case VK_DIVIDE:
+    case VK_APPS:
+    case VK_LWIN:
+    case VK_RWIN:
+        return true;
+    default:
+        return false;
+    }
+}
+
+// 按键消息的 lParam 需要带扫描码、扩展键标志和按下/抬起状态。
+static LPARAM build_windows_key_lparam(long vk_code, bool key_up, bool extended, bool alt_context) {
+    DWORD data = 1;
+    const WORD scan_code = static_cast<WORD>(::MapVirtualKey(vk_code, MAPVK_VK_TO_VSC));
+    data |= static_cast<DWORD>(scan_code) << 16;
+    if (extended)
+        data |= 1u << 24;
+    if (alt_context)
+        data |= 1u << 29;
+    if (key_up)
+        data |= 3u << 30;
+    return static_cast<LPARAM>(data);
+}
+
+// 按当前修饰键状态把虚拟键翻译成字符，供 WM_CHAR / WM_SYSCHAR 使用。
+static bool translate_vk_to_text(long vk_code, bool shift_down, bool ctrl_down, bool alt_down, std::wstring &text) {
+    BYTE key_state[256] = {0};
+    if (shift_down)
+        key_state[VK_SHIFT] = 0x80;
+    if (ctrl_down)
+        key_state[VK_CONTROL] = 0x80;
+    if (alt_down)
+        key_state[VK_MENU] = 0x80;
+
+    wchar_t chars[8] = {0};
+    const UINT scan_code = static_cast<UINT>(::MapVirtualKey(vk_code, MAPVK_VK_TO_VSC));
+    const int count = ::ToUnicodeEx(vk_code, scan_code, key_state, chars, 8, 0, ::GetKeyboardLayout(0));
+    if (count <= 0)
+        return false;
+
+    text.assign(chars, chars + count);
+    return true;
+}
+
 winkeypad::winkeypad() : bkkeypad() {
 }
 
@@ -61,6 +134,9 @@ long winkeypad::Bind(HWND hwnd, long mode) {
 long winkeypad::UnBind() {
     _hwnd = NULL;
     _mode = 0;
+    _shift_down = false;
+    _ctrl_down = false;
+    _alt_down = false;
     return 1;
 }
 
@@ -96,53 +172,33 @@ long winkeypad::KeyDown(long vk_code) {
         Input.ki.wVk = 0;
         Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
         Input.ki.dwFlags = KEYEVENTF_SCANCODE;
+        // 扫描码模式下，扩展键还需要补扩展键标志。
+        if (is_extended_vk(vk_code))
+            Input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
         if (ret == 0)
             setlog("op:IN_NORMAL2 erro code:%s", GetLastErrorAsString().c_str());
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        /*Specification of WM_KEYDOWN :*/
+        // windows 模式下补扩展键标志，并在 Alt 参与时切到系统键消息。
+        const bool extended = is_extended_vk(vk_code);
+        const bool use_system_message = is_alt_vk(vk_code) || _alt_down;
+        const bool alt_context = _alt_down && !is_alt_vk(vk_code);
+        const UINT message = use_system_message ? WM_SYSKEYDOWN : WM_KEYDOWN;
+        const LPARAM lparam = build_windows_key_lparam(vk_code, false, extended, alt_context);
 
-        /*wParam
-
-            Specifies the virtual - key code of the nonsystem key.
-        lParam
-            Specifies the repeat count, scan code, extended - key flag, context code,
-            previous key - state flag,
-            and transition - state flag, as shown in the following table.
-            0 - 15
-            Specifies the repeat count for the current message.The value is
-            the number of times the keystroke is
-            autorepeated as a result of the user holding down the key.If the
-            keystroke is held long enough, multiple messages are sent.However,
-            the repeat count is not cumulative.
-            16 - 23
-            Specifies the scan code.The value depends on the OEM.
-            24
-            Specifies whether the key is an extended key, such as the
-            right - hand ALT and CTRL keys that
-            appear on an enhanced 101 - or 102 - key keyboard.The value
-            is 1 if it is an extended key; otherwise, it is 0.
-            25 - 28
-            Reserved; do not use.
-            29
-            Specifies the context code.The value is always 0 for a WM_KEYDOWN message.
-            30
-            Specifies the previous key state.The value is 1 if the key
-            is down before the message is sent, or it is zero if the key is up.
-            31
-            Specifies the transition state.The value is always zero for a WM_KEYDOWN message.*/
-
-        DWORD dwVKFkeyData;
-        WORD dwScanCode = MapVirtualKey(vk_code, 0);
-        dwVKFkeyData = 1;
-        dwVKFkeyData |= dwScanCode << 16;
-        dwVKFkeyData |= 0 << 24;
-        dwVKFkeyData |= 0 << 29;
-        ret = ::SendMessageTimeout(_hwnd, WM_KEYDOWN, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
+        ret = ::SendMessageTimeout(_hwnd, message, vk_code, lparam, SMTO_BLOCK, 2000, nullptr);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
+        else {
+            if (is_shift_vk(vk_code))
+                _shift_down = true;
+            else if (is_ctrl_vk(vk_code))
+                _ctrl_down = true;
+            else if (is_alt_vk(vk_code))
+                _alt_down = true;
+        }
         break;
     }
     }
@@ -176,6 +232,9 @@ long winkeypad::KeyUp(long vk_code) {
         Input.ki.wVk = 0;
         Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
         Input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        // 抬键时保持和按下阶段一致的扩展键标志。
+        if (is_extended_vk(vk_code))
+            Input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
         if (ret == 0)
             setlog("op:IN_NORMAL2 erro code:%s", GetLastErrorAsString().c_str());
@@ -183,36 +242,24 @@ long winkeypad::KeyUp(long vk_code) {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        /*Specification of WM_KEYUP
-        wParam
-            Specifies the virtual - key code of the nonsystem key.
-            lParam
-            Specifies the repeat count, scan code, extended - key flag, context code,
-            previous key - state flag, and transition - state flag, as shown in the following table.
-            0 - 15
-            Specifies the repeat count for the current message.The value is the number of times the keystroke is
-            autorepeated as a result of the user holding down the key.
-            The repeat count is always one for a WM_KEYUP message.
-            16 - 23
-            Specifies the scan code.The value depends on the OEM.
-            24
-            Specifies whether the key is an extended key, such as the right - hand ALT and CTRL keys that
-            appear on an enhanced 101 - or 102 - key keyboard.The value is 1 if it is an extended key; otherwise, it is
-        0. 25 - 28 Reserved; do not use. 29 Specifies the context code.The value is always 0 for a WM_KEYUP message. 30
-            Specifies the previous key state.The value is always 1 for a WM_KEYUP message.
-            31
-            Specifies the transition state.The value is always 1 for a WM_KEYUP message.*/
-        // ret = ::SendMessageW(_hwnd, WM_KEYUP, vk_code, 0);
-        DWORD dwVKFkeyData;
-        WORD dwScanCode = MapVirtualKey(vk_code, 0);
-        dwVKFkeyData = 1;
-        dwVKFkeyData |= dwScanCode << 16;
-        dwVKFkeyData |= 0 << 24;
-        dwVKFkeyData |= 0 << 29;
-        dwVKFkeyData |= 3 << 30;
-        ret = ::SendMessageTimeout(_hwnd, WM_KEYUP, vk_code, dwVKFkeyData, SMTO_BLOCK, 2000, nullptr);
+        // 抬键时保持和按下阶段一致的消息类型与 lParam 位语义。
+        const bool extended = is_extended_vk(vk_code);
+        const bool use_system_message = is_alt_vk(vk_code) || _alt_down;
+        const bool alt_context = _alt_down && !is_alt_vk(vk_code);
+        const UINT message = use_system_message ? WM_SYSKEYUP : WM_KEYUP;
+        const LPARAM lparam = build_windows_key_lparam(vk_code, true, extended, alt_context);
+
+        ret = ::SendMessageTimeout(_hwnd, message, vk_code, lparam, SMTO_BLOCK, 2000, nullptr);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
+        else {
+            if (is_shift_vk(vk_code))
+                _shift_down = false;
+            else if (is_ctrl_vk(vk_code))
+                _ctrl_down = false;
+            else if (is_alt_vk(vk_code))
+                _alt_down = false;
+        }
         break;
     }
     }
@@ -251,6 +298,13 @@ long winkeypad::KeyPress(long vk_code) {
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
+        // 对文本控件补字符消息，便于标准编辑控件直接落字。
+        std::wstring text;
+        if (translate_vk_to_text(vk_code, _shift_down, _ctrl_down, _alt_down, text)) {
+            const UINT char_message = _alt_down ? WM_SYSCHAR : WM_CHAR;
+            for (wchar_t ch : text)
+                ::SendMessageTimeout(_hwnd, char_message, ch, 1, SMTO_BLOCK, 2000, nullptr);
+        }
         ::Delay(KEYPAD_WINDOWS_DELAY);
         break;
     }
