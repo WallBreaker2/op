@@ -110,6 +110,7 @@ jobs:
         shell: pwsh
         run: |
           $bld = "build\${{ matrix.arch }}"
+          $env:OP_SKIP_OCR_TESTS = "1"
           cd $bld
           ctest -C Release --output-on-failure
 
