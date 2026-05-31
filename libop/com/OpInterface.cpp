@@ -149,42 +149,50 @@ STDMETHODIMP OpInterface::EnumProcess(BSTR name, BSTR *retstring) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::ClientToScreen(LONG ClientToScreen, VARIANT *x, VARIANT *y, LONG *bret) {
+STDMETHODIMP OpInterface::ClientToScreen(LONGLONG hwnd, VARIANT *x, VARIANT *y, LONG *bret) {
     x->vt = VT_I4;
     y->vt = VT_I4;
     long lx = x->lVal;
     long ly = y->lVal;
-    obj.ClientToScreen(ClientToScreen, &lx, &ly, bret);
+    obj.ClientToScreen(static_cast<LONG_PTR>(hwnd), &lx, &ly, bret);
     x->lVal = lx;
     y->lVal = ly;
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::FindWindow(BSTR class_name, BSTR title, LONG *rethwnd) {
-    obj.FindWindow(class_name, title, rethwnd);
+STDMETHODIMP OpInterface::FindWindow(BSTR class_name, BSTR title, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.FindWindow(class_name, title, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::FindWindowByProcess(BSTR process_name, BSTR class_name, BSTR title, LONG *rethwnd) {
-    obj.FindWindowByProcess(process_name, class_name, title, rethwnd);
+STDMETHODIMP OpInterface::FindWindowByProcess(BSTR process_name, BSTR class_name, BSTR title, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.FindWindowByProcess(process_name, class_name, title, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::FindWindowByProcessId(LONG process_id, BSTR class_name, BSTR title, LONG *rethwnd) {
-    obj.FindWindowByProcessId(process_id, class_name, title, rethwnd);
+STDMETHODIMP OpInterface::FindWindowByProcessId(LONG process_id, BSTR class_name, BSTR title, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.FindWindowByProcessId(process_id, class_name, title, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::FindWindowEx(LONG parent, BSTR class_name, BSTR title, LONG *rethwnd) {
-    obj.FindWindowEx(parent, class_name, title, rethwnd);
+STDMETHODIMP OpInterface::FindWindowEx(LONGLONG parent, BSTR class_name, BSTR title, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.FindWindowEx(static_cast<LONG_PTR>(parent), class_name, title, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetClientRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
+STDMETHODIMP OpInterface::GetClientRect(LONGLONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
     x1->vt = VT_I4;
     y1->vt = VT_I4;
     x2->vt = VT_I4;
@@ -194,7 +202,7 @@ STDMETHODIMP OpInterface::GetClientRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VAR
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetClientSize(LONG hwnd, VARIANT *width, VARIANT *height, LONG *nret) {
+STDMETHODIMP OpInterface::GetClientSize(LONGLONG hwnd, VARIANT *width, VARIANT *height, LONG *nret) {
     width->vt = VT_I4;
     height->vt = VT_I4;
     obj.GetClientSize(hwnd, &width->lVal, &height->lVal, nret);
@@ -202,27 +210,35 @@ STDMETHODIMP OpInterface::GetClientSize(LONG hwnd, VARIANT *width, VARIANT *heig
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetForegroundFocus(LONG *rethwnd) {
-    obj.GetForegroundFocus(rethwnd);
+STDMETHODIMP OpInterface::GetForegroundFocus(LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.GetForegroundFocus(&hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetForegroundWindow(LONG *rethwnd) {
-    obj.GetForegroundWindow(rethwnd);
+STDMETHODIMP OpInterface::GetForegroundWindow(LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.GetForegroundWindow(&hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetMousePointWindow(LONG *rethwnd) {
+STDMETHODIMP OpInterface::GetMousePointWindow(LONGLONG *rethwnd) {
     //::Sleep(2000);
-    obj.GetMousePointWindow(rethwnd);
+    LONG_PTR hwnd = 0;
+    obj.GetMousePointWindow(&hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetPointWindow(LONG x, LONG y, LONG *rethwnd) {
-    obj.GetPointWindow(x, y, rethwnd);
+STDMETHODIMP OpInterface::GetPointWindow(LONG x, LONG y, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.GetPointWindow(x, y, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
@@ -237,19 +253,23 @@ STDMETHODIMP OpInterface::GetProcessInfo(LONG pid, BSTR *retstring) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetSpecialWindow(LONG flag, LONG *rethwnd) {
-    obj.GetSpecialWindow(flag, rethwnd);
+STDMETHODIMP OpInterface::GetSpecialWindow(LONG flag, LONGLONG *rethwnd) {
+    LONG_PTR hwnd = 0;
+    obj.GetSpecialWindow(flag, &hwnd);
+    *rethwnd = static_cast<LONGLONG>(hwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindow(LONG hwnd, LONG flag, LONG *nret) {
-    obj.GetWindow(hwnd, flag, nret);
+STDMETHODIMP OpInterface::GetWindow(LONGLONG hwnd, LONG flag, LONGLONG *nret) {
+    LONG_PTR target = 0;
+    obj.GetWindow(static_cast<LONG_PTR>(hwnd), flag, &target);
+    *nret = static_cast<LONGLONG>(target);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowClass(LONG hwnd, BSTR *retstring) {
+STDMETHODIMP OpInterface::GetWindowClass(LONGLONG hwnd, BSTR *retstring) {
     wstring s;
     obj.GetWindowClass(hwnd, s);
 
@@ -259,13 +279,13 @@ STDMETHODIMP OpInterface::GetWindowClass(LONG hwnd, BSTR *retstring) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowProcessId(LONG hwnd, LONG *nretpid) {
+STDMETHODIMP OpInterface::GetWindowProcessId(LONGLONG hwnd, LONG *nretpid) {
     obj.GetWindowProcessId(hwnd, nretpid);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowProcessPath(LONG hwnd, BSTR *retstring) {
+STDMETHODIMP OpInterface::GetWindowProcessPath(LONGLONG hwnd, BSTR *retstring) {
     wstring s;
     obj.GetWindowProcessPath(hwnd, s);
 
@@ -275,7 +295,7 @@ STDMETHODIMP OpInterface::GetWindowProcessPath(LONG hwnd, BSTR *retstring) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
+STDMETHODIMP OpInterface::GetWindowRect(LONGLONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret) {
     x1->vt = VT_I4;
     x2->vt = VT_I4;
     y1->vt = VT_I4;
@@ -286,13 +306,13 @@ STDMETHODIMP OpInterface::GetWindowRect(LONG hwnd, VARIANT *x1, VARIANT *y1, VAR
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowState(LONG hwnd, LONG flag, LONG *rethwnd) {
+STDMETHODIMP OpInterface::GetWindowState(LONGLONG hwnd, LONG flag, LONG *rethwnd) {
     obj.GetWindowState(hwnd, flag, rethwnd);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetWindowTitle(LONG hwnd, BSTR *rettitle) {
+STDMETHODIMP OpInterface::GetWindowTitle(LONGLONG hwnd, BSTR *rettitle) {
     wstring s;
     obj.GetWindowTitle(hwnd, s);
 
@@ -302,13 +322,13 @@ STDMETHODIMP OpInterface::GetWindowTitle(LONG hwnd, BSTR *rettitle) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::MoveWindow(LONG hwnd, LONG x, LONG y, LONG *nret) {
+STDMETHODIMP OpInterface::MoveWindow(LONGLONG hwnd, LONG x, LONG y, LONG *nret) {
     obj.MoveWindow(hwnd, x, y, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::ScreenToClient(LONG hwnd, VARIANT *x, VARIANT *y, LONG *nret) {
+STDMETHODIMP OpInterface::ScreenToClient(LONGLONG hwnd, VARIANT *x, VARIANT *y, LONG *nret) {
     x->vt = VT_I4;
     y->vt = VT_I4;
     obj.ScreenToClient(hwnd, &x->lVal, &y->lVal, nret);
@@ -316,57 +336,57 @@ STDMETHODIMP OpInterface::ScreenToClient(LONG hwnd, VARIANT *x, VARIANT *y, LONG
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SendPaste(LONG hwnd, LONG *nret) {
+STDMETHODIMP OpInterface::SendPaste(LONGLONG hwnd, LONG *nret) {
     obj.SendPaste(hwnd, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SetClientSize(LONG hwnd, LONG width, LONG hight, LONG *nret) {
+STDMETHODIMP OpInterface::SetClientSize(LONGLONG hwnd, LONG width, LONG hight, LONG *nret) {
     obj.SetClientSize(hwnd, width, hight, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SetWindowState(LONG hwnd, LONG flag, LONG *nret) {
+STDMETHODIMP OpInterface::SetWindowState(LONGLONG hwnd, LONG flag, LONG *nret) {
     obj.SetWindowState(hwnd, flag, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SetWindowSize(LONG hwnd, LONG width, LONG height, LONG *nret) {
+STDMETHODIMP OpInterface::SetWindowSize(LONGLONG hwnd, LONG width, LONG height, LONG *nret) {
     obj.SetWindowSize(hwnd, width, height, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SetWindowText(LONG hwnd, BSTR title, LONG *nret) {
+STDMETHODIMP OpInterface::SetWindowText(LONGLONG hwnd, BSTR title, LONG *nret) {
     //*nret=gWindowObj.TSSetWindowState(hwnd,flag);
     obj.SetWindowText(hwnd, title, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SetWindowTransparent(LONG hwnd, LONG trans, LONG *nret) {
+STDMETHODIMP OpInterface::SetWindowTransparent(LONGLONG hwnd, LONG trans, LONG *nret) {
     obj.SetWindowTransparent(hwnd, trans, nret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SendString(LONG hwnd, BSTR str, LONG *ret) {
+STDMETHODIMP OpInterface::SendString(LONGLONG hwnd, BSTR str, LONG *ret) {
     obj.SendString(hwnd, str, ret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::SendStringIme(LONG hwnd, BSTR str, LONG *ret) {
+STDMETHODIMP OpInterface::SendStringIme(LONGLONG hwnd, BSTR str, LONG *ret) {
     obj.SendStringIme(hwnd, str, ret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::RunApp(BSTR cmdline, LONG mode, LONG *ret) {
-    obj.RunApp(cmdline, mode, ret);
+STDMETHODIMP OpInterface::RunApp(BSTR cmdline, LONG mode, ULONG *pid, LONG *ret) {
+    obj.RunApp(cmdline, mode, pid, ret);
 
     return S_OK;
 }
@@ -413,14 +433,14 @@ STDMETHODIMP OpInterface::Delays(LONG mis_min, LONG mis_max, LONG *ret) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::BindWindow(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
-    obj.BindWindow(hwnd, display, mouse, keypad, mode, ret);
+STDMETHODIMP OpInterface::BindWindow(LONGLONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret) {
+    obj.BindWindow(static_cast<LONG_PTR>(hwnd), display, mouse, keypad, mode, ret);
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::BindWindowEx(LONG display_hwnd, LONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad,
+STDMETHODIMP OpInterface::BindWindowEx(LONGLONG display_hwnd, LONGLONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad,
                                        LONG mode, LONG *ret) {
-    obj.BindWindowEx(display_hwnd, input_hwnd, display, mouse, keypad, mode, ret);
+    obj.BindWindowEx(static_cast<LONG_PTR>(display_hwnd), static_cast<LONG_PTR>(input_hwnd), display, mouse, keypad, mode, ret);
     return S_OK;
 }
 
@@ -430,8 +450,10 @@ STDMETHODIMP OpInterface::UnBindWindow(LONG *ret) {
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::GetBindWindow(LONG *ret) {
-    obj.GetBindWindow(ret);
+STDMETHODIMP OpInterface::GetBindWindow(LONGLONG *ret) {
+    LONG_PTR hwnd = 0;
+    obj.GetBindWindow(&hwnd);
+    *ret = static_cast<LONGLONG>(hwnd);
     return S_OK;
 }
 
@@ -1042,13 +1064,13 @@ STDMETHODIMP OpInterface::SetOcrEngine(BSTR path_of_engine, BSTR dll_name, BSTR 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::WriteData(LONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret) {
+STDMETHODIMP OpInterface::WriteData(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret) {
     obj.WriteData(hwnd, address, data, size, ret);
 
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::ReadData(LONG hwnd, BSTR address, LONG size, BSTR *retstr) {
+STDMETHODIMP OpInterface::ReadData(LONGLONG hwnd, BSTR address, LONG size, BSTR *retstr) {
     wstring s;
     obj.ReadData(hwnd, address, size, s);
 
@@ -1057,3 +1079,4 @@ STDMETHODIMP OpInterface::ReadData(LONG hwnd, BSTR address, LONG size, BSTR *ret
     newstr.CopyTo(retstr);
     return S_OK;
 }
+
