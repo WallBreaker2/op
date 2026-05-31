@@ -4,7 +4,40 @@
 #include "helpfunc.h"
 #include <chrono>
 #include <iostream>
+#include <tlhelp32.h>
 #include <vector>
+
+namespace {
+
+void terminate_process_tree(DWORD pid) {
+    std::vector<DWORD> children;
+
+    HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32W entry = {};
+        entry.dwSize = sizeof(entry);
+        if (::Process32FirstW(snapshot, &entry)) {
+            do {
+                if (entry.th32ParentProcessID == pid)
+                    children.push_back(entry.th32ProcessID);
+            } while (::Process32NextW(snapshot, &entry));
+        }
+        ::CloseHandle(snapshot);
+    }
+
+    for (DWORD child_pid : children)
+        terminate_process_tree(child_pid);
+
+    HANDLE process = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+    if (!process)
+        return;
+
+    ::TerminateProcess(process, 0);
+    ::WaitForSingleObject(process, 1000);
+    ::CloseHandle(process);
+}
+
+} // namespace
 
 Pipe::Pipe() {
     _hread = _hwrite = _hread2 = _hwrite2 = nullptr;
@@ -65,8 +98,8 @@ int Pipe::close(DWORD process_wait_ms) {
         const DWORD wait_result = ::WaitForSingleObject(_pi.hProcess, process_wait_ms);
         if (wait_result == WAIT_TIMEOUT) {
             process_exited = false;
-            ::TerminateProcess(_pi.hProcess, 0);
-            ::WaitForSingleObject(_pi.hProcess, 1000);
+            _reading = false;
+            terminate_process_tree(_pi.dwProcessId);
         }
     }
 
@@ -114,13 +147,25 @@ void Pipe::reader() {
     char buf[buf_size];
     unsigned long read_len = 0;
     while (_reading.load()) {
-        memset(buf, 0, buf_size * sizeof(char));
-        if (ReadFile(_hread, buf, buf_size - 1, &read_len, NULL) && read_len > 0) {
-            on_read(string(buf, read_len));
-        } else {
+        DWORD available = 0;
+        if (!::PeekNamedPipe(_hread, nullptr, 0, nullptr, &available, nullptr)) {
             _reading = false;
             break;
         }
+        if (available == 0) {
+            ::Sleep(1);
+            continue;
+        }
+
+        memset(buf, 0, buf_size * sizeof(char));
+        const DWORD chunk = std::min<DWORD>(buf_size - 1, available);
+        if (ReadFile(_hread, buf, chunk, &read_len, NULL) && read_len > 0) {
+            on_read(string(buf, read_len));
+            continue;
+        }
+
+        _reading = false;
+        break;
     }
 }
 
