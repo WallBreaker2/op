@@ -31,8 +31,15 @@ endif()
 
 option(build_swig_py "build swig py,requrie python" ON)
 
+set(_op_target_is_64bit FALSE)
+if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64" OR CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
+    set(_op_target_is_64bit TRUE)
+elseif(DEFINED CMAKE_SIZEOF_VOID_P AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(_op_target_is_64bit TRUE)
+endif()
+
 if(build_swig_py)
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(_op_target_is_64bit)
         set(_op_python_home "$ENV{PYTHON64_ROOT}")
     else()
         set(_op_python_home "$ENV{PYTHON32_ROOT}")
@@ -58,12 +65,18 @@ if(build_swig_py)
 
     if(NOT _op_python_home STREQUAL "")
         file(TO_CMAKE_PATH "${_op_python_home}" _op_python_home)
-        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        if(_op_target_is_64bit)
             if(NOT EXISTS "${_op_python_home}/python312.dll"
                AND NOT EXISTS "${_op_python_home}/python311.dll"
                AND NOT EXISTS "${_op_python_home}/python310.dll"
                AND NOT EXISTS "${_op_python_home}/python39.dll")
                 message(STATUS "Disable swig python build: no supported 64-bit Python runtime found under ${_op_python_home}")
+                set(build_swig_py OFF)
+            elseif(NOT EXISTS "${_op_python_home}/libs/python312.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
+                message(STATUS "Disable swig python build: no matching 64-bit Python import library found under ${_op_python_home}/libs")
                 set(build_swig_py OFF)
             endif()
         else()
@@ -152,7 +165,7 @@ if(enable_wgc)
 endif()
 
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    if(_op_target_is_64bit)
         set(_blackbone_candidates
             "${BLACKBONE_ROOT}/build/X64/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/x64/Release/BlackBone.lib"
@@ -188,7 +201,7 @@ if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
         foreach(_lib IN LISTS _blackbone_all_libs)
             file(TO_CMAKE_PATH "${_lib}" _lib_norm)
             string(TOLOWER "${_lib_norm}" _lib_lower)
-            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            if(_op_target_is_64bit)
                 if(_lib_lower MATCHES "/x64/" OR _lib_lower MATCHES "/amd64/")
                     set(BLACKBONE_LIBRARY "${_lib_norm}")
                     break()
