@@ -107,67 +107,67 @@ class ATL_NO_VTABLE OpInterface
     // 根据指定进程名,枚举系统中符合条件的进程PID
     STDMETHOD(EnumProcess)(BSTR name, BSTR *retstring);
     // 把窗口坐标转换为屏幕坐标
-    STDMETHOD(ClientToScreen)(LONG ClientToScreen, VARIANT *x, VARIANT *y, LONG *bret);
+    STDMETHOD(ClientToScreen)(LONGLONG hwnd, VARIANT *x, VARIANT *y, LONG *bret);
     // 查找符合类名或者标题名的顶层可见窗口
-    STDMETHOD(FindWindow)(BSTR class_name, BSTR title, LONG *rethwnd);
+    STDMETHOD(FindWindow)(BSTR class_name, BSTR title, LONGLONG *rethwnd);
     // 根据指定的进程名字，来查找可见窗口
-    STDMETHOD(FindWindowByProcess)(BSTR process_name, BSTR class_name, BSTR title, LONG *rethwnd);
+    STDMETHOD(FindWindowByProcess)(BSTR process_name, BSTR class_name, BSTR title, LONGLONG *rethwnd);
     // 根据指定的进程Id，来查找可见窗口
-    STDMETHOD(FindWindowByProcessId)(LONG process_id, BSTR class_name, BSTR title, LONG *rethwnd);
+    STDMETHOD(FindWindowByProcessId)(LONG process_id, BSTR class_name, BSTR title, LONGLONG *rethwnd);
     // 查找符合类名或者标题名的顶层可见窗口,如果指定了parent,则在parent的第一层子窗口中查找
-    STDMETHOD(FindWindowEx)(LONG parent, BSTR class_name, BSTR title, LONG *rethwnd);
+    STDMETHOD(FindWindowEx)(LONGLONG parent, BSTR class_name, BSTR title, LONGLONG *rethwnd);
     // 获取窗口客户区域在屏幕上的位置
-    STDMETHOD(GetClientRect)(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret);
+    STDMETHOD(GetClientRect)(LONGLONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret);
     // 获取窗口客户区域的宽度和高度
-    STDMETHOD(GetClientSize)(LONG hwnd, VARIANT *width, VARIANT *height, LONG *nret);
+    STDMETHOD(GetClientSize)(LONGLONG hwnd, VARIANT *width, VARIANT *height, LONG *nret);
     // 获取顶层活动窗口中具有输入焦点的窗口句柄
-    STDMETHOD(GetForegroundFocus)(LONG *rethwnd);
+    STDMETHOD(GetForegroundFocus)(LONGLONG *rethwnd);
     // 获取顶层活动窗口,可以获取到按键自带插件无法获取到的句柄
-    STDMETHOD(GetForegroundWindow)(LONG *rethwnd);
+    STDMETHOD(GetForegroundWindow)(LONGLONG *rethwnd);
     // 获取鼠标指向的可见窗口句柄
-    STDMETHOD(GetMousePointWindow)(LONG *rethwnd);
+    STDMETHOD(GetMousePointWindow)(LONGLONG *rethwnd);
     // 获取给定坐标的可见窗口句柄
-    STDMETHOD(GetPointWindow)(LONG x, LONG y, LONG *rethwnd);
+    STDMETHOD(GetPointWindow)(LONG x, LONG y, LONGLONG *rethwnd);
     // 根据指定的pid获取进程详细信息
     STDMETHOD(GetProcessInfo)(LONG pid, BSTR *retstring);
     // 获取特殊窗口
-    STDMETHOD(GetSpecialWindow)(LONG flag, LONG *rethwnd);
+    STDMETHOD(GetSpecialWindow)(LONG flag, LONGLONG *rethwnd);
     // 获取给定窗口相关的窗口句柄
-    STDMETHOD(GetWindow)(LONG hwnd, LONG flag, LONG *nret);
+    STDMETHOD(GetWindow)(LONGLONG hwnd, LONG flag, LONGLONG *nret);
     // 获取窗口的类名
-    STDMETHOD(GetWindowClass)(LONG hwnd, BSTR *retstring);
+    STDMETHOD(GetWindowClass)(LONGLONG hwnd, BSTR *retstring);
     // 获取指定窗口所在的进程ID
-    STDMETHOD(GetWindowProcessId)(LONG hwnd, LONG *nretpid);
+    STDMETHOD(GetWindowProcessId)(LONGLONG hwnd, LONG *nretpid);
     // 获取指定窗口所在的进程的exe文件全路径
-    STDMETHOD(GetWindowProcessPath)(LONG hwnd, BSTR *retstring);
+    STDMETHOD(GetWindowProcessPath)(LONGLONG hwnd, BSTR *retstring);
     // 获取窗口在屏幕上的位置
-    STDMETHOD(GetWindowRect)(LONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret);
+    STDMETHOD(GetWindowRect)(LONGLONG hwnd, VARIANT *x1, VARIANT *y1, VARIANT *x2, VARIANT *y2, LONG *nret);
     // 获取指定窗口的一些属性
-    STDMETHOD(GetWindowState)(LONG hwnd, LONG flag, LONG *rethwnd);
+    STDMETHOD(GetWindowState)(LONGLONG hwnd, LONG flag, LONG *rethwnd);
     // 获取窗口的标题
-    STDMETHOD(GetWindowTitle)(LONG hwnd, BSTR *rettitle);
+    STDMETHOD(GetWindowTitle)(LONGLONG hwnd, BSTR *rettitle);
     // 移动指定窗口到指定位置
-    STDMETHOD(MoveWindow)(LONG hwnd, LONG x, LONG y, LONG *nret);
+    STDMETHOD(MoveWindow)(LONGLONG hwnd, LONG x, LONG y, LONG *nret);
     // 把屏幕坐标转换为窗口坐标
-    STDMETHOD(ScreenToClient)(LONG hwnd, VARIANT *x, VARIANT *y, LONG *nret);
+    STDMETHOD(ScreenToClient)(LONGLONG hwnd, VARIANT *x, VARIANT *y, LONG *nret);
     // 向指定窗口发送粘贴命令
-    STDMETHOD(SendPaste)(LONG hwnd, LONG *nret);
+    STDMETHOD(SendPaste)(LONGLONG hwnd, LONG *nret);
     // 设置窗口客户区域的宽度和高度
-    STDMETHOD(SetClientSize)(LONG hwnd, LONG width, LONG hight, LONG *nret);
+    STDMETHOD(SetClientSize)(LONGLONG hwnd, LONG width, LONG hight, LONG *nret);
     // 设置窗口的状态
-    STDMETHOD(SetWindowState)(LONG hwnd, LONG flag, LONG *nret);
+    STDMETHOD(SetWindowState)(LONGLONG hwnd, LONG flag, LONG *nret);
     // 设置窗口的大小
-    STDMETHOD(SetWindowSize)(LONG hwnd, LONG width, LONG height, LONG *nret);
+    STDMETHOD(SetWindowSize)(LONGLONG hwnd, LONG width, LONG height, LONG *nret);
     // 设置窗口的标题
-    STDMETHOD(SetWindowText)(LONG hwnd, BSTR title, LONG *nret);
+    STDMETHOD(SetWindowText)(LONGLONG hwnd, BSTR title, LONG *nret);
     // 设置窗口的透明度
-    STDMETHOD(SetWindowTransparent)(LONG hwnd, LONG trans, LONG *nret);
+    STDMETHOD(SetWindowTransparent)(LONGLONG hwnd, LONG trans, LONG *nret);
     // 向指定窗口发送文本数据
-    STDMETHOD(SendString)(LONG hwnd, BSTR str, LONG *ret);
+    STDMETHOD(SendString)(LONGLONG hwnd, BSTR str, LONG *ret);
     // 向指定窗口发送文本数据-输入法
-    STDMETHOD(SendStringIme)(LONG hwnd, BSTR str, LONG *ret);
+    STDMETHOD(SendStringIme)(LONGLONG hwnd, BSTR str, LONG *ret);
     // 运行可执行文件,可指定模式
-    STDMETHOD(RunApp)(BSTR cmdline, LONG mode, LONG *ret);
+    STDMETHOD(RunApp)(BSTR cmdline, LONG mode, ULONG *pid, LONG *ret);
     // 运行可执行文件，可指定显示模式
     STDMETHOD(WinExec)(BSTR cmdline, LONG cmdshow, LONG *ret);
 
@@ -183,14 +183,14 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(Delays)(LONG mis_min, LONG mis_max, LONG *ret);
     //--------------------Background -----------------------
     // 兼容旧接口的单句柄绑定。显示和输入都使用同一个 hwnd。
-    STDMETHOD(BindWindow)(LONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
+    STDMETHOD(BindWindow)(LONGLONG hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
     // 扩展绑定接口。显示截图使用 display_hwnd，鼠标和键盘输入使用 input_hwnd。
     STDMETHOD(BindWindowEx)
-    (LONG display_hwnd, LONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
+    (LONGLONG display_hwnd, LONGLONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
     //
     STDMETHOD(UnBindWindow)(LONG *ret);
     // 获取当前对象已经绑定的窗口句柄. 无绑定返回0
-    STDMETHOD(GetBindWindow)(LONG *ret);
+    STDMETHOD(GetBindWindow)(LONGLONG *ret);
     // 判定当前对象是否已绑定窗口.
     STDMETHOD(IsBind)(LONG *ret);
     //--------------------mouse & keyboard------------------
@@ -353,9 +353,9 @@ class ATL_NO_VTABLE OpInterface
 
     //-----------------------memory---------------------------------
     // 向某进程写入数据
-    STDMETHOD(WriteData)(LONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret);
+    STDMETHOD(WriteData)(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret);
     // 读取数据
-    STDMETHOD(ReadData)(LONG hwnd, BSTR address, LONG size, BSTR *retstr);
+    STDMETHOD(ReadData)(LONGLONG hwnd, BSTR address, LONG size, BSTR *retstr);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(OpInterface), OpInterface)
