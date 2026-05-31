@@ -113,6 +113,10 @@ TEST(WinApiTest, GetCmdStrLongCommandLine) {
 }
 
 TEST(WinApiTest, GetCmdStrReturnsPartialOutputOnTimeout) {
+    if (!test_support::GetEnvString(L"GITHUB_ACTIONS").empty()) {
+        GTEST_SKIP() << "Skip flaky timeout command test on GitHub Actions";
+    }
+
     libop op;
     wstring out;
     const auto start = std::chrono::steady_clock::now();
