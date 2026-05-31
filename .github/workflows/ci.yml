@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [ master, main ]
-    tags: [ 'v*' ]
+    tags:
+      - '[0-9]*'
+      - 'v*'
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -118,6 +120,8 @@ jobs:
     runs-on: windows-latest
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
 
     env:
       BLACKBONE_ROOT: ${{ github.workspace }}\BlackBone
@@ -221,3 +225,12 @@ jobs:
           path: |
             op-${{ github.ref_name }}-x86.zip
             op-${{ github.ref_name }}-x64.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            op-${{ github.ref_name }}-x86.zip
+            op-${{ github.ref_name }}-x64.zip
+          generate_release_notes: true
