@@ -18,14 +18,14 @@ class opBackground {
 
   public:
     // 扩展绑定接口。显示截图绑定到 display_hwnd，鼠标和键盘输入绑定到 input_hwnd。
-    virtual long BindWindowEx(long display_hwnd, long input_hwnd, const wstring &sdisplay, const wstring &smouse,
+    virtual long BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wstring &sdisplay, const wstring &smouse,
                               const wstring &skeypad, long mode);
     // 兼容旧接口的单句柄绑定，内部等价于显示和输入都绑定到同一个 hwnd。
-    virtual long BindWindow(long hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
+    virtual long BindWindow(LONG_PTR hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
                             long mode);
     virtual long UnBindWindow();
     // 返回当前绑定的显示窗口句柄。使用 BindWindowEx 时，输入句柄可能不同于这个句柄。
-    virtual long GetBindWindow();
+    virtual LONG_PTR GetBindWindow();
     virtual long IsBind();
     // virtual long GetCursorPos(int& x, int& y);
 
