@@ -38,12 +38,6 @@ static uint oem_code(uint key) {
     return code[key & 0xffu];
 }
 
-static long normalize_vk_code(long vk_code) {
-    if ((vk_code >= 'a' && vk_code <= 'z') || (vk_code >= 'A' && vk_code <= 'Z'))
-        return toupper(vk_code);
-    return vk_code;
-}
-
 static bool is_alt_vk(long vk_code) {
     return vk_code == VK_MENU || vk_code == VK_LMENU || vk_code == VK_RMENU;
 }
@@ -141,8 +135,7 @@ long winkeypad::UnBind() {
 }
 
 long winkeypad::GetKeyState(long vk_code) {
-    const long normalized_vk = normalize_vk_code(vk_code);
-    return (::GetAsyncKeyState(normalized_vk) & 0x8000) ? 1 : 0;
+    return (::GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0;
 }
 
 long winkeypad::KeyDown(long vk_code) {

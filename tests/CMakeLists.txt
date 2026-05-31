@@ -34,6 +34,12 @@ if(NOT OP_GTEST_STATIC_OK)
   set(OP_GTEST_LINK_LIBS GTest::gtest)
 endif()
 
+set(OP_HAS_OPENCV_SOURCES FALSE)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/OpenCvModule.h"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/OpenCvModule.cpp")
+  set(OP_HAS_OPENCV_SOURCES TRUE)
+endif()
+
 set(SRC_FILES
   "main.cpp"
   "test_support.cpp"
@@ -43,10 +49,13 @@ set(SRC_FILES
   "image_color_test.cpp"
   "wgc_test.cpp"
   "ocr_test.cpp"
-  "opencv_test.cpp"
   "utils_test.cpp"
   "../libop/com/op_i.c"
 )
+
+if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv_test.cpp")
+  list(APPEND SRC_FILES "opencv_test.cpp")
+endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/keypad/edit_control_keypad_test.cpp")
   list(APPEND SRC_FILES "keypad/edit_control_keypad_test.cpp")
@@ -83,17 +92,18 @@ ENDIF()
 set(OP_DEBUG_SOURCES
   "debug_runner/main_test.cpp"
 )
+if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/debug_runner/main_test.cpp")
+  add_executable(op_debug ${OP_DEBUG_SOURCES})
+  target_link_libraries(op_debug ${op_com})
 
-add_executable(op_debug ${OP_DEBUG_SOURCES})
-target_link_libraries(op_debug ${op_com})
+  set_target_properties(op_debug PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:op_debug>"
+    VS_DEBUGGER_COMMAND_ARGUMENTS "smoke"
+  )
 
-set_target_properties(op_debug PROPERTIES
-  VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:op_debug>"
-  VS_DEBUGGER_COMMAND_ARGUMENTS "smoke"
-)
-
-IF(CMAKE_CL_64)
-  install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-ELSE()
-  install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-ENDIF()
+  IF(CMAKE_CL_64)
+    install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+  ELSE()
+    install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+  ENDIF()
+endif()
