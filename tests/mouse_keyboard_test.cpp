@@ -312,9 +312,9 @@ TEST(MouseKeyTest, BindWindowExSeparatesDisplayAndInputTargets) {
     EXPECT_GE(input_window.left_down, 1);
     EXPECT_GE(input_window.left_up, 1);
 
-    long bind_hwnd = 0;
+    LONG_PTR bind_hwnd = 0;
     op.GetBindWindow(&bind_hwnd);
-    EXPECT_EQ(bind_hwnd, (long)(intptr_t)display_window.hwnd);
+    EXPECT_EQ(bind_hwnd, reinterpret_cast<LONG_PTR>(display_window.hwnd));
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
