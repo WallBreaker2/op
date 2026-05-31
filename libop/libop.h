@@ -6,6 +6,7 @@
 #include <memory>
 #include <atomic>
 #include <string>
+#include <Windows.h>
 // forward declare
 // class WinApi;
 // class opBackground;
@@ -102,67 +103,68 @@ class OP_API libop {
     // 根据指定进程名,枚举系统中符合条件的进程PID
     void EnumProcess(const wchar_t *name, std::wstring &ret);
     // 把窗口坐标转换为屏幕坐标
-    void ClientToScreen(long ClientToScreen, long *x, long *y, long *bret);
+    void ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret);
     // 查找符合类名或者标题名的顶层可见窗口
-    void FindWindow(const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 根据指定的进程名字，来查找可见窗口
-    void FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
+                             LONG_PTR *ret);
     // 根据指定的进程Id，来查找可见窗口
-    void FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 查找符合类名或者标题名的顶层可见窗口,如果指定了parent,则在parent的第一层子窗口中查找
-    void FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 获取窗口客户区域在屏幕上的位置
-    void GetClientRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
+    void GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
     // 获取窗口客户区域的宽度和高度
-    void GetClientSize(long hwnd, long *width, long *height, long *ret);
+    void GetClientSize(LONG_PTR hwnd, long *width, long *height, long *ret);
     // 获取顶层活动窗口中具有输入焦点的窗口句柄
-    void GetForegroundFocus(long *ret);
+    void GetForegroundFocus(LONG_PTR *ret);
     // 获取顶层活动窗口,可以获取到按键自带插件无法获取到的句柄
-    void GetForegroundWindow(long *ret);
+    void GetForegroundWindow(LONG_PTR *ret);
     // 获取鼠标指向的可见窗口句柄
-    void GetMousePointWindow(long *ret);
+    void GetMousePointWindow(LONG_PTR *ret);
     // 获取给定坐标的可见窗口句柄
-    void GetPointWindow(long x, long y, long *ret);
+    void GetPointWindow(long x, long y, LONG_PTR *ret);
     // 根据指定的pid获取进程详细信息
     void GetProcessInfo(long pid, std::wstring &ret);
     // 获取特殊窗口
-    void GetSpecialWindow(long flag, long *ret);
+    void GetSpecialWindow(long flag, LONG_PTR *ret);
     // 获取给定窗口相关的窗口句柄
-    void GetWindow(long hwnd, long flag, long *ret);
+    void GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *ret);
     // 获取窗口的类名
-    void GetWindowClass(long hwnd, std::wstring &ret);
+    void GetWindowClass(LONG_PTR hwnd, std::wstring &ret);
     // 获取指定窗口所在的进程ID
-    void GetWindowProcessId(long hwnd, long *ret);
+    void GetWindowProcessId(LONG_PTR hwnd, long *ret);
     // 获取指定窗口所在的进程的exe文件全路径
-    void GetWindowProcessPath(long hwnd, std::wstring &ret);
+    void GetWindowProcessPath(LONG_PTR hwnd, std::wstring &ret);
     // 获取窗口在屏幕上的位置
-    void GetWindowRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
+    void GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
     // 获取指定窗口的一些属性
-    void GetWindowState(long hwnd, long flag, long *ret);
+    void GetWindowState(LONG_PTR hwnd, long flag, long *ret);
     // 获取窗口的标题
-    void GetWindowTitle(long hwnd, std::wstring &rettitle);
+    void GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle);
     // 移动指定窗口到指定位置
-    void MoveWindow(long hwnd, long x, long y, long *ret);
+    void MoveWindow(LONG_PTR hwnd, long x, long y, long *ret);
     // 把屏幕坐标转换为窗口坐标
-    void ScreenToClient(long hwnd, long *x, long *y, long *ret);
+    void ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *ret);
     // 向指定窗口发送粘贴命令
-    void SendPaste(long hwnd, long *ret);
+    void SendPaste(LONG_PTR hwnd, long *ret);
     // 设置窗口客户区域的宽度和高度
-    void SetClientSize(long hwnd, long width, long hight, long *ret);
+    void SetClientSize(LONG_PTR hwnd, long width, long hight, long *ret);
     // 设置窗口的状态
-    void SetWindowState(long hwnd, long flag, long *ret);
+    void SetWindowState(LONG_PTR hwnd, long flag, long *ret);
     // 设置窗口的大小
-    void SetWindowSize(long hwnd, long width, long height, long *ret);
+    void SetWindowSize(LONG_PTR hwnd, long width, long height, long *ret);
     // 设置窗口的标题
-    void SetWindowText(long hwnd, const wchar_t *title, long *ret);
+    void SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *ret);
     // 设置窗口的透明度
-    void SetWindowTransparent(long hwnd, long trans, long *ret);
+    void SetWindowTransparent(LONG_PTR hwnd, long trans, long *ret);
     // 向指定窗口发送文本数据
-    void SendString(long hwnd, const wchar_t *str, long *ret);
+    void SendString(LONG_PTR hwnd, const wchar_t *str, long *ret);
     // 向指定窗口发送文本数据-输入法
-    void SendStringIme(long hwnd, const wchar_t *str, long *ret);
+    void SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret);
     // 运行可执行文件,可指定模式
-    void RunApp(const wchar_t *cmdline, long mode, long *ret);
+    void RunApp(const wchar_t *cmdline, long mode, unsigned long *pid, long *ret);
     // 运行可执行文件，可指定显示模式
     void WinExec(const wchar_t *cmdline, long cmdshow, long *ret);
 
@@ -178,15 +180,15 @@ class OP_API libop {
     void Delays(long mis_min, long mis_max, long *ret);
     //--------------------Background -----------------------
     // 兼容旧接口的单句柄绑定。显示和输入都使用同一个 hwnd。
-    void BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
+    void BindWindow(LONG_PTR hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
                     long *ret);
     // 扩展绑定接口。显示截图使用 display_hwnd，鼠标和键盘输入使用 input_hwnd。
-    void BindWindowEx(long display_hwnd, long input_hwnd, const wchar_t *display, const wchar_t *mouse,
+    void BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wchar_t *display, const wchar_t *mouse,
                       const wchar_t *keypad, long mode, long *ret);
     // 解绑窗口
     void UnBindWindow(long *ret);
     // 获取当前对象已经绑定的显示窗口句柄. 无绑定返回0
-    void GetBindWindow(long *ret);
+    void GetBindWindow(LONG_PTR *ret);
     // 判定当前对象是否已绑定窗口.
     void IsBind(long *ret);
     //--------------------mouse & keyboard------------------
@@ -351,7 +353,7 @@ class OP_API libop {
     void FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr);
 
     // 向某进程写入数据
-    void WriteData(long hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret);
+    void WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret);
     // 读取数据
-    void ReadData(long hwnd, const wchar_t *address, long size, std::wstring &retstr);
+    void ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr);
 };
