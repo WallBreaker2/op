@@ -536,6 +536,9 @@ ColorPulseWindow::~ColorPulseWindow() {
 }
 
 void OcrTest::SetUp() {
+    if (!GetEnvString(L"OP_SKIP_OCR_TESTS").empty())
+        GTEST_SKIP() << "OCR tests are disabled by OP_SKIP_OCR_TESTS.";
+
     ASSERT_TRUE(IsOcrServerHealthy())
         << "OCR service is required for OcrTest. Configure OP_OCR_URL/OP_OCR_BACKEND and start the service before running the suite.";
 }
