@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <windows.h>
 
 using namespace std;
 using test_support::SendStringWindow;
@@ -54,14 +55,14 @@ TEST(AlgorithmTest, FindNearestPos) {
 // ============================================================
 TEST(WinApiTest, GetForegroundWindow) {
     libop op;
-    long hwnd = 0;
+    LONG_PTR hwnd = 0;
     op.GetForegroundWindow(&hwnd);
     cout << "Foreground Window: " << hex << hwnd << dec << endl;
 }
 
 TEST(WinApiTest, ClientToScreenDesktopOriginIsStable) {
     libop op;
-    const long hwnd = (long)(intptr_t)::GetDesktopWindow();
+    const LONG_PTR hwnd = reinterpret_cast<LONG_PTR>(::GetDesktopWindow());
     long x = 10;
     long y = 20;
     long ret = 0;
@@ -75,7 +76,7 @@ TEST(WinApiTest, ClientToScreenDesktopOriginIsStable) {
 
 TEST(WinApiTest, GetWindowTitleAndRect) {
     libop op;
-    long hwnd = 0;
+    LONG_PTR hwnd = 0;
     op.GetForegroundWindow(&hwnd);
     if (hwnd) {
         wstring title;
@@ -121,6 +122,23 @@ TEST(WinApiTest, GetCmdStrReturnsPartialOutputOnTimeout) {
     EXPECT_NE(out.find(L"before"), wstring::npos) << "Expected early output before timeout";
     EXPECT_EQ(out.find(L"after"), wstring::npos) << "Timed out command should not wait for trailing output";
     EXPECT_LT(elapsed.count(), 1500) << "GetCmdStr should return promptly after timeout";
+}
+
+TEST(WinApiTest, RunAppReturnsPid) {
+    libop op;
+    unsigned long pid = 0;
+    long ret = 0;
+
+    op.RunApp(L"notepad.exe", 0, &pid, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_NE(pid, 0u);
+
+    // 测试结束后主动关闭进程，避免残留。
+    HANDLE process = ::OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+    ASSERT_TRUE(process != nullptr);
+    EXPECT_NE(::TerminateProcess(process, 0), 0);
+    ::CloseHandle(process);
 }
 
 TEST(WinApiTest, GetCmdStrHandlesLargeOutputWithoutHanging) {

@@ -37,14 +37,24 @@ endif()
 set(SRC_FILES
   "main.cpp"
   "test_support.cpp"
+  "handle_compat_test.cpp"
   "core_algorithm_winapi_test.cpp"
   "mouse_keyboard_test.cpp"
   "image_color_test.cpp"
   "wgc_test.cpp"
   "ocr_test.cpp"
+  "opencv_test.cpp"
   "utils_test.cpp"
   "../libop/com/op_i.c"
 )
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/keypad/edit_control_keypad_test.cpp")
+  list(APPEND SRC_FILES "keypad/edit_control_keypad_test.cpp")
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/keypad/keypad_message_test.cpp")
+  list(APPEND SRC_FILES "keypad/keypad_message_test.cpp")
+endif()
 
 include_directories( 
   ./
@@ -68,4 +78,22 @@ IF(CMAKE_CL_64)
   install(TARGETS op_test DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
 ELSE()
   install(TARGETS op_test DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+ENDIF()
+
+set(OP_DEBUG_SOURCES
+  "debug_runner/main_test.cpp"
+)
+
+add_executable(op_debug ${OP_DEBUG_SOURCES})
+target_link_libraries(op_debug ${op_com})
+
+set_target_properties(op_debug PROPERTIES
+  VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:op_debug>"
+  VS_DEBUGGER_COMMAND_ARGUMENTS "smoke"
+)
+
+IF(CMAKE_CL_64)
+  install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+ELSE()
+  install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
 ENDIF()

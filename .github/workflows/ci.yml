@@ -45,7 +45,7 @@ jobs:
       - name: Install dependencies via vcpkg (gtest, minhook)
         shell: pwsh
         run: |
-          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
           $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
           & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet --overlay-triplets=$overlayDir
 
@@ -88,11 +88,13 @@ jobs:
       - name: Configure op (${{ matrix.arch }})
         shell: pwsh
         run: |
-          # 让顶层 CMake 自动接入 vcpkg toolchain（CMakeLists.txt 会读取 VCPKG_ROOT 环境变量）
+          # 显式传入 vcpkg toolchain，避免 CI 与本地构建行为不一致
           $bld = "build\${{ matrix.arch }}"
           New-Item -ItemType Directory -Path $bld -Force | Out-Null
           $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
+          $toolchain = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
           cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
+            -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
             -Dbuild_swig_py=OFF `
             -DBLACKBONE_INCLUDE_DIR="$env:BLACKBONE_INCLUDE_DIR" `
             -DBLACKBONE_LIBRARY="$env:BLACKBONE_LIBRARY" `
@@ -148,7 +150,7 @@ jobs:
             Write-Host "=== Build configuration for $arch ==="
 
             # 安装依赖
-            $triplet = if ($arch -eq 'Win32') { 'x86-windows' } else { 'x64-windows' }
+            $triplet = if ($arch -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
             $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
             & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet --overlay-triplets=$overlayDir
 
@@ -171,7 +173,9 @@ jobs:
             # 配置并编译 + 安装 op
             $opBuildDir = "build\$arch"
             New-Item -ItemType Directory -Path $opBuildDir -Force | Out-Null
+            $toolchain = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
             cmake -S . -B $opBuildDir -G "Visual Studio 17 2022" -A $arch `
+              -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
               -Dbuild_swig_py=OFF `
               -DBLACKBONE_INCLUDE_DIR="$includeDir" `
               -DBLACKBONE_LIBRARY="$($lib.FullName)" `
@@ -183,11 +187,30 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${{ github.ref_name }}"
-          if (Test-Path "bin\x86") {
-            Compress-Archive -Path "bin\x86\*" -DestinationPath "op-$tag-x86.zip" -Force
-          }
-          if (Test-Path "bin\x64") {
-            Compress-Archive -Path "bin\x64\*" -DestinationPath "op-$tag-x64.zip" -Force
+          foreach ($arch in @('x86', 'x64')) {
+            $sourceDir = "bin\$arch"
+            if (-not (Test-Path $sourceDir)) {
+              continue
+            }
+
+            $stageDir = "package\$arch"
+            if (Test-Path $stageDir) {
+              Remove-Item -Recurse -Force $stageDir
+            }
+            New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
+
+            foreach ($name in @("op_$arch.dll", "tools.dll")) {
+              $file = Join-Path $sourceDir $name
+              if (Test-Path $file) {
+                Copy-Item $file $stageDir
+              }
+            }
+
+            if (-not (Get-ChildItem $stageDir -ErrorAction SilentlyContinue)) {
+              Write-Error "No release artifacts were collected for $arch"
+            }
+
+            Compress-Archive -Path "$stageDir\*" -DestinationPath "op-$tag-$arch.zip" -Force
           }
 
       - name: Upload release artifacts

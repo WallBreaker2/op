@@ -36,12 +36,12 @@ opBackground::~opBackground() {
     SAFE_DELETE(_keypad);
 }
 
-long opBackground::BindWindow(long hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
+long opBackground::BindWindow(LONG_PTR hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
                               long mode) {
     return BindWindowEx(hwnd, hwnd, sdisplay, smouse, skeypad, mode);
 }
 
-long opBackground::BindWindowEx(long display_hwnd, long input_hwnd, const wstring &sdisplay, const wstring &smouse,
+long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wstring &sdisplay, const wstring &smouse,
                                 const wstring &skeypad, long mode) {
     // step 1.避免重复绑定
     UnBindWindow();
@@ -181,8 +181,8 @@ long opBackground::UnBindWindow() {
     return 1;
 }
 
-long opBackground::GetBindWindow() {
-    return (long)_display_hwnd;
+LONG_PTR opBackground::GetBindWindow() {
+    return reinterpret_cast<LONG_PTR>(_display_hwnd);
 }
 
 long opBackground::IsBind() {
@@ -333,7 +333,7 @@ bool opBackground::check_bind() {
     }
 
     // 绑定前台桌面
-    return BindWindow((long)::GetDesktopWindow(), L"normal", L"normal", L"normal", 0);
+    return BindWindow(reinterpret_cast<LONG_PTR>(::GetDesktopWindow()), L"normal", L"normal", L"normal", 0);
 }
 
 const std::pair<wstring, wstring> &opBackground::get_display_method() const {

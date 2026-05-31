@@ -1,4 +1,4 @@
-// #include "stdafx.h"
+﻿// #include "stdafx.h"
 #include "WinApi.h"
 
 #include <Tlhelp32.h>
@@ -34,6 +34,20 @@ bool SendCharMessage(HWND hwnd, UINT msg, wchar_t ch) {
         return true;
 
     return ::PostMessageW(hwnd, msg, (WPARAM)ch, 0) != 0;
+}
+
+void AppendHwndText(wchar_t *retstring, int &retstringlen, HWND hwnd) {
+    if (!retstring)
+        return;
+
+    const auto value = static_cast<unsigned long long>(reinterpret_cast<ULONG_PTR>(hwnd));
+    if (retstringlen == 0)
+        retstringlen = wcslen(retstring);
+
+    if (retstringlen > 1)
+        swprintf(retstring, L"%s,%llu", retstring, value);
+    else
+        swprintf(retstring, L"%llu", value);
 }
 } // namespace
 
@@ -86,8 +100,8 @@ BOOL WinApi::EnumProcessbyName(DWORD dwPID, LPCWSTR ExeName, LONG type) {
     return FALSE;
 }
 
-DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring,
-                           bool isGW_OWNER, bool isVisible, const wchar_t *process_name) {
+HWND WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring,
+                          bool isGW_OWNER, bool isVisible, const wchar_t *process_name) {
     hchile = ::GetWindow(hchile, GW_HWNDFIRST);
     while (hchile != NULL) {
         if (isGW_OWNER) // 判断是否要匹配所有者窗口为0的窗口,即顶级窗口
@@ -106,25 +120,16 @@ DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cla
                 DWORD pid = 0;
                 GetWindowThreadProcessId(hchile, &pid);
                 if (EnumProcessbyName(pid, process_name)) {
-                    if (retstring) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, hchile);
-                        else
-                            swprintf(retstring, L"%d", hchile);
-                    } else
-                        return (DWORD)hchile;
+                    if (retstring)
+                        AppendHwndText(retstring, retstringlen, hchile);
+                    else
+                        return hchile;
                 }
             } else {
-                if (retstring) {
-                    int len = wcslen(retstring);
-                    if (len > 1)
-                        swprintf(retstring, L"%s,%d", retstring, hchile);
-                    else
-                        swprintf(retstring, L"%d", hchile);
-                } else
-                    return (DWORD)hchile;
+                if (retstring)
+                    AppendHwndText(retstring, retstringlen, hchile);
+                else
+                    return hchile;
             }
         } else if (title != NULL && classname != NULL) {
             wchar_t WindowClassName[MAX_PATH] = {0};
@@ -140,26 +145,16 @@ DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cla
                         DWORD pid = 0;
                         GetWindowThreadProcessId(hchile, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstring) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, hchile);
-                                else
-                                    swprintf(retstring, L"%d", hchile);
-                            } else
-                                return (DWORD)hchile;
+                            if (retstring)
+                                AppendHwndText(retstring, retstringlen, hchile);
+                            else
+                                return hchile;
                         }
                     } else {
-                        if (retstring) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, hchile);
-                            else
-                                swprintf(retstring, L"%d", hchile);
-                        } else
-                            return (DWORD)hchile;
+                        if (retstring)
+                            AppendHwndText(retstring, retstringlen, hchile);
+                        else
+                            return hchile;
                     }
                 }
             }
@@ -175,26 +170,16 @@ DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cla
                         DWORD pid = 0;
                         GetWindowThreadProcessId(hchile, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstring) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, hchile);
-                                else
-                                    swprintf(retstring, L"%d", hchile);
-                            } else
-                                return (DWORD)hchile;
+                            if (retstring)
+                                AppendHwndText(retstring, retstringlen, hchile);
+                            else
+                                return hchile;
                         }
                     } else {
-                        if (retstring) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, hchile);
-                            else
-                                swprintf(retstring, L"%d", hchile);
-                        } else
-                            return (DWORD)hchile;
+                        if (retstring)
+                            AppendHwndText(retstring, retstringlen, hchile);
+                        else
+                            return hchile;
                     }
                 }
             }
@@ -210,26 +195,16 @@ DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cla
                         DWORD pid = 0;
                         GetWindowThreadProcessId(hchile, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstring) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, hchile);
-                                else
-                                    swprintf(retstring, L"%d", hchile);
-                            } else
-                                return (DWORD)hchile;
+                            if (retstring)
+                                AppendHwndText(retstring, retstringlen, hchile);
+                            else
+                                return hchile;
                         }
                     } else {
-                        if (retstring) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, hchile);
-                            else
-                                swprintf(retstring, L"%d", hchile);
-                        } else
-                            return (DWORD)hchile;
+                        if (retstring)
+                            AppendHwndText(retstring, retstringlen, hchile);
+                        else
+                            return hchile;
                     }
                 }
             }
@@ -237,14 +212,14 @@ DWORD WinApi::FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *cla
 
         HWND hchilechile = ::GetWindow(hchile, GW_CHILD);
         if (hchilechile != NULL) {
-            DWORD dret = FindChildWnd(hchilechile, title, classname, retstring, isGW_OWNER, isVisible, process_name);
-            if (dret > 0)
+            HWND dret = FindChildWnd(hchilechile, title, classname, retstring, isGW_OWNER, isVisible, process_name);
+            if (dret != nullptr)
                 break;
         }
 
         hchile = ::GetWindow(hchile, GW_HWNDNEXT); // 获取下一个窗口
     }
-    return 0;
+    return nullptr;
 }
 
 // TSEnumWindow:filter整形数: 取值定义如下
@@ -299,12 +274,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
             return false;
         p = ::GetWindow(p, GW_HWNDFIRST);
         while (p != NULL) {
-            if (retstringlen == 0)
-                retstringlen = wcslen(retstring);
-            if (retstringlen > 1)
-                swprintf(retstring, L"%s,%d", retstring, p);
-            else
-                swprintf(retstring, L"%d", p);
+            AppendHwndText(retstring, retstringlen, p);
             bret = true;
             HWND hchile = ::GetWindow(p, GW_CHILD);
             if (hchile != NULL) {
@@ -334,21 +304,11 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         DWORD pid = 0;
                         GetWindowThreadProcessId(p, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     } else {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -381,21 +341,11 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         DWORD pid = 0;
                         GetWindowThreadProcessId(p, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     } else {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -430,21 +380,11 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         DWORD pid = 0;
                         GetWindowThreadProcessId(p, &pid);
                         if (EnumProcessbyName(pid, process_name)) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     } else {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -481,12 +421,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                     if (processpid == pid) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -495,12 +430,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     }
                 }
             } else {
-                if (retstringlen == 0)
-                    retstringlen = wcslen(retstring);
-                if (retstringlen > 1)
-                    swprintf(retstring, L"%s,%d", retstring, p);
-                else
-                    swprintf(retstring, L"%d", p);
+                AppendHwndText(retstring, retstringlen, p);
                 bret = true;
             }
             p = ::GetWindow(p, GW_HWNDNEXT); // 获取下一个窗口
@@ -537,12 +467,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         ::GetWindowText(p, WindowTitle, MAX_PATH);
                         if (wcslen(WindowTitle) > 1) {
                             if (wcsstr(WindowTitle, title)) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -558,12 +483,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                 ::GetWindowText(p, WindowTitle, MAX_PATH);
                 if (wcslen(WindowTitle) > 1) {
                     if (wcsstr(WindowTitle, title)) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                     }
                 }
@@ -599,12 +519,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     ::GetClassName(p, WindowClassName, MAX_PATH);
                     if (wcslen(WindowClassName) > 1) {
                         if (wcsstr(WindowClassName, class_name)) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -618,12 +533,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                 ::GetClassName(p, WindowClassName, MAX_PATH);
                 if (wcslen(WindowClassName) > 1) {
                     if (wcsstr(WindowClassName, class_name)) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                     }
                 }
@@ -662,12 +572,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -685,12 +590,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                     wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                     if (strfindclass && strfindtitle) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                     }
                 }
@@ -713,12 +613,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -726,12 +621,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
                     HWND hchile = ::GetWindow(p, GW_CHILD);
                     if (hchile != NULL) {
@@ -763,12 +653,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowTitle) > 1) {
                             wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -783,12 +668,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -822,12 +702,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowClassName) > 1) {
                             wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -842,12 +717,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -885,12 +755,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                             wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                             if (strfindclass && strfindtitle) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -908,12 +773,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -927,7 +787,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         }
         break;
     }
-    case 12: // //4 : 只匹配指定父窗口的第一层孩子窗口+8 :
+    case 12: // 4 : 只匹配指定父窗口的第一层孩子窗口+8 :
              // 匹配所有者窗口为0的窗口,即顶级窗口
     {
         HWND p = ::GetWindow(parent, GW_CHILD); // 获取桌面窗口的子窗口
@@ -939,7 +799,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -950,12 +810,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             }
                         }
                         if (processpid == pid) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                             HWND hchile = ::GetWindow(p, GW_CHILD);
                             if (hchile != NULL) {
@@ -964,12 +819,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
                 }
             }
@@ -991,7 +841,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1007,12 +857,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowTitle) > 1) {
                                 wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1028,12 +873,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1057,7 +897,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1073,12 +913,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowClassName) > 1) {
                                 wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1094,12 +929,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1110,7 +940,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 15: ////1.窗口标题+2.窗口类名+4 : 只匹配指定父窗口的第一层孩子窗口+8 :
-             /// 匹配所有者窗口为0的窗口,即顶级窗口
+             // 匹配所有者窗口为0的窗口,即顶级窗口
     {
         if (wcslen(class_name) < 1 && wcslen(title) < 1)
             return false;
@@ -1123,7 +953,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1142,12 +972,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                                 wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                                 if (strfindclass && strfindtitle) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1166,12 +991,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1193,12 +1013,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -1206,12 +1021,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
                     HWND hchile = ::GetWindow(p, GW_CHILD);
                     if (hchile != NULL) {
@@ -1241,12 +1051,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowTitle) > 1) {
                             wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1261,12 +1066,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1298,12 +1098,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowClassName) > 1) {
                             wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1318,12 +1113,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1358,12 +1148,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                             wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                             if (strfindclass && strfindtitle) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1381,12 +1166,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1411,7 +1191,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1422,12 +1202,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             }
                         }
                         if (processpid == pid) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                             HWND hchile = ::GetWindow(p, GW_CHILD);
                             if (hchile != NULL) {
@@ -1436,12 +1211,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
                 }
             }
@@ -1462,7 +1232,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1478,12 +1248,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowTitle) > 1) {
                                 wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1499,12 +1264,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1527,7 +1287,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1543,12 +1303,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowClassName) > 1) {
                                 wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1564,12 +1319,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1580,7 +1330,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 23: // 1.窗口标题+2.窗口类名+4 :
-             // 只匹配指定父窗口的第一层孩子窗口+匹配可见的窗口
+             // 只匹配指定父窗口的第一层孩子窗口+16:匹配可见的窗口
     {
         if (wcslen(class_name) < 1 && wcslen(title) < 1)
             return false;
@@ -1593,7 +1343,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1612,12 +1362,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                                 wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                                 if (strfindclass && strfindtitle) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1636,12 +1381,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1662,12 +1402,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (retstringlen == 0)
-                            retstringlen = wcslen(retstring);
-                        if (retstringlen > 1)
-                            swprintf(retstring, L"%s,%d", retstring, p);
-                        else
-                            swprintf(retstring, L"%d", p);
+                        AppendHwndText(retstring, retstringlen, p);
                         bret = true;
                         HWND hchile = ::GetWindow(p, GW_CHILD);
                         if (hchile != NULL) {
@@ -1675,12 +1410,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
 
                     HWND hchile = ::GetWindow(p, GW_CHILD);
@@ -1694,7 +1424,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 25: // 1.窗口标题+
-             // 8:匹配所有者窗口为0的窗口,即顶级窗口+16.匹配可见的窗口
+             // 8:匹配所有者窗口为0的窗口,即顶级窗口+16:匹配可见的窗口
     {
         if (wcslen(title) < 1)
             return false;
@@ -1712,12 +1442,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowTitle) > 1) {
                             wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1732,12 +1457,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1752,7 +1472,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 26: // 2.窗口类名+
-             // 8:匹配所有者窗口为0的窗口,即顶级窗口+16.匹配可见的窗口
+             // 8:匹配所有者窗口为0的窗口,即顶级窗口+16:匹配可见的窗口
     {
         if (wcslen(class_name) < 1)
             return false;
@@ -1770,12 +1490,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         if (wcslen(WindowClassName) > 1) {
                             wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                             if (strfind) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1790,12 +1505,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1830,12 +1540,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                             wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                             if (strfindclass && strfindtitle) {
-                                if (retstringlen == 0)
-                                    retstringlen = wcslen(retstring);
-                                if (retstringlen > 1)
-                                    swprintf(retstring, L"%s,%d", retstring, p);
-                                else
-                                    swprintf(retstring, L"%d", p);
+                                AppendHwndText(retstring, retstringlen, p);
                                 bret = true;
                             }
                         }
@@ -1853,12 +1558,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1873,7 +1573,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 28: // 4 :
-             // 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16.匹配可见的窗口
+             // 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16:匹配可见的窗口
     {
         HWND p = ::GetWindow(parent, GW_CHILD); // 获取桌面窗口的子窗口
         p = ::GetWindow(p, GW_HWNDFIRST);
@@ -1884,7 +1584,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1895,12 +1595,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             }
                         }
                         if (processpid == pid) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                             HWND hchile = ::GetWindow(p, GW_CHILD);
                             if (hchile != NULL) {
@@ -1909,12 +1604,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         }
                     }
                 } else {
-                    if (retstringlen == 0)
-                        retstringlen = wcslen(retstring);
-                    if (retstringlen > 1)
-                        swprintf(retstring, L"%s,%d", retstring, p);
-                    else
-                        swprintf(retstring, L"%d", p);
+                    AppendHwndText(retstring, retstringlen, p);
                     bret = true;
                 }
             }
@@ -1923,7 +1613,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 29: ////1.窗口标题+4 :
-             /// 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16.匹配可见的窗口
+             // 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16:匹配可见的窗口
     {
         if (wcslen(title) < 1)
             return false;
@@ -1936,7 +1626,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -1952,12 +1642,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowTitle) > 1) {
                                 wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -1973,12 +1658,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowTitle) > 1) {
                         wchar_t *strfind = wcsstr(WindowTitle, title); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -1989,7 +1669,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
         break;
     }
     case 30: // 2.窗口类名+4 :
-             // 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16.匹配可见的窗口
+             // 只匹配指定父窗口的第一层孩子窗口+8:匹配所有者窗口为0的窗口,即顶级窗口+16:匹配可见的窗口
     {
         if (wcslen(class_name) < 1)
             return false;
@@ -2002,7 +1682,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -2018,12 +1698,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                             if (wcslen(WindowClassName) > 1) {
                                 wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 if (strfind) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -2039,12 +1714,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     if (wcslen(WindowClassName) > 1) {
                         wchar_t *strfind = wcsstr(WindowClassName, class_name); // 模糊匹配
                         if (strfind) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -2068,7 +1738,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                     DWORD pid = 0;
                     GetWindowThreadProcessId(p, &pid);
                     if (EnumProcessbyName(pid, process_name)) {
-                        if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
+                    if (processpid != pid) // 只匹配指定映像的所对应的第一个进程.
                                                // 可能有很多同映像名的进程，只匹配第一个进程的.
                         {
                             if (indexpid < IsEuemprosuccess) {
@@ -2087,12 +1757,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                                 wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                                 wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                                 if (strfindclass && strfindtitle) {
-                                    if (retstringlen == 0)
-                                        retstringlen = wcslen(retstring);
-                                    if (retstringlen > 1)
-                                        swprintf(retstring, L"%s,%d", retstring, p);
-                                    else
-                                        swprintf(retstring, L"%d", p);
+                                    AppendHwndText(retstring, retstringlen, p);
                                     bret = true;
                                 }
                             }
@@ -2111,12 +1776,7 @@ bool WinApi::EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_
                         wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                         wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                         if (strfindclass && strfindtitle) {
-                            if (retstringlen == 0)
-                                retstringlen = wcslen(retstring);
-                            if (retstringlen > 1)
-                                swprintf(retstring, L"%s,%d", retstring, p);
-                            else
-                                swprintf(retstring, L"%d", p);
+                            AppendHwndText(retstring, retstringlen, p);
                             bret = true;
                         }
                     }
@@ -2181,12 +1841,7 @@ bool WinApi::EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *sp
             }
         }
         if (bfindhwnd1) {
-            if (retstringlen == 0)
-                retstringlen = wcslen(retstring);
-            if (retstringlen > 1)
-                swprintf(retstring, L"%s,%d", retstring, p);
-            else
-                swprintf(retstring, L"%d", p);
+            AppendHwndText(retstring, retstringlen, p);
             bfindhwnd1 = false;
         }
 
@@ -2219,37 +1874,37 @@ bool WinApi::EnumProcess(const wchar_t *name, wchar_t *retstring) {
     }
     return bret;
 }
-bool WinApi::ClientToScreen(LONG hwnd, LONG &x, LONG &y) {
+bool WinApi::ClientToScreen(HWND hwnd, LONG &x, LONG &y) {
     POINT point;
 
     point.x = x;
     point.y = y;
-    ::ClientToScreen((HWND)hwnd, &point);
+    ::ClientToScreen(hwnd, &point);
     x = point.x;
     y = point.y;
 
     return true;
 }
-long WinApi::FindWindow(const wchar_t *class_name, const wchar_t *title) {
+HWND WinApi::FindWindow(const wchar_t *class_name, const wchar_t *title) {
     if (class_name[0] == L'\0')
         class_name = nullptr;
     if (title[0] == L'\0')
         title = nullptr;
-    return (LONG)::FindWindowW(class_name, title);
+    return ::FindWindowW(class_name, title);
 }
 
-long WinApi::FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title) {
+HWND WinApi::FindWindowEx(HWND parent, const wchar_t *class_name, const wchar_t *title) {
     if (class_name[0] == L'\0')
         class_name = nullptr;
     if (title[0] == L'\0')
         title = nullptr;
-    return (long)::FindWindowExW((HWND)parent, NULL, class_name, title);
+    return ::FindWindowExW(parent, NULL, class_name, title);
 }
 
-bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title, LONG &rethwnd,
+bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title, HWND &rethwnd,
                                  const wchar_t *process_name, DWORD Pid) {
     bool bret = false;
-    rethwnd = 0;
+    rethwnd = nullptr;
     if (process_name) {
         if (wcslen(process_name) < 1)
             return false;
@@ -2266,7 +1921,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                 GetWindowThreadProcessId(p, &pid);
                 if (EnumProcessbyName(pid, process_name)) {
                     if (wcslen(class_name) < 1 && wcslen(title) < 1) {
-                        rethwnd = (LONG)p;
+                        rethwnd = p;
                         bret = true;
                         break;
                     } else {
@@ -2278,7 +1933,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                             wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                             wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                             if ((wcslen(class_name) >= 1 && strfindclass) || (wcslen(title) >= 1 && strfindtitle)) {
-                                rethwnd = (LONG)p;
+                                rethwnd = p;
                                 bret = true;
                                 break;
                             }
@@ -2292,9 +1947,9 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                                 classname = class_name;
                             if (wcslen(title) > 0)
                                 titles = titles;
-                            DWORD dret = FindChildWnd(hchile, titles, classname, NULL, false, false, process_name);
-                            if (dret > 0) {
-                                rethwnd = (LONG)dret;
+                            HWND dret = FindChildWnd(hchile, titles, classname, NULL, false, false, process_name);
+                            if (dret != nullptr) {
+                                rethwnd = dret;
                                 bret = true;
                                 break;
                             }
@@ -2313,7 +1968,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                 GetWindowThreadProcessId(p, &npid);
                 if (Pid == npid) {
                     if (wcslen(class_name) < 1 && wcslen(title) < 1) {
-                        rethwnd = (LONG)p;
+                        rethwnd = p;
                         bret = true;
                         break;
                     } else {
@@ -2325,7 +1980,7 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                             wchar_t *strfindclass = wcsstr(WindowClassName, class_name); // 模糊匹配
                             wchar_t *strfindtitle = wcsstr(WindowTitle, title);          // 模糊匹配
                             if ((wcslen(class_name) >= 1 && strfindclass) || (wcslen(title) >= 1 && strfindtitle)) {
-                                rethwnd = (LONG)p;
+                                rethwnd = p;
                                 bret = true;
                                 break;
                             }
@@ -2338,9 +1993,9 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
                                 classname = class_name;
                             if (wcslen(title) > 0)
                                 titles = titles;
-                            DWORD dret = FindChildWnd(hchile, titles, classname, NULL, false, false, process_name);
-                            if (dret > 0) {
-                                rethwnd = (LONG)dret;
+                            HWND dret = FindChildWnd(hchile, titles, classname, NULL, false, false, process_name);
+                            if (dret != nullptr) {
+                                rethwnd = dret;
                                 bret = true;
                                 break;
                             }
@@ -2354,20 +2009,20 @@ bool WinApi::FindWindowByProcess(const wchar_t *class_name, const wchar_t *title
 
     return bret;
 }
-bool WinApi::GetClientRect(LONG hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1) {
+bool WinApi::GetClientRect(HWND hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1) {
     bool bret = false;
     RECT clientrect;
-    if (IsWindow((HWND)hwnd)) {
-        ::GetClientRect((HWND)hwnd, &clientrect);
+    if (IsWindow(hwnd)) {
+        ::GetClientRect(hwnd, &clientrect);
         POINT point;
         point.x = clientrect.left;
         point.y = clientrect.top;
-        ::ClientToScreen((HWND)hwnd, &point);
+        ::ClientToScreen(hwnd, &point);
         x = point.x;
         y = point.y;
         point.x = clientrect.right;
         point.y = clientrect.bottom;
-        ::ClientToScreen((HWND)hwnd, &point);
+        ::ClientToScreen(hwnd, &point);
         x1 = point.x;
         y1 = point.y;
         bret = true;
@@ -2375,20 +2030,20 @@ bool WinApi::GetClientRect(LONG hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1) {
 
     return bret;
 }
-bool WinApi::GetClientSize(LONG hwnd, LONG &width, LONG &height) {
+bool WinApi::GetClientSize(HWND hwnd, LONG &width, LONG &height) {
     bool bret = false;
     RECT clientrect;
-    if (IsWindow((HWND)hwnd)) {
-        ::GetClientRect((HWND)hwnd, &clientrect);
+    if (IsWindow(hwnd)) {
+        ::GetClientRect(hwnd, &clientrect);
         width = clientrect.right - clientrect.left;
         height = clientrect.bottom - clientrect.top;
         bret = true;
     }
     return bret;
 }
-bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y) {
+bool WinApi::GetMousePointWindow(HWND &rethwnd, LONG x, LONG y) {
     bool bret = false;
-    rethwnd = 0;
+    rethwnd = nullptr;
     POINT point;
     if ((x != -1 && y != -1)) {
         point.x = x;
@@ -2396,7 +2051,7 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y) {
     } else {
         ::GetCursorPos(&point);
     }
-    rethwnd = (DWORD)::WindowFromPoint(point);
+    rethwnd = ::WindowFromPoint(point);
     if (rethwnd == NULL) {
         HWND p = ::GetWindow(GetDesktopWindow(), GW_CHILD); // 获取桌面窗口的子窗口
         p = ::GetWindow(p, GW_HWNDFIRST);
@@ -2412,7 +2067,7 @@ bool WinApi::GetMousePointWindow(LONG &rethwnd, LONG x, LONG y) {
                     // //IE框窗体排除在外
                     if (wcscmp(WindowClass, L"CabinetWClass") != 0) // IE框窗体排除在外
                     {
-                        rethwnd = (DWORD)p;
+                        rethwnd = p;
                         bret = true;
                         break;
                     }
@@ -2572,15 +2227,15 @@ bool WinApi::GetProcesspath(DWORD ProcessID, wchar_t *process_path) {
 
     return true;
 }
-bool WinApi::GetWindow(LONG hwnd, LONG flag, LONG &rethwnd) {
+bool WinApi::GetWindow(HWND hwnd, LONG flag, HWND &rethwnd) {
     bool bret = false;
-    rethwnd = 0;
-    HWND wnd = (HWND)hwnd;
+    rethwnd = nullptr;
+    HWND wnd = hwnd;
     if (IsWindow(wnd) == false)
         return bret;
     DWORD type = -1;
     if (flag == 0) // 0:获取父窗口
-        rethwnd = (LONG)::GetParent(wnd);
+        rethwnd = ::GetParent(wnd);
     else if (flag == 1) // 获取第一个儿子窗口
         type = GW_CHILD;
     else if (flag == 2) // 获取First 窗口
@@ -2596,25 +2251,25 @@ bool WinApi::GetWindow(LONG hwnd, LONG flag, LONG &rethwnd) {
     else if (flag == 7) // 获取顶层窗口
     {
         // rethwnd = (LONG)::GetForegroundWindow();
-        HWND next = NULL, current = (HWND)hwnd;
+        HWND next = NULL, current = hwnd;
         while (next = ::GetParent(current))
             current = next;
-        rethwnd = (long)current;
+        rethwnd = current;
         return ::IsWindow(current);
     }
 
     if (type != -1)
-        rethwnd = (LONG)::GetWindow(wnd, (UINT)type);
+        rethwnd = ::GetWindow(wnd, (UINT)type);
 
-    if (rethwnd != 0)
+    if (rethwnd != nullptr)
         bret = true;
 
     return bret;
 }
 
-bool WinApi::GetWindowState(LONG hwnd, LONG flag) {
+bool WinApi::GetWindowState(HWND hwnd, LONG flag) {
     bool bret = false;
-    HWND wnd = (HWND)hwnd;
+    HWND wnd = hwnd;
     if (flag == 0) // 0://判断窗口是否存在
         bret = ::IsWindow(wnd);
     else if (flag == 1) // 判断窗口是否处于激活
@@ -2639,7 +2294,7 @@ bool WinApi::GetWindowState(LONG hwnd, LONG flag) {
     return bret;
 }
 
-bool WinApi::SendPaste(LONG hwnd) {
+bool WinApi::SendPaste(HWND hwnd) {
     bool bret = true;
     HANDLE hClip;
     char *chBuffer = NULL;
@@ -2647,24 +2302,21 @@ bool WinApi::SendPaste(LONG hwnd) {
         // 从剪贴板中取出一个内存的句柄
         hClip = GetClipboardData(CF_TEXT);
         // 定义字符型指针变量用来保存内存块中的数据
-        // 对内存块进行加锁，将内存句柄值转化为一个指针,并将内存块的引用计数器加一，内存中的数据也返回到指针型变量中
         chBuffer = (char *)GlobalLock(hClip);
-        // 将数据保存到字符型变量中
-        // 将内存块的引用计数器减一
         GlobalUnlock(hClip);
         // 关闭剪贴板，释放剪贴板资源的占用权
         CloseClipboard();
     }
     // anscii 转 unicode
     DWORD num = MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, NULL, 0);
-    wchar_t *wword = new wchar_t[num + 1];         // 动态的申请空间存字
-    memset(wword, 0, (num + 1) * sizeof(wchar_t)); // 初始化动作
+    wchar_t *wword = new wchar_t[num + 1];
+    memset(wword, 0, (num + 1) * sizeof(wchar_t));
     MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
     int len = wcslen(wword);
     // MessageBoxA(NULL,tts,tts,NULL);
     for (int i = 0; i < len; i++) {
-        ::SendMessage((HWND)hwnd, WM_CHAR, (WPARAM)wword[i], (LPARAM)1);
+        ::SendMessage(hwnd, WM_CHAR, (WPARAM)wword[i], (LPARAM)1);
         Sleep(10);
     }
     delete[] wword;
@@ -2672,12 +2324,12 @@ bool WinApi::SendPaste(LONG hwnd) {
     return bret;
 }
 
-bool WinApi::SetWindowSize(LONG hwnd, LONG width, LONG hight, int type) {
+bool WinApi::SetWindowSize(HWND hwnd, LONG width, LONG hight, int type) {
     bool bret = false;
     if (type == 0) // SetClientSize
     {
         RECT rectProgram, rectClient;
-        HWND hWnd = (HWND)hwnd;
+        HWND hWnd = hwnd;
         ::GetWindowRect(hWnd, &rectProgram); // 获得程序窗口位于屏幕坐标
         ::GetClientRect(hWnd, &rectClient);  // 获得客户区坐标
         // 非客户区宽,高
@@ -2693,16 +2345,16 @@ bool WinApi::SetWindowSize(LONG hwnd, LONG width, LONG hight, int type) {
     } else // SetWindowSize
     {
         RECT rectClient;
-        HWND hWnd = (HWND)hwnd;
+        HWND hWnd = hwnd;
         ::GetWindowRect(hWnd, &rectClient); // 获得程序窗口位于屏幕坐标
         bret = ::MoveWindow(hWnd, rectClient.left, rectClient.top, width, hight, false);
     }
     return bret;
 }
 
-bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd) {
+bool WinApi::SetWindowState(HWND hwnd, LONG flag, HWND rethwnd) {
     bool bret = false;
-    HWND hWnd = (HWND)hwnd;
+    HWND hWnd = hwnd;
     if (IsWindow(hWnd) == false)
         return bret;
     int type = -1;
@@ -2729,8 +2381,8 @@ bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd) {
         ::SetForegroundWindow(hWnd);
     } else if (flag == 8) // 置顶指定窗口
         ::SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                       SWP_NOMOVE | SWP_NOSIZE); // 窗口置顶
-    else if (flag == 9)                          // 9 : 取消置顶指定窗口
+                       SWP_NOMOVE | SWP_NOSIZE);
+    else if (flag == 9) // 9 : 取消置顶指定窗口
         ::SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
     else if (flag == 10) // 禁止指定窗口
         ::EnableWindow(hWnd, false);
@@ -2752,7 +2404,8 @@ bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd) {
     {
         FLASHWINFO fInfo;
         fInfo.cbSize = sizeof(FLASHWINFO);
-        fInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG; // 这里是闪动窗标题和任务栏按钮,直到用户激活窗体
+        // 这里是闪动窗标题和任务栏按钮,直到用户激活窗体
+        fInfo.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
         fInfo.dwTimeout = 0;
         fInfo.hwnd = hWnd;
         fInfo.uCount = 0xffffff;
@@ -2769,7 +2422,7 @@ bool WinApi::SetWindowState(LONG hwnd, LONG flag, LONG rethwnd) {
     return bret;
 }
 
-bool WinApi::SetWindowTransparent(LONG hwnd, LONG trans) {
+bool WinApi::SetWindowTransparent(HWND hwnd, LONG trans) {
     bool bret = false;
 
     COLORREF crKey = NULL;
@@ -2792,8 +2445,8 @@ bool WinApi::SetWindowTransparent(LONG hwnd, LONG trans) {
     (mySetLayeredWindowAttributes)GetProcAddress(hlibrary,
     "SetLayeredWindowAttributes");*/
 
-    SetWindowLong((HWND)hwnd, GWL_EXSTYLE, 0x80001);
-    bret = SetLayeredWindowAttributes((HWND)hwnd, crKey, trans, 2);
+    SetWindowLong(hwnd, GWL_EXSTYLE, 0x80001);
+    bret = SetLayeredWindowAttributes(hwnd, crKey, trans, 2);
 
     return bret;
 }
@@ -2825,7 +2478,6 @@ bool WinApi::SetClipboard(const wchar_t *values) {
         HANDLE help = SetClipboardData(CF_TEXT, hClip);
         // 关闭剪贴板，释放剪贴板资源的占用权
         CloseClipboard();
-        // MessageBox(0,L"已将数据存入剪贴板",L"剪切扳",0);
         if (help != NULL) {
             bret = true;
         } else {
@@ -2845,20 +2497,15 @@ bool WinApi::GetClipboard(std::wstring &retstr) {
 
     // 从剪贴板中取出一个内存的句柄
     hClip = GetClipboardData(CF_TEXT);
-    // 定义字符型指针变量用来保存内存块中的数据
-
     // 对内存块进行加锁，将内存句柄值转化为一个指针,并将内存块的引用计数器加一，内存中的数据也返回到指针型变量中
     chBuffer = (char *)GlobalLock(hClip);
-
-    // 将数据保存到字符型变量中
-    // 将内存块的引用计数器减一
     GlobalUnlock(hClip);
     // 关闭剪贴板，释放剪贴板资源的占用权
     CloseClipboard();
 
     DWORD num = MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, NULL, 0);
-    wchar_t *wword = new wchar_t[num + 1];         // 动态的申请空间存字
-    memset(wword, 0, (num + 1) * sizeof(wchar_t)); // 初始化动作
+    wchar_t *wword = new wchar_t[num + 1];
+    memset(wword, 0, (num + 1) * sizeof(wchar_t));
     MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
     retstr.append(wword);
@@ -2907,7 +2554,7 @@ long WinApi::SendStringIme(HWND hwnd, const wstring &s) {
     return 1;
 }
 
-long WinApi::RunApp(const wstring &cmd, long mode) {
+long WinApi::RunApp(const wstring &cmd, long mode, DWORD *pid) {
     std::unique_ptr<wchar_t> cmdptr(new wchar_t[cmd.length() + 1]);
     memcpy(cmdptr.get(), cmd.data(), cmd.length() * sizeof(wchar_t));
     cmdptr.get()[cmd.length()] = 0; // C字符串需要末尾有0
@@ -2918,6 +2565,8 @@ long WinApi::RunApp(const wstring &cmd, long mode) {
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     ZeroMemory(&pi, sizeof(pi));
+    if (pid)
+        *pid = 0;
     int bret;
     wstring curr_dir;
     if (mode == 1) {
@@ -2940,15 +2589,17 @@ long WinApi::RunApp(const wstring &cmd, long mode) {
     bret = ::CreateProcessW(nullptr,      //// 应用程序名称
                             cmdptr.get(), // 命令行字符串
                             NULL,         // 进程的安全属性
-                            NULL,         // 线程的安全属性
+                            NULL,         // 进程的安全属性
                             false,        // 是否继承父进程的属性
-                            0,            // 创建标志
-                            nullptr,      // 指向新的环境块的指针
+                            0,            // 进程的安全属性
+                            nullptr,      // 进程的安全属性
                             mode == 1 && !curr_dir.empty() ? curr_dir.c_str() : nullptr, // 指向当前目录名的指针
                             &si,                                                         // 传递给新进程的信息
                             &pi                                                          // 新进程返回的信息
     );
     if (bret) {
+        if (pid)
+            *pid = pi.dwProcessId;
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     }
@@ -2966,3 +2617,4 @@ HWND WinApi::GetTopWindowSp(HWND hwnd) {
     }
     return i;
 }
+
