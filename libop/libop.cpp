@@ -284,7 +284,7 @@ void libop::Sleep(long millseconds, long *ret) {
 void libop::InjectDll(const wchar_t *process_name, const wchar_t *dll_name, long *ret) {
     auto proc = _ws2string(process_name);
     auto dll = _ws2string(dll_name);
-    long hwnd;
+    LONG_PTR hwnd = 0;
     FindWindowByProcess(process_name, L"", L"", &hwnd);
     long pid;
     GetWindowProcessId(hwnd, &pid);
@@ -388,7 +388,8 @@ void libop::EnumWindow(long parent, const wchar_t *title, const wchar_t *class_n
                        std::wstring &retstr) {
     // TODO: 在此添加实现代码
     std::vector<wchar_t> retstring(MAX_PATH * 200, 0);
-    m_context->winapi.EnumWindow((HWND)parent, title, class_name, filter, retstring.data());
+    m_context->winapi.EnumWindow(reinterpret_cast<HWND>(static_cast<LONG_PTR>(parent)), title, class_name, filter,
+                                 retstring.data());
     //*retstr=_bstr_t(retstring);
     retstr = retstring.data();
 }
@@ -397,7 +398,7 @@ void libop::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *titl
                                 long filter, std::wstring &retstring) {
     // TODO: 在此添加实现代码
     std::vector<wchar_t> retstr(MAX_PATH * 200, 0);
-    m_context->winapi.EnumWindow((HWND)0, title, class_name, filter, retstr.data(), process_name);
+    m_context->winapi.EnumWindow(nullptr, title, class_name, filter, retstr.data(), process_name);
     //*retstring=_bstr_t(retstr);
 
     retstring = retstr.data();
@@ -411,64 +412,72 @@ void libop::EnumProcess(const wchar_t *name, std::wstring &retstring) {
     retstring = retstr.data();
 }
 
-void libop::ClientToScreen(long ClientToScreen, long *x, long *y, long *bret) {
+void libop::ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret) {
     // TODO: 在此添加实现代码
 
-    *bret = m_context->winapi.ClientToScreen(ClientToScreen, *x, *y);
+    *bret = m_context->winapi.ClientToScreen(reinterpret_cast<HWND>(hwnd), *x, *y);
 }
 
-void libop::FindWindow(const wchar_t *class_name, const wchar_t *title, long *rethwnd) {
+void libop::FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    *rethwnd = m_context->winapi.FindWindow(class_name, title);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(m_context->winapi.FindWindow(class_name, title)));
 }
 
-void libop::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
-                                long *rethwnd) {
+void libop::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    m_context->winapi.FindWindowByProcess(class_name, title, *rethwnd, process_name);
+    HWND hwnd = nullptr;
+    m_context->winapi.FindWindowByProcess(class_name, title, hwnd, process_name);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
 }
 
-void libop::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, long *rethwnd) {
+void libop::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    m_context->winapi.FindWindowByProcess(class_name, title, *rethwnd, NULL, process_id);
+    HWND hwnd = nullptr;
+    m_context->winapi.FindWindowByProcess(class_name, title, hwnd, NULL, process_id);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
 }
 
-void libop::FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title, long *rethwnd) {
+void libop::FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    *rethwnd = m_context->winapi.FindWindowEx(parent, class_name, title);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(
+        m_context->winapi.FindWindowEx(reinterpret_cast<HWND>(static_cast<LONG_PTR>(parent)), class_name, title)));
 }
 
-void libop::GetClientRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
-    // TODO: 在此添加实现代码
-
-    *nret = m_context->winapi.GetClientRect(hwnd, *x1, *y1, *x2, *y2);
-}
-
-void libop::GetClientSize(long hwnd, long *width, long *height, long *nret) {
+void libop::GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
     // TODO: 在此添加实现代码
 
-    *nret = m_context->winapi.GetClientSize(hwnd, *width, *height);
+    *nret = m_context->winapi.GetClientRect(reinterpret_cast<HWND>(hwnd), *x1, *y1, *x2, *y2);
 }
 
-void libop::GetForegroundFocus(long *rethwnd) {
+void libop::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *nret) {
     // TODO: 在此添加实现代码
-    *rethwnd = (LONG)::GetFocus();
+
+    *nret = m_context->winapi.GetClientSize(reinterpret_cast<HWND>(hwnd), *width, *height);
 }
 
-void libop::GetForegroundWindow(long *rethwnd) {
+void libop::GetForegroundFocus(LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    *rethwnd = (LONG)::GetForegroundWindow();
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::GetFocus()));
 }
 
-void libop::GetMousePointWindow(long *rethwnd) {
+void libop::GetForegroundWindow(LONG_PTR *rethwnd) {
+    // TODO: 在此添加实现代码
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::GetForegroundWindow()));
+}
+
+void libop::GetMousePointWindow(LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
     //::Sleep(2000);
-    m_context->winapi.GetMousePointWindow(*rethwnd);
+    HWND hwnd = nullptr;
+    m_context->winapi.GetMousePointWindow(hwnd);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
 }
 
-void libop::GetPointWindow(long x, long y, long *rethwnd) {
+void libop::GetPointWindow(long x, long y, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
-    m_context->winapi.GetMousePointWindow(*rethwnd, x, y);
+    HWND hwnd = nullptr;
+    m_context->winapi.GetMousePointWindow(hwnd, x, y);
+    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
 }
 
 void libop::GetProcessInfo(long pid, std::wstring &retstring) {
@@ -481,41 +490,43 @@ void libop::GetProcessInfo(long pid, std::wstring &retstring) {
     retstring = retstr;
 }
 
-void libop::GetSpecialWindow(long flag, long *rethwnd) {
+void libop::GetSpecialWindow(long flag, LONG_PTR *rethwnd) {
     // TODO: 在此添加实现代码
     *rethwnd = 0;
     if (flag == 0)
-        *rethwnd = (LONG)GetDesktopWindow();
+        *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(GetDesktopWindow()));
     else if (flag == 1) {
-        *rethwnd = (LONG)::FindWindowW(L"Shell_TrayWnd", NULL);
+        *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::FindWindowW(L"Shell_TrayWnd", NULL)));
     }
 }
 
-void libop::GetWindow(long hwnd, long flag, long *nret) {
+void libop::GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *nret) {
     // TODO: 在此添加实现代码
-    m_context->winapi.GetWindow(hwnd, flag, *nret);
+    HWND target = nullptr;
+    m_context->winapi.GetWindow(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag, target);
+    *nret = static_cast<long>(reinterpret_cast<LONG_PTR>(target));
 }
 
-void libop::GetWindowClass(long hwnd, std::wstring &retstring) {
+void libop::GetWindowClass(LONG_PTR hwnd, std::wstring &retstring) {
     // TODO: 在此添加实现代码
     wchar_t classname[MAX_PATH] = {0};
-    ::GetClassName((HWND)hwnd, classname, MAX_PATH);
+    ::GetClassName(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), classname, MAX_PATH);
     //* retstring=_bstr_t(classname);
 
     retstring = classname;
 }
 
-void libop::GetWindowProcessId(long hwnd, long *nretpid) {
+void libop::GetWindowProcessId(LONG_PTR hwnd, long *nretpid) {
     // TODO: 在此添加实现代码
     DWORD pid = 0;
-    ::GetWindowThreadProcessId((HWND)hwnd, &pid);
+    ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     *nretpid = pid;
 }
 
-void libop::GetWindowProcessPath(long hwnd, std::wstring &retstring) {
+void libop::GetWindowProcessPath(LONG_PTR hwnd, std::wstring &retstring) {
     // TODO: 在此添加实现代码
     DWORD pid = 0;
-    ::GetWindowThreadProcessId((HWND)hwnd, &pid);
+    ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     wchar_t process_path[MAX_PATH] = {0};
     m_context->winapi.GetProcesspath(pid, process_path);
     //* retstring=_bstr_t(process_path);
@@ -523,92 +534,94 @@ void libop::GetWindowProcessPath(long hwnd, std::wstring &retstring) {
     retstring = process_path;
 }
 
-void libop::GetWindowRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
+void libop::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
     // TODO: 在此添加实现代码
 
     RECT winrect;
-    *nret = ::GetWindowRect((HWND)hwnd, &winrect);
+    *nret = ::GetWindowRect(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &winrect);
     *x1 = winrect.left;
     *y1 = winrect.top;
     *x2 = winrect.right;
     *y2 = winrect.bottom;
 }
 
-void libop::GetWindowState(long hwnd, long flag, long *rethwnd) {
+void libop::GetWindowState(LONG_PTR hwnd, long flag, long *rethwnd) {
     // TODO: 在此添加实现代码
-    *rethwnd = m_context->winapi.GetWindowState(hwnd, flag);
+    *rethwnd = m_context->winapi.GetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag);
 }
 
-void libop::GetWindowTitle(long hwnd, std::wstring &rettitle) {
+void libop::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
     // TODO: 在此添加实现代码
     wchar_t title[MAX_PATH] = {0};
-    ::GetWindowTextW((HWND)hwnd, title, MAX_PATH);
+    ::GetWindowTextW(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), title, MAX_PATH);
     //* rettitle=_bstr_t(title);
 
     rettitle = title;
 }
 
-void libop::MoveWindow(long hwnd, long x, long y, long *nret) {
+void libop::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
     // TODO: 在此添加实现代码
     RECT winrect;
-    ::GetWindowRect((HWND)hwnd, &winrect);
+    HWND target = reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd));
+    ::GetWindowRect(target, &winrect);
     int width = winrect.right - winrect.left;
     int hight = winrect.bottom - winrect.top;
-    *nret = ::MoveWindow((HWND)hwnd, x, y, width, hight, false);
+    *nret = ::MoveWindow(target, x, y, width, hight, false);
 }
 
-void libop::ScreenToClient(long hwnd, long *x, long *y, long *nret) {
+void libop::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
     // TODO: 在此添加实现代码
 
     POINT point;
     point.x = *x;
     point.y = *y;
-    *nret = ::ScreenToClient((HWND)hwnd, &point);
+    *nret = ::ScreenToClient(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &point);
     *x = point.x;
     *y = point.y;
 }
 
-void libop::SendPaste(long hwnd, long *nret) {
+void libop::SendPaste(LONG_PTR hwnd, long *nret) {
     // TODO: 在此添加实现代码
-    *nret = m_context->winapi.SendPaste(hwnd);
+    *nret = m_context->winapi.SendPaste(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)));
 }
 
-void libop::SetClientSize(long hwnd, long width, long hight, long *nret) {
+void libop::SetClientSize(LONG_PTR hwnd, long width, long hight, long *nret) {
     // TODO: 在此添加实现代码
-    *nret = m_context->winapi.SetWindowSize(hwnd, width, hight);
+    *nret = m_context->winapi.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), width, hight);
 }
 
-void libop::SetWindowState(long hwnd, long flag, long *nret) {
+void libop::SetWindowState(LONG_PTR hwnd, long flag, long *nret) {
     // TODO: 在此添加实现代码
-    *nret = m_context->winapi.SetWindowState(hwnd, flag);
+    *nret = m_context->winapi.SetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag);
 }
 
-void libop::SetWindowSize(long hwnd, long width, long height, long *nret) {
+void libop::SetWindowSize(LONG_PTR hwnd, long width, long height, long *nret) {
     // TODO: 在此添加实现代码
-    *nret = m_context->winapi.SetWindowSize(hwnd, width, height, 1);
+    *nret = m_context->winapi.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), width, height, 1);
 }
 
-void libop::SetWindowText(long hwnd, const wchar_t *title, long *nret) {
+void libop::SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *nret) {
     // TODO: 在此添加实现代码
     //*nret=gWindowObj.TSSetWindowState(hwnd,flag);
-    *nret = ::SetWindowTextW((HWND)hwnd, title);
+    *nret = ::SetWindowTextW(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), title);
 }
 
-void libop::SetWindowTransparent(long hwnd, long trans, long *nret) {
+void libop::SetWindowTransparent(LONG_PTR hwnd, long trans, long *nret) {
     // TODO: 在此添加实现代码
-    *nret = m_context->winapi.SetWindowTransparent(hwnd, trans);
+    *nret = m_context->winapi.SetWindowTransparent(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), trans);
 }
 
-void libop::SendString(long hwnd, const wchar_t *str, long *ret) {
-    *ret = m_context->winapi.SendString((HWND)hwnd, str);
+void libop::SendString(LONG_PTR hwnd, const wchar_t *str, long *ret) {
+    *ret = m_context->winapi.SendString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str);
 }
 
-void libop::SendStringIme(long hwnd, const wchar_t *str, long *ret) {
-    *ret = m_context->winapi.SendStringIme((HWND)hwnd, str);
+void libop::SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret) {
+    *ret = m_context->winapi.SendStringIme(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str);
 }
 
-void libop::RunApp(const wchar_t *cmdline, long mode, long *ret) {
-    *ret = m_context->winapi.RunApp(cmdline, mode);
+void libop::RunApp(const wchar_t *cmdline, long mode, unsigned long *pid, long *ret) {
+    // 成功时返回新进程 pid，失败时返回 0。
+    *ret = m_context->winapi.RunApp(cmdline, mode, pid);
 }
 
 void libop::WinExec(const wchar_t *cmdline, long cmdshow, long *ret) {
@@ -639,12 +652,12 @@ void libop::Delays(long mis_min, long mis_max, long *ret) {
     *ret = ::Delays(mis_min, mis_max);
 }
 
-void libop::BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
+void libop::BindWindow(LONG_PTR hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
                        long *ret) {
     BindWindowEx(hwnd, hwnd, display, mouse, keypad, mode, ret);
 }
 
-void libop::BindWindowEx(long display_hwnd, long input_hwnd, const wchar_t *display, const wchar_t *mouse,
+void libop::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wchar_t *display, const wchar_t *mouse,
                          const wchar_t *keypad, long mode, long *ret) {
     if (m_context->bkproc.IsBind())
         m_context->bkproc.UnBindWindow();
@@ -655,7 +668,7 @@ void libop::UnBindWindow(long *ret) {
     *ret = m_context->bkproc.UnBindWindow();
 }
 
-void libop::GetBindWindow(long *ret) {
+void libop::GetBindWindow(LONG_PTR *ret) {
     *ret = m_context->bkproc.GetBindWindow();
 }
 
@@ -1420,13 +1433,14 @@ void libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, d
     }
 }
 
-void libop::WriteData(long hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret) {
+void libop::WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret) {
     *ret = 0;
     MemoryEx mem;
-    *ret = mem.WriteData((HWND)hwnd, address, data, size);
+    *ret = mem.WriteData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, data, size);
 }
 // 读取数据
-void libop::ReadData(long hwnd, const wchar_t *address, long size, std::wstring &retstr) {
+void libop::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr) {
     MemoryEx mem;
-    retstr = mem.ReadData((HWND)hwnd, address, size);
+    retstr = mem.ReadData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, size);
 }
+
