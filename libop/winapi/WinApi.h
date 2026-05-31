@@ -19,34 +19,34 @@ class WinApi {
     bool EnumWindowSuper(wchar_t *spec1, LONG flag1, LONG type1, wchar_t *spec2, LONG flag2, LONG type2, LONG sort,
                          wchar_t *retstring = NULL);
     bool EnumProcess(const wchar_t *name, wchar_t *retstring);
-    bool ClientToScreen(LONG hwnd, LONG &x, LONG &y);
-    long FindWindow(const wchar_t *class_name, const wchar_t *title);
-    long FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title);
-    bool FindWindowByProcess(const wchar_t *class_name, const wchar_t *titl, LONG &rethwnd,
+    bool ClientToScreen(HWND hwnd, LONG &x, LONG &y);
+    HWND FindWindow(const wchar_t *class_name, const wchar_t *title);
+    HWND FindWindowEx(HWND parent, const wchar_t *class_name, const wchar_t *title);
+    bool FindWindowByProcess(const wchar_t *class_name, const wchar_t *titl, HWND &rethwnd,
                              const wchar_t *process_name = NULL, DWORD Pid = 0);
-    bool GetClientRect(LONG hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1);
-    bool GetClientSize(LONG hwnd, LONG &width, LONG &height);
-    bool GetMousePointWindow(LONG &rethwnd, LONG x = -1, LONG y = -1);
+    bool GetClientRect(HWND hwnd, LONG &x, LONG &y, LONG &x1, LONG &y1);
+    bool GetClientSize(HWND hwnd, LONG &width, LONG &height);
+    bool GetMousePointWindow(HWND &rethwnd, LONG x = -1, LONG y = -1);
     bool GetProcessInfo(LONG pid, wchar_t *retstring);
-    bool GetWindow(LONG hwnd, LONG flag, LONG &rethwnd);
+    bool GetWindow(HWND hwnd, LONG flag, HWND &rethwnd);
     bool GetProcesspath(DWORD ProcessID, wchar_t *process_path);
-    bool GetWindowState(LONG hwnd, LONG flag);
-    bool SendPaste(LONG hwnd);
-    bool SetWindowSize(LONG hwnd, LONG width, LONG hight, int type = 0);
-    bool SetWindowState(LONG hwnd, LONG flag, LONG rethwnd = 0);
-    bool SetWindowTransparent(LONG hwnd, LONG trans);
+    bool GetWindowState(HWND hwnd, LONG flag);
+    bool SendPaste(HWND hwnd);
+    bool SetWindowSize(HWND hwnd, LONG width, LONG hight, int type = 0);
+    bool SetWindowState(HWND hwnd, LONG flag, HWND rethwnd = nullptr);
+    bool SetWindowTransparent(HWND hwnd, LONG trans);
     bool SetClipboard(const wchar_t *values);
     bool GetClipboard(std::wstring &retstr);
     // 2019.1
     long SendString(HWND hwnd, const wstring &str);
     long SendStringIme(HWND hwnd, const wstring &str);
     // 2019.3
-    long RunApp(const wstring &cmd, long mode);
+    long RunApp(const wstring &cmd, long mode, DWORD *pid);
     static HWND GetTopWindowSp(HWND hwnd);
 
   private:
-    DWORD FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring,
-                       bool isGW_OWNER = false, bool isVisible = false, const wchar_t *process_name = NULL);
+    HWND FindChildWnd(HWND hchile, const wchar_t *title, const wchar_t *classname, wchar_t *retstring,
+                      bool isGW_OWNER = false, bool isVisible = false, const wchar_t *process_name = NULL);
     BOOL EnumProcessbyName(DWORD dwPID, LPCWSTR ExeName, LONG type = 0);
     int GetProcessNumber(); // 获取CPU个数
     // 时间格式转换

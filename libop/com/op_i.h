@@ -172,7 +172,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ BSTR *retstring) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE ClientToScreen( 
-            /* [in] */ LONG ClientToScreen,
+            /* [in] */ hyper hwnd,
             /* [out][in] */ VARIANT *x,
             /* [out][in] */ VARIANT *y,
             /* [retval][out] */ LONG *bret) = 0;
@@ -180,28 +180,28 @@ EXTERN_C const IID IID_IOpInterface;
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindWindow( 
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindWindowByProcess( 
             /* [in] */ BSTR process_name,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindWindowByProcessId( 
             /* [in] */ LONG process_id,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE FindWindowEx( 
-            /* [in] */ LONG parent,
+            /* [in] */ hyper parent,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetClientRect( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *x1,
             /* [out] */ VARIANT *y1,
             /* [out] */ VARIANT *x2,
@@ -209,24 +209,24 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetClientSize( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *width,
             /* [out] */ VARIANT *height,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetForegroundFocus( 
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetForegroundWindow( 
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetMousePointWindow( 
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetPointWindow( 
             /* [in] */ LONG x,
             /* [in] */ LONG y,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetProcessInfo( 
             /* [in] */ LONG pid,
@@ -234,27 +234,27 @@ EXTERN_C const IID IID_IOpInterface;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetSpecialWindow( 
             /* [in] */ LONG flag,
-            /* [retval][out] */ LONG *rethwnd) = 0;
+            /* [retval][out] */ hyper *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindow( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
-            /* [retval][out] */ LONG *nret) = 0;
+            /* [retval][out] */ hyper *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowClass( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *retstring) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowProcessId( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ LONG *nretpid) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowProcessPath( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *retstring) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowRect( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *x1,
             /* [out] */ VARIANT *y1,
             /* [out] */ VARIANT *x2,
@@ -262,70 +262,71 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowState( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
             /* [retval][out] */ LONG *rethwnd) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetWindowTitle( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *rettitle) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE MoveWindow( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG x,
             /* [in] */ LONG y,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE ScreenToClient( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out][in] */ VARIANT *x,
             /* [out][in] */ VARIANT *y,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SendPaste( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetClientSize( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG width,
             /* [in] */ LONG hight,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowState( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowSize( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG width,
             /* [in] */ LONG height,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowText( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR title,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetWindowTransparent( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG trans,
             /* [retval][out] */ LONG *nret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SendString( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SendStringIme( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE RunApp( 
             /* [in] */ BSTR cmdline,
             /* [in] */ LONG mode,
+            /* [out] */ ULONG *pid,
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WinExec( 
@@ -339,7 +340,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ BSTR *retstr) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE BindWindow( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR display,
             /* [in] */ BSTR mouse,
             /* [in] */ BSTR keypad,
@@ -350,14 +351,14 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetBindWindow( 
-            /* [retval][out] */ LONG *ret) = 0;
+            /* [retval][out] */ hyper *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE IsBind( 
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE BindWindowEx( 
-            /* [in] */ LONG display_hwnd,
-            /* [in] */ LONG input_hwnd,
+            /* [in] */ hyper display_hwnd,
+            /* [in] */ hyper input_hwnd,
             /* [in] */ BSTR display,
             /* [in] */ BSTR mouse,
             /* [in] */ BSTR keypad,
@@ -826,14 +827,14 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ BSTR *retstr) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteData( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR address,
             /* [in] */ BSTR data,
             /* [in] */ LONG size,
             /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadData( 
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR address,
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr) = 0;
@@ -1013,7 +1014,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, ClientToScreen)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *ClientToScreen )( 
             IOpInterface * This,
-            /* [in] */ LONG ClientToScreen,
+            /* [in] */ hyper hwnd,
             /* [out][in] */ VARIANT *x,
             /* [out][in] */ VARIANT *y,
             /* [retval][out] */ LONG *bret);
@@ -1023,7 +1024,7 @@ EXTERN_C const IID IID_IOpInterface;
             IOpInterface * This,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, FindWindowByProcess)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindWindowByProcess )( 
@@ -1031,7 +1032,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR process_name,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, FindWindowByProcessId)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindWindowByProcessId )( 
@@ -1039,20 +1040,20 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG process_id,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, FindWindowEx)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *FindWindowEx )( 
             IOpInterface * This,
-            /* [in] */ LONG parent,
+            /* [in] */ hyper parent,
             /* [in] */ BSTR class_name,
             /* [in] */ BSTR title,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetClientRect)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetClientRect )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *x1,
             /* [out] */ VARIANT *y1,
             /* [out] */ VARIANT *x2,
@@ -1062,7 +1063,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, GetClientSize)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetClientSize )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *width,
             /* [out] */ VARIANT *height,
             /* [retval][out] */ LONG *nret);
@@ -1070,24 +1071,24 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, GetForegroundFocus)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetForegroundFocus )( 
             IOpInterface * This,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetForegroundWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetForegroundWindow )( 
             IOpInterface * This,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetMousePointWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetMousePointWindow )( 
             IOpInterface * This,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetPointWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetPointWindow )( 
             IOpInterface * This,
             /* [in] */ LONG x,
             /* [in] */ LONG y,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetProcessInfo)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetProcessInfo )( 
@@ -1099,37 +1100,37 @@ EXTERN_C const IID IID_IOpInterface;
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetSpecialWindow )( 
             IOpInterface * This,
             /* [in] */ LONG flag,
-            /* [retval][out] */ LONG *rethwnd);
+            /* [retval][out] */ hyper *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindow )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
-            /* [retval][out] */ LONG *nret);
+            /* [retval][out] */ hyper *nret);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowClass)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowClass )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *retstring);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowProcessId)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowProcessId )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ LONG *nretpid);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowProcessPath)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowProcessPath )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *retstring);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowRect)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowRect )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out] */ VARIANT *x1,
             /* [out] */ VARIANT *y1,
             /* [out] */ VARIANT *x2,
@@ -1139,20 +1140,20 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowState)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowState )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
             /* [retval][out] */ LONG *rethwnd);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetWindowTitle)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetWindowTitle )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ BSTR *rettitle);
         
         DECLSPEC_XFGVIRT(IOpInterface, MoveWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *MoveWindow )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG x,
             /* [in] */ LONG y,
             /* [retval][out] */ LONG *nret);
@@ -1160,7 +1161,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, ScreenToClient)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *ScreenToClient )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [out][in] */ VARIANT *x,
             /* [out][in] */ VARIANT *y,
             /* [retval][out] */ LONG *nret);
@@ -1168,13 +1169,13 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, SendPaste)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SendPaste )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [retval][out] */ LONG *nret);
         
         DECLSPEC_XFGVIRT(IOpInterface, SetClientSize)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetClientSize )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG width,
             /* [in] */ LONG hight,
             /* [retval][out] */ LONG *nret);
@@ -1182,14 +1183,14 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, SetWindowState)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetWindowState )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG flag,
             /* [retval][out] */ LONG *nret);
         
         DECLSPEC_XFGVIRT(IOpInterface, SetWindowSize)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetWindowSize )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG width,
             /* [in] */ LONG height,
             /* [retval][out] */ LONG *nret);
@@ -1197,28 +1198,28 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, SetWindowText)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetWindowText )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR title,
             /* [retval][out] */ LONG *nret);
         
         DECLSPEC_XFGVIRT(IOpInterface, SetWindowTransparent)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetWindowTransparent )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ LONG trans,
             /* [retval][out] */ LONG *nret);
         
         DECLSPEC_XFGVIRT(IOpInterface, SendString)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SendString )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret);
         
         DECLSPEC_XFGVIRT(IOpInterface, SendStringIme)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SendStringIme )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR str,
             /* [retval][out] */ LONG *ret);
         
@@ -1227,6 +1228,7 @@ EXTERN_C const IID IID_IOpInterface;
             IOpInterface * This,
             /* [in] */ BSTR cmdline,
             /* [in] */ LONG mode,
+            /* [out] */ ULONG *pid,
             /* [retval][out] */ LONG *ret);
         
         DECLSPEC_XFGVIRT(IOpInterface, WinExec)
@@ -1246,7 +1248,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, BindWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *BindWindow )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR display,
             /* [in] */ BSTR mouse,
             /* [in] */ BSTR keypad,
@@ -1261,7 +1263,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, GetBindWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetBindWindow )( 
             IOpInterface * This,
-            /* [retval][out] */ LONG *ret);
+            /* [retval][out] */ hyper *ret);
         
         DECLSPEC_XFGVIRT(IOpInterface, IsBind)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *IsBind )( 
@@ -1271,8 +1273,8 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, BindWindowEx)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *BindWindowEx )( 
             IOpInterface * This,
-            /* [in] */ LONG display_hwnd,
-            /* [in] */ LONG input_hwnd,
+            /* [in] */ hyper display_hwnd,
+            /* [in] */ hyper input_hwnd,
             /* [in] */ BSTR display,
             /* [in] */ BSTR mouse,
             /* [in] */ BSTR keypad,
@@ -1897,7 +1899,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, WriteData)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteData )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR address,
             /* [in] */ BSTR data,
             /* [in] */ LONG size,
@@ -1906,7 +1908,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, ReadData)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadData )( 
             IOpInterface * This,
-            /* [in] */ LONG hwnd,
+            /* [in] */ hyper hwnd,
             /* [in] */ BSTR address,
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr);
@@ -1995,8 +1997,8 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_EnumProcess(This,name,retstring)	\
     ( (This)->lpVtbl -> EnumProcess(This,name,retstring) ) 
 
-#define IOpInterface_ClientToScreen(This,ClientToScreen,x,y,bret)	\
-    ( (This)->lpVtbl -> ClientToScreen(This,ClientToScreen,x,y,bret) ) 
+#define IOpInterface_ClientToScreen(This,hwnd,x,y,bret)	\
+    ( (This)->lpVtbl -> ClientToScreen(This,hwnd,x,y,bret) ) 
 
 #define IOpInterface_FindWindow(This,class_name,title,rethwnd)	\
     ( (This)->lpVtbl -> FindWindow(This,class_name,title,rethwnd) ) 
@@ -2085,8 +2087,8 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_SendStringIme(This,hwnd,str,ret)	\
     ( (This)->lpVtbl -> SendStringIme(This,hwnd,str,ret) ) 
 
-#define IOpInterface_RunApp(This,cmdline,mode,ret)	\
-    ( (This)->lpVtbl -> RunApp(This,cmdline,mode,ret) ) 
+#define IOpInterface_RunApp(This,cmdline,mode,pid,ret)	\
+    ( (This)->lpVtbl -> RunApp(This,cmdline,mode,pid,ret) ) 
 
 #define IOpInterface_WinExec(This,cmdline,cmdshow,ret)	\
     ( (This)->lpVtbl -> WinExec(This,cmdline,cmdshow,ret) ) 
@@ -2499,7 +2501,7 @@ void __RPC_STUB IOpInterface_GetWordResultStr_Stub(
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_WriteData_Proxy( 
     IOpInterface * This,
-    /* [in] */ LONG hwnd,
+    /* [in] */ hyper hwnd,
     /* [in] */ BSTR address,
     /* [in] */ BSTR data,
     /* [in] */ LONG size,
@@ -2515,7 +2517,7 @@ void __RPC_STUB IOpInterface_WriteData_Stub(
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ReadData_Proxy( 
     IOpInterface * This,
-    /* [in] */ LONG hwnd,
+    /* [in] */ hyper hwnd,
     /* [in] */ BSTR address,
     /* [in] */ LONG size,
     /* [retval][out] */ BSTR *retstr);
