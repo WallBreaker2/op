@@ -116,7 +116,9 @@ TEST(WinApiTest, GetCmdStrReturnsPartialOutputOnTimeout) {
     libop op;
     wstring out;
     const auto start = std::chrono::steady_clock::now();
-    op.GetCmdStr(L"cmd /c \"echo before & ping 127.0.0.1 -n 3 >nul & echo after\"", 200, out);
+    op.GetCmdStr(
+        L"python -c \"import time; print('before', flush=True); time.sleep(2); print('after', flush=True)\"", 200,
+        out);
     const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 
     EXPECT_NE(out.find(L"before"), wstring::npos) << "Expected early output before timeout";
