@@ -160,7 +160,7 @@ ENDIF()
 
 if(enable_wgc)
     set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
-    add_compile_definitions(_WIN32_WINNT_WIN11)
+    add_compile_definitions(OP_ENABLE_WGC)
     message(STATUS "----------------WGC enabled----------------")
 endif()
 

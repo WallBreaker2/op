@@ -4,7 +4,7 @@
 
 using test_support::ColorPulseWindow;
 
-#ifdef _WIN32_WINNT_WIN11
+#ifdef OP_ENABLE_WGC
 
 namespace {
 

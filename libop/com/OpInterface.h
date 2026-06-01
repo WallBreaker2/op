@@ -168,6 +168,10 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(SendStringIme)(LONGLONG hwnd, BSTR str, LONG *ret);
     // 运行可执行文件,可指定模式
     STDMETHOD(RunApp)(BSTR cmdline, LONG mode, ULONG *pid, LONG *ret);
+    // 按指定布局批量排列多个窗口。hwnds 格式例如 "123|456|789"。
+    STDMETHOD(LayoutWindows)
+    (BSTR hwnds, LONG layout_type, LONG columns, LONG start_x, LONG start_y, LONG gap_x, LONG gap_y, LONG size_mode,
+     LONG window_width, LONG window_height, LONG anchor_mode, LONG *ret);
     // 运行可执行文件，可指定显示模式
     STDMETHOD(WinExec)(BSTR cmdline, LONG cmdshow, LONG *ret);
 
