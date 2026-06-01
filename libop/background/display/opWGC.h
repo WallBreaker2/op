@@ -11,7 +11,7 @@
 #include <inspectable.h>
 #include <mutex>
 #pragma comment(lib, "d3d11.lib")
-#ifdef _WIN32_WINNT_WIN11
+#ifdef OP_ENABLE_WGC
 // this code ref https://www.jianshu.com/p/e775b0f45376
 using namespace winrt::Windows::Graphics::Capture;
 using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
@@ -19,9 +19,9 @@ class opWGC : public IDisplay {
   public:
     opWGC();
     ~opWGC();
-    // ��
+    // 绑定
     long BindEx(HWND _hwnd, long render_type) override;
-    // ���
+    // 解绑
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
