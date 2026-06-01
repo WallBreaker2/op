@@ -3,13 +3,15 @@
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
 #include "./core/opEnv.h"
+#include "./core/win_version.h"
 #include "./include/Image.hpp"
+#include <dwmapi.h>
 #include <iostream>
 #include <string>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Gaming.Input.h>
 
-#ifdef _WIN32_WINNT_WIN11
+#ifdef OP_ENABLE_WGC
 opWGC::opWGC()
     : device_(nullptr), item_(nullptr), framePool_(nullptr), session_(nullptr), d3dDevice_(nullptr),
       d3dDeviceContext_(nullptr), stagingTexture_(nullptr), m_frameInfo(), captureWidth_(0), captureHeight_(0),
@@ -177,9 +179,15 @@ bool opWGC::Init(HWND _hwnd) {
     const winrt::Windows::Graphics::Capture::GraphicsCaptureSession session = frame_pool.CreateCaptureSession(item);
     setlog("CreateCaptureSession ok");
 
-    session.IsBorderRequired(false);
+    // 20348+ 才支持关闭捕获边框。
+    if (IsWindows10BuildOrGreater(kWindowsServer2022Build)) {
+        session.IsBorderRequired(false);
+    }
 
-    session.IsCursorCaptureEnabled(false);
+    // 19041+ 才支持关闭光标捕获。
+    if (IsWindows10BuildOrGreater(kWindows10Build2004)) {
+        session.IsCursorCaptureEnabled(false);
+    }
 
     const auto item_size = item.Size();
     captureWidth_ = item_size.Width;
@@ -266,13 +274,9 @@ bool opWGC::requestCapture(int x1, int y1, int w, int h, Image &img) {
         _pmutex->unlock();
     }
 
-    int src_x = x1;
-    int src_y = y1;
-    if (static_cast<int>(desc.Width) >= dx_ + _width && static_cast<int>(desc.Height) >= dy_ + _height &&
-        (dx_ > 0 || dy_ > 0)) {
-        src_x += dx_;
-        src_y += dy_;
-    }
+    // WGC 这里按客户区坐标裁图，去掉标题栏和边框。
+    int src_x = x1 + dx_;
+    int src_y = y1 + dy_;
     if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) || src_y + h > static_cast<int>(desc.Height)) {
         setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, desc.Width, src_y, h,
                desc.Height);
@@ -347,11 +351,16 @@ bool opWGC::ensureSharedResources(int width, int height) {
 void opWGC::refreshWindowMetrics() {
     RECT window_rect = {};
     RECT client_rect = {};
+    RECT visible_rect = {};
     POINT pt = {0, 0};
     ::GetWindowRect(_hwnd, &window_rect);
     ::GetClientRect(_hwnd, &client_rect);
     ::ClientToScreen(_hwnd, &pt);
+    if (::DwmGetWindowAttribute(_hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &visible_rect, sizeof(visible_rect)) == S_OK) {
+        window_rect = visible_rect;
+    }
 
+    // WGC 对外仍按客户区大小工作，上层坐标也按客户区理解。
     _width = client_rect.right - client_rect.left;
     _height = client_rect.bottom - client_rect.top;
     dx_ = pt.x - window_rect.left;
