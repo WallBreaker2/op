@@ -195,6 +195,9 @@ class libop(object):
     def SetWindowSize(self, hwnd, width, height):
         return _pyop.libop_SetWindowSize(self, hwnd, width, height)
 
+    def LayoutWindows(self, hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width, window_height, anchor_mode):
+        return _pyop.libop_LayoutWindows(self, hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width, window_height, anchor_mode)
+
     def SetWindowText(self, hwnd, title):
         return _pyop.libop_SetWindowText(self, hwnd, title)
 
