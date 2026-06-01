@@ -2,18 +2,19 @@
 #include "opBackground.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
+#include "./core/win_version.h"
 #include <algorithm>
 
 #include "./display/opDXGI.h"
 #include "./display/opDxGL.h"
 #include "./display/opGDI.h"
-#ifdef _WIN32_WINNT_WIN11
+#ifdef OP_ENABLE_WGC
 #include "./display/opWGC.h"
 #endif
 
-#include "displayInputHelper.h"
 #include "./keypad/winkeypad.h"
 #include "./mouse/opMouseDx.h"
+#include "displayInputHelper.h"
 
 opBackground::opBackground()
     : _display_hwnd(0), _input_hwnd(0), _is_bind(0), _pbkdisplay(nullptr), _bkmouse(new opMouseWin),
@@ -41,10 +42,10 @@ long opBackground::BindWindow(LONG_PTR hwnd, const wstring &sdisplay, const wstr
     return BindWindowEx(hwnd, hwnd, sdisplay, smouse, skeypad, mode);
 }
 
-long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wstring &sdisplay, const wstring &smouse,
-                                const wstring &skeypad, long mode) {
+long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wstring &sdisplay,
+                                const wstring &smouse, const wstring &skeypad, long mode) {
     // step 1.避免重复绑定
-    UnBindWindow();
+    reset_bind_state(false);
 
     HWND displayWnd = display_hwnd == 0 ? GetDesktopWindow() : HWND(display_hwnd);
     HWND inputWnd = input_hwnd == 0 ? displayWnd : HWND(input_hwnd);
@@ -60,10 +61,8 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
         display = RDT_NORMAL;
     else if (sdisplay == L"normal.dxgi")
         display = RDT_NORMAL_DXGI;
-#ifdef _WIN32_WINNT_WIN11
     else if (sdisplay == L"normal.wgc")
         display = RDT_NORMAL_WGC;
-#endif
     else if (sdisplay == L"gdi")
         display = RDT_GDI;
     else if (sdisplay == L"gdi2")
@@ -97,8 +96,6 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
     // check mouse
     if (smouse == L"normal")
         mouse = INPUT_TYPE::IN_NORMAL;
-    else if (smouse == L"normal.hd")
-        mouse = INPUT_TYPE::IN_NORMAL2;
     else if (smouse == L"windows")
         mouse = INPUT_TYPE::IN_WINDOWS;
     else if (smouse == L"dx")
@@ -118,6 +115,18 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
         setlog(L"error keypad mode: %s", skeypad.c_str());
         return 0;
     }
+    // DXGI 只在 Windows 8 及以上开放。
+    if (display == RDT_NORMAL_DXGI && !IsWindowsVersionAtLeast(6, 2, 0)) {
+        setlog(L"normal.dxgi requires Windows 8 or later");
+        return 0;
+    }
+
+    // WGC 窗口捕获从 Windows 10 1903 开始可用。
+    if (display == RDT_NORMAL_WGC && !IsWindows10BuildOrGreater(kWindows10Build1903)) {
+        setlog(L"normal.wgc requires Windows 10 build 18362 or later");
+        return 0;
+    }
+
     // step 4.init
     _mode = mode;
     _display = display;
@@ -140,7 +149,8 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
     const long mouse_ret = display_ret == 1 ? _bkmouse->Bind(inputWnd, mouse) : 0;
     const long keypad_ret = (display_ret == 1 && mouse_ret == 1) ? _keypad->Bind(inputWnd, keypad) : 0;
     if (display_ret != 1 || mouse_ret != 1 || keypad_ret != 1) {
-        setlog(L"BindWindowEx failed. display_hwnd=%p input_hwnd=%p display=%s(%d) ret=%d mouse=%s(%d) ret=%d keypad=%s(%d) ret=%d",
+        setlog(L"BindWindowEx failed. display_hwnd=%p input_hwnd=%p display=%s(%d) ret=%d mouse=%s(%d) ret=%d "
+               L"keypad=%s(%d) ret=%d",
                displayWnd, inputWnd, sdisplay.c_str(), display, display_ret, smouse.c_str(), mouse, mouse_ret,
                skeypad.c_str(), keypad, keypad_ret);
         UnBindWindow();
@@ -155,10 +165,13 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
 }
 
 long opBackground::UnBindWindow() {
-    // to do
-    // clear ....
+    return reset_bind_state(true);
+}
+
+long opBackground::reset_bind_state(bool restore_default_input) {
     _display_hwnd = NULL;
     _input_hwnd = NULL;
+    _display = 0;
     _is_bind = 0;
     _mode = 0;
 
@@ -174,9 +187,12 @@ long opBackground::UnBindWindow() {
         _keypad->UnBind();
         SAFE_DELETE(_keypad);
     }
-    // 恢复为前台(默认)
-    _bkmouse = new opMouseWin;
-    _keypad = new winkeypad;
+
+    // 恢复默认前台输入对象。
+    if (restore_default_input) {
+        _bkmouse = new opMouseWin;
+        _keypad = new winkeypad;
+    }
 
     return 1;
 }
@@ -389,7 +405,7 @@ IDisplay *opBackground::createDisplay(int mode) {
     } else if (mode == RDT_NORMAL_DXGI) {
         pDisplay = new opDXGI();
     }
-#ifdef _WIN32_WINNT_WIN11
+#ifdef OP_ENABLE_WGC
     else if (mode == RDT_NORMAL_WGC) {
         pDisplay = new opWGC();
     }
