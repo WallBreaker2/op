@@ -6,6 +6,7 @@
 #include <memory>
 #include <atomic>
 #include <string>
+#include <vector>
 #include <Windows.h>
 // forward declare
 // class WinApi;
@@ -155,6 +156,10 @@ class OP_API libop {
     void SetWindowState(LONG_PTR hwnd, long flag, long *ret);
     // 设置窗口的大小
     void SetWindowSize(LONG_PTR hwnd, long width, long height, long *ret);
+    // 按指定布局批量排列多个窗口。hwnds 格式例如 "123|456|789"。
+    void LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y, long gap_x,
+                       long gap_y, long size_mode, long window_width, long window_height, long anchor_mode,
+                       long *ret);
     // 设置窗口的标题
     void SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *ret);
     // 设置窗口的透明度
