@@ -10,6 +10,7 @@
 #include "./core/helpfunc.h"
 #include "./core/opEnv.h"
 #include "./core/optype.h"
+#include "./core/window_layout.h"
 #include "./winapi/Injecter.h"
 #include "./winapi/WinApi.h"
 
@@ -118,6 +119,67 @@ long key_combo_press(bkkeypad *keypad, const key_combo_t &combo) {
     if (key_combo_down(keypad, combo) != 1)
         return 0;
     return key_combo_up(keypad, combo);
+}
+
+bool parse_layout_type(long value, window_layout::Type &type) {
+    switch (value) {
+    case 0:
+        type = window_layout::Type::Grid;
+        return true;
+    case 1:
+        type = window_layout::Type::Diagonal;
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool parse_size_mode(long value, window_layout::SizeMode &mode) {
+    switch (value) {
+    case 0:
+        mode = window_layout::SizeMode::Keep;
+        return true;
+    case 1:
+        mode = window_layout::SizeMode::Uniform;
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool parse_anchor_mode(long value, window_layout::AnchorMode &mode) {
+    switch (value) {
+    case 0:
+        mode = window_layout::AnchorMode::Window;
+        return true;
+    case 1:
+        mode = window_layout::AnchorMode::Client;
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool parse_window_list(const wchar_t *hwnds, std::vector<HWND> &windows) {
+    if (hwnds == nullptr || hwnds[0] == L'\0')
+        return false;
+
+    std::vector<std::wstring> items;
+    split(hwnds, items, L"|");
+    if (items.empty())
+        return false;
+
+    windows.clear();
+    windows.reserve(items.size());
+    for (const auto &item : items) {
+        wchar_t *end = nullptr;
+        const auto value = _wcstoi64(item.c_str(), &end, 0);
+        if (end == item.c_str() || (end && *end != L'\0'))
+            return false;
+        windows.push_back(reinterpret_cast<HWND>(static_cast<LONG_PTR>(value)));
+    }
+
+    return !windows.empty();
 }
 
 } // namespace
@@ -598,6 +660,34 @@ void libop::SetWindowState(LONG_PTR hwnd, long flag, long *nret) {
 void libop::SetWindowSize(LONG_PTR hwnd, long width, long height, long *nret) {
     // TODO: 在此添加实现代码
     *nret = m_context->winapi.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), width, height, 1);
+}
+
+void libop::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y,
+                          long gap_x, long gap_y, long size_mode, long window_width, long window_height,
+                          long anchor_mode, long *ret) {
+    *ret = 0;
+
+    std::vector<HWND> windows;
+    if (!parse_window_list(hwnds, windows))
+        return;
+
+    window_layout::Options options;
+    if (!parse_layout_type(layout_type, options.type))
+        return;
+    if (!parse_size_mode(size_mode, options.size_mode))
+        return;
+    if (!parse_anchor_mode(anchor_mode, options.anchor_mode))
+        return;
+
+    options.columns = columns;
+    options.start_x = start_x;
+    options.start_y = start_y;
+    options.gap_x = gap_x;
+    options.gap_y = gap_y;
+    options.window_width = window_width;
+    options.window_height = window_height;
+
+    *ret = window_layout::Layout(windows, options);
 }
 
 void libop::SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *nret) {

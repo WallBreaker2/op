@@ -391,6 +391,14 @@ STDMETHODIMP OpInterface::RunApp(BSTR cmdline, LONG mode, ULONG *pid, LONG *ret)
     return S_OK;
 }
 
+STDMETHODIMP OpInterface::LayoutWindows(BSTR hwnds, LONG layout_type, LONG columns, LONG start_x, LONG start_y, LONG gap_x,
+                                        LONG gap_y, LONG size_mode, LONG window_width, LONG window_height, LONG anchor_mode,
+                                        LONG *ret) {
+    obj.LayoutWindows(hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width,
+                      window_height, anchor_mode, ret);
+    return S_OK;
+}
+
 STDMETHODIMP OpInterface::WinExec(BSTR cmdline, LONG cmdshow, LONG *ret) {
     obj.WinExec(cmdline, cmdshow, ret);
 

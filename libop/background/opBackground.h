@@ -54,6 +54,7 @@ class opBackground {
     std::pair<wstring, wstring> _display_method;
     Image _pic;
 
+    long reset_bind_state(bool restore_default_input);
     IDisplay *createDisplay(int mode);
     opMouseWin *createMouse(int mode);
     bkkeypad *createKeypad(int mode);

@@ -329,6 +329,20 @@ EXTERN_C const IID IID_IOpInterface;
             /* [out] */ ULONG *pid,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE LayoutWindows( 
+            /* [in] */ BSTR hwnds,
+            /* [in] */ LONG layout_type,
+            /* [in] */ LONG columns,
+            /* [in] */ LONG start_x,
+            /* [in] */ LONG start_y,
+            /* [in] */ LONG gap_x,
+            /* [in] */ LONG gap_y,
+            /* [in] */ LONG size_mode,
+            /* [in] */ LONG window_width,
+            /* [in] */ LONG window_height,
+            /* [in] */ LONG anchor_mode,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE WinExec( 
             /* [in] */ BSTR cmdline,
             /* [in] */ LONG cmdshow,
@@ -1231,6 +1245,22 @@ EXTERN_C const IID IID_IOpInterface;
             /* [out] */ ULONG *pid,
             /* [retval][out] */ LONG *ret);
         
+        DECLSPEC_XFGVIRT(IOpInterface, LayoutWindows)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *LayoutWindows )( 
+            IOpInterface * This,
+            /* [in] */ BSTR hwnds,
+            /* [in] */ LONG layout_type,
+            /* [in] */ LONG columns,
+            /* [in] */ LONG start_x,
+            /* [in] */ LONG start_y,
+            /* [in] */ LONG gap_x,
+            /* [in] */ LONG gap_y,
+            /* [in] */ LONG size_mode,
+            /* [in] */ LONG window_width,
+            /* [in] */ LONG window_height,
+            /* [in] */ LONG anchor_mode,
+            /* [retval][out] */ LONG *ret);
+        
         DECLSPEC_XFGVIRT(IOpInterface, WinExec)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *WinExec )( 
             IOpInterface * This,
@@ -2090,6 +2120,9 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_RunApp(This,cmdline,mode,pid,ret)	\
     ( (This)->lpVtbl -> RunApp(This,cmdline,mode,pid,ret) ) 
 
+#define IOpInterface_LayoutWindows(This,hwnds,layout_type,columns,start_x,start_y,gap_x,gap_y,size_mode,window_width,window_height,anchor_mode,ret)	\
+    ( (This)->lpVtbl -> LayoutWindows(This,hwnds,layout_type,columns,start_x,start_y,gap_x,gap_y,size_mode,window_width,window_height,anchor_mode,ret) ) 
+
 #define IOpInterface_WinExec(This,cmdline,cmdshow,ret)	\
     ( (This)->lpVtbl -> WinExec(This,cmdline,cmdshow,ret) ) 
 
@@ -2353,6 +2386,20 @@ EXTERN_C const IID IID_IOpInterface;
 
 #endif 	/* C style interface */
 
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_GetDict_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG idx,
+    /* [in] */ LONG font_index,
+    /* [retval][out] */ BSTR *retstr);
+
+
+void __RPC_STUB IOpInterface_GetDict_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
 
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_AddDict_Proxy( 

@@ -58,6 +58,8 @@ SET(SRC_FILES
 "./core/helpfunc.cpp"
 "./core/pipe.cpp"
 "./core/opEnv.cpp"
+"./core/win_version.cpp"
+"./core/window_layout.cpp"
 
 
 	"./imageProc/imageloc.cpp"
@@ -222,6 +224,8 @@ endif()
 if(enable_wgc)
   target_link_libraries(libop windowsapp runtimeobject.lib)
 endif()
+target_link_libraries(libop dwmapi.lib)
+target_link_libraries(${op_com} dwmapi.lib)
 
 # target_link_libraries(libop  ${OpenCV_LIBS})
 # target_link_libraries(libop msvcrt.lib)

@@ -82,6 +82,7 @@ interface IOpInterface : IDispatch
 	[id(89)] HRESULT SendString([in] hyper hwnd, [in] BSTR str, [out, retval] LONG* ret);
 	[id(90)] HRESULT SendStringIme([in] hyper hwnd, [in] BSTR str, [out, retval] LONG* ret);
 	[id(91)] HRESULT RunApp([in] BSTR cmdline, [in] LONG mode, [out] ULONG* pid, [out, retval] LONG* ret);
+	[id(92)] HRESULT LayoutWindows([in] BSTR hwnds, [in] LONG layout_type, [in] LONG columns, [in] LONG start_x, [in] LONG start_y, [in] LONG gap_x, [in] LONG gap_y, [in] LONG size_mode, [in] LONG window_width, [in] LONG window_height, [in] LONG anchor_mode, [out, retval] LONG* ret);
 	[id(95)] HRESULT WinExec([in] BSTR cmdline, [in] LONG cmdshow, [out, retval] LONG* ret);
 	[id(96)] HRESULT GetCmdStr([in] BSTR cmd, [in] LONG millseconds, [out, retval] BSTR* retstr);
 	//background 100-119
