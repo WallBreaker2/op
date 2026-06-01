@@ -9,6 +9,7 @@
 %include "std_string.i"
 %include "std_wstring.i"
 %include "typemaps.i"
+%apply long long { LONG_PTR };
 %apply std::wstring &OUTPUT {std::wstring &}
 %apply long *OUTPUT {long *}
 %apply long long *OUTPUT {LONG_PTR *}
