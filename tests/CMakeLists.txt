@@ -50,6 +50,7 @@ set(SRC_FILES
   "wgc_test.cpp"
   "ocr_test.cpp"
   "utils_test.cpp"
+  "../libop/core/window_layout.cpp"
   "../libop/com/op_i.c"
 )
 
