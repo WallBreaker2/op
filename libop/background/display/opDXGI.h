@@ -11,9 +11,9 @@ class opDXGI : public IDisplay {
   public:
     opDXGI();
     ~opDXGI();
-    // ��
+    // 绑定
     long BindEx(HWND _hwnd, long render_type) override;
-    // ���
+    // 解绑
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
