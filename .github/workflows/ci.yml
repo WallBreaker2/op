@@ -19,174 +19,102 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
 
     strategy:
       fail-fast: false
       matrix:
-        arch: [ Win32, x64 ]
-
-    env:
-      # BlackBone 源码根目录（稍后会检出到该路径）
-      BLACKBONE_ROOT: ${{ github.workspace }}\BlackBone
+        arch: [ x86, x64 ]
 
     steps:
       - name: Checkout op
         uses: actions/checkout@v4
 
-      - name: Install vcpkg
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "$env:USERPROFILE\vcpkg"
-          if (-not (Test-Path $vcpkgRoot)) {
-            git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
-          }
-          & "$vcpkgRoot\bootstrap-vcpkg.bat"
-          Add-Content -Path $Env:GITHUB_ENV -Value "VCPKG_ROOT=$vcpkgRoot"
-
-      - name: Install dependencies via vcpkg (gtest, minhook)
-        shell: pwsh
-        run: |
-          $triplet = if ('${{ matrix.arch }}' -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
-          $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
-          & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet --overlay-triplets=$overlayDir
-
-      - name: Checkout BlackBone
-        uses: actions/checkout@v4
+      - name: Set up Python for SWIG (${{ matrix.arch }})
+        uses: actions/setup-python@v5
         with:
-          repository: DarthTon/Blackbone
-          path: BlackBone
+          python-version: '3.12'
+          architecture: ${{ matrix.arch }}
 
-      - name: Configure BlackBone (${{ matrix.arch }})
+      - name: Export Python root for SWIG (${{ matrix.arch }})
         shell: pwsh
         run: |
-          $src = "$env:BLACKBONE_ROOT\src"
-          $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
-          cmake -S $src -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
-            -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
-            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-
-      - name: Build BlackBone (${{ matrix.arch }})
-        shell: pwsh
-        run: |
-          $bld = "$env:BLACKBONE_ROOT\build\${{ matrix.arch }}"
-          cmake --build $bld --config Release
-
-      - name: Resolve BlackBone paths (${{ matrix.arch }})
-        shell: pwsh
-        run: |
-          $root = $env:BLACKBONE_ROOT
-          $arch = '${{ matrix.arch }}'
-          $searchDir = Join-Path $root "build\$arch"
-          $lib = Get-ChildItem -Path $searchDir -Filter BlackBone.lib -Recurse -ErrorAction Stop | Select-Object -First 1
-          if (-not $lib) {
-            Write-Error "BlackBone.lib not found under $searchDir"
+          $pythonRoot = Split-Path (Get-Command python).Source -Parent
+          if ('${{ matrix.arch }}' -eq 'x86') {
+            Add-Content -Path $Env:GITHUB_ENV -Value "PYTHON32_ROOT=$pythonRoot"
+          } else {
+            Add-Content -Path $Env:GITHUB_ENV -Value "PYTHON64_ROOT=$pythonRoot"
           }
 
-          $includeDir = Join-Path $root "src"
-          Add-Content -Path $Env:GITHUB_ENV -Value "BLACKBONE_INCLUDE_DIR=$includeDir"
-          Add-Content -Path $Env:GITHUB_ENV -Value "BLACKBONE_LIBRARY=$($lib.FullName)"
+      - name: Cache bootstrapped dependencies (${{ matrix.arch }})
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: op-deps-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('build.py', 'CMakeLists.txt', 'libop/CMakeLists.txt', 'tests/CMakeLists.txt', 'ci/triplets/*.cmake') }}
+          restore-keys: |
+            op-deps-${{ runner.os }}-${{ matrix.arch }}-
 
-      - name: Configure op (${{ matrix.arch }})
+      - name: Build op via build.py (${{ matrix.arch }})
         shell: pwsh
         run: |
-          # 显式传入 vcpkg toolchain，避免 CI 与本地构建行为不一致
-          $bld = "build\${{ matrix.arch }}"
-          New-Item -ItemType Directory -Path $bld -Force | Out-Null
-          $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
-          $toolchain = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
-          cmake -S . -B $bld -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
-            -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
-            -Dbuild_swig_py=OFF `
-            -DBLACKBONE_INCLUDE_DIR="$env:BLACKBONE_INCLUDE_DIR" `
-            -DBLACKBONE_LIBRARY="$env:BLACKBONE_LIBRARY" `
-            -DVCPKG_OVERLAY_TRIPLETS="$overlayDir"
-
-      - name: Build op (${{ matrix.arch }})
-        shell: pwsh
-        run: |
-          $bld = "build\${{ matrix.arch }}"
-          cmake --build $bld --config Release
+          python build.py -g vs2026 -t Release -a ${{ matrix.arch }} --deps-arch ${{ matrix.arch }}
 
       - name: Run ctest (${{ matrix.arch }})
         shell: pwsh
         run: |
-          $bld = "build\${{ matrix.arch }}"
+          $bld = "build\vs2026-${{ matrix.arch }}-Release"
           $env:OP_SKIP_OCR_TESTS = "1"
           cd $bld
           ctest -C Release --output-on-failure
 
   release:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
 
-    env:
-      BLACKBONE_ROOT: ${{ github.workspace }}\BlackBone
-
     steps:
       - name: Checkout op
         uses: actions/checkout@v4
 
-      - name: Install vcpkg
-        shell: pwsh
-        run: |
-          $vcpkgRoot = "$env:USERPROFILE\vcpkg"
-          if (-not (Test-Path $vcpkgRoot)) {
-            git clone https://github.com/microsoft/vcpkg.git $vcpkgRoot
-          }
-          & "$vcpkgRoot\bootstrap-vcpkg.bat"
-          Add-Content -Path $Env:GITHUB_ENV -Value "VCPKG_ROOT=$vcpkgRoot"
-
-      - name: Checkout BlackBone
-        uses: actions/checkout@v4
+      - name: Set up Python x64 for SWIG
+        id: setup-python-x64
+        uses: actions/setup-python@v5
         with:
-          repository: DarthTon/Blackbone
-          path: BlackBone
+          python-version: '3.12'
+          architecture: x64
 
-      - name: Build op for Win32 and x64 and install
+      - name: Set up Python x86 for SWIG
+        id: setup-python-x86
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x86
+
+      - name: Export Python roots for SWIG
         shell: pwsh
         run: |
-          $root = $env:BLACKBONE_ROOT
+          $python64Root = Split-Path "${{ steps.setup-python-x64.outputs.python-path }}" -Parent
+          $python32Root = Split-Path "${{ steps.setup-python-x86.outputs.python-path }}" -Parent
+          Add-Content -Path $Env:GITHUB_ENV -Value "PYTHON64_ROOT=$python64Root"
+          Add-Content -Path $Env:GITHUB_ENV -Value "PYTHON32_ROOT=$python32Root"
 
-          foreach ($arch in @('Win32', 'x64')) {
-            Write-Host "=== Build configuration for $arch ==="
+      - name: Cache bootstrapped dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: op-deps-${{ runner.os }}-both-${{ hashFiles('build.py', 'CMakeLists.txt', 'libop/CMakeLists.txt', 'tests/CMakeLists.txt', 'ci/triplets/*.cmake') }}
+          restore-keys: |
+            op-deps-${{ runner.os }}-both-
+            op-deps-${{ runner.os }}-x64-
+            op-deps-${{ runner.os }}-x86-
 
-            # 安装依赖
-            $triplet = if ($arch -eq 'Win32') { 'x86-windows-static' } else { 'x64-windows-static' }
-            $overlayDir = Join-Path $env:GITHUB_WORKSPACE "ci\triplets"
-            & "$env:VCPKG_ROOT\vcpkg.exe" install gtest:$triplet minhook:$triplet --overlay-triplets=$overlayDir
-
-            # 构建 BlackBone
-            $src = Join-Path $root "src"
-            $bld = Join-Path $root "build\$arch"
-            cmake -S $src -B $bld -G "Visual Studio 17 2022" -A $arch `
-              -DCMAKE_POLICY_DEFAULT_CMP0091=NEW `
-              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
-            cmake --build $bld --config Release
-
-            # 解析 BlackBone 实际输出路径
-            $searchDir = $bld
-            $lib = Get-ChildItem -Path $searchDir -Filter BlackBone.lib -Recurse -ErrorAction Stop | Select-Object -First 1
-            if (-not $lib) {
-              Write-Error "BlackBone.lib not found under $searchDir"
-            }
-            $includeDir = Join-Path $root "src"
-
-            # 配置并编译 + 安装 op
-            $opBuildDir = "build\$arch"
-            New-Item -ItemType Directory -Path $opBuildDir -Force | Out-Null
-            $toolchain = Join-Path $env:VCPKG_ROOT "scripts\buildsystems\vcpkg.cmake"
-            cmake -S . -B $opBuildDir -G "Visual Studio 17 2022" -A $arch `
-              -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
-              -Dbuild_swig_py=OFF `
-              -DBLACKBONE_INCLUDE_DIR="$includeDir" `
-              -DBLACKBONE_LIBRARY="$($lib.FullName)" `
-              -DVCPKG_OVERLAY_TRIPLETS="$overlayDir"
-            cmake --build $opBuildDir --config Release --target INSTALL
-          }
+      - name: Build op for x86 and x64 via build.py
+        shell: pwsh
+        run: |
+          python build.py -g vs2026 -t Release -a x64 --deps-arch both
+          python build.py -g vs2026 -t Release -a x86 --deps-arch both
 
       - name: Package artifacts
         shell: pwsh
@@ -195,7 +123,7 @@ jobs:
           foreach ($arch in @('x86', 'x64')) {
             $sourceDir = "bin\$arch"
             if (-not (Test-Path $sourceDir)) {
-              continue
+              Write-Error "Release source directory not found: $sourceDir"
             }
 
             $stageDir = "package\$arch"
@@ -204,11 +132,12 @@ jobs:
             }
             New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
 
-            foreach ($name in @("op_$arch.dll", "tools.dll")) {
+            foreach ($name in @("op_$arch.dll", "tools.dll", "_pyop.pyd", "pyop.py")) {
               $file = Join-Path $sourceDir $name
-              if (Test-Path $file) {
-                Copy-Item $file $stageDir
+              if (-not (Test-Path $file)) {
+                Write-Error "Required release artifact not found: $file"
               }
+              Copy-Item $file $stageDir
             }
 
             if (-not (Get-ChildItem $stageDir -ErrorAction SilentlyContinue)) {
