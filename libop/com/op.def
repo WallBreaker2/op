@@ -12,4 +12,9 @@ EXPORTS
 	ReleaseDisplayHook	PRIVATE
 	SetInputHook	PRIVATE
 	ReleaseInputHook	PRIVATE
-
+	GetInputCursorShapeHash	PRIVATE
+	GetInputCursorShapeMeta	PRIVATE
+	GetInputCursorShapeHashLow	PRIVATE
+	GetInputCursorShapeHashHigh	PRIVATE
+	GetInputCursorShapeMetaLow	PRIVATE
+	GetInputCursorShapeMetaHigh	PRIVATE

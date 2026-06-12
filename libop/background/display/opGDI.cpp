@@ -9,6 +9,24 @@
 #include "./include/Image.hpp"
 #include "globalVar.h"
 #include "helpfunc.h"
+
+namespace {
+
+void release_capture_bitmap(HDC memory_dc, HBITMAP &capture_bitmap, HBITMAP original_bitmap) {
+    if (!capture_bitmap)
+        return;
+
+    // 删除位图前先把内存 DC 恢复到原始对象，避免删除仍被选中的 GDI 对象。
+    if (memory_dc && original_bitmap) {
+        SelectObject(memory_dc, original_bitmap);
+    }
+
+    DeleteObject(capture_bitmap);
+    capture_bitmap = NULL;
+}
+
+} // namespace
+
 opGDI::opGDI() {
     _render_type = 0;
     dx_ = 0;
@@ -94,19 +112,17 @@ long opGDI::BindEx(HWND hwnd, long render_type) {
 
 long opGDI::UnBindEx() {
     // setlog("bkgdi::UnBindEx()");
-    _hbmpscreen = (HBITMAP)SelectObject(_hmdc, _hbmp_old);
-    // delete[dwLen_2]hDib;
-    if (_hdc)
-        DeleteDC(_hdc);
+    release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
+
+    // GetDC 得到的窗口/桌面 DC 必须用 ReleaseDC 归还。
+    if (_hdc) {
+        ::ReleaseDC(_render_type == RDT_NORMAL ? NULL : _hwnd, _hdc);
+    }
     _hdc = NULL;
     if (_hmdc)
         DeleteDC(_hmdc);
     _hmdc = NULL;
 
-    if (_hbmpscreen)
-        DeleteObject(_hbmpscreen);
-    _hbmpscreen = NULL;
-    // if (_hbmp_old)DeleteObject(_hbmp_old); _hbmp_old = NULL;
     return 1;
 }
 
@@ -116,6 +132,8 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image &img) {
         return 0;
     img.create(w, h);
     if (_render_type == RDT_NORMAL) { // normal 拷贝的大小为实际需要的大小
+        release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
+
         //
         /*	int w = rect.right - rect.left;
                 int h = rect.bottom - rect.top;*/
@@ -156,9 +174,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image &img) {
                   (DWORD)DIB_RGB_COLORS);
 
         //_pmutex->unlock();
-        if (_hbmpscreen)
-            DeleteObject(_hbmpscreen);
-        _hbmpscreen = NULL;
+        release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
 
         // 将数据拷贝到目标注意实际数据是反的
 
@@ -178,6 +194,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image &img) {
         ::GetWindowRect(_hwnd, &rc);
         int ww = rc.right - rc.left;
         int wh = rc.bottom - rc.top;
+        release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
         // setlog("_w w=%d %d _h h=%d %d,dx=%d dy=%d", _width, w, _height, h, dx_,
         // dy_);
         _hbmpscreen = CreateCompatibleBitmap(_hdc, ww, wh); // 创建与指定的设备环境相关的设备兼容的位图
@@ -213,9 +230,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image &img) {
         GetDIBits(_hmdc, _hbmpscreen, 0L, (DWORD)wh, pshare + sizeof(FrameInfo), (LPBITMAPINFO)&_bih,
                   (DWORD)DIB_RGB_COLORS);
 
-        if (_hbmpscreen)
-            DeleteObject(_hbmpscreen);
-        _hbmpscreen = NULL;
+        release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
 
         // 将数据拷贝到目标注意实际数据是反的(注意偏移)
         auto ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
@@ -228,7 +243,7 @@ bool opGDI::requestCapture(int x1, int y1, int w, int h, Image &img) {
 void opGDI::fmtFrameInfo(void *dst, HWND hwnd, int w, int h) {
     m_frameInfo.hwnd = (unsigned __int64)hwnd;
     m_frameInfo.frameId++;
-    m_frameInfo.time = ::GetTickCount64();
+    m_frameInfo.time = static_cast<unsigned int>(::GetTickCount64());
     m_frameInfo.width = w;
     m_frameInfo.height = h;
     m_frameInfo.fmtChk();

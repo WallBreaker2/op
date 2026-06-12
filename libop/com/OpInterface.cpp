@@ -9,6 +9,20 @@
 // OpInterface
 using std::wstring;
 
+namespace {
+
+template <typename Callback>
+HRESULT RunCvRetOnly(LONG *ret, Callback &&callback) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    callback(ret);
+    return S_OK;
+}
+
+} // namespace
+
 OpInterface::OpInterface() {
 }
 
@@ -118,9 +132,9 @@ STDMETHODIMP OpInterface::FindNearestPos(BSTR all_pos, LONG type, LONG x, LONG y
     return S_OK;
 }
 
-STDMETHODIMP OpInterface::EnumWindow(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR *retstr) {
+STDMETHODIMP OpInterface::EnumWindow(LONGLONG parent, BSTR title, BSTR class_name, LONG filter, BSTR *retstr) {
     wstring s;
-    obj.EnumWindow(parent, title, class_name, filter, s);
+    obj.EnumWindow(static_cast<LONG_PTR>(parent), title, class_name, filter, s);
 
     CComBSTR newbstr;
     auto hr = newbstr.Append(s.data());
@@ -197,7 +211,7 @@ STDMETHODIMP OpInterface::GetClientRect(LONGLONG hwnd, VARIANT *x1, VARIANT *y1,
     y1->vt = VT_I4;
     x2->vt = VT_I4;
     y2->vt = VT_I4;
-    obj.GetClientRect(hwnd, &x1->lVal, &y1->lVal, &x2->lVal, &y2->lVal, nret);
+    obj.GetClientRect(static_cast<LONG_PTR>(hwnd), &x1->lVal, &y1->lVal, &x2->lVal, &y2->lVal, nret);
 
     return S_OK;
 }
@@ -205,7 +219,7 @@ STDMETHODIMP OpInterface::GetClientRect(LONGLONG hwnd, VARIANT *x1, VARIANT *y1,
 STDMETHODIMP OpInterface::GetClientSize(LONGLONG hwnd, VARIANT *width, VARIANT *height, LONG *nret) {
     width->vt = VT_I4;
     height->vt = VT_I4;
-    obj.GetClientSize(hwnd, &width->lVal, &height->lVal, nret);
+    obj.GetClientSize(static_cast<LONG_PTR>(hwnd), &width->lVal, &height->lVal, nret);
 
     return S_OK;
 }
@@ -271,7 +285,7 @@ STDMETHODIMP OpInterface::GetWindow(LONGLONG hwnd, LONG flag, LONGLONG *nret) {
 
 STDMETHODIMP OpInterface::GetWindowClass(LONGLONG hwnd, BSTR *retstring) {
     wstring s;
-    obj.GetWindowClass(hwnd, s);
+    obj.GetWindowClass(static_cast<LONG_PTR>(hwnd), s);
 
     CComBSTR newbstr;
     newbstr.Append(s.data());
@@ -280,14 +294,14 @@ STDMETHODIMP OpInterface::GetWindowClass(LONGLONG hwnd, BSTR *retstring) {
 }
 
 STDMETHODIMP OpInterface::GetWindowProcessId(LONGLONG hwnd, LONG *nretpid) {
-    obj.GetWindowProcessId(hwnd, nretpid);
+    obj.GetWindowProcessId(static_cast<LONG_PTR>(hwnd), nretpid);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindowProcessPath(LONGLONG hwnd, BSTR *retstring) {
     wstring s;
-    obj.GetWindowProcessPath(hwnd, s);
+    obj.GetWindowProcessPath(static_cast<LONG_PTR>(hwnd), s);
 
     CComBSTR newbstr;
     newbstr.Append(s.data());
@@ -301,20 +315,20 @@ STDMETHODIMP OpInterface::GetWindowRect(LONGLONG hwnd, VARIANT *x1, VARIANT *y1,
     y1->vt = VT_I4;
     y2->vt = VT_I4;
 
-    obj.GetWindowRect(hwnd, &x1->lVal, &y1->lVal, &x2->lVal, &y2->lVal, nret);
+    obj.GetWindowRect(static_cast<LONG_PTR>(hwnd), &x1->lVal, &y1->lVal, &x2->lVal, &y2->lVal, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindowState(LONGLONG hwnd, LONG flag, LONG *rethwnd) {
-    obj.GetWindowState(hwnd, flag, rethwnd);
+    obj.GetWindowState(static_cast<LONG_PTR>(hwnd), flag, rethwnd);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::GetWindowTitle(LONGLONG hwnd, BSTR *rettitle) {
     wstring s;
-    obj.GetWindowTitle(hwnd, s);
+    obj.GetWindowTitle(static_cast<LONG_PTR>(hwnd), s);
 
     CComBSTR newbstr;
     newbstr.Append(s.data());
@@ -323,7 +337,7 @@ STDMETHODIMP OpInterface::GetWindowTitle(LONGLONG hwnd, BSTR *rettitle) {
 }
 
 STDMETHODIMP OpInterface::MoveWindow(LONGLONG hwnd, LONG x, LONG y, LONG *nret) {
-    obj.MoveWindow(hwnd, x, y, nret);
+    obj.MoveWindow(static_cast<LONG_PTR>(hwnd), x, y, nret);
 
     return S_OK;
 }
@@ -331,56 +345,56 @@ STDMETHODIMP OpInterface::MoveWindow(LONGLONG hwnd, LONG x, LONG y, LONG *nret) 
 STDMETHODIMP OpInterface::ScreenToClient(LONGLONG hwnd, VARIANT *x, VARIANT *y, LONG *nret) {
     x->vt = VT_I4;
     y->vt = VT_I4;
-    obj.ScreenToClient(hwnd, &x->lVal, &y->lVal, nret);
+    obj.ScreenToClient(static_cast<LONG_PTR>(hwnd), &x->lVal, &y->lVal, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SendPaste(LONGLONG hwnd, LONG *nret) {
-    obj.SendPaste(hwnd, nret);
+    obj.SendPaste(static_cast<LONG_PTR>(hwnd), nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetClientSize(LONGLONG hwnd, LONG width, LONG hight, LONG *nret) {
-    obj.SetClientSize(hwnd, width, hight, nret);
+    obj.SetClientSize(static_cast<LONG_PTR>(hwnd), width, hight, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowState(LONGLONG hwnd, LONG flag, LONG *nret) {
-    obj.SetWindowState(hwnd, flag, nret);
+    obj.SetWindowState(static_cast<LONG_PTR>(hwnd), flag, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowSize(LONGLONG hwnd, LONG width, LONG height, LONG *nret) {
-    obj.SetWindowSize(hwnd, width, height, nret);
+    obj.SetWindowSize(static_cast<LONG_PTR>(hwnd), width, height, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowText(LONGLONG hwnd, BSTR title, LONG *nret) {
     //*nret=gWindowObj.TSSetWindowState(hwnd,flag);
-    obj.SetWindowText(hwnd, title, nret);
+    obj.SetWindowText(static_cast<LONG_PTR>(hwnd), title, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SetWindowTransparent(LONGLONG hwnd, LONG trans, LONG *nret) {
-    obj.SetWindowTransparent(hwnd, trans, nret);
+    obj.SetWindowTransparent(static_cast<LONG_PTR>(hwnd), trans, nret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SendString(LONGLONG hwnd, BSTR str, LONG *ret) {
-    obj.SendString(hwnd, str, ret);
+    obj.SendString(static_cast<LONG_PTR>(hwnd), str, ret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::SendStringIme(LONGLONG hwnd, BSTR str, LONG *ret) {
-    obj.SendStringIme(hwnd, str, ret);
+    obj.SendStringIme(static_cast<LONG_PTR>(hwnd), str, ret);
 
     return S_OK;
 }
@@ -474,6 +488,16 @@ STDMETHODIMP OpInterface::GetCursorPos(VARIANT *x, VARIANT *y, LONG *ret) {
     x->vt = y->vt = VT_I4;
     obj.GetCursorPos(&x->lVal, &y->lVal, ret);
 
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::GetCursorShape(BSTR *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    std::wstring value;
+    obj.GetCursorShape(value);
+    *ret = ::SysAllocString(value.c_str());
     return S_OK;
 }
 
@@ -750,39 +774,6 @@ STDMETHODIMP OpInterface::FindColorBlockEx(LONG x1, LONG y1, LONG x2, LONG y2, B
 
     return S_OK;
 }
-// 对插件部分接口的返回值进行解析,并返回ret中的坐标个数
-STDMETHODIMP OpInterface::GetResultCount(BSTR str, LONG *ret) {
-    const wchar_t *p = str;
-    int cnt = 0;
-    while (*p) {
-        if (*p == L'|')
-            ++cnt;
-        ++p;
-    }
-    *ret = cnt;
-    return S_OK;
-}
-// 对插件部分接口的返回值进行解析,并根据指定的第index个坐标,返回具体的值
-STDMETHODIMP OpInterface::GetResultPos(BSTR str, LONG index, VARIANT *x, VARIANT *y, LONG *ret) {
-    x->vt = y->vt = VT_I4;
-    long cnt = 0;
-    const wchar_t *p = str;
-    *ret = 0;
-    while (*p && index < cnt) {
-        if (index == cnt) {
-            if (swscanf(p, L"%d,%d", &x->lVal, &y->lVal) == 2) {
-                *ret = 1;
-            } else {
-                *ret = 0;
-            }
-            break;
-        }
-        if (*p == L'|')
-            ++cnt;
-        ++p;
-    }
-    return S_OK;
-}
 // 获取(x,y)的颜色
 STDMETHODIMP OpInterface::GetColor(LONG x, LONG y, BSTR *ret) {
     wstring s;
@@ -855,7 +846,7 @@ STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, V
 #if OP64
     data->vt = VT_I8;
     size->vt = VT_I8;
-    data->lVal = 0;
+    data->llVal = 0;
     size->llVal = 0;
 #else
     data->vt = VT_I4;
@@ -864,12 +855,15 @@ STDMETHODIMP OpInterface::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, V
     size->lVal = 0;
 #endif
     size_t data_ = 0;
+    long size_ = 0;
 
-    obj.GetScreenDataBmp(x1, y1, x2, y2, &data_, &size->lVal, ret);
+    obj.GetScreenDataBmp(x1, y1, x2, y2, &data_, &size_, ret);
 #if OP64
     data->llVal = (long long)data_;
+    size->llVal = size_;
 #else
     data->lVal = (long)data_;
+    size->lVal = size_;
 #endif
     // size->lVal = bfh.bfSize;
 
@@ -956,33 +950,50 @@ STDMETHODIMP OpInterface::FetchWord(LONG x1, LONG y1, LONG x2, LONG y2, BSTR col
 }
 // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
 STDMETHODIMP OpInterface::GetWordsNoDict(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    *ret_str = nullptr;
     wstring s;
     obj.GetWordsNoDict(x1, y1, x2, y2, color, s);
     CComBSTR newstr;
     newstr.Append(s.data());
-    newstr.CopyTo(ret_str);
-    return S_OK;
+    return newstr.CopyTo(ret_str);
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
 STDMETHODIMP OpInterface::GetWordResultCount(BSTR result, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
     obj.GetWordResultCount(result, ret);
     return S_OK;
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
 STDMETHODIMP OpInterface::GetWordResultPos(BSTR result, LONG index, VARIANT *x, VARIANT *y, LONG *ret) {
+    if (!x || !y || !ret)
+        return E_POINTER;
+
+    ::VariantInit(x);
+    ::VariantInit(y);
     x->vt = y->vt = VT_I4;
-    wstring s;
+    x->lVal = 0;
+    y->lVal = 0;
+    *ret = 0;
     obj.GetWordResultPos(result, index, &x->lVal, &y->lVal, ret);
     return S_OK;
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
 STDMETHODIMP OpInterface::GetWordResultStr(BSTR result, LONG index, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    *ret_str = nullptr;
     wstring s;
     obj.GetWordResultStr(result, index, s);
     CComBSTR newstr;
     newstr.Append(s.data());
-    newstr.CopyTo(ret_str);
-    return S_OK;
+    return newstr.CopyTo(ret_str);
 }
 
 // 识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
@@ -1073,18 +1084,267 @@ STDMETHODIMP OpInterface::SetOcrEngine(BSTR path_of_engine, BSTR dll_name, BSTR 
 }
 
 STDMETHODIMP OpInterface::WriteData(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret) {
-    obj.WriteData(hwnd, address, data, size, ret);
+    obj.WriteData(static_cast<LONG_PTR>(hwnd), address, data, size, ret);
 
     return S_OK;
 }
 
 STDMETHODIMP OpInterface::ReadData(LONGLONG hwnd, BSTR address, LONG size, BSTR *retstr) {
     wstring s;
-    obj.ReadData(hwnd, address, size, s);
+    obj.ReadData(static_cast<LONG_PTR>(hwnd), address, size, s);
 
     CComBSTR newstr;
     newstr.Append(s.data());
     newstr.CopyTo(retstr);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvLoadTemplate(BSTR name, BSTR file_path, LONG *ret) {
+    obj.CvLoadTemplate(name, file_path, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvLoadMaskedTemplate(BSTR name, BSTR template_path, BSTR mask_path, LONG *ret) {
+    obj.CvLoadMaskedTemplate(name, template_path, mask_path, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvRemoveTemplate(BSTR name, LONG *ret) {
+    obj.CvRemoveTemplate(name, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvRemoveAllTemplates(LONG *ret) {
+    obj.CvRemoveAllTemplates(ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvHasTemplate(BSTR name, LONG *ret) {
+    obj.CvHasTemplate(name, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvGetTemplateCount(LONG *ret) {
+    obj.CvGetTemplateCount(ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvGetAllTemplateNames(BSTR *retstr) {
+    wstring s;
+    obj.CvGetAllTemplateNames(s);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retstr);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvGetOpenCvVersion(BSTR *retstr) {
+    wstring s;
+    obj.CvGetOpenCvVersion(s);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retstr);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvLoadTemplateList(BSTR template_list, LONG *ret) {
+    obj.CvLoadTemplateList(template_list, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvToGray(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvToGray(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvToBinary(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvToBinary(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvToEdge(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvToEdge(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvToOutline(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvToOutline(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvDenoise(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvDenoise(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvEqualize(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvEqualize(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvCLAHE(BSTR src_file, BSTR dst_file, DOUBLE clip_limit, LONG tile_grid_size, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvCLAHE(src_file, dst_file, clip_limit, tile_grid_size, out); });
+}
+
+STDMETHODIMP OpInterface::CvBlur(BSTR src_file, BSTR dst_file, BSTR mode, LONG kernel_size, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvBlur(src_file, dst_file, mode, kernel_size, out); });
+}
+
+STDMETHODIMP OpInterface::CvSharpen(BSTR src_file, BSTR dst_file, DOUBLE strength, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvSharpen(src_file, dst_file, strength, out); });
+}
+
+STDMETHODIMP OpInterface::CvCropValid(BSTR src_file, BSTR dst_file, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvCropValid(src_file, dst_file, out); });
+}
+
+STDMETHODIMP OpInterface::CvConnectedComponents(BSTR src_file, DOUBLE min_area, BSTR *retjson, LONG *ret) {
+    if (!retjson || !ret) {
+        return E_POINTER;
+    }
+
+    *retjson = nullptr;
+    *ret = 0;
+
+    std::wstring s;
+    obj.CvConnectedComponents(src_file, min_area, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    return newstr.CopyTo(retjson);
+}
+
+STDMETHODIMP OpInterface::CvFindContours(BSTR src_file, DOUBLE min_area, BSTR *retjson, LONG *ret) {
+    if (!retjson || !ret) {
+        return E_POINTER;
+    }
+
+    *retjson = nullptr;
+    *ret = 0;
+
+    std::wstring s;
+    obj.CvFindContours(src_file, min_area, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    return newstr.CopyTo(retjson);
+}
+
+STDMETHODIMP OpInterface::CvPreprocessPipeline(BSTR src_file, BSTR dst_file, BSTR pipeline, LONG *ret) {
+    return RunCvRetOnly(ret, [&](LONG *out) { obj.CvPreprocessPipeline(src_file, dst_file, pipeline, out); });
+}
+
+STDMETHODIMP OpInterface::CvCrop(BSTR src_file, LONG x, LONG y, LONG width, LONG height, BSTR dst_file, LONG *ret) {
+    obj.CvCrop(src_file, x, y, width, height, dst_file, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvResize(BSTR src_file, LONG width, LONG height, BSTR dst_file, LONG *ret) {
+    obj.CvResize(src_file, width, height, dst_file, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvThreshold(BSTR src_file, BSTR dst_file, DOUBLE threshold, DOUBLE max_value, BSTR mode,
+                                      LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    obj.CvThreshold(src_file, dst_file, threshold, max_value, mode, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvInRange(BSTR src_file, BSTR dst_file, BSTR color_space, BSTR lower, BSTR upper, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    obj.CvInRange(src_file, dst_file, color_space, lower, upper, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvMorphology(BSTR src_file, BSTR dst_file, BSTR mode, LONG kernel_size, LONG iterations,
+                                       LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    obj.CvMorphology(src_file, dst_file, mode, kernel_size, iterations, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvThin(BSTR src_file, BSTR dst_file, BSTR mode, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    obj.CvThin(src_file, dst_file, mode, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvMatchTemplate(LONG x, LONG y, LONG width, LONG height, BSTR template_name,
+                                          DOUBLE threshold, LONG dir, LONG strip_mode, LONG method, LONG color_mode,
+                                          BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvMatchTemplate(x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvMatchTemplateScale(LONG x, LONG y, LONG width, LONG height, BSTR template_name,
+                                               BSTR scales, DOUBLE threshold, LONG method, LONG color_mode,
+                                               BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvMatchTemplateScale(x, y, width, height, template_name, scales, threshold, method, color_mode, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvMatchAnyTemplate(LONG x, LONG y, LONG width, LONG height, BSTR template_names,
+                                             DOUBLE threshold, LONG dir, LONG strip_mode, LONG method, LONG color_mode,
+                                             BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvMatchAnyTemplate(x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvMatchAllTemplates(LONG x, LONG y, LONG width, LONG height, BSTR template_names,
+                                              DOUBLE threshold, LONG dir, LONG strip_mode, LONG method, LONG color_mode,
+                                              BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvMatchAllTemplates(x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvFeatureMatchTemplate(LONG x, LONG y, LONG width, LONG height, BSTR template_name,
+                                                 DOUBLE threshold, BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvFeatureMatchTemplate(x, y, width, height, template_name, threshold, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvEdgeMatchTemplate(LONG x, LONG y, LONG width, LONG height, BSTR template_name,
+                                              DOUBLE threshold, BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvEdgeMatchTemplate(x, y, width, height, template_name, threshold, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::CvShapeMatchTemplate(LONG x, LONG y, LONG width, LONG height, BSTR template_name,
+                                               DOUBLE threshold, BSTR *retjson, LONG *ret) {
+    wstring s;
+    obj.CvShapeMatchTemplate(x, y, width, height, template_name, threshold, s, ret);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    newstr.CopyTo(retjson);
     return S_OK;
 }
 

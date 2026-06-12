@@ -4,47 +4,44 @@
 class opMouseDx : public opMouseWin {
   public:
     opMouseDx();
-    virtual ~opMouseDx();
+    ~opMouseDx() override;
 
-    virtual long Bind(HWND h, int mode);
+    long Bind(HWND h, int mode) override;
 
-    virtual long UnBind();
+    long UnBind() override;
 
-    virtual long GetCursorPos(long &x, long &y);
+    long GetCursorPos(long &x, long &y) override;
 
-    virtual long MoveR(int rx, int ry);
+    long GetCursorShape(std::wstring &ret) override;
 
-    virtual long MoveTo(int x, int y);
+    long MoveR(int rx, int ry) override;
 
-    virtual long MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y);
+    long MoveTo(int x, int y) override;
 
-    virtual long LeftClick();
+    long MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) override;
 
-    virtual long LeftDoubleClick();
+    long LeftClick() override;
 
-    virtual long LeftDown();
+    long LeftDoubleClick() override;
 
-    virtual long LeftUp();
+    long LeftDown() override;
 
-    virtual long MiddleClick();
+    long LeftUp() override;
 
-    virtual long MiddleDown();
+    long MiddleClick() override;
 
-    virtual long MiddleUp();
+    long MiddleDown() override;
 
-    virtual long RightClick();
+    long MiddleUp() override;
 
-    virtual long RightDown();
+    long RightClick() override;
 
-    virtual long RightUp();
+    long RightDown() override;
 
-    virtual long WheelDown();
+    long RightUp() override;
 
-    virtual long WheelUp();
+    long WheelDown() override;
 
-  private:
-    HWND _hwnd;
-    int _mode;
-    int _x, _y;
-    float _dpi; // screen dpi
+    long WheelUp() override;
+
 };

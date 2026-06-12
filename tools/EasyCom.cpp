@@ -183,7 +183,7 @@ int setupA(const char *path) {
     // }
     strcpy(dllpathA, path);
     wchar_t *m_wchar;
-    int nlen = strlen(dllpathA);
+    int nlen = static_cast<int>(strlen(dllpathA));
     int len = MultiByteToWideChar(CP_ACP, 0, dllpathA, nlen, NULL, 0);
     m_wchar = new wchar_t[len + 1];
     MultiByteToWideChar(CP_ACP, 0, dllpathA, nlen, m_wchar, len);
@@ -200,7 +200,7 @@ int setupW(const wchar_t *path) {
     // if (!fin) {
     //	return 0;//file not exist
     // }
-    int nlen = wcslen(path);
+    int nlen = static_cast<int>(wcslen(path));
     wcscpy(dllpathW, path);
     char *m_char;
     int len = WideCharToMultiByte(CP_ACP, 0, path, nlen, NULL, 0, NULL, NULL);

@@ -1,7 +1,6 @@
 // Copyright 2022 Eugen Hartmann.
 // Licensed under the MIT License (MIT).
 
-#include <format>
 #include <iostream>
 
 // #include "d3d12-base-helper.h"

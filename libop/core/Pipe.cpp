@@ -25,16 +25,15 @@ void terminate_process_tree(DWORD pid) {
         ::CloseHandle(snapshot);
     }
 
+    HANDLE process = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+    if (process) {
+        ::TerminateProcess(process, 0);
+        ::WaitForSingleObject(process, 1000);
+        ::CloseHandle(process);
+    }
+
     for (DWORD child_pid : children)
         terminate_process_tree(child_pid);
-
-    HANDLE process = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
-    if (!process)
-        return;
-
-    ::TerminateProcess(process, 0);
-    ::WaitForSingleObject(process, 1000);
-    ::CloseHandle(process);
 }
 
 } // namespace
@@ -53,33 +52,44 @@ Pipe::~Pipe() {
     close();
 }
 
-int Pipe::open(const string &cmd) {
+int Pipe::open(const std::wstring &cmd) {
     close();
+
+    ZeroMemory(&_pi, sizeof(_pi));
+    ZeroMemory(&_si, sizeof(_si));
+    ZeroMemory(&_ai, sizeof(_ai));
 
     _ai.nLength = sizeof(SECURITY_ATTRIBUTES);
     _ai.bInheritHandle = true;
     _ai.lpSecurityDescriptor = nullptr;
     if (!CreatePipe(&_hread, &_hwrite, &_ai, 0))
         return -1;
-    if (!SetHandleInformation(_hread, HANDLE_FLAG_INHERIT, 0))
+    if (!SetHandleInformation(_hread, HANDLE_FLAG_INHERIT, 0)) {
+        close(0);
         return -2;
-    if (!CreatePipe(&_hread2, &_hwrite2, &_ai, 0))
+    }
+    if (!CreatePipe(&_hread2, &_hwrite2, &_ai, 0)) {
+        close(0);
         return -3;
-    if (!SetHandleInformation(_hwrite2, HANDLE_FLAG_INHERIT, 0))
+    }
+    if (!SetHandleInformation(_hwrite2, HANDLE_FLAG_INHERIT, 0)) {
+        close(0);
         return -4;
+    }
 
-    GetStartupInfoA(&_si);
-    _si.cb = sizeof(STARTUPINFO);
+    _si.cb = sizeof(_si);
     _si.hStdError = _hwrite;
     _si.hStdOutput = _hwrite;
     _si.hStdInput = _hread2;
     _si.wShowWindow = SW_HIDE;
     _si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 
-    std::vector<char> cmdline(cmd.begin(), cmd.end());
+    std::vector<wchar_t> cmdline(cmd.begin(), cmd.end());
     cmdline.push_back('\0');
-    if (!CreateProcessA(NULL, cmdline.data(), nullptr, nullptr, true, CREATE_NO_WINDOW, nullptr, nullptr, &_si, &_pi))
+    if (!CreateProcessW(nullptr, cmdline.data(), nullptr, nullptr, true, CREATE_NO_WINDOW, nullptr, nullptr, &_si, &_pi)) {
+        close(0);
         return -5;
+    }
 
     SAFE_CLOSE(_hwrite);
     SAFE_CLOSE(_hread2);
@@ -98,16 +108,14 @@ int Pipe::close(DWORD process_wait_ms) {
         const DWORD wait_result = ::WaitForSingleObject(_pi.hProcess, process_wait_ms);
         if (wait_result == WAIT_TIMEOUT) {
             process_exited = false;
-            _reading = false;
             terminate_process_tree(_pi.dwProcessId);
         }
     }
 
-    if (process_exited) {
-        const ULONGLONG drain_deadline = ::GetTickCount64() + 100;
-        while (_reading.load() && ::GetTickCount64() < drain_deadline) {
-            ::Sleep(1);
-        }
+    // 超时杀掉进程后，管道里可能还有已经输出的数据，先给读线程一点时间消费。
+    const ULONGLONG drain_deadline = ::GetTickCount64() + (process_exited ? 100 : 200);
+    while (_reading.load() && ::GetTickCount64() < drain_deadline) {
+        ::Sleep(1);
     }
 
     _reading = false;
@@ -137,7 +145,7 @@ int Pipe::on_write(const string &info) {
     if (_reading.load() && _hwrite2) {
         unsigned long wlen = 0;
 
-        return WriteFile(_hwrite2, info.data(), info.length() * sizeof(char), &wlen, nullptr);
+        return WriteFile(_hwrite2, info.data(), static_cast<DWORD>(info.length() * sizeof(char)), &wlen, nullptr);
     }
     return 0;
 }
