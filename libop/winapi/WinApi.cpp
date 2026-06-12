@@ -42,7 +42,7 @@ void AppendHwndText(wchar_t *retstring, int &retstringlen, HWND hwnd) {
 
     const auto value = static_cast<unsigned long long>(reinterpret_cast<ULONG_PTR>(hwnd));
     if (retstringlen == 0)
-        retstringlen = wcslen(retstring);
+        retstringlen = static_cast<int>(wcslen(retstring));
 
     if (retstringlen > 1)
         swprintf(retstring, L"%s,%llu", retstring, value);
@@ -1861,11 +1861,11 @@ bool WinApi::EnumProcess(const wchar_t *name, wchar_t *retstring) {
     if (wcslen(name) < 1)
         return false;
     IsEuemprosuccess = 0;
-    if (EnumProcessbyName(0, name) == true) {
+    if (EnumProcessbyName(0, name)) {
         bret = true;
         for (int i = 0; i < IsEuemprosuccess; i++) {
             if (retstringlen == 0)
-                retstringlen = wcslen(retstring);
+                retstringlen = static_cast<int>(wcslen(retstring));
             if (retstringlen > 1)
                 swprintf(retstring, L"%s,%d", retstring, npid[i]);
             else
@@ -2175,7 +2175,7 @@ DWORD WinApi::GetMemoryInfo(DWORD ProcessID) {
 
     if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
         // memoryInK = pmc.WorkingSetSize/1024;		//单位为k
-        memoryInK = pmc.WorkingSetSize;
+        memoryInK = static_cast<DWORD>(pmc.WorkingSetSize);
     }
 
     CloseHandle(hProcess);
@@ -2313,7 +2313,7 @@ bool WinApi::SendPaste(HWND hwnd) {
     memset(wword, 0, (num + 1) * sizeof(wchar_t));
     MultiByteToWideChar(CP_ACP, 0, chBuffer, -1, wword, num);
 
-    int len = wcslen(wword);
+    int len = static_cast<int>(wcslen(wword));
     // MessageBoxA(NULL,tts,tts,NULL);
     for (int i = 0; i < len; i++) {
         ::SendMessage(hwnd, WM_CHAR, (WPARAM)wword[i], (LPARAM)1);
@@ -2446,7 +2446,7 @@ bool WinApi::SetWindowTransparent(HWND hwnd, LONG trans) {
     "SetLayeredWindowAttributes");*/
 
     SetWindowLong(hwnd, GWL_EXSTYLE, 0x80001);
-    bret = SetLayeredWindowAttributes(hwnd, crKey, trans, 2);
+    bret = SetLayeredWindowAttributes(hwnd, crKey, static_cast<BYTE>(trans), 2);
 
     return bret;
 }
@@ -2462,7 +2462,7 @@ bool WinApi::SetClipboard(const wchar_t *values) {
         // 将剪贴板内容清空
         EmptyClipboard();
         // 字节长度
-        int leng = strlen(chcontent) + 1;
+        int leng = static_cast<int>(strlen(chcontent)) + 1;
         // 在堆上分配可移动的内存块，程序返回一个内存句柄
         HANDLE hClip = GlobalAlloc(GHND | GMEM_SHARE, leng);
         // 定义指向字符型的指针变量
@@ -2574,7 +2574,7 @@ long WinApi::RunApp(const wstring &cmd, long mode, DWORD *pid) {
         size_t pos;
         pos = cmd.find(L".exe");
         if (pos != wstring::npos && pos != 0) {
-            for (int i = pos - 1; i >= 1; --i) {
+            for (int i = static_cast<int>(pos) - 1; i >= 1; --i) {
                 if (cmd[i] == L'\\' || cmd[i] == L'/') {
                     pos = i;
                     break;

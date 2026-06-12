@@ -3,9 +3,13 @@
 #include "DisplayHook.h"
 #include "InputHook.h"
 #include "../../../3rd_party/include/kiero.h"
-int refCount = 0;
 
-static int to_kiero_render_type(int render_type_) {
+namespace {
+
+int g_ref_count = 0;
+int g_input_ref_count = 0;
+
+int to_kiero_render_type(int render_type_) {
     if (render_type_ == RDT_DX_DEFAULT || render_type_ == RDT_DX_D3D9)
         return kiero::RenderType::D3D9;
     if (render_type_ == RDT_DX_D3D10)
@@ -22,15 +26,21 @@ static int to_kiero_render_type(int render_type_) {
     return kiero::RenderType::None;
 }
 
-//--------------export function--------------------------
+void release_module_if_idle() {
+    if (g_ref_count == 0) {
+        ::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
+    }
+}
+
+} // namespace
+
 long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
     int ret = 0;
-    opEnv::m_showErrorMsg =
-        2; // this code is excuate in hookde process,so its better not show meesageBox(avoid suspend the work thread)
+    opEnv::m_showErrorMsg = 2;
     if (!DisplayHook::is_hooked) {
         ret = DisplayHook::setup(hwnd_, render_type_);
         DisplayHook::is_hooked = ret == 1;
-        refCount += DisplayHook::is_hooked;
+        g_ref_count += DisplayHook::is_hooked;
     } else {
         if (DisplayHook::render_hwnd == hwnd_ && DisplayHook::render_type == to_kiero_render_type(render_type_)) {
             ret = 1;
@@ -38,8 +48,8 @@ long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
             DisplayHook::release();
             ret = DisplayHook::setup(hwnd_, render_type_);
             DisplayHook::is_hooked = ret == 1;
-            if (!DisplayHook::is_hooked && refCount > 0) {
-                refCount--;
+            if (!DisplayHook::is_hooked && g_ref_count > 0) {
+                g_ref_count--;
             }
         }
     }
@@ -51,35 +61,62 @@ long __stdcall ReleaseDisplayHook() {
     if (DisplayHook::is_hooked) {
         DisplayHook::is_hooked = false;
         ret = DisplayHook::release();
-        if (refCount > 0) {
-            refCount--;
-        }
-        if (refCount == 0) {
-            ::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
-        }
+        if (g_ref_count > 0)
+            g_ref_count--;
+        release_module_if_idle();
     }
 
     return ret;
 }
 
-long __stdcall SetInputHook(HWND hwnd_, int input_type_) {
+long __stdcall SetInputHook(HWND hwnd_, int) {
     int ret = 0;
     if (!InputHook::is_hooked) {
-        ret = InputHook::setup(hwnd_, input_type_);
+        ret = InputHook::setup(hwnd_);
         InputHook::is_hooked = ret == 1;
-        refCount += InputHook::is_hooked;
+        if (InputHook::is_hooked) {
+            g_ref_count++;
+            g_input_ref_count = 1;
+        }
+    } else if (InputHook::input_hwnd == hwnd_) {
+        // 鼠标和键盘 dx 共用一个远端 Hook，等双方都释放后再卸载。
+        g_input_ref_count++;
+        ret = 1;
     }
     return ret;
 }
 
 long __stdcall ReleaseInputHook() {
-    if (InputHook::is_hooked) {
+    if (InputHook::is_hooked && g_input_ref_count > 0 && --g_input_ref_count == 0) {
         InputHook::release();
         InputHook::is_hooked = false;
-        refCount--;
-        if (refCount == 0) {
-            ::FreeLibraryAndExitThread(static_cast<HMODULE>(opEnv::getInstance()), 0);
-        }
+        if (g_ref_count > 0)
+            g_ref_count--;
+        release_module_if_idle();
     }
     return 1;
+}
+
+unsigned long long __stdcall GetInputCursorShapeHash() {
+    return InputHook::cursorShapeHash();
+}
+
+unsigned long long __stdcall GetInputCursorShapeMeta() {
+    return InputHook::cursorShapeMeta();
+}
+
+unsigned long __stdcall GetInputCursorShapeHashLow() {
+    return static_cast<unsigned long>(InputHook::cursorShapeHash() & 0xFFFFFFFFull);
+}
+
+unsigned long __stdcall GetInputCursorShapeHashHigh() {
+    return static_cast<unsigned long>((InputHook::cursorShapeHash() >> 32) & 0xFFFFFFFFull);
+}
+
+unsigned long __stdcall GetInputCursorShapeMetaLow() {
+    return static_cast<unsigned long>(InputHook::cursorShapeMeta() & 0xFFFFFFFFull);
+}
+
+unsigned long __stdcall GetInputCursorShapeMetaHigh() {
+    return static_cast<unsigned long>((InputHook::cursorShapeMeta() >> 32) & 0xFFFFFFFFull);
 }

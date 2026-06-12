@@ -101,7 +101,7 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(FindNearestPos)(BSTR all_pos, LONG type, LONG x, LONG y, BSTR *retstr);
     //--------------------windows api------------------------------
     // 根据指定条件,枚举系统中符合条件的窗口
-    STDMETHOD(EnumWindow)(LONG parent, BSTR title, BSTR class_name, LONG filter, BSTR *retstr);
+    STDMETHOD(EnumWindow)(LONGLONG parent, BSTR title, BSTR class_name, LONG filter, BSTR *retstr);
     // 根据指定进程以及其它条件,枚举系统中符合条件的窗口
     STDMETHOD(EnumWindowByProcess)(BSTR process_name, BSTR title, BSTR class_name, LONG filter, BSTR *retstring);
     // 根据指定进程名,枚举系统中符合条件的进程PID
@@ -200,6 +200,8 @@ class ATL_NO_VTABLE OpInterface
     //--------------------mouse & keyboard------------------
     // 获取鼠标位置.
     STDMETHOD(GetCursorPos)(VARIANT *x, VARIANT *y, LONG *ret);
+    // 获取当前鼠标形状: visible,hash,width,height,hotX,hotY.
+    STDMETHOD(GetCursorShape)(BSTR *ret);
     // 鼠标相对于上次的位置移动rx,ry.
     STDMETHOD(MoveR)(LONG x, LONG y, LONG *ret);
     // 把鼠标移动到目的点(x,y)
@@ -289,10 +291,6 @@ class ATL_NO_VTABLE OpInterface
     // 查找指定区域内的所有颜色块, 颜色格式"RRGGBB-DRDGDB", 注意, 和按键的颜色格式相反
     STDMETHOD(FindColorBlockEx)
     (LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG count, LONG height, LONG width, BSTR *ret);
-    // 对插件部分接口的返回值进行解析,并返回ret中的坐标个数
-    STDMETHOD(GetResultCount)(BSTR str, LONG *ret);
-    // 对插件部分接口的返回值进行解析,并根据指定的第index个坐标,返回具体的值
-    STDMETHOD(GetResultPos)(BSTR str, LONG index, VARIANT *x, VARIANT *y, LONG *ret);
     // 获取(x,y)的颜色
     STDMETHOD(GetColor)(LONG x, LONG y, BSTR *ret);
     // 设置图像输入方式，默认窗口截图
@@ -360,6 +358,56 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(WriteData)(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret);
     // 读取数据
     STDMETHOD(ReadData)(LONGLONG hwnd, BSTR address, LONG size, BSTR *retstr);
+    //-----------------------opcv---------------------------------
+    STDMETHOD(CvLoadTemplate)(BSTR name, BSTR file_path, LONG *ret);
+    STDMETHOD(CvLoadMaskedTemplate)(BSTR name, BSTR template_path, BSTR mask_path, LONG *ret);
+    STDMETHOD(CvRemoveTemplate)(BSTR name, LONG *ret);
+    STDMETHOD(CvRemoveAllTemplates)(LONG *ret);
+    STDMETHOD(CvHasTemplate)(BSTR name, LONG *ret);
+    STDMETHOD(CvGetTemplateCount)(LONG *ret);
+    STDMETHOD(CvGetAllTemplateNames)(BSTR *retstr);
+    STDMETHOD(CvGetOpenCvVersion)(BSTR *retstr);
+    STDMETHOD(CvLoadTemplateList)(BSTR template_list, LONG *ret);
+    STDMETHOD(CvToGray)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvToBinary)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvToEdge)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvToOutline)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvDenoise)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvEqualize)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvCLAHE)(BSTR src_file, BSTR dst_file, DOUBLE clip_limit, LONG tile_grid_size, LONG *ret);
+    STDMETHOD(CvBlur)(BSTR src_file, BSTR dst_file, BSTR mode, LONG kernel_size, LONG *ret);
+    STDMETHOD(CvSharpen)(BSTR src_file, BSTR dst_file, DOUBLE strength, LONG *ret);
+    STDMETHOD(CvCropValid)(BSTR src_file, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvConnectedComponents)(BSTR src_file, DOUBLE min_area, BSTR *retjson, LONG *ret);
+    STDMETHOD(CvFindContours)(BSTR src_file, DOUBLE min_area, BSTR *retjson, LONG *ret);
+    STDMETHOD(CvPreprocessPipeline)(BSTR src_file, BSTR dst_file, BSTR pipeline, LONG *ret);
+    STDMETHOD(CvCrop)(BSTR src_file, LONG x, LONG y, LONG width, LONG height, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvResize)(BSTR src_file, LONG width, LONG height, BSTR dst_file, LONG *ret);
+    STDMETHOD(CvThreshold)(BSTR src_file, BSTR dst_file, DOUBLE threshold, DOUBLE max_value, BSTR mode, LONG *ret);
+    STDMETHOD(CvInRange)(BSTR src_file, BSTR dst_file, BSTR color_space, BSTR lower, BSTR upper, LONG *ret);
+    STDMETHOD(CvMorphology)(BSTR src_file, BSTR dst_file, BSTR mode, LONG kernel_size, LONG iterations, LONG *ret);
+    STDMETHOD(CvThin)(BSTR src_file, BSTR dst_file, BSTR mode, LONG *ret);
+    STDMETHOD(CvMatchTemplate)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_name, DOUBLE threshold, LONG dir, LONG strip_mode,
+     LONG method, LONG color_mode,
+     BSTR *retjson, LONG *ret);
+    STDMETHOD(CvMatchTemplateScale)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_name, BSTR scales, DOUBLE threshold, LONG method,
+     LONG color_mode, BSTR *retjson, LONG *ret);
+    STDMETHOD(CvMatchAnyTemplate)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_names, DOUBLE threshold, LONG dir, LONG strip_mode,
+     LONG method, LONG color_mode,
+     BSTR *retjson, LONG *ret);
+    STDMETHOD(CvMatchAllTemplates)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_names, DOUBLE threshold, LONG dir, LONG strip_mode,
+     LONG method, LONG color_mode,
+     BSTR *retjson, LONG *ret);
+    STDMETHOD(CvFeatureMatchTemplate)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_name, DOUBLE threshold, BSTR *retjson, LONG *ret);
+    STDMETHOD(CvEdgeMatchTemplate)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_name, DOUBLE threshold, BSTR *retjson, LONG *ret);
+    STDMETHOD(CvShapeMatchTemplate)
+    (LONG x, LONG y, LONG width, LONG height, BSTR template_name, DOUBLE threshold, BSTR *retjson, LONG *ret);
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(OpInterface), OpInterface)

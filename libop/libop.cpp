@@ -1,9 +1,7 @@
 ﻿// OpInterface.cpp: OpInterface 的实现
 
 #include "libop.h"
-#include <tchar.h>
 #include "./ImageProc/ImageProc.h"
-#include "./imageProc/OcrWrapper.h"
 #include "./background/opBackground.h"
 #include "./core/Cmder.h"
 #include "./core/globalVar.h"
@@ -11,14 +9,21 @@
 #include "./core/opEnv.h"
 #include "./core/optype.h"
 #include "./core/window_layout.h"
+#include "./imageProc/OcrWrapper.h"
+#include "./opencv/OpenCvBridge.h"
+#include "./opencv/OpenCvModule.h"
 #include "./winapi/Injecter.h"
 #include "./winapi/WinApi.h"
+#include <tchar.h>
 
 #include "./algorithm/AStar.hpp"
 #include "./winapi/MemoryEx.h"
+#include <cwchar>
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <sstream>
+#include <utility>
 #include <vector>
 
 #undef FindWindow
@@ -180,6 +185,354 @@ bool parse_window_list(const wchar_t *hwnds, std::vector<HWND> &windows) {
     }
 
     return !windows.empty();
+}
+
+std::wstring decode_command_output(const std::string &text) {
+    if (text.empty())
+        return L"";
+
+    const int utf8_len =
+        ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), nullptr, 0);
+    if (utf8_len > 0) {
+        std::wstring out(utf8_len, L'\0');
+        ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, text.data(), static_cast<int>(text.size()), out.data(),
+                              utf8_len);
+        return out;
+    }
+
+    return _s2wstring(text);
+}
+
+bool parse_word_result_item(const wchar_t *begin, const wchar_t *end, long &x, long &y, const wchar_t **word_sep) {
+    if (!begin || !end || begin >= end)
+        return false;
+
+    wchar_t *parse_end = nullptr;
+    const long parsed_x = wcstol(begin, &parse_end, 10);
+    if (parse_end == begin || parse_end >= end || *parse_end != L',')
+        return false;
+
+    const wchar_t *y_begin = parse_end + 1;
+    const long parsed_y = wcstol(y_begin, &parse_end, 10);
+    if (parse_end == y_begin || parse_end >= end || *parse_end != L'-')
+        return false;
+
+    x = parsed_x;
+    y = parsed_y;
+    if (word_sep)
+        *word_sep = parse_end;
+    return true;
+}
+
+bool parse_cv_threshold_mode(const wchar_t *mode_text, opcv::ThresholdMode &mode) {
+    std::wstring value = mode_text ? mode_text : L"";
+    wstring2lower(value);
+
+    if (value == L"binary" || value.empty()) {
+        mode = opcv::ThresholdMode::Binary;
+    } else if (value == L"binary_inv" || value == L"inv") {
+        mode = opcv::ThresholdMode::BinaryInv;
+    } else if (value == L"otsu") {
+        mode = opcv::ThresholdMode::Otsu;
+    } else if (value == L"otsu_inv") {
+        mode = opcv::ThresholdMode::OtsuInv;
+    } else if (value == L"adaptive") {
+        mode = opcv::ThresholdMode::Adaptive;
+    } else if (value == L"adaptive_inv") {
+        mode = opcv::ThresholdMode::AdaptiveInv;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+bool parse_cv_color_space(const wchar_t *space_text, opcv::InRangeColorSpace &color_space) {
+    std::wstring value = space_text ? space_text : L"";
+    wstring2lower(value);
+
+    if (value == L"bgr" || value.empty()) {
+        color_space = opcv::InRangeColorSpace::Bgr;
+    } else if (value == L"hsv") {
+        color_space = opcv::InRangeColorSpace::Hsv;
+    } else if (value == L"gray" || value == L"grey") {
+        color_space = opcv::InRangeColorSpace::Gray;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+bool parse_cv_morphology_mode(const wchar_t *mode_text, opcv::MorphologyMode &mode) {
+    std::wstring value = mode_text ? mode_text : L"";
+    wstring2lower(value);
+
+    if (value == L"erode") {
+        mode = opcv::MorphologyMode::Erode;
+    } else if (value == L"dilate") {
+        mode = opcv::MorphologyMode::Dilate;
+    } else if (value == L"open" || value.empty()) {
+        mode = opcv::MorphologyMode::Open;
+    } else if (value == L"close") {
+        mode = opcv::MorphologyMode::Close;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+bool parse_cv_thin_mode(const wchar_t *mode_text, opcv::ThinMode &mode) {
+    std::wstring value = mode_text ? mode_text : L"";
+    wstring2lower(value);
+
+    if (value == L"zhang_suen" || value == L"zhangsuen" || value.empty()) {
+        mode = opcv::ThinMode::ZhangSuen;
+    } else if (value == L"guo_hall" || value == L"guohall") {
+        mode = opcv::ThinMode::GuoHall;
+    } else if (value == L"morph") {
+        mode = opcv::ThinMode::Morph;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+bool parse_cv_blur_mode(const wchar_t *mode_text, opcv::BlurMode &mode) {
+    std::wstring value = mode_text ? mode_text : L"";
+    wstring2lower(value);
+
+    if (value == L"gaussian" || value.empty()) {
+        mode = opcv::BlurMode::Gaussian;
+    } else if (value == L"median") {
+        mode = opcv::BlurMode::Median;
+    } else if (value == L"bilateral") {
+        mode = opcv::BlurMode::Bilateral;
+    } else if (value == L"box" || value == L"mean") {
+        mode = opcv::BlurMode::Box;
+    } else {
+        return false;
+    }
+    return true;
+}
+
+bool parse_cv_number_list(const wchar_t *text, std::vector<double> &values) {
+    values.clear();
+    if (text == nullptr || text[0] == L'\0') {
+        return false;
+    }
+
+    // 支持 "1,2,3" 和 "1|2|3"，方便 COM/Python 侧直接传字符串。
+    std::wstring normalized = text;
+    replacew(normalized, L"|", L",");
+
+    std::vector<std::wstring> parts;
+    split(normalized, parts, L",");
+    for (const auto &part : parts) {
+        if (part.empty()) {
+            return false;
+        }
+
+        try {
+            size_t parsed = 0;
+            const double value = std::stod(part, &parsed);
+            if (parsed != part.size()) {
+                return false;
+            }
+            values.push_back(value);
+        } catch (...) {
+            return false;
+        }
+    }
+    return !values.empty();
+}
+
+template <typename Preprocess>
+void run_cv_file_preprocess(const wchar_t *src_file, const wchar_t *dst_file, long *ret, Preprocess &&preprocess) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) || !preprocess(source, output) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+std::wstring build_cv_components_json(const std::vector<opcv::RegionAnalysisResult> &results, bool ok) {
+    std::wostringstream oss;
+    oss << L"{\"ok\":" << (ok ? 1 : 0) << L",\"results\":[";
+    for (size_t i = 0; i < results.size(); ++i) {
+        if (i != 0) {
+            oss << L",";
+        }
+        const auto &item = results[i];
+        oss << L"{\"x\":" << item.x << L",\"y\":" << item.y << L",\"width\":" << item.width
+            << L",\"height\":" << item.height << L",\"area\":" << static_cast<long long>(item.area) << L"}";
+    }
+    oss << L"]}";
+    return oss.str();
+}
+
+std::wstring build_cv_contours_json(const std::vector<opcv::ContourAnalysisResult> &results, bool ok) {
+    std::wostringstream oss;
+    oss << L"{\"ok\":" << (ok ? 1 : 0) << L",\"results\":[";
+    for (size_t i = 0; i < results.size(); ++i) {
+        if (i != 0) {
+            oss << L",";
+        }
+        const auto &item = results[i];
+        oss << L"{\"x\":" << item.x << L",\"y\":" << item.y << L",\"width\":" << item.width
+            << L",\"height\":" << item.height << L",\"area\":" << static_cast<long long>(item.area)
+            << L",\"perimeter\":" << static_cast<long long>(item.perimeter) << L",\"points\":" << item.points
+            << L"}";
+    }
+    oss << L"]}";
+    return oss.str();
+}
+
+bool parse_cv_pipeline_step(const std::wstring &step, std::wstring &name, std::vector<std::wstring> &args) {
+    name.clear();
+    args.clear();
+    if (step.empty()) {
+        return false;
+    }
+
+    const size_t colon = step.find(L':');
+    name = colon == std::wstring::npos ? step : step.substr(0, colon);
+    wstring2lower(name);
+    if (name.empty()) {
+        return false;
+    }
+
+    if (colon != std::wstring::npos && colon + 1 < step.size()) {
+        split(step.substr(colon + 1), args, L",");
+    }
+    return true;
+}
+
+bool parse_cv_pipeline_double_arg(const std::vector<std::wstring> &args, size_t index, double default_value,
+                                  double &value) {
+    value = default_value;
+    if (index >= args.size() || args[index].empty()) {
+        return true;
+    }
+
+    try {
+        size_t parsed = 0;
+        value = std::stod(args[index], &parsed);
+        return parsed == args[index].size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool parse_cv_pipeline_long_arg(const std::vector<std::wstring> &args, size_t index, long default_value, long &value) {
+    value = default_value;
+    if (index >= args.size() || args[index].empty()) {
+        return true;
+    }
+
+    try {
+        size_t parsed = 0;
+        value = std::stol(args[index], &parsed);
+        return parsed == args[index].size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool cv_pipeline_apply_step(const std::wstring &name, const std::vector<std::wstring> &args,
+                            const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+    // 每一步只接收当前图像并输出下一张图，保证流水线状态简单清晰。
+    if (name == L"gray" || name == L"togray" || name == L"to_gray" || name == L"cvtogray") {
+        return opcv::ToGray(source, output);
+    }
+    if (name == L"binary" || name == L"tobinary" || name == L"to_binary" || name == L"cvtobinary") {
+        return opcv::ToBinary(source, output);
+    }
+    if (name == L"edge" || name == L"toedge" || name == L"to_edge" || name == L"cvtoedge") {
+        return opcv::ToEdge(source, output);
+    }
+    if (name == L"outline" || name == L"tooutline" || name == L"to_outline" || name == L"cvtooutline") {
+        return opcv::ToOutline(source, output);
+    }
+    if (name == L"denoise" || name == L"cvdenoise") {
+        return opcv::Denoise(source, output);
+    }
+    if (name == L"equalize" || name == L"cvequalize") {
+        return opcv::Equalize(source, output);
+    }
+    if (name == L"cropvalid" || name == L"crop_valid" || name == L"cvcropvalid") {
+        return opcv::CropValid(source, output);
+    }
+
+    if (name == L"clahe") {
+        double clip_limit = 2.0;
+        long tile_grid_size = 8;
+        return parse_cv_pipeline_double_arg(args, 0, 2.0, clip_limit) &&
+               parse_cv_pipeline_long_arg(args, 1, 8, tile_grid_size) &&
+               opcv::CLAHE(source, output, clip_limit, static_cast<int>(tile_grid_size));
+    }
+    if (name == L"blur") {
+        opcv::BlurMode mode;
+        long kernel_size = 3;
+        const wchar_t *mode_text = args.empty() ? L"gaussian" : args[0].c_str();
+        return parse_cv_blur_mode(mode_text, mode) && parse_cv_pipeline_long_arg(args, 1, 3, kernel_size) &&
+               opcv::Blur(source, output, mode, static_cast<int>(kernel_size));
+    }
+    if (name == L"sharpen") {
+        double strength = 1.0;
+        return parse_cv_pipeline_double_arg(args, 0, 1.0, strength) && opcv::Sharpen(source, output, strength);
+    }
+    if (name == L"threshold") {
+        opcv::ThresholdMode mode;
+        const wchar_t *mode_text = args.empty() ? L"otsu" : args[0].c_str();
+        double threshold = 0.0;
+        double max_value = 255.0;
+        return parse_cv_threshold_mode(mode_text, mode) && parse_cv_pipeline_double_arg(args, 1, 0.0, threshold) &&
+               parse_cv_pipeline_double_arg(args, 2, 255.0, max_value) &&
+               opcv::Threshold(source, output, threshold, max_value, mode);
+    }
+    if (name == L"inrange") {
+        if (args.size() < 7) {
+            return false;
+        }
+
+        opcv::InRangeColorSpace color_space;
+        const std::wstring lower = args[1] + L"," + args[2] + L"," + args[3];
+        const std::wstring upper = args[4] + L"," + args[5] + L"," + args[6];
+        std::vector<double> lower_values;
+        std::vector<double> upper_values;
+        return parse_cv_color_space(args[0].c_str(), color_space) &&
+               parse_cv_number_list(lower.c_str(), lower_values) && parse_cv_number_list(upper.c_str(), upper_values) &&
+               opcv::InRange(source, output, color_space, lower_values, upper_values);
+    }
+    if (name == L"morph") {
+        opcv::MorphologyMode mode;
+        long kernel_size = 3;
+        long iterations = 1;
+        const wchar_t *mode_text = args.empty() ? L"open" : args[0].c_str();
+        return parse_cv_morphology_mode(mode_text, mode) && parse_cv_pipeline_long_arg(args, 1, 3, kernel_size) &&
+               parse_cv_pipeline_long_arg(args, 2, 1, iterations) &&
+               opcv::Morphology(source, output, mode, static_cast<int>(kernel_size), static_cast<int>(iterations));
+    }
+    if (name == L"thin") {
+        opcv::ThinMode mode;
+        const wchar_t *mode_text = args.empty() ? L"zhang_suen" : args[0].c_str();
+        return parse_cv_thin_mode(mode_text, mode) && opcv::Thin(source, output, mode);
+    }
+    if (name == L"resize") {
+        long width = 0;
+        long height = 0;
+        return parse_cv_pipeline_long_arg(args, 0, 0, width) && parse_cv_pipeline_long_arg(args, 1, 0, height) &&
+               opcv::Resize(source, static_cast<int>(width), static_cast<int>(height), output);
+    }
+
+    return false;
 }
 
 } // namespace
@@ -377,8 +730,8 @@ void libop::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_
                           long endX, long endY, std::wstring &path) {
     AStar as;
     using Vec2i = AStar::Vec2i;
-    vector<Vec2i> walls;
-    vector<wstring> vstr;
+    std::vector<Vec2i> walls;
+    std::vector<wstring> vstr;
     Vec2i tp;
     split(disable_points, vstr, L"|");
     for (auto &it : vstr) {
@@ -386,7 +739,7 @@ void libop::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_
             break;
         walls.push_back(tp);
     }
-    list<Vec2i> paths;
+    std::list<Vec2i> paths;
 
     as.set_map(mapWidth, mapHeight, walls);
     as.findpath(beginX, beginY, endX, endY, paths);
@@ -446,19 +799,18 @@ void libop::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, st
     ret = rs;
 }
 
-void libop::EnumWindow(long parent, const wchar_t *title, const wchar_t *class_name, long filter,
+void libop::EnumWindow(LONG_PTR parent, const wchar_t *title, const wchar_t *class_name, long filter,
                        std::wstring &retstr) {
-    // TODO: 在此添加实现代码
+
     std::vector<wchar_t> retstring(MAX_PATH * 200, 0);
-    m_context->winapi.EnumWindow(reinterpret_cast<HWND>(static_cast<LONG_PTR>(parent)), title, class_name, filter,
-                                 retstring.data());
+    m_context->winapi.EnumWindow(reinterpret_cast<HWND>(parent), title, class_name, filter, retstring.data());
     //*retstr=_bstr_t(retstring);
     retstr = retstring.data();
 }
 
 void libop::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name,
                                 long filter, std::wstring &retstring) {
-    // TODO: 在此添加实现代码
+
     std::vector<wchar_t> retstr(MAX_PATH * 200, 0);
     m_context->winapi.EnumWindow(nullptr, title, class_name, filter, retstr.data(), process_name);
     //*retstring=_bstr_t(retstr);
@@ -467,7 +819,6 @@ void libop::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *titl
 }
 
 void libop::EnumProcess(const wchar_t *name, std::wstring &retstring) {
-    // TODO: 在此添加实现代码
     std::vector<wchar_t> retstr(MAX_PATH * 200, 0);
     m_context->winapi.EnumProcess(name, retstr.data());
     //*retstring=_bstr_t(retstr);
@@ -475,76 +826,62 @@ void libop::EnumProcess(const wchar_t *name, std::wstring &retstring) {
 }
 
 void libop::ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret) {
-    // TODO: 在此添加实现代码
-
     *bret = m_context->winapi.ClientToScreen(reinterpret_cast<HWND>(hwnd), *x, *y);
 }
 
 void libop::FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(m_context->winapi.FindWindow(class_name, title)));
+    *rethwnd = reinterpret_cast<LONG_PTR>(m_context->winapi.FindWindow(class_name, title));
 }
 
-void libop::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
+void libop::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
+                                LONG_PTR *rethwnd) {
+
     HWND hwnd = nullptr;
     m_context->winapi.FindWindowByProcess(class_name, title, hwnd, process_name);
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
+    *rethwnd = reinterpret_cast<LONG_PTR>(hwnd);
 }
 
 void libop::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
     HWND hwnd = nullptr;
     m_context->winapi.FindWindowByProcess(class_name, title, hwnd, NULL, process_id);
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
+    *rethwnd = reinterpret_cast<LONG_PTR>(hwnd);
 }
 
 void libop::FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(
-        m_context->winapi.FindWindowEx(reinterpret_cast<HWND>(static_cast<LONG_PTR>(parent)), class_name, title)));
+    *rethwnd =
+        reinterpret_cast<LONG_PTR>(m_context->winapi.FindWindowEx(reinterpret_cast<HWND>(parent), class_name, title));
 }
 
 void libop::GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
-    // TODO: 在此添加实现代码
-
     *nret = m_context->winapi.GetClientRect(reinterpret_cast<HWND>(hwnd), *x1, *y1, *x2, *y2);
 }
 
 void libop::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *nret) {
-    // TODO: 在此添加实现代码
-
     *nret = m_context->winapi.GetClientSize(reinterpret_cast<HWND>(hwnd), *width, *height);
 }
 
 void libop::GetForegroundFocus(LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::GetFocus()));
+    *rethwnd = reinterpret_cast<LONG_PTR>(::GetFocus());
 }
 
 void libop::GetForegroundWindow(LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::GetForegroundWindow()));
+    *rethwnd = reinterpret_cast<LONG_PTR>(::GetForegroundWindow());
 }
 
 void libop::GetMousePointWindow(LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
     //::Sleep(2000);
     HWND hwnd = nullptr;
     m_context->winapi.GetMousePointWindow(hwnd);
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
+    *rethwnd = reinterpret_cast<LONG_PTR>(hwnd);
 }
 
 void libop::GetPointWindow(long x, long y, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
     HWND hwnd = nullptr;
     m_context->winapi.GetMousePointWindow(hwnd, x, y);
-    *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(hwnd));
+    *rethwnd = reinterpret_cast<LONG_PTR>(hwnd);
 }
 
 void libop::GetProcessInfo(long pid, std::wstring &retstring) {
-    // TODO: 在此添加实现代码
-
     wchar_t retstr[MAX_PATH] = {0};
     m_context->winapi.GetProcessInfo(pid, retstr);
     //* retstring=_bstr_t(retstr);
@@ -553,24 +890,21 @@ void libop::GetProcessInfo(long pid, std::wstring &retstring) {
 }
 
 void libop::GetSpecialWindow(long flag, LONG_PTR *rethwnd) {
-    // TODO: 在此添加实现代码
     *rethwnd = 0;
     if (flag == 0)
-        *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(GetDesktopWindow()));
+        *rethwnd = reinterpret_cast<LONG_PTR>(GetDesktopWindow());
     else if (flag == 1) {
-        *rethwnd = static_cast<long>(reinterpret_cast<LONG_PTR>(::FindWindowW(L"Shell_TrayWnd", NULL)));
+        *rethwnd = reinterpret_cast<LONG_PTR>(::FindWindowW(L"Shell_TrayWnd", NULL));
     }
 }
 
 void libop::GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *nret) {
-    // TODO: 在此添加实现代码
     HWND target = nullptr;
-    m_context->winapi.GetWindow(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag, target);
-    *nret = static_cast<long>(reinterpret_cast<LONG_PTR>(target));
+    m_context->winapi.GetWindow(reinterpret_cast<HWND>(hwnd), flag, target);
+    *nret = reinterpret_cast<LONG_PTR>(target);
 }
 
 void libop::GetWindowClass(LONG_PTR hwnd, std::wstring &retstring) {
-    // TODO: 在此添加实现代码
     wchar_t classname[MAX_PATH] = {0};
     ::GetClassName(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), classname, MAX_PATH);
     //* retstring=_bstr_t(classname);
@@ -579,14 +913,12 @@ void libop::GetWindowClass(LONG_PTR hwnd, std::wstring &retstring) {
 }
 
 void libop::GetWindowProcessId(LONG_PTR hwnd, long *nretpid) {
-    // TODO: 在此添加实现代码
     DWORD pid = 0;
     ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     *nretpid = pid;
 }
 
 void libop::GetWindowProcessPath(LONG_PTR hwnd, std::wstring &retstring) {
-    // TODO: 在此添加实现代码
     DWORD pid = 0;
     ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     wchar_t process_path[MAX_PATH] = {0};
@@ -597,8 +929,6 @@ void libop::GetWindowProcessPath(LONG_PTR hwnd, std::wstring &retstring) {
 }
 
 void libop::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
-    // TODO: 在此添加实现代码
-
     RECT winrect;
     *nret = ::GetWindowRect(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &winrect);
     *x1 = winrect.left;
@@ -608,12 +938,10 @@ void libop::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2,
 }
 
 void libop::GetWindowState(LONG_PTR hwnd, long flag, long *rethwnd) {
-    // TODO: 在此添加实现代码
     *rethwnd = m_context->winapi.GetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag);
 }
 
 void libop::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
-    // TODO: 在此添加实现代码
     wchar_t title[MAX_PATH] = {0};
     ::GetWindowTextW(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), title, MAX_PATH);
     //* rettitle=_bstr_t(title);
@@ -622,7 +950,6 @@ void libop::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
 }
 
 void libop::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
-    // TODO: 在此添加实现代码
     RECT winrect;
     HWND target = reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd));
     ::GetWindowRect(target, &winrect);
@@ -632,8 +959,6 @@ void libop::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
 }
 
 void libop::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
-    // TODO: 在此添加实现代码
-
     POINT point;
     point.x = *x;
     point.y = *y;
@@ -643,28 +968,24 @@ void libop::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
 }
 
 void libop::SendPaste(LONG_PTR hwnd, long *nret) {
-    // TODO: 在此添加实现代码
     *nret = m_context->winapi.SendPaste(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)));
 }
 
 void libop::SetClientSize(LONG_PTR hwnd, long width, long hight, long *nret) {
-    // TODO: 在此添加实现代码
     *nret = m_context->winapi.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), width, hight);
 }
 
 void libop::SetWindowState(LONG_PTR hwnd, long flag, long *nret) {
-    // TODO: 在此添加实现代码
     *nret = m_context->winapi.SetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag);
 }
 
 void libop::SetWindowSize(LONG_PTR hwnd, long width, long height, long *nret) {
-    // TODO: 在此添加实现代码
     *nret = m_context->winapi.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), width, height, 1);
 }
 
-void libop::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y,
-                          long gap_x, long gap_y, long size_mode, long window_width, long window_height,
-                          long anchor_mode, long *ret) {
+void libop::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y, long gap_x,
+                          long gap_y, long size_mode, long window_width, long window_height, long anchor_mode,
+                          long *ret) {
     *ret = 0;
 
     std::vector<HWND> windows;
@@ -691,13 +1012,11 @@ void libop::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, 
 }
 
 void libop::SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *nret) {
-    // TODO: 在此添加实现代码
     //*nret=gWindowObj.TSSetWindowState(hwnd,flag);
     *nret = ::SetWindowTextW(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), title);
 }
 
 void libop::SetWindowTransparent(LONG_PTR hwnd, long trans, long *nret) {
-    // TODO: 在此添加实现代码
     *nret = m_context->winapi.SetWindowTransparent(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), trans);
 }
 
@@ -720,10 +1039,10 @@ void libop::WinExec(const wchar_t *cmdline, long cmdshow, long *ret) {
 }
 
 void libop::GetCmdStr(const wchar_t *cmd, long millseconds, std::wstring &retstr) {
-    auto strcmd = _ws2string(cmd);
     Cmder cd;
-    auto str = cd.GetCmdStr(strcmd, millseconds <= 0 ? 5 : millseconds);
-    retstr = _s2wstring(str);
+    auto str =
+        cd.GetCmdStr(cmd ? std::wstring(cmd) : std::wstring(), millseconds <= 0 ? 5 : static_cast<DWORD>(millseconds));
+    retstr = decode_command_output(str);
 }
 
 void libop::SetClipboard(const wchar_t *str, long *ret) {
@@ -769,6 +1088,10 @@ void libop::IsBind(long *ret) {
 void libop::GetCursorPos(long *x, long *y, long *ret) {
 
     *ret = m_context->bkproc._bkmouse->GetCursorPos(*x, *y);
+}
+
+void libop::GetCursorShape(std::wstring &ret) {
+    m_context->bkproc._bkmouse->GetCursorShape(ret);
 }
 
 void libop::MoveR(long x, long y, long *ret) {
@@ -1282,6 +1605,564 @@ void libop::MatchPicName(const wchar_t *pic_name, std::wstring &retstr) {
     }
 }
 
+void libop::CvLoadTemplate(const wchar_t *name, const wchar_t *file_path, long *ret) {
+    *ret = (name != nullptr && file_path != nullptr && opcv::LoadTemplate(name, file_path)) ? 1 : 0;
+}
+
+void libop::CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *template_path, const wchar_t *mask_path,
+                                 long *ret) {
+    *ret = (name != nullptr && template_path != nullptr && mask_path != nullptr &&
+            opcv::LoadMaskedTemplate(name, template_path, mask_path))
+               ? 1
+               : 0;
+}
+
+void libop::CvRemoveTemplate(const wchar_t *name, long *ret) {
+    *ret = (name != nullptr && opcv::RemoveTemplate(name)) ? 1 : 0;
+}
+
+void libop::CvRemoveAllTemplates(long *ret) {
+    opcv::RemoveAllTemplates();
+    *ret = 1;
+}
+
+void libop::CvHasTemplate(const wchar_t *name, long *ret) {
+    *ret = (name != nullptr && opcv::HasTemplate(name)) ? 1 : 0;
+}
+
+void libop::CvGetTemplateCount(long *ret) {
+    *ret = opcv::GetTemplateCount();
+}
+
+void libop::CvGetAllTemplateNames(std::wstring &retstr) {
+    retstr.clear();
+    const auto names = opcv::GetAllTemplateNames();
+    for (size_t i = 0; i < names.size(); ++i) {
+        if (i != 0) {
+            retstr += L"|";
+        }
+        retstr += names[i];
+    }
+}
+
+void libop::CvGetOpenCvVersion(std::wstring &retstr) {
+    retstr = opcv::GetOpenCvVersion();
+}
+
+void libop::CvLoadTemplateList(const wchar_t *template_list, long *ret) {
+    *ret = 0;
+    if (template_list == nullptr || template_list[0] == L'\0') {
+        return;
+    }
+
+    std::vector<std::wstring> items;
+    split(template_list, items, L"|");
+
+    std::vector<std::pair<std::wstring, std::wstring>> templates;
+    templates.reserve(items.size());
+    for (const auto &item : items) {
+        if (item.empty()) {
+            continue;
+        }
+
+        const size_t comma_pos = item.find(L',');
+        if (comma_pos == std::wstring::npos || comma_pos == 0 || comma_pos + 1 >= item.size()) {
+            return;
+        }
+
+        const std::wstring name = item.substr(0, comma_pos);
+        const std::wstring path = item.substr(comma_pos + 1);
+        if (name.empty() || path.empty()) {
+            return;
+        }
+        templates.emplace_back(name, path);
+    }
+
+    if (templates.empty()) {
+        return;
+    }
+
+    *ret = opcv::LoadTemplateList(templates) ? 1 : 0;
+}
+
+void libop::CvToGray(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::ToGray(source, output);
+    });
+}
+
+void libop::CvToBinary(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::ToBinary(source, output);
+    });
+}
+
+void libop::CvToEdge(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::ToEdge(source, output);
+    });
+}
+
+void libop::CvToOutline(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::ToOutline(source, output);
+    });
+}
+
+void libop::CvDenoise(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::Denoise(source, output);
+    });
+}
+
+void libop::CvEqualize(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::Equalize(source, output);
+    });
+}
+
+void libop::CvCLAHE(const wchar_t *src_file, const wchar_t *dst_file, double clip_limit, long tile_grid_size,
+                    long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [&](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::CLAHE(source, output, clip_limit, static_cast<int>(tile_grid_size));
+    });
+}
+
+void libop::CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size, long *ret) {
+    opcv::BlurMode blur_mode;
+    if (!parse_cv_blur_mode(mode, blur_mode)) {
+        *ret = 0;
+        return;
+    }
+
+    run_cv_file_preprocess(src_file, dst_file, ret, [&](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::Blur(source, output, blur_mode, static_cast<int>(kernel_size));
+    });
+}
+
+void libop::CvSharpen(const wchar_t *src_file, const wchar_t *dst_file, double strength, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [&](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::Sharpen(source, output, strength);
+    });
+}
+
+void libop::CvCropValid(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+    run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
+        return opcv::CropValid(source, output);
+    });
+}
+
+void libop::CvConnectedComponents(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
+    *ret = 0;
+    retjson = build_cv_components_json({}, false);
+    if (src_file == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    std::vector<opcv::RegionAnalysisResult> results;
+    const bool ok = opcv::LoadImageFromFile(src_file, source) && opcv::ConnectedComponents(source, min_area, results);
+    retjson = build_cv_components_json(results, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvFindContours(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
+    *ret = 0;
+    retjson = build_cv_contours_json({}, false);
+    if (src_file == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    std::vector<opcv::ContourAnalysisResult> results;
+    const bool ok = opcv::LoadImageFromFile(src_file, source) && opcv::FindContours(source, min_area, results);
+    retjson = build_cv_contours_json(results, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *pipeline, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr || pipeline == nullptr || pipeline[0] == L'\0') {
+        return;
+    }
+
+    opcv::ImageHandle current;
+    if (!opcv::LoadImageFromFile(src_file, current)) {
+        return;
+    }
+
+    std::vector<std::wstring> steps;
+    split(pipeline, steps, L"|");
+
+    bool applied = false;
+    for (const auto &step : steps) {
+        std::wstring name;
+        std::vector<std::wstring> args;
+        if (step.empty()) {
+            continue;
+        }
+        if (!parse_cv_pipeline_step(step, name, args)) {
+            return;
+        }
+
+        opcv::ImageHandle next;
+        if (!cv_pipeline_apply_step(name, args, current, next)) {
+            return;
+        }
+
+        current = std::move(next);
+        applied = true;
+    }
+
+    if (!applied || !opcv::SaveImageToFile(current, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvCrop(const wchar_t *src_file, long x, long y, long width, long height, const wchar_t *dst_file,
+                   long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    opcv::Region region;
+    region.x = static_cast<int>(x);
+    region.y = static_cast<int>(y);
+    region.width = static_cast<int>(width);
+    region.height = static_cast<int>(height);
+    if (!opcv::LoadImageFromFile(src_file, source) || !opcv::Crop(source, region, output) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvResize(const wchar_t *src_file, long width, long height, const wchar_t *dst_file, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) ||
+        !opcv::Resize(source, static_cast<int>(width), static_cast<int>(height), output) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, double threshold, double max_value,
+                        const wchar_t *mode, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::ThresholdMode threshold_mode;
+    if (!parse_cv_threshold_mode(mode, threshold_mode)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) ||
+        !opcv::Threshold(source, output, threshold, max_value, threshold_mode) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvInRange(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *color_space,
+                      const wchar_t *lower, const wchar_t *upper, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::InRangeColorSpace parsed_color_space;
+    std::vector<double> lower_values;
+    std::vector<double> upper_values;
+    if (!parse_cv_color_space(color_space, parsed_color_space) || !parse_cv_number_list(lower, lower_values) ||
+        !parse_cv_number_list(upper, upper_values)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) ||
+        !opcv::InRange(source, output, parsed_color_space, lower_values, upper_values) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size,
+                         long iterations, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::MorphologyMode morphology_mode;
+    if (!parse_cv_morphology_mode(mode, morphology_mode)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) ||
+        !opcv::Morphology(source, output, morphology_mode, static_cast<int>(kernel_size), static_cast<int>(iterations)) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvThin(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long *ret) {
+    *ret = 0;
+    if (src_file == nullptr || dst_file == nullptr) {
+        return;
+    }
+
+    opcv::ThinMode thin_mode;
+    if (!parse_cv_thin_mode(mode, thin_mode)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::ImageHandle output;
+    if (!opcv::LoadImageFromFile(src_file, source) || !opcv::Thin(source, output, thin_mode) ||
+        !opcv::SaveImageToFile(output, dst_file)) {
+        return;
+    }
+
+    *ret = 1;
+}
+
+void libop::CvMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                            long dir, long strip_mode, long method, long color_mode, std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+    if (template_name == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::MatchResult match;
+    const bool ok =
+        opcv::MatchTemplate(source, template_name, region, threshold, match, static_cast<opcv::SearchDirection>(dir),
+                            static_cast<opcv::StripMode>(strip_mode), method, opcv::bridge::ParseColorMode(color_mode));
+    if (ok) {
+        match.x += origin_x;
+        match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvMatchTemplateScale(long x, long y, long width, long height, const wchar_t *template_name,
+                                 const wchar_t *scales, double threshold, long method, long color_mode,
+                                 std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+    if (template_name == nullptr) {
+        return;
+    }
+
+    std::vector<double> scale_values;
+    if (!opcv::bridge::ParseScaleList(scales, scale_values)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::MatchResult match;
+    const bool ok = opcv::MatchTemplateScale(source, template_name, region, scale_values, threshold, match, method,
+                                             opcv::bridge::ParseColorMode(color_mode));
+    if (ok) {
+        match.x += origin_x;
+        match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvMatchAnyTemplate(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+                               long dir, long strip_mode, long method, long color_mode, std::wstring &retjson,
+                               long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+
+    std::vector<std::wstring> names;
+    if (!opcv::bridge::ParseTemplateNames(template_names, names)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::NamedMatchResult match;
+    const bool ok = opcv::MatchAnyTemplate(
+        source, names, region, threshold, match, static_cast<opcv::SearchDirection>(dir),
+        static_cast<opcv::StripMode>(strip_mode), method, opcv::bridge::ParseColorMode(color_mode));
+    if (ok) {
+        match.match.x += origin_x;
+        match.match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildNamedMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvMatchAllTemplates(long x, long y, long width, long height, const wchar_t *template_names,
+                                double threshold, long dir, long strip_mode, long method, long color_mode,
+                                std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0,\"results\":[]}";
+    *ret = 0;
+
+    std::vector<std::wstring> names;
+    if (!opcv::bridge::ParseTemplateNames(template_names, names)) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    std::vector<opcv::NamedMatchResult> matches;
+    const bool ok = opcv::MatchAllTemplates(
+        source, names, region, threshold, matches, static_cast<opcv::SearchDirection>(dir),
+        static_cast<opcv::StripMode>(strip_mode), method, opcv::bridge::ParseColorMode(color_mode));
+    if (ok) {
+        for (auto &match : matches) {
+            match.match.x += origin_x;
+            match.match.y += origin_y;
+        }
+    }
+    retjson = opcv::bridge::BuildAllMatchesJson(matches, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvFeatureMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+                                   double threshold, std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+    if (template_name == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::MatchResult match;
+    const bool ok = opcv::FeatureMatchTemplate(source, template_name, region, threshold, match);
+    if (ok) {
+        match.x += origin_x;
+        match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvEdgeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                                std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+    if (template_name == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::MatchResult match;
+    const bool ok = opcv::EdgeMatchTemplate(source, template_name, region, threshold, match);
+    if (ok) {
+        match.x += origin_x;
+        match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
+void libop::CvShapeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+                                 double threshold, std::wstring &retjson, long *ret) {
+    retjson = L"{\"ok\":0}";
+    *ret = 0;
+    if (template_name == nullptr) {
+        return;
+    }
+
+    opcv::ImageHandle source;
+    opcv::Region region;
+    int origin_x = 0;
+    int origin_y = 0;
+    if (!opcv::bridge::CaptureRegion(m_context->bkproc, m_context->image_proc, x, y, width, height, source, region,
+                                     origin_x, origin_y)) {
+        return;
+    }
+
+    opcv::MatchResult match;
+    const bool ok = opcv::ShapeMatchTemplate(source, template_name, region, threshold, match);
+    if (ok) {
+        match.x += origin_x;
+        match.y += origin_y;
+    }
+    retjson = opcv::bridge::BuildMatchJson(match, ok);
+    *ret = ok ? 1 : 0;
+}
+
 long libop::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
     string argvs = argv ? _ws2string(argv) : "";
     vector<string> vstr;
@@ -1349,20 +2230,23 @@ void libop::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, 
 // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
 void libop::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr) {
     wstring str;
+    const std::wstring color_text = color ? color : L"";
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
         } else {
             m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.str2binaryfbk(color);
+            m_context->image_proc.str2binaryfbk(color_text);
             std::vector<rect_t> vroi;
             m_context->image_proc.get_rois(5, vroi);
             for (auto &it : vroi) {
-
-                wstring tempWord = m_context->image_proc.FetchWord(it, color, L"");
-                wchar_t buff[22];
-                wsprintfW(buff, L"%d,%d-", it.x1, it.y1);
-                str += (buff + tempWord + L'/');
+                const wstring tempWord = m_context->image_proc.FetchWord(it, color_text, L"");
+                str += std::to_wstring(it.x1);
+                str += L",";
+                str += std::to_wstring(it.y1);
+                str += L"-";
+                str += tempWord;
+                str += L"/";
             }
         }
     }
@@ -1370,7 +2254,12 @@ void libop::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *co
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
 void libop::GetWordResultCount(const wchar_t *result, long *ret) {
-    int cnt = 0;
+    if (ret)
+        *ret = 0;
+    if (!result || !ret)
+        return;
+
+    long cnt = 0;
     const wchar_t *p = result;
     while (*p) {
         if (*p == L'/')
@@ -1381,55 +2270,68 @@ void libop::GetWordResultCount(const wchar_t *result, long *ret) {
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
 void libop::GetWordResultPos(const wchar_t *result, long index, long *x, long *y, long *ret) {
-    *ret = 0;
-    *x = 0;
-    *y = 0;
+    if (ret)
+        *ret = 0;
+    if (x)
+        *x = 0;
+    if (y)
+        *y = 0;
+    if (!result || !x || !y || !ret || index < 0)
+        return;
+
+    // GetWordsNoDict 的结果格式为: x,y-word/x,y-word/
     long cnt = 0;
     const wchar_t *p = result;
-    *ret = 0;
-    do {
-        if (!(*p))
-            break;
+    while (*p && cnt <= index) {
+        const wchar_t *item_end = wcschr(p, L'/');
+        if (!item_end)
+            item_end = p + wcslen(p);
+
         if (index == cnt) {
-            if (swscanf(p, L"%d,%d", x, y) == 2) {
+            long parsed_x = 0;
+            long parsed_y = 0;
+            if (parse_word_result_item(p, item_end, parsed_x, parsed_y, nullptr)) {
+                *x = parsed_x;
+                *y = parsed_y;
                 *ret = 1;
-            } else {
-                *ret = 0;
             }
-            break;
+            return;
         }
-        if (*p == L'/')
-            ++cnt;
-        ++p;
-    } while (*p && cnt <= index);
+
+        if (*item_end == L'\0')
+            return;
+        p = item_end + 1;
+        ++cnt;
+    }
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
 void libop::GetWordResultStr(const wchar_t *result, long index, std::wstring &ret_str) {
-    bool find = false;
+    ret_str.clear();
+    if (!result || index < 0)
+        return;
+
+    // 坏格式直接返回空字符串，避免越过字符串结尾读取。
     long cnt = 0;
     const wchar_t *p = result;
-    do {
-        if (!(*p))
-            break;
-        if (index == cnt) {
-            const wchar_t *p_start = p;
-            while (*p_start && *p_start != L'-')
-                ++p_start;
-            ++p_start;
-            const wchar_t *p_end = p_start;
-            while (*p_end && *p_end != L'/')
-                ++p_end;
+    while (*p && cnt <= index) {
+        const wchar_t *item_end = wcschr(p, L'/');
+        if (!item_end)
+            item_end = p + wcslen(p);
 
-            ret_str = wstring(p_start, p_end - p_start);
-            find = true;
-            break;
+        if (index == cnt) {
+            long parsed_x = 0;
+            long parsed_y = 0;
+            const wchar_t *sep = nullptr;
+            if (parse_word_result_item(p, item_end, parsed_x, parsed_y, &sep))
+                ret_str.assign(sep + 1, item_end);
+            return;
         }
-        if (*p == L'/')
-            ++cnt;
-        ++p;
-    } while (*p && cnt <= index);
-    if (!find)
-        ret_str = L"";
+
+        if (*item_end == L'\0')
+            return;
+        p = item_end + 1;
+        ++cnt;
+    }
 }
 // 识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 void libop::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, DOUBLE sim, std::wstring &retstr) {
@@ -1533,4 +2435,3 @@ void libop::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstr
     MemoryEx mem;
     retstr = mem.ReadData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, size);
 }
-

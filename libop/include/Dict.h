@@ -31,7 +31,7 @@ struct word_info_t {
         return width == rhs.width && height == rhs.height;
     }
     bool operator!=(const word_info_t &rhs) {
-        return width != rhs.width && height == rhs.height;
+        return width != rhs.width || height != rhs.height;
     }
 };
 struct word_t {
@@ -97,19 +97,21 @@ struct word1_t {
     bool operator==(const word1_t &rhs) {
         if (info.w != rhs.info.w || info.h != rhs.info.h || info.bit_cnt != rhs.info.bit_cnt)
             return false;
+        if (data.size() != rhs.data.size())
+            return false;
         for (size_t i = 0; i < data.size(); i++)
             if (data[i] != rhs.data[i])
                 return false;
         return true;
     }
     void set_chars(const std::wstring &s) {
-        int nlen = s.length() < 8 ? s.length() : 7;
-        memcpy(info.name, s.c_str(), nlen * 2);
+        const size_t nlen = std::min<size_t>(s.length(), 7);
+        memcpy(info.name, s.c_str(), nlen * sizeof(wchar_t));
         info.name[nlen] = L'\0';
     }
     void from_word(word_t &wd) {
         info.w = (uint8_t)wd.info.width;
-        info.h = wd.info.height;
+        info.h = static_cast<uint8_t>(wd.info.height);
         init();
         info.bit_cnt = wd.info.bit_count;
         memcpy(info.name, wd.info._char, 4 * sizeof(wchar_t));
@@ -152,8 +154,27 @@ struct word1_t {
         wstring name = vstr[0];
         wstring temp = vstr[1];
         wstring dataStr = vstr[2];
-        if (swscanf(temp.c_str(), L"%hhu,%hhu,%hu", &info.h, &info.w, &info.bit_cnt) != 3)
+        int height = 0, width = 0, bit_count = 0;
+        wchar_t tail = L'\0';
+        if (swscanf(temp.c_str(), L"%d,%d,%d%c", &height, &width, &bit_count, &tail) != 3)
             return false;
+        if (height <= 0 || height > 255 || width <= 0 || width > 255)
+            return false;
+        if (bit_count <= 0 || bit_count > width * height)
+            return false;
+
+        const size_t byte_count = (static_cast<size_t>(width) * static_cast<size_t>(height) + 7u) / 8u;
+        // OP 文本条目必须与点阵尺寸完全一致，避免坏数据越界写入。
+        if (dataStr.size() != byte_count * 2u)
+            return false;
+        for (wchar_t ch : dataStr) {
+            if (!iswxdigit(ch))
+                return false;
+        }
+
+        info.h = static_cast<uint8_t>(height);
+        info.w = static_cast<uint8_t>(width);
+        info.bit_cnt = static_cast<uint16_t>(bit_count);
         init();
         set_chars(name);
         for (size_t i = 0; i < dataStr.length(); i += 2) {
@@ -170,7 +191,7 @@ struct word1_t {
         wsprintf(buff, L"$%d,%d,%d$", info.h, info.w, info.bit_cnt);
         std::wstring tp = wstring(info.name) + buff;
         tp.reserve(tp.size() + data.size() * 2);
-        for (int j = 0; j < data.size(); ++j) {
+        for (size_t j = 0; j < data.size(); ++j) {
             wsprintf(buff, L"%02X", data[j]);
             tp += buff;
         }
@@ -182,6 +203,116 @@ struct word1_t {
         std::fill(data.begin(), data.end(), 0);
     }
 };
+
+namespace dm_dict_compat {
+
+// 大漠字库兼容格式：
+// 点阵HEX$文本$左.右.数量$高度
+// 这里只负责在导入边界把大漠点阵转换成 OP 的 word1_t，OP 内部仍然只保存自己的字库格式。
+inline bool parse_dm_text_word(const std::wstring &s, word1_t &word) {
+    std::vector<std::wstring> vstr;
+    split(s, vstr, L"$");
+    if (vstr.size() != 4 || vstr[0].empty() || vstr[1].empty() || vstr[3].empty())
+        return false;
+
+    // 第三个字段是大漠的左/右/数量信息；OP 匹配只需要点阵本身，所以校验格式后不直接使用。
+    int left = 0, right = 0, declared_count = 0;
+    if (swscanf(vstr[2].c_str(), L"%d.%d.%d", &left, &right, &declared_count) < 3)
+        return false;
+    (void)left;
+    (void)right;
+    (void)declared_count;
+
+    wchar_t *end = nullptr;
+    const long parsed_height = wcstol(vstr[3].c_str(), &end, 10);
+    if (end == vstr[3].c_str() || (end && *end != L'\0') || parsed_height <= 0 || parsed_height > 255)
+        return false;
+
+    for (wchar_t ch : vstr[0]) {
+        if (!iswxdigit(ch))
+            return false;
+    }
+
+    (void)parsed_height;
+
+    constexpr int dm_lattice_height = 11;
+    const int height = dm_lattice_height;
+    const size_t total_bits = vstr[0].size() * 4u;
+    if (total_bits < static_cast<size_t>(height))
+        return false;
+
+    // 保持和大漠 parserDict 一致：点阵按 MaxHight 切列，默认 MaxHight 为 11。
+    // 最后一段“高度”是大漠字库的附加信息，不参与 OP 本地点阵匹配的高宽计算。
+    const size_t width = (total_bits % static_cast<size_t>(height)) != 0u
+                             ? (total_bits - 1u) / static_cast<size_t>(height)
+                             : total_bits / static_cast<size_t>(height);
+    if (width == 0 || width > 255u)
+        return false;
+
+    word.info.w = static_cast<uint8_t>(width);
+    word.info.h = static_cast<uint8_t>(height);
+    word.info.bit_cnt = 0;
+    word.init();
+    word.set_chars(vstr[1]);
+
+    size_t bit_index = 0;
+    const size_t bit_count = static_cast<size_t>(word.info.w) * static_cast<size_t>(word.info.h);
+    for (wchar_t ch : vstr[0]) {
+        const int value = hex2bin(ch);
+        for (int bit = 3; bit >= 0; --bit, ++bit_index) {
+            if (bit_index >= bit_count)
+                continue;
+            if (((value >> bit) & 1) == 0)
+                continue;
+
+            // 转成 OP 的列优先、低位在前的 bit 存储。
+            SET_BIT(word.data[bit_index / 8], bit_index & 7);
+            ++word.info.bit_cnt;
+        }
+    }
+
+    return word.info.bit_cnt > 0;
+}
+
+} // namespace dm_dict_compat
+
+namespace dict_entry_importer {
+
+enum class text_entry_format {
+    unknown,
+    op_entry,
+    dm_txt_entry,
+};
+
+// 文本字库行/单条字形文本导入分发层。
+// 注意：OP 正式字库文件是二进制 .dict，由 Dict::read_dict 读取，不经过这里。
+// 这里的 OP 三段格式只表示 txt 文本字库、AddDict、GetDict、FetchWord 使用的单条字形文本数据。
+inline text_entry_format detect_text_entry_format(const std::wstring &s) {
+    std::vector<std::wstring> vstr;
+    split(s, vstr, L"$");
+    if (vstr.size() == 3)
+        return text_entry_format::op_entry;
+    if (vstr.size() == 4)
+        return text_entry_format::dm_txt_entry;
+    return text_entry_format::unknown;
+}
+
+inline bool parse_op_text_entry(const std::wstring &s, word1_t &word) {
+    return word.from_string(s);
+}
+
+inline bool parse_text_dict_entry(const std::wstring &s, word1_t &word) {
+    switch (detect_text_entry_format(s)) {
+    case text_entry_format::op_entry:
+        return parse_op_text_entry(s, word);
+    case text_entry_format::dm_txt_entry:
+        return dm_dict_compat::parse_dm_text_word(s, word);
+    default:
+        return false;
+    }
+}
+
+} // namespace dict_entry_importer
 
 struct Dict {
     // v0 v1
@@ -201,42 +332,75 @@ struct Dict {
     void read_dict(const std::wstring &s) {
         if (s.empty())
             return;
-        if (s.find(L".txt") != -1)
-            return read_dict_dm(s);
+
+        // SetDict 的入口：优先识别 OP 二进制 .dict，失败后尝试大漠文本字库。
+        if (read_binary_dict(s))
+            return;
+        read_dict_dm(s);
+    }
+
+    bool read_binary_dict(const std::wstring &s) {
         clear();
         std::fstream file;
         file.open(s, std::ios::in | std::ios::binary);
         if (!file.is_open())
-            return;
+            return false;
         // 读取头信息
-        file.read((char *)&info, sizeof(info));
+        dict_info_t file_info;
+        if (!file.read((char *)&file_info, sizeof(file_info))) {
+            file.close();
+            return false;
+        }
 
         // 校验
-        if (info._this_ver == 0 && info._check_code == (info._this_ver ^ info._word_count)) {
+        if (file_info._word_count < 0 || file_info._check_code != (file_info._this_ver ^ file_info._word_count)) {
+            file.close();
+            return false;
+        }
+
+        info = file_info;
+        if (file_info._this_ver == 0) {
             // old dict format
-            words.resize(info._word_count);
+            words.resize(file_info._word_count);
             info._this_ver = 1;
             word_t tmp;
             for (size_t i = 0; i < words.size(); i++) {
-                file.read((char *)&tmp, sizeof(tmp));
+                if (!file.read((char *)&tmp, sizeof(tmp))) {
+                    clear();
+                    file.close();
+                    return false;
+                }
                 words[i].from_word(tmp);
             }
+            info._check_code = info._this_ver ^ info._word_count;
             // file.read((char*)&words[0], sizeof(word_t)*info._word_count);
-        } else if (info._this_ver == 1 && info._check_code == (info._this_ver ^ info._word_count)) {
+        } else if (file_info._this_ver == 1) {
             // new dict format
-            words.resize(info._word_count);
+            words.resize(file_info._word_count);
             word1_info head;
             for (size_t i = 0; i < words.size(); i++) {
-                file.read((char *)&head, sizeof(head));
+                if (!file.read((char *)&head, sizeof(head))) {
+                    clear();
+                    file.close();
+                    return false;
+                }
 
                 words[i].info = head;
-                int nlen = (head.w * head.h + 7) / 8;
+                const size_t nlen = (static_cast<size_t>(head.w) * static_cast<size_t>(head.h) + 7u) / 8u;
                 words[i].data.resize(nlen);
-                file.read((char *)words[i].data.data(), nlen);
+                if (!file.read((char *)words[i].data.data(), static_cast<std::streamsize>(nlen))) {
+                    clear();
+                    file.close();
+                    return false;
+                }
             }
+        } else {
+            file.close();
+            return false;
         }
         file.close();
         sort_dict();
+        return true;
     }
     void read_dict_dm(const std::wstring &s) {
         clear();
@@ -260,22 +424,14 @@ struct Dict {
             ss = wstrResult;
             size_t idx1 = ss.find(L'$');
             auto idx2 = ss.find(L'$', idx1 + 1);
-            word_t wd;
             word1_t wd1;
-            wstring name;
-            if (idx1 != -1 && idx2 != -1) {
-                ss[idx1] = L'0';
-                name = ss.substr(idx1 + 1, idx2 - idx1 - 1);
-                wd.fromDm(ss.data(), idx1, name);
-                wd1.from_word(wd);
-                wd1.set_chars(name);
+            // 文件导入只接受大漠文本格式；OP 三段文本只用于 AddDict/SetMemDict 单条导入。
+            if (idx1 != -1 && idx2 != -1 && dm_dict_compat::parse_dm_text_word(ss, wd1))
                 add_word(wd1);
-            }
         }
         file.close();
         sort_dict();
     }
-
     void read_memory_dict_dm(const char *buf, size_t size) {
         clear();
         std::stringstream file;
@@ -297,17 +453,9 @@ struct Dict {
             ss = wstrResult;
             size_t idx1 = ss.find(L'$');
             auto idx2 = ss.find(L'$', idx1 + 1);
-            word_t wd;
             word1_t wd1;
-            wstring name;
-            if (idx1 != -1 && idx2 != -1) {
-                ss[idx1] = L'0';
-                name = ss.substr(idx1 + 1, idx2 - idx1 - 1);
-                wd.fromDm(ss.data(), idx1, name);
-                wd1.from_word(wd);
-                wd1.set_chars(name);
+            if (idx1 != -1 && idx2 != -1 && dict_entry_importer::parse_text_dict_entry(ss, wd1))
                 add_word(wd1);
-            }
         }
         sort_dict();
     }
@@ -325,16 +473,16 @@ struct Dict {
             else
                 ++it;
         }
-        info._word_count = words.size();
+        info._word_count = static_cast<decltype(info._word_count)>(words.size());
         // 设置校验
 
         info._check_code = info._this_ver ^ info._word_count;
         // 写入信息
         file.write((char *)&info, sizeof(info));
         // 写入数据
-        for (int i = 0; i < words.size(); i++) {
+        for (size_t i = 0; i < words.size(); i++) {
             file.write((char *)&words[i].info, sizeof(word1_info));
-            file.write((char *)words[i].data.data(), words[i].data.size());
+            file.write((char *)words[i].data.data(), static_cast<std::streamsize>(words[i].data.size()));
         }
         file.close();
         return true;
@@ -347,7 +495,7 @@ struct Dict {
             word.set_chars(L"");
 
             words.push_back(word);
-            info._word_count = words.size();
+            info._word_count = static_cast<decltype(info._word_count)>(words.size());
         } else { // only change char
             // word.set_chars(c);
         }
@@ -369,7 +517,7 @@ struct Dict {
         } else {
             it->set_chars(word.info.name);
         }
-        info._word_count = words.size();
+        info._word_count = static_cast<decltype(info._word_count)>(words.size());
     }
     void clear() {
         info._word_count = 0;
@@ -386,7 +534,7 @@ struct Dict {
         auto it = find(word);
         if (!words.empty() && it != words.end())
             words.erase(it);
-        info._word_count = words.size();
+        info._word_count = static_cast<decltype(info._word_count)>(words.size());
     }
 
     int size() const {

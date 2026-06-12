@@ -154,7 +154,7 @@ EXTERN_C const IID IID_IOpInterface;
             /* [retval][out] */ BSTR *retstr) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE EnumWindow( 
-            /* [in] */ LONG parent,
+            /* [in] */ hyper parent,
             /* [in] */ BSTR title,
             /* [in] */ BSTR class_name,
             /* [in] */ LONG filter,
@@ -470,6 +470,9 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR vk_code,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetCursorShape( 
+            /* [retval][out] */ BSTR *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE Capture( 
             /* [in] */ LONG x1,
             /* [in] */ LONG y1,
@@ -591,17 +594,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG height,
             /* [in] */ LONG width,
             /* [retval][out] */ BSTR *retstr) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetResultCount( 
-            /* [in] */ BSTR str,
-            /* [retval][out] */ LONG *ret) = 0;
-        
-        virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetResultPos( 
-            /* [in] */ BSTR str,
-            /* [in] */ LONG index,
-            /* [out] */ VARIANT *x,
-            /* [out] */ VARIANT *y,
-            /* [retval][out] */ LONG *ret) = 0;
         
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE GetColor( 
             /* [in] */ LONG x,
@@ -853,6 +845,245 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvLoadTemplate( 
+            /* [in] */ BSTR name,
+            /* [in] */ BSTR file_path,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvLoadMaskedTemplate( 
+            /* [in] */ BSTR name,
+            /* [in] */ BSTR template_path,
+            /* [in] */ BSTR mask_path,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvRemoveTemplate( 
+            /* [in] */ BSTR name,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvRemoveAllTemplates( 
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvHasTemplate( 
+            /* [in] */ BSTR name,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvGetTemplateCount( 
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvGetAllTemplateNames( 
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvGetOpenCvVersion( 
+            /* [retval][out] */ BSTR *retstr) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvLoadTemplateList( 
+            /* [in] */ BSTR template_list,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvMatchTemplate( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvMatchTemplateScale( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ BSTR scales,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvMatchAnyTemplate( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_names,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvMatchAllTemplates( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_names,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvFeatureMatchTemplate( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvEdgeMatchTemplate( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvShapeMatchTemplate( 
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvToGray( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvCrop( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvResize( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvThreshold( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ DOUBLE max_value,
+            /* [in] */ BSTR mode,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvInRange( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR color_space,
+            /* [in] */ BSTR lower,
+            /* [in] */ BSTR upper,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvMorphology( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [in] */ LONG kernel_size,
+            /* [in] */ LONG iterations,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvThin( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvToBinary( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvToEdge( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvToOutline( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvDenoise( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvCropValid( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvEqualize( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvCLAHE( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE clip_limit,
+            /* [in] */ LONG tile_grid_size,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvBlur( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [in] */ LONG kernel_size,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvSharpen( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE strength,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvConnectedComponents( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ DOUBLE min_area,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvFindContours( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ DOUBLE min_area,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvPreprocessPipeline( 
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR pipeline,
+            /* [retval][out] */ LONG *ret) = 0;
+        
     };
     
     
@@ -1004,7 +1235,7 @@ EXTERN_C const IID IID_IOpInterface;
         DECLSPEC_XFGVIRT(IOpInterface, EnumWindow)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *EnumWindow )( 
             IOpInterface * This,
-            /* [in] */ LONG parent,
+            /* [in] */ hyper parent,
             /* [in] */ BSTR title,
             /* [in] */ BSTR class_name,
             /* [in] */ LONG filter,
@@ -1450,6 +1681,11 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR vk_code,
             /* [retval][out] */ LONG *ret);
         
+        DECLSPEC_XFGVIRT(IOpInterface, GetCursorShape)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetCursorShape )( 
+            IOpInterface * This,
+            /* [retval][out] */ BSTR *ret);
+        
         DECLSPEC_XFGVIRT(IOpInterface, Capture)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *Capture )( 
             IOpInterface * This,
@@ -1593,21 +1829,6 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG height,
             /* [in] */ LONG width,
             /* [retval][out] */ BSTR *retstr);
-        
-        DECLSPEC_XFGVIRT(IOpInterface, GetResultCount)
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetResultCount )( 
-            IOpInterface * This,
-            /* [in] */ BSTR str,
-            /* [retval][out] */ LONG *ret);
-        
-        DECLSPEC_XFGVIRT(IOpInterface, GetResultPos)
-        /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetResultPos )( 
-            IOpInterface * This,
-            /* [in] */ BSTR str,
-            /* [in] */ LONG index,
-            /* [out] */ VARIANT *x,
-            /* [out] */ VARIANT *y,
-            /* [retval][out] */ LONG *ret);
         
         DECLSPEC_XFGVIRT(IOpInterface, GetColor)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *GetColor )( 
@@ -1943,6 +2164,315 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr);
         
+        DECLSPEC_XFGVIRT(IOpInterface, CvLoadTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvLoadTemplate )( 
+            IOpInterface * This,
+            /* [in] */ BSTR name,
+            /* [in] */ BSTR file_path,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvLoadMaskedTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvLoadMaskedTemplate )( 
+            IOpInterface * This,
+            /* [in] */ BSTR name,
+            /* [in] */ BSTR template_path,
+            /* [in] */ BSTR mask_path,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvRemoveTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvRemoveTemplate )( 
+            IOpInterface * This,
+            /* [in] */ BSTR name,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvRemoveAllTemplates)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvRemoveAllTemplates )( 
+            IOpInterface * This,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvHasTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvHasTemplate )( 
+            IOpInterface * This,
+            /* [in] */ BSTR name,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvGetTemplateCount)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvGetTemplateCount )( 
+            IOpInterface * This,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvGetAllTemplateNames)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvGetAllTemplateNames )( 
+            IOpInterface * This,
+            /* [retval][out] */ BSTR *retstr);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvGetOpenCvVersion)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvGetOpenCvVersion )( 
+            IOpInterface * This,
+            /* [retval][out] */ BSTR *retstr);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvLoadTemplateList)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvLoadTemplateList )( 
+            IOpInterface * This,
+            /* [in] */ BSTR template_list,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvMatchTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvMatchTemplate )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvMatchTemplateScale)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvMatchTemplateScale )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ BSTR scales,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvMatchAnyTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvMatchAnyTemplate )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_names,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvMatchAllTemplates)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvMatchAllTemplates )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_names,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ LONG dir,
+            /* [in] */ LONG strip_mode,
+            /* [in] */ LONG method,
+            /* [in] */ LONG color_mode,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvFeatureMatchTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvFeatureMatchTemplate )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvEdgeMatchTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvEdgeMatchTemplate )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvShapeMatchTemplate)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvShapeMatchTemplate )( 
+            IOpInterface * This,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR template_name,
+            /* [in] */ DOUBLE threshold,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvToGray)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvToGray )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvCrop)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvCrop )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ LONG x,
+            /* [in] */ LONG y,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvResize)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvResize )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ LONG width,
+            /* [in] */ LONG height,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvThreshold)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvThreshold )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE threshold,
+            /* [in] */ DOUBLE max_value,
+            /* [in] */ BSTR mode,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvInRange)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvInRange )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR color_space,
+            /* [in] */ BSTR lower,
+            /* [in] */ BSTR upper,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvMorphology)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvMorphology )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [in] */ LONG kernel_size,
+            /* [in] */ LONG iterations,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvThin)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvThin )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvToBinary)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvToBinary )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvToEdge)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvToEdge )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvToOutline)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvToOutline )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvDenoise)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvDenoise )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvCropValid)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvCropValid )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvEqualize)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvEqualize )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvCLAHE)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvCLAHE )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE clip_limit,
+            /* [in] */ LONG tile_grid_size,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvBlur)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvBlur )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR mode,
+            /* [in] */ LONG kernel_size,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvSharpen)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvSharpen )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ DOUBLE strength,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvConnectedComponents)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvConnectedComponents )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ DOUBLE min_area,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvFindContours)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvFindContours )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ DOUBLE min_area,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, CvPreprocessPipeline)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvPreprocessPipeline )( 
+            IOpInterface * This,
+            /* [in] */ BSTR src_file,
+            /* [in] */ BSTR dst_file,
+            /* [in] */ BSTR pipeline,
+            /* [retval][out] */ LONG *ret);
+        
         END_INTERFACE
     } IOpInterfaceVtbl;
 
@@ -2216,6 +2746,9 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_KeyPressChar(This,vk_code,ret)	\
     ( (This)->lpVtbl -> KeyPressChar(This,vk_code,ret) ) 
 
+#define IOpInterface_GetCursorShape(This,ret)	\
+    ( (This)->lpVtbl -> GetCursorShape(This,ret) ) 
+
 #define IOpInterface_Capture(This,x1,y1,x2,y2,file_name,ret)	\
     ( (This)->lpVtbl -> Capture(This,x1,y1,x2,y2,file_name,ret) ) 
 
@@ -2248,12 +2781,6 @@ EXTERN_C const IID IID_IOpInterface;
 
 #define IOpInterface_FindColorBlockEx(This,x1,y1,x2,y2,color,sim,count,height,width,retstr)	\
     ( (This)->lpVtbl -> FindColorBlockEx(This,x1,y1,x2,y2,color,sim,count,height,width,retstr) ) 
-
-#define IOpInterface_GetResultCount(This,str,ret)	\
-    ( (This)->lpVtbl -> GetResultCount(This,str,ret) ) 
-
-#define IOpInterface_GetResultPos(This,str,index,x,y,ret)	\
-    ( (This)->lpVtbl -> GetResultPos(This,str,index,x,y,ret) ) 
 
 #define IOpInterface_GetColor(This,x,y,ret)	\
     ( (This)->lpVtbl -> GetColor(This,x,y,ret) ) 
@@ -2381,25 +2908,116 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_ReadData(This,hwnd,address,size,retstr)	\
     ( (This)->lpVtbl -> ReadData(This,hwnd,address,size,retstr) ) 
 
+#define IOpInterface_CvLoadTemplate(This,name,file_path,ret)	\
+    ( (This)->lpVtbl -> CvLoadTemplate(This,name,file_path,ret) ) 
+
+#define IOpInterface_CvLoadMaskedTemplate(This,name,template_path,mask_path,ret)	\
+    ( (This)->lpVtbl -> CvLoadMaskedTemplate(This,name,template_path,mask_path,ret) ) 
+
+#define IOpInterface_CvRemoveTemplate(This,name,ret)	\
+    ( (This)->lpVtbl -> CvRemoveTemplate(This,name,ret) ) 
+
+#define IOpInterface_CvRemoveAllTemplates(This,ret)	\
+    ( (This)->lpVtbl -> CvRemoveAllTemplates(This,ret) ) 
+
+#define IOpInterface_CvHasTemplate(This,name,ret)	\
+    ( (This)->lpVtbl -> CvHasTemplate(This,name,ret) ) 
+
+#define IOpInterface_CvGetTemplateCount(This,ret)	\
+    ( (This)->lpVtbl -> CvGetTemplateCount(This,ret) ) 
+
+#define IOpInterface_CvGetAllTemplateNames(This,retstr)	\
+    ( (This)->lpVtbl -> CvGetAllTemplateNames(This,retstr) ) 
+
+#define IOpInterface_CvGetOpenCvVersion(This,retstr)	\
+    ( (This)->lpVtbl -> CvGetOpenCvVersion(This,retstr) ) 
+
+#define IOpInterface_CvLoadTemplateList(This,template_list,ret)	\
+    ( (This)->lpVtbl -> CvLoadTemplateList(This,template_list,ret) ) 
+
+#define IOpInterface_CvMatchTemplate(This,x,y,width,height,template_name,threshold,dir,strip_mode,method,color_mode,retjson,ret)	\
+    ( (This)->lpVtbl -> CvMatchTemplate(This,x,y,width,height,template_name,threshold,dir,strip_mode,method,color_mode,retjson,ret) ) 
+
+#define IOpInterface_CvMatchTemplateScale(This,x,y,width,height,template_name,scales,threshold,method,color_mode,retjson,ret)	\
+    ( (This)->lpVtbl -> CvMatchTemplateScale(This,x,y,width,height,template_name,scales,threshold,method,color_mode,retjson,ret) ) 
+
+#define IOpInterface_CvMatchAnyTemplate(This,x,y,width,height,template_names,threshold,dir,strip_mode,method,color_mode,retjson,ret)	\
+    ( (This)->lpVtbl -> CvMatchAnyTemplate(This,x,y,width,height,template_names,threshold,dir,strip_mode,method,color_mode,retjson,ret) ) 
+
+#define IOpInterface_CvMatchAllTemplates(This,x,y,width,height,template_names,threshold,dir,strip_mode,method,color_mode,retjson,ret)	\
+    ( (This)->lpVtbl -> CvMatchAllTemplates(This,x,y,width,height,template_names,threshold,dir,strip_mode,method,color_mode,retjson,ret) ) 
+
+#define IOpInterface_CvFeatureMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret)	\
+    ( (This)->lpVtbl -> CvFeatureMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret) ) 
+
+#define IOpInterface_CvEdgeMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret)	\
+    ( (This)->lpVtbl -> CvEdgeMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret) ) 
+
+#define IOpInterface_CvShapeMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret)	\
+    ( (This)->lpVtbl -> CvShapeMatchTemplate(This,x,y,width,height,template_name,threshold,retjson,ret) ) 
+
+#define IOpInterface_CvToGray(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvToGray(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvCrop(This,src_file,x,y,width,height,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvCrop(This,src_file,x,y,width,height,dst_file,ret) ) 
+
+#define IOpInterface_CvResize(This,src_file,width,height,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvResize(This,src_file,width,height,dst_file,ret) ) 
+
+#define IOpInterface_CvThreshold(This,src_file,dst_file,threshold,max_value,mode,ret)	\
+    ( (This)->lpVtbl -> CvThreshold(This,src_file,dst_file,threshold,max_value,mode,ret) ) 
+
+#define IOpInterface_CvInRange(This,src_file,dst_file,color_space,lower,upper,ret)	\
+    ( (This)->lpVtbl -> CvInRange(This,src_file,dst_file,color_space,lower,upper,ret) ) 
+
+#define IOpInterface_CvMorphology(This,src_file,dst_file,mode,kernel_size,iterations,ret)	\
+    ( (This)->lpVtbl -> CvMorphology(This,src_file,dst_file,mode,kernel_size,iterations,ret) ) 
+
+#define IOpInterface_CvThin(This,src_file,dst_file,mode,ret)	\
+    ( (This)->lpVtbl -> CvThin(This,src_file,dst_file,mode,ret) ) 
+
+#define IOpInterface_CvToBinary(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvToBinary(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvToEdge(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvToEdge(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvToOutline(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvToOutline(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvDenoise(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvDenoise(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvCropValid(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvCropValid(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvEqualize(This,src_file,dst_file,ret)	\
+    ( (This)->lpVtbl -> CvEqualize(This,src_file,dst_file,ret) ) 
+
+#define IOpInterface_CvCLAHE(This,src_file,dst_file,clip_limit,tile_grid_size,ret)	\
+    ( (This)->lpVtbl -> CvCLAHE(This,src_file,dst_file,clip_limit,tile_grid_size,ret) ) 
+
+#define IOpInterface_CvBlur(This,src_file,dst_file,mode,kernel_size,ret)	\
+    ( (This)->lpVtbl -> CvBlur(This,src_file,dst_file,mode,kernel_size,ret) ) 
+
+#define IOpInterface_CvSharpen(This,src_file,dst_file,strength,ret)	\
+    ( (This)->lpVtbl -> CvSharpen(This,src_file,dst_file,strength,ret) ) 
+
+#define IOpInterface_CvConnectedComponents(This,src_file,min_area,retjson,ret)	\
+    ( (This)->lpVtbl -> CvConnectedComponents(This,src_file,min_area,retjson,ret) ) 
+
+#define IOpInterface_CvFindContours(This,src_file,min_area,retjson,ret)	\
+    ( (This)->lpVtbl -> CvFindContours(This,src_file,min_area,retjson,ret) ) 
+
+#define IOpInterface_CvPreprocessPipeline(This,src_file,dst_file,pipeline,ret)	\
+    ( (This)->lpVtbl -> CvPreprocessPipeline(This,src_file,dst_file,pipeline,ret) ) 
+
 #endif /* COBJMACROS */
 
 
 #endif 	/* C style interface */
 
-
-
-/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_GetDict_Proxy( 
-    IOpInterface * This,
-    /* [in] */ LONG idx,
-    /* [in] */ LONG font_index,
-    /* [retval][out] */ BSTR *retstr);
-
-
-void __RPC_STUB IOpInterface_GetDict_Stub(
-    IRpcStubBuffer *This,
-    IRpcChannelBuffer *_pRpcChannelBuffer,
-    PRPC_MESSAGE _pRpcMessage,
-    DWORD *_pdwStubPhase);
 
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_AddDict_Proxy( 
@@ -2571,6 +3189,560 @@ void __RPC_STUB IOpInterface_WriteData_Stub(
 
 
 void __RPC_STUB IOpInterface_ReadData_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvLoadTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR name,
+    /* [in] */ BSTR file_path,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvLoadTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvLoadMaskedTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR name,
+    /* [in] */ BSTR template_path,
+    /* [in] */ BSTR mask_path,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvLoadMaskedTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvRemoveTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR name,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvRemoveTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvRemoveAllTemplates_Proxy( 
+    IOpInterface * This,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvRemoveAllTemplates_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvHasTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR name,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvHasTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvGetTemplateCount_Proxy( 
+    IOpInterface * This,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvGetTemplateCount_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvGetAllTemplateNames_Proxy( 
+    IOpInterface * This,
+    /* [retval][out] */ BSTR *retstr);
+
+
+void __RPC_STUB IOpInterface_CvGetAllTemplateNames_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvGetOpenCvVersion_Proxy( 
+    IOpInterface * This,
+    /* [retval][out] */ BSTR *retstr);
+
+
+void __RPC_STUB IOpInterface_CvGetOpenCvVersion_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvLoadTemplateList_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR template_list,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvLoadTemplateList_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvMatchTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_name,
+    /* [in] */ DOUBLE threshold,
+    /* [in] */ LONG dir,
+    /* [in] */ LONG strip_mode,
+    /* [in] */ LONG method,
+    /* [in] */ LONG color_mode,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvMatchTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvMatchTemplateScale_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_name,
+    /* [in] */ BSTR scales,
+    /* [in] */ DOUBLE threshold,
+    /* [in] */ LONG method,
+    /* [in] */ LONG color_mode,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvMatchTemplateScale_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvMatchAnyTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_names,
+    /* [in] */ DOUBLE threshold,
+    /* [in] */ LONG dir,
+    /* [in] */ LONG strip_mode,
+    /* [in] */ LONG method,
+    /* [in] */ LONG color_mode,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvMatchAnyTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvMatchAllTemplates_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_names,
+    /* [in] */ DOUBLE threshold,
+    /* [in] */ LONG dir,
+    /* [in] */ LONG strip_mode,
+    /* [in] */ LONG method,
+    /* [in] */ LONG color_mode,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvMatchAllTemplates_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvFeatureMatchTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_name,
+    /* [in] */ DOUBLE threshold,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvFeatureMatchTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvEdgeMatchTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_name,
+    /* [in] */ DOUBLE threshold,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvEdgeMatchTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvShapeMatchTemplate_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR template_name,
+    /* [in] */ DOUBLE threshold,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvShapeMatchTemplate_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvToGray_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvToGray_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvCrop_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ LONG x,
+    /* [in] */ LONG y,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvCrop_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvResize_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ LONG width,
+    /* [in] */ LONG height,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvResize_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvThreshold_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ DOUBLE threshold,
+    /* [in] */ DOUBLE max_value,
+    /* [in] */ BSTR mode,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvThreshold_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvInRange_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ BSTR color_space,
+    /* [in] */ BSTR lower,
+    /* [in] */ BSTR upper,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvInRange_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvMorphology_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ BSTR mode,
+    /* [in] */ LONG kernel_size,
+    /* [in] */ LONG iterations,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvMorphology_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvThin_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ BSTR mode,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvThin_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvToBinary_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvToBinary_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvToEdge_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvToEdge_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvToOutline_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvToOutline_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvDenoise_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvDenoise_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvCropValid_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvCropValid_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvEqualize_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvEqualize_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvCLAHE_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ DOUBLE clip_limit,
+    /* [in] */ LONG tile_grid_size,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvCLAHE_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvBlur_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ BSTR mode,
+    /* [in] */ LONG kernel_size,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvBlur_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvSharpen_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ DOUBLE strength,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvSharpen_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvConnectedComponents_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ DOUBLE min_area,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvConnectedComponents_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvFindContours_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ DOUBLE min_area,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvFindContours_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_CvPreprocessPipeline_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR src_file,
+    /* [in] */ BSTR dst_file,
+    /* [in] */ BSTR pipeline,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_CvPreprocessPipeline_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,

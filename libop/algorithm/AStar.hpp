@@ -1,304 +1,161 @@
 #pragma once
 
-
-
-#include <algorithm>
-
+#include <cmath>
+#include <limits>
 #include <list>
-
-#include <set>
-
+#include <queue>
 #include <vector>
 
-
-
-using std::list;
-
-
-
-using std::list;
-
-using std::set;
-
-using std::vector;
-
 class AStar {
-
   public:
-
     struct Vec2i {
-
-        int x, y;
+        int x = 0;
+        int y = 0;
 
         bool operator==(const Vec2i &rhs) const {
-
             return x == rhs.x && y == rhs.y;
-
         }
 
         Vec2i operator+(const Vec2i &rhs) const {
-
-            return Vec2i{x + rhs.x, y + rhs.y};
-
+            return {x + rhs.x, y + rhs.y};
         }
-
     };
 
-    struct Node {
+    // 有效地图范围是 [0, w) x [0, h)，越界障碍点会被忽略。
+    void set_map(int w, int h, const std::vector<Vec2i> &wall) {
+        _mapSize = {w, h};
+        _walls.assign(cell_count(), false);
 
-        int F, G;
-
-        Vec2i pos;
-
-        Node *parent;
-
-        // Node(int)
-
-        Node() : F(0), G(0), parent{nullptr} {
-
+        for (const auto &pos : wall) {
+            if (!outside(pos)) {
+                _walls[index(pos)] = true;
+            }
         }
-
-
-
-        /*Node& operator=(const Node& rhs) {
-
-            F = rhs.F;
-
-            G = rhs.G;
-
-            H = rhs.H;
-
-            pos = rhs.pos;
-
-            return *this;
-
-        }*/
-
-    };
-
-    struct Nodeless {
-
-        bool operator()(const Node &lhs, const Node &rhs) const {
-
-            return lhs.pos.x < rhs.pos.x || (lhs.pos.x == rhs.pos.x && lhs.pos.y < rhs.pos.y);
-
-        }
-
-    };
-
-    struct Vec2less {
-
-        bool operator()(const Vec2i &lhs, const Vec2i &rhs) const {
-
-            return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
-
-        }
-
-    };
-
-    AStar() {
-
-        _start.x = _start.y = 0;
-
-        _end.x = _end.y = 0;
-
-        //_start < _end;
-
     }
 
-    bool outside(Vec2i pos) {
-
-        return pos.x < 0 || pos.x > _mapSize.x || pos.y < 0 || pos.y > _mapSize.y;
-
-    }
-
-    void set_map(int w, int h, const vector<Vec2i> &wall) {
-
-        _mapSize.x = w;
-
-        _mapSize.y = h;
-
-        _wallset.clear();
-
-        for (auto &it : wall) {
-
-            _wallset.insert(it);
-
-        }
-
-        /*	Vector2i tp;
-
-            for (int i = 0; i <= mapSize.x;++i) {
-
-                _wallset.insert({ i,0 });
-
-                _wallset.insert({ 0,i });
-
-                _wallset.insert({ mapSize.x,i });
-
-                _wallset.insert({ i,mapSize.y });
-
-            }*/
-
-    }
-
-    void findpath(int beginX, int beginY, int endX, int endY, list<Vec2i> &path) {
-
-        _openset.clear();
-
-        _closedset.clear();
-
+    // 保持现有输出顺序：终点 -> 起点。
+    void findpath(int beginX, int beginY, int endX, int endY, std::list<Vec2i> &path) {
         path.clear();
 
-        _start.x = beginX;
-
-        _start.y = beginY;
-
-        _end.x = endX;
-
-        _end.y = endY;
-
-        if (outside(_start) || outside(_end))
-
+        const Vec2i start{beginX, beginY};
+        const Vec2i end{endX, endY};
+        if (outside(start) || outside(end) || blocked(start) || blocked(end)) {
             return;
+        }
 
+        // 每个格子的状态按 y * width + x 映射到一维数组。
+        const int total = cell_count();
+        std::vector<int> g_score(total, kUnreached);
+        std::vector<int> parents(total, -1);
+        std::vector<bool> closed(total, false);
 
+        // 优先扩展预估总代价最低的节点。
+        std::priority_queue<OpenNode, std::vector<OpenNode>, OpenNodeGreater> open;
+        const int start_index = index(start);
+        const int end_index = index(end);
+        g_score[start_index] = 0;
+        open.push({start, heuristic(start, end), 0});
 
-        Node curr_node;
+        while (!open.empty()) {
+            const OpenNode current = open.top();
+            open.pop();
 
-        curr_node.pos = _start;
+            const int current_index = index(current.pos);
+            if (closed[current_index]) {
+                continue;
+            }
+            closed[current_index] = true;
 
-        _openset.insert(curr_node);
-
-        while (!_openset.empty()) {
-
-            auto S = std::min_element(_openset.begin(), _openset.end(),
-
-                                      [](const Node &lhs, const Node &rhs) { return lhs.F < rhs.F; });
-
-            curr_node = *S;
-
-            _closedset.insert(curr_node);
-
-            _openset.erase(S);
-
-            if (curr_node.pos == _end) { // get it!
-
-                break;
-
+            if (current_index == end_index) {
+                build_path(end_index, parents, path);
+                return;
             }
 
-            // 生成所有相邻节点
-
-            Node temp;
-
-            for (int i = 0; i < 8; ++i) {
-
-                temp.pos = curr_node.pos + _dir4[i];
-
-                temp.G = curr_node.G + 1;
-
-                int H = std::abs(temp.pos.x - _end.x) + std::abs(temp.pos.y - _end.y);
-
-                temp.F = temp.G + H;
-
-                if (_closedset.count(temp))
-
+            for (const auto &dir : kDirections) {
+                const Vec2i next = current.pos + dir;
+                if (outside(next) || blocked(next)) {
                     continue;
-
-                if (_wallset.count(temp.pos))
-
-                    continue;
-
-                if (outside(temp.pos))
-
-                    continue;
-
-                auto it = _openset.find(temp);
-
-                // 如果节点不在开放节点
-
-                if (it == _openset.end()) {
-
-                    temp.parent = (Node *)&(*_closedset.find(curr_node));
-
-                    _openset.insert(temp);
-
-                } else {
-
-                    // 更新开放节点
-
-                    if (it->F > temp.F) {
-
-                        auto ptr = (Node *)&(*it);
-
-                        ptr->F = temp.F;
-
-                    }
-
                 }
 
+                const int next_index = index(next);
+                if (closed[next_index]) {
+                    continue;
+                }
+
+                const int next_g = g_score[current_index] + 1;
+                if (next_g >= g_score[next_index]) {
+                    continue;
+                }
+
+                g_score[next_index] = next_g;
+                parents[next_index] = current_index;
+                open.push({next, next_g + heuristic(next, end), next_g});
             }
-
         }
-
-        // 获取路径
-
-        curr_node.pos = _end;
-
-        auto endit = _closedset.find(curr_node);
-
-        if (endit != _closedset.end()) {
-
-            auto pnode = (Node *)&(*endit);
-
-            while (pnode) {
-
-                _pathset.insert(pnode->pos);
-
-                path.push_back(pnode->pos);
-
-                pnode = pnode->parent;
-
-            }
-
-        }
-
     }
 
-
-
   private:
+    struct OpenNode {
+        Vec2i pos;
+        int f = 0;
+        int g = 0;
+    };
 
-    // Eigen::
+    struct OpenNodeGreater {
+        bool operator()(const OpenNode &lhs, const OpenNode &rhs) const {
+            if (lhs.f != rhs.f) {
+                return lhs.f > rhs.f;
+            }
+            return lhs.g < rhs.g;
+        }
+    };
 
-    Vec2i _start, _end;
+    static constexpr int kUnreached = (std::numeric_limits<int>::max)();
+    // 八方向移动，每步代价相同。
+    static constexpr Vec2i kDirections[8] = {
+        {0, 1},
+        {0, -1},
+        {-1, 0},
+        {1, 0},
+        {1, 1},
+        {-1, 1},
+        {-1, -1},
+        {1, -1},
+    };
 
-    // 地图大小
+    bool outside(Vec2i pos) const {
+        return pos.x < 0 || pos.y < 0 || pos.x >= _mapSize.x || pos.y >= _mapSize.y;
+    }
+
+    bool blocked(Vec2i pos) const {
+        return _walls.empty() || _walls[index(pos)];
+    }
+
+    int cell_count() const {
+        if (_mapSize.x <= 0 || _mapSize.y <= 0) {
+            return 0;
+        }
+        return _mapSize.x * _mapSize.y;
+    }
+
+    int index(Vec2i pos) const {
+        return pos.y * _mapSize.x + pos.x;
+    }
+
+    // 八方向等代价移动适合使用切比雪夫距离。
+    int heuristic(Vec2i from, Vec2i to) const {
+        const int dx = std::abs(from.x - to.x);
+        const int dy = std::abs(from.y - to.y);
+        return dx > dy ? dx : dy;
+    }
+
+    // 命中终点后，通过父节点索引回溯路径。
+    void build_path(int end_index, const std::vector<int> &parents, std::list<Vec2i> &path) const {
+        for (int current = end_index; current >= 0; current = parents[current]) {
+            path.push_back({current % _mapSize.x, current / _mapSize.x});
+        }
+    }
 
     Vec2i _mapSize;
-
-    // 开放节点
-
-    set<Node, Nodeless> _openset;
-
-    set<Node, Nodeless> _closedset;
-
-    // 墙节点
-
-    set<Vec2i, Vec2less> _wallset;
-
-    // 路径节点
-
-    set<Vec2i, Vec2less> _pathset;
-
-    // 方向
-
-    Vec2i const _dir4[8] = {{0, 1}, {0, -1}, {-1, 0}, {1, 0}, {1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
-
-
-
-  private:
-
+    std::vector<bool> _walls;
 };
-

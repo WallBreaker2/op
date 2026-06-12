@@ -13,6 +13,7 @@
 #endif
 
 #include "./keypad/winkeypad.h"
+#include "./keypad/opKeypadDx.h"
 #include "./mouse/opMouseDx.h"
 #include "displayInputHelper.h"
 
@@ -111,6 +112,8 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
         keypad = INPUT_TYPE::IN_NORMAL2;
     else if (skeypad == L"windows")
         keypad = INPUT_TYPE::IN_WINDOWS;
+    else if (skeypad == L"dx")
+        keypad = INPUT_TYPE::IN_DX;
     else {
         setlog(L"error keypad mode: %s", skeypad.c_str());
         return 0;
@@ -202,7 +205,7 @@ LONG_PTR opBackground::GetBindWindow() {
 }
 
 long opBackground::IsBind() {
-    return _pbkdisplay ? 1 : 0;
+    return _is_bind;
 }
 
 // long bkbase::GetCursorPos(int& x, int& y) {
@@ -258,25 +261,19 @@ void opBackground::unlock_data() {
 }
 
 long opBackground::get_height() {
-    auto &displayMethod = get_display_method();
-    if (displayMethod.first == L"pic") {
+    const auto &method = get_display_method().first;
+    if (method == L"pic" || method == L"mem") {
         return _pic.height;
-    } else if (displayMethod.first == L"mem") {
-        return _pic.height;
-    } else {
-        return _pbkdisplay ? _pbkdisplay->get_height() : 0;
     }
+    return _pbkdisplay ? _pbkdisplay->get_height() : 0;
 }
 
 long opBackground::get_width() {
-    auto &displayMethod = get_display_method();
-    if (displayMethod.first == L"pic") {
+    const auto &method = get_display_method().first;
+    if (method == L"pic" || method == L"mem") {
         return _pic.width;
-    } else if (displayMethod.first == L"mem") {
-        return _pic.width;
-    } else {
-        return _pbkdisplay ? _pbkdisplay->get_width() : 0;
     }
+    return _pbkdisplay ? _pbkdisplay->get_width() : 0;
 }
 
 long opBackground::RectConvert(long &x1, long &y1, long &x2, long &y2) {
@@ -334,19 +331,13 @@ long opBackground::get_image_type() {
 }
 
 bool opBackground::check_bind() {
+    // 显示模式非屏幕
+    if (get_display_method().first != L"screen") {
+        return !_pic.empty();
+    }
     // 已绑定
     if (IsBind())
         return true;
-    // 显示模式非屏幕
-    if (get_display_method().first != L"screen") {
-        if (get_display_method().first == L"pic") { // load pic first
-            wstring fullpath;
-            if (Path2GlobalPath(get_display_method().second, _curr_path, fullpath)) {
-                _pic.read(fullpath.data());
-            }
-        }
-        return true;
-    }
 
     // 绑定前台桌面
     return BindWindow(reinterpret_cast<LONG_PTR>(::GetDesktopWindow()), L"normal", L"normal", L"normal", 0);
@@ -358,34 +349,46 @@ const std::pair<wstring, wstring> &opBackground::get_display_method() const {
 
 long opBackground::set_display_method(const wstring &method) {
     if (method == L"screen") {
-        _display_method.first = method;
-        _display_method.second.clear();
+        _display_method = {L"screen", L""};
         return 1;
-    } else {
-        auto idx = method.find(L"pic:");
-        if (idx != wstring::npos) {
-            _display_method.first = L"pic";
-            _display_method.second = method.substr(idx + 4);
-            _pic.read(_display_method.second.data());
-            return 1;
-        }
-        idx = method.find(L"mem:");
-        if (idx != wstring::npos) {
-            std::wstring mem_arg;
-            if (!display_input_helper::parse_mem_display_input(method.substr(idx + 4), _pic, mem_arg)) {
-                return 0;
-            }
-            _display_method.first = L"mem";
-            _display_method.second = mem_arg;
-
-            return 1;
-        }
-        return 0;
     }
+
+    auto idx = method.find(L"pic:");
+    if (idx != wstring::npos) {
+        const auto file_path = method.substr(idx + 4);
+        wstring fullpath;
+        if (!Path2GlobalPath(file_path, _curr_path, fullpath)) {
+            return 0;
+        }
+
+        Image image;
+        if (!image.read(fullpath.data())) {
+            return 0;
+        }
+
+        _pic = image;
+        _display_method = {L"pic", file_path};
+        return 1;
+    }
+
+    idx = method.find(L"mem:");
+    if (idx != wstring::npos) {
+        std::wstring mem_arg;
+        Image image;
+        if (!display_input_helper::parse_mem_display_input(method.substr(idx + 4), image, mem_arg)) {
+            return 0;
+        }
+
+        _pic = image;
+        _display_method = {L"mem", mem_arg};
+        return 1;
+    }
+
+    return 0;
 }
 
 bool opBackground::requestCapture(int x1, int y1, int w, int h, Image &img) {
-    wstring method = get_display_method().first;
+    const auto &method = get_display_method().first;
     if (method == L"screen")
         return _pbkdisplay->requestCapture(x1, y1, w, h, img);
     else if (method == L"pic" || method == L"mem") {
@@ -429,6 +432,7 @@ opMouseWin *opBackground::createMouse(int mode) {
 }
 
 bkkeypad *opBackground::createKeypad(int mode) {
+    if (mode == INPUT_TYPE::IN_DX)
+        return new opKeypadDx();
     return new winkeypad();
-    // return 0;
 }
