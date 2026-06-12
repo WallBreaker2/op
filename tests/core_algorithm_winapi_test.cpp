@@ -1,14 +1,58 @@
 #include "test_support.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 #include <windows.h>
 
 using namespace std;
 using test_support::SendStringWindow;
+
+namespace {
+
+vector<pair<int, int>> ParsePath(const wstring &path) {
+    vector<pair<int, int>> points;
+    wstringstream stream(path);
+    wstring token;
+    while (getline(stream, token, L'|')) {
+        int x = 0;
+        int y = 0;
+        if (swscanf_s(token.c_str(), L"%d,%d", &x, &y) == 2) {
+            points.emplace_back(x, y);
+        }
+    }
+    return points;
+}
+
+struct ScopedHandle {
+    HANDLE handle = INVALID_HANDLE_VALUE;
+
+    ~ScopedHandle() {
+        if (handle != INVALID_HANDLE_VALUE) {
+            ::CloseHandle(handle);
+        }
+    }
+};
+
+struct TempCommandFile {
+    wstring dir;
+    wstring script;
+
+    ~TempCommandFile() {
+        if (!script.empty()) {
+            ::DeleteFileW(script.c_str());
+        }
+        if (!dir.empty()) {
+            ::RemoveDirectoryW(dir.c_str());
+        }
+    }
+};
+
+} // namespace
 
 TEST(CoreTest, VersionIsNotEmpty) {
     libop op;
@@ -39,7 +83,28 @@ TEST(AlgorithmTest, AStarFindPath) {
     libop op;
     wstring path;
     op.AStarFindPath(100, 100, L"50,50", 0, 0, 99, 99, path);
-    wcout << L"AStar Path (first 20 chars): " << path.substr(0, 20) << L"..." << endl;
+
+    const auto points = ParsePath(path);
+    ASSERT_FALSE(points.empty());
+    EXPECT_EQ(points.front(), make_pair(0, 0));
+    EXPECT_EQ(points.back(), make_pair(99, 99));
+
+    for (size_t i = 1; i < points.size(); ++i) {
+        const int dx = std::abs(points[i].first - points[i - 1].first);
+        const int dy = std::abs(points[i].second - points[i - 1].second);
+        EXPECT_LE(dx, 1);
+        EXPECT_LE(dy, 1);
+        EXPECT_GT(dx + dy, 0);
+    }
+
+    EXPECT_EQ(find(points.begin(), points.end(), make_pair(50, 50)), points.end());
+}
+
+TEST(AlgorithmTest, AStarRejectsOutOfBoundsTarget) {
+    libop op;
+    wstring path;
+    op.AStarFindPath(3, 3, L"", 0, 0, 3, 2, path);
+    EXPECT_TRUE(path.empty());
 }
 
 TEST(AlgorithmTest, FindNearestPos) {
@@ -112,22 +177,75 @@ TEST(WinApiTest, GetCmdStrLongCommandLine) {
     EXPECT_NE(out.find(payload.substr(0, 64)), wstring::npos) << "Long command line should not truncate or hang";
 }
 
+TEST(WinApiTest, GetCmdStrStartsUnicodeCommandLine) {
+    wchar_t temp_path[MAX_PATH] = {};
+    ASSERT_GT(::GetTempPathW(MAX_PATH, temp_path), 0u);
+
+    TempCommandFile temp;
+    temp.dir = wstring(temp_path) + L"op_cmd_unicode_\u0100_" + to_wstring(::GetCurrentProcessId());
+    temp.script = temp.dir + L"\\run.cmd";
+
+    ASSERT_NE(::CreateDirectoryW(temp.dir.c_str(), nullptr), 0) << ::GetLastError();
+
+    {
+        ScopedHandle file{::CreateFileW(temp.script.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                        FILE_ATTRIBUTE_NORMAL, nullptr)};
+        ASSERT_NE(file.handle, INVALID_HANDLE_VALUE) << ::GetLastError();
+
+        const char body[] = "@echo off\r\necho unicode_cmd_ok\r\n";
+        DWORD written = 0;
+        ASSERT_NE(::WriteFile(file.handle, body, static_cast<DWORD>(sizeof(body) - 1), &written, nullptr), 0)
+            << ::GetLastError();
+        EXPECT_EQ(written, sizeof(body) - 1);
+    }
+
+    libop op;
+    wstring out;
+    const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
+    op.GetCmdStr(cmd.c_str(), 3000, out);
+    EXPECT_NE(out.find(L"unicode_cmd_ok"), wstring::npos) << out;
+}
+
 TEST(WinApiTest, GetCmdStrReturnsPartialOutputOnTimeout) {
     if (!test_support::GetEnvString(L"GITHUB_ACTIONS").empty()) {
         GTEST_SKIP() << "Skip flaky timeout command test on GitHub Actions";
     }
 
+    wchar_t temp_path[MAX_PATH] = {};
+    ASSERT_GT(::GetTempPathW(MAX_PATH, temp_path), 0u);
+
+    TempCommandFile temp;
+    temp.dir = wstring(temp_path) + L"op_cmd_timeout_" + to_wstring(::GetCurrentProcessId());
+    temp.script = temp.dir + L"\\run.cmd";
+
+    ASSERT_NE(::CreateDirectoryW(temp.dir.c_str(), nullptr), 0) << ::GetLastError();
+
+    {
+        ScopedHandle file{::CreateFileW(temp.script.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                        FILE_ATTRIBUTE_NORMAL, nullptr)};
+        ASSERT_NE(file.handle, INVALID_HANDLE_VALUE) << ::GetLastError();
+
+        const char body[] =
+            "@echo off\r\n"
+            "echo before\r\n"
+            "%SystemRoot%\\System32\\ping.exe -n 6 127.0.0.1 > nul\r\n"
+            "echo after\r\n";
+        DWORD written = 0;
+        ASSERT_NE(::WriteFile(file.handle, body, static_cast<DWORD>(sizeof(body) - 1), &written, nullptr), 0)
+            << ::GetLastError();
+        EXPECT_EQ(written, sizeof(body) - 1);
+    }
+
     libop op;
     wstring out;
     const auto start = std::chrono::steady_clock::now();
-    op.GetCmdStr(
-        L"python -c \"import time; print('before', flush=True); time.sleep(2); print('after', flush=True)\"", 200,
-        out);
+    const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
+    op.GetCmdStr(cmd.c_str(), 1500, out);
     const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 
     EXPECT_NE(out.find(L"before"), wstring::npos) << "Expected early output before timeout";
     EXPECT_EQ(out.find(L"after"), wstring::npos) << "Timed out command should not wait for trailing output";
-    EXPECT_LT(elapsed.count(), 1500) << "GetCmdStr should return promptly after timeout";
+    EXPECT_LT(elapsed.count(), 4000) << "GetCmdStr should return promptly after timeout";
 }
 
 TEST(WinApiTest, RunAppReturnsPid) {

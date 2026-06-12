@@ -56,6 +56,16 @@ struct MouseEventWindow {
     int wheel_count = 0;
     int wheel_delta_sum = 0;
     int move_count = 0;
+    int raw_mouse_count = 0;
+    int raw_keyboard_count = 0;
+    int raw_left_down = 0;
+    int raw_left_up = 0;
+    int raw_wheel_delta_sum = 0;
+    int raw_key_down = 0;
+    int raw_key_up = 0;
+    int raw_device_info_count = 0;
+    int raw_device_name_count = 0;
+    HCURSOR test_cursor = nullptr;
 
     int op_left_down = 0;
     int op_left_up = 0;
@@ -70,6 +80,8 @@ struct MouseEventWindow {
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
     bool Create();
+    void SetTestCursor(HCURSOR cursor);
+    void ResetCounts();
     ~MouseEventWindow();
 };
 
