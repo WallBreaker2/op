@@ -12,6 +12,7 @@ Examples:
     python build.py -t RelWithDebInfo -g nmake     # RelWithDebInfo + NMake + x64
     python build.py -t Release -g vs2019           # Release + VS2019 + x64
     python build.py -t Release -a x86              # Release + VS2022 + x86
+    python build.py -a x64 --deps-arch both        # Build for x64 but prepare dependencies for both x86 and x64
 """
 
 import argparse
@@ -20,13 +21,15 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 # ── Generator definitions ──────────────────────────────────────────
 
 GENERATORS = {
-    "nmake":  {"cmake": "NMake Makefiles", "ide": False},
-    "ninja":  {"cmake": "Ninja",           "ide": False},
+    "nmake": {"cmake": "NMake Makefiles", "ide": False},
+    "ninja": {"cmake": "Ninja", "ide": False},
     "vs2019": {"cmake": "Visual Studio 16 2019", "ide": True},
     "vs2022": {"cmake": "Visual Studio 17 2022", "ide": True},
     "vs2026": {"cmake": "Visual Studio 18 2026", "ide": True},
@@ -36,16 +39,49 @@ BUILD_TYPES = ["Debug", "Release", "RelWithDebInfo"]
 ARCHITECTURES = ["x86", "x64"]
 VCPKG_PACKAGES = ("gtest", "minhook")
 VCPKG_TEST_STATIC_PACKAGES = ("gtest", "minhook")
+OPENCV_REQUIRED_MODULES = (
+    "core",
+    "imgcodecs",
+    "flann",
+    "imgproc",
+    "features",
+    "objdetect",
+    "stereo",
+    "calib",
+)
+OPENCV_VERSION = "5.0.0"
+OPENCV_LIB_SUFFIX = "".join(OPENCV_VERSION.split(".")[:3])
+OPENCV_BUILD_SIG = json.dumps(
+    {
+        "modules": OPENCV_REQUIRED_MODULES,
+        "runtime": "MT",
+        "shared": False,
+        "tag": OPENCV_VERSION,
+        "with_ade": False,
+        "with_jasper": False,
+        "with_openexr": False,
+        "with_openjpeg": False,
+        "with_tiff": False,
+        "with_webp": False,
+    },
+    sort_keys=True,
+)
 ARCH_TO_TRIPLET = {"x86": "x86-windows", "x64": "x64-windows"}
 ARCH_TO_VS = {"x86": "Win32", "x64": "x64"}
 BOOTSTRAP_STATE_FILE = ".deps-bootstrap-state.json"
 
 # ── Helper functions ───────────────────────────────────────────────
 
+
 def find_vswhere() -> Path | None:
     """Locate vswhere.exe if Visual Studio Installer is present."""
     program_files_x86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
-    vswhere = Path(program_files_x86) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
+    vswhere = (
+        Path(program_files_x86)
+        / "Microsoft Visual Studio"
+        / "Installer"
+        / "vswhere.exe"
+    )
     return vswhere if vswhere.is_file() else None
 
 
@@ -60,9 +96,12 @@ def find_latest_visual_studio_installation() -> Path | None:
             [
                 str(vswhere),
                 "-latest",
-                "-products", "*",
-                "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-                "-property", "installationPath",
+                "-products",
+                "*",
+                "-requires",
+                "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+                "-property",
+                "installationPath",
             ],
             capture_output=True,
             text=True,
@@ -135,7 +174,9 @@ def ensure_cmake_on_path() -> None:
 
     cmake_dir = str(cmake.parent)
     current_path = os.environ.get("PATH", "")
-    os.environ["PATH"] = cmake_dir if not current_path else cmake_dir + os.pathsep + current_path
+    os.environ["PATH"] = (
+        cmake_dir if not current_path else cmake_dir + os.pathsep + current_path
+    )
     print(f"[INFO] Using Visual Studio bundled CMake: {cmake}")
 
 
@@ -234,6 +275,96 @@ def save_bootstrap_state(state_file: Path, state: dict) -> None:
     state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
 
+def download_file(url: str, destination: Path) -> None:
+    """下载远程文件到本地目标路径。"""
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    request = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "op-build-script/1.0",
+        },
+    )
+    with urllib.request.urlopen(request) as response, destination.open("wb") as output:
+        shutil.copyfileobj(response, output)
+
+
+def get_opencv_release_info() -> tuple[str, str]:
+    """返回项目固定使用的 OpenCV 版本号和源码 zip 地址。"""
+    return (
+        OPENCV_VERSION,
+        f"https://github.com/opencv/opencv/archive/refs/tags/{OPENCV_VERSION}.zip",
+    )
+
+
+def ensure_opencv_source(
+    opencv_root: Path, tag: str, archive_url: str
+) -> tuple[Path, bool]:
+    """确保指定版本的 OpenCV 源码已下载并解压。"""
+    source_dir = opencv_root / f"opencv-{tag}"
+    if (source_dir / "CMakeLists.txt").exists():
+        return source_dir, False
+
+    archive_path = opencv_root / f"opencv-{tag}.zip"
+    if not archive_path.exists():
+        print(f"[INFO] Downloading OpenCV {tag} source archive...")
+        download_file(archive_url, archive_path)
+
+    opencv_root.mkdir(parents=True, exist_ok=True)
+    print(f"[INFO] Extracting OpenCV {tag}...")
+    with zipfile.ZipFile(archive_path) as archive:
+        archive.extractall(opencv_root)
+
+    if not (source_dir / "CMakeLists.txt").exists():
+        print(f"[ERROR] OpenCV source extraction failed: {source_dir}")
+        sys.exit(1)
+
+    return source_dir, True
+
+
+def missing_opencv_install_items(install_root: Path, arch: str) -> list[str]:
+    """返回当前项目需要但 OpenCV 安装目录中缺失的头文件或静态库。"""
+    include_header = install_root / "include" / "opencv2" / "core.hpp"
+    opencv_arch_dir = "x64" if arch == "x64" else "x86"
+    staticlib_dir = install_root / opencv_arch_dir / "vc18" / "staticlib"
+    required_libs = (
+        f"opencv_core{OPENCV_LIB_SUFFIX}",
+        f"opencv_imgproc{OPENCV_LIB_SUFFIX}",
+        f"opencv_imgcodecs{OPENCV_LIB_SUFFIX}",
+        f"opencv_features{OPENCV_LIB_SUFFIX}",
+        f"opencv_flann{OPENCV_LIB_SUFFIX}",
+        f"opencv_geometry{OPENCV_LIB_SUFFIX}",
+        f"opencv_objdetect{OPENCV_LIB_SUFFIX}",
+        f"opencv_stereo{OPENCV_LIB_SUFFIX}",
+        f"opencv_calib{OPENCV_LIB_SUFFIX}",
+        "libjpeg-turbo",
+        "libpng",
+        "zlib",
+        "libclapack",
+    )
+    def has_static_lib(stem: str) -> bool:
+        return (
+            (staticlib_dir / f"{stem}.lib").exists()
+            or (staticlib_dir / f"lib{stem}.a").exists()
+            or (staticlib_dir / f"{stem}.a").exists()
+        )
+
+    missing: list[str] = []
+    if not include_header.exists():
+        missing.append(str(include_header))
+    if not staticlib_dir.exists():
+        missing.append(str(staticlib_dir))
+    for name in required_libs:
+        if not has_static_lib(name):
+            missing.append(f"{name} (.lib/.a) in {staticlib_dir}")
+    return missing
+
+
+def has_opencv_install_layout(install_root: Path, arch: str) -> bool:
+    """检查 OpenCV 安装目录是否包含当前项目需要的头文件和静态库。"""
+    return not missing_opencv_install_items(install_root, arch)
+
+
 def find_blackbone_lib(blackbone_root: Path, vs_arch: str) -> Path | None:
     build_root = blackbone_root / "build"
     search_roots = sorted(
@@ -258,7 +389,9 @@ def find_blackbone_lib(blackbone_root: Path, vs_arch: str) -> Path | None:
     return libs[0].resolve()
 
 
-def resolve_vcpkg_root(project_dir: Path, deps_dir: Path, vcpkg_root_arg: str | None) -> Path:
+def resolve_vcpkg_root(
+    project_dir: Path, deps_dir: Path, vcpkg_root_arg: str | None
+) -> Path:
     candidates: list[Path] = []
     if vcpkg_root_arg:
         candidates.append(resolve_path(project_dir, vcpkg_root_arg))
@@ -317,11 +450,17 @@ def ensure_vcpkg_packages(
     installed_triplets = set(state.get("vcpkg_triplets", []))
     installed_static_triplets = set(state.get("vcpkg_static_test_triplets", []))
     pending = [triplet for triplet in triplets if triplet not in installed_triplets]
-    pending_static = [triplet for triplet in static_test_triplets if triplet not in installed_static_triplets]
+    pending_static = [
+        triplet
+        for triplet in static_test_triplets
+        if triplet not in installed_static_triplets
+    ]
     if not pending and not pending_static:
         print(f"[INFO] vcpkg dependencies already prepared for: {', '.join(triplets)}")
         if static_test_triplets:
-            print(f"[INFO] Static test triplets already prepared for: {', '.join(static_test_triplets)}")
+            print(
+                f"[INFO] Static test triplets already prepared for: {', '.join(static_test_triplets)}"
+            )
         return False
 
     if not overlay_dir.exists():
@@ -330,23 +469,29 @@ def ensure_vcpkg_packages(
 
     for triplet in pending:
         pkg_args = [f"{pkg}:{triplet}" for pkg in VCPKG_PACKAGES]
-        run([
-            str(vcpkg_exe),
-            "install",
-            *pkg_args,
-            f"--overlay-triplets={overlay_dir}",
-        ])
+        run(
+            [
+                str(vcpkg_exe),
+                "install",
+                *pkg_args,
+                f"--overlay-triplets={overlay_dir}",
+            ]
+        )
 
     for triplet in pending_static:
         pkg_args = [f"{pkg}:{triplet}" for pkg in VCPKG_TEST_STATIC_PACKAGES]
-        run([
-            str(vcpkg_exe),
-            "install",
-            *pkg_args,
-        ])
+        run(
+            [
+                str(vcpkg_exe),
+                "install",
+                *pkg_args,
+            ]
+        )
 
     state["vcpkg_triplets"] = sorted(installed_triplets.union(pending))
-    state["vcpkg_static_test_triplets"] = sorted(installed_static_triplets.union(pending_static))
+    state["vcpkg_static_test_triplets"] = sorted(
+        installed_static_triplets.union(pending_static)
+    )
     return True
 
 
@@ -355,7 +500,9 @@ def ensure_blackbone_repo(blackbone_root: Path) -> None:
         return
 
     if blackbone_root.exists() and any(blackbone_root.iterdir()):
-        print(f"[ERROR] BlackBone directory exists but is not a git repository: {blackbone_root}")
+        print(
+            f"[ERROR] BlackBone directory exists but is not a git repository: {blackbone_root}"
+        )
         print("        Please clear it or pass a different --deps-dir path.")
         sys.exit(1)
 
@@ -388,15 +535,21 @@ def ensure_blackbone_builds(
             continue
 
         build_dir = blackbone_root / "build" / f"{generator_key}-{vs_arch}"
-        run([
-            "cmake",
-            "-S", str(src_dir),
-            "-B", str(build_dir),
-            "-G", vs_generator,
-            "-A", vs_arch,
-            "-DCMAKE_POLICY_DEFAULT_CMP0091=NEW",
-            "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
-        ])
+        run(
+            [
+                "cmake",
+                "-S",
+                str(src_dir),
+                "-B",
+                str(build_dir),
+                "-G",
+                vs_generator,
+                "-A",
+                vs_arch,
+                "-DCMAKE_POLICY_DEFAULT_CMP0091=NEW",
+                "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+            ]
+        )
         run(["cmake", "--build", str(build_dir), "--config", "Release"])
 
         lib = find_blackbone_lib(blackbone_root, vs_arch)
@@ -412,14 +565,144 @@ def ensure_blackbone_builds(
     return libs, changed
 
 
+def ensure_opencv_builds(
+    opencv_source_dir: Path,
+    opencv_root: Path,
+    opencv_tag: str,
+    generator_key: str,
+    vs_generator: str,
+    dep_arches: list[str],
+    build_type: str,
+    state: dict,
+) -> tuple[dict[str, Path], bool]:
+    """按最小模块集为各目标架构构建并安装静态 /MT 版 OpenCV。"""
+    configured_arches = set(state.get("opencv_configured_arches", []))
+    installed_configs = set(state.get("opencv_installed_configs", []))
+    install_roots: dict[str, Path] = {}
+    changed = False
+
+    for arch in dep_arches:
+        vs_arch = ARCH_TO_VS[arch]
+        configure_key = f"{opencv_tag}:{generator_key}:{arch}"
+        install_key = f"{opencv_tag}:{generator_key}:{arch}:{build_type}"
+        build_dir = opencv_root / "build" / f"{generator_key}-{vs_arch}"
+        install_root = opencv_root / "install" / f"{generator_key}-{vs_arch}"
+        install_ready = has_opencv_install_layout(install_root, arch)
+
+        needs_configure = (
+            configure_key not in configured_arches
+            or not (build_dir / "CMakeCache.txt").exists()
+        )
+        reused_existing = (
+            not needs_configure and install_key in installed_configs and install_ready
+        )
+        if reused_existing:
+            print(f"[INFO] Reusing existing OpenCV build for {arch}: {install_root}")
+
+        if needs_configure:
+            build_dir.mkdir(parents=True, exist_ok=True)
+            run(
+                [
+                    "cmake",
+                    "-S",
+                    str(opencv_source_dir),
+                    "-B",
+                    str(build_dir),
+                    "-G",
+                    vs_generator,
+                    "-A",
+                    vs_arch,
+                    "-DCMAKE_POLICY_DEFAULT_CMP0091=NEW",
+                    r"-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>",
+                    f"-DCMAKE_INSTALL_PREFIX={install_root}",
+                    "-DBUILD_SHARED_LIBS=OFF",
+                    "-DBUILD_WITH_STATIC_CRT=ON",
+                    f"-DBUILD_LIST={','.join(OPENCV_REQUIRED_MODULES)}",
+                    "-DBUILD_opencv_world=OFF",
+                    "-DBUILD_TESTS=OFF",
+                    "-DBUILD_PERF_TESTS=OFF",
+                    "-DBUILD_EXAMPLES=OFF",
+                    "-DBUILD_DOCS=OFF",
+                    "-DBUILD_PACKAGE=OFF",
+                    "-DBUILD_JAVA=OFF",
+                    "-DBUILD_opencv_apps=OFF",
+                    "-DBUILD_opencv_gapi=OFF",
+                    "-DBUILD_opencv_js=OFF",
+                    "-DBUILD_opencv_python_bindings_generator=OFF",
+                    "-DBUILD_opencv_python2=OFF",
+                    "-DBUILD_opencv_python3=OFF",
+                    "-DBUILD_PNG=ON",
+                    "-DBUILD_JPEG=ON",
+                    "-DBUILD_ZLIB=ON",
+                    "-DWITH_JASPER=OFF",
+                    "-DWITH_ADE=OFF",
+                    "-DWITH_WEBP=OFF",
+                    "-DWITH_TIFF=OFF",
+                    "-DWITH_OPENJPEG=OFF",
+                    "-DWITH_OPENEXR=OFF",
+                    "-DBUILD_JASPER=OFF",
+                    "-DBUILD_TIFF=OFF",
+                    "-DBUILD_WEBP=OFF",
+                    "-DBUILD_OPENJPEG=OFF",
+                    "-DBUILD_OPENEXR=OFF",
+                    "-DOPENCV_IO_ENABLE_OPENEXR=OFF",
+                    "-DWITH_IPP=OFF",
+                    "-DWITH_ITT=OFF",
+                    "-DWITH_OPENCL=OFF",
+                    "-DWITH_TBB=OFF",
+                    "-DWITH_OPENMP=OFF",
+                    "-DWITH_FFMPEG=OFF",
+                    "-DWITH_GSTREAMER=OFF",
+                    "-DWITH_MSMF=OFF",
+                ]
+            )
+            configured_arches.add(configure_key)
+            changed = True
+
+        if install_key not in installed_configs or not install_ready:
+            run(
+                [
+                    "cmake",
+                    "--build",
+                    str(build_dir),
+                    "--config",
+                    build_type,
+                    "--target",
+                    "install",
+                ]
+            )
+            install_ready = has_opencv_install_layout(install_root, arch)
+            if not install_ready:
+                print(
+                    f"[ERROR] OpenCV install layout is incomplete after install: {install_root}"
+                )
+                for missing_item in missing_opencv_install_items(install_root, arch):
+                    print(f"        missing: {missing_item}")
+                sys.exit(1)
+            installed_configs.add(install_key)
+            changed = True
+
+        if not install_ready:
+            print(f"[ERROR] OpenCV install layout is incomplete: {install_root}")
+            for missing_item in missing_opencv_install_items(install_root, arch):
+                print(f"        missing: {missing_item}")
+            sys.exit(1)
+        install_roots[arch] = install_root.resolve()
+
+    state["opencv_configured_arches"] = sorted(configured_arches)
+    state["opencv_installed_configs"] = sorted(installed_configs)
+    return install_roots, changed
+
+
 def bootstrap_dependencies(
     project_dir: Path,
     deps_dir: Path,
     dep_arches: list[str],
     generator_key: str,
     vs_generator: str,
+    build_type: str,
     vcpkg_root_arg: str | None,
-) -> tuple[Path, Path, dict[str, Path]]:
+) -> tuple[Path, Path, dict[str, Path], dict[str, Path]]:
     check_required_tools()
 
     deps_dir.mkdir(parents=True, exist_ok=True)
@@ -441,7 +724,9 @@ def bootstrap_dependencies(
     overlay_dir = project_dir / "ci" / "triplets"
     triplets = [ARCH_TO_TRIPLET[arch] for arch in dep_arches]
     static_test_triplets = [f"{triplet}-static" for triplet in triplets]
-    vcpkg_changed = ensure_vcpkg_packages(vcpkg_exe, overlay_dir, triplets, static_test_triplets, state)
+    vcpkg_changed = ensure_vcpkg_packages(
+        vcpkg_exe, overlay_dir, triplets, static_test_triplets, state
+    )
 
     blackbone_root = deps_dir / "BlackBone"
     ensure_blackbone_repo(blackbone_root)
@@ -453,13 +738,43 @@ def bootstrap_dependencies(
         state,
     )
 
-    if state_changed or vcpkg_changed or blackbone_changed or not state_file.exists():
+    opencv_root = deps_dir / "opencv"
+    opencv_tag, opencv_archive_url = get_opencv_release_info()
+    opencv_source_dir, opencv_source_changed = ensure_opencv_source(
+        opencv_root, opencv_tag, opencv_archive_url
+    )
+    if state.get("opencv_build_sig") != OPENCV_BUILD_SIG:
+        state["opencv_build_sig"] = OPENCV_BUILD_SIG
+        state.pop("opencv_configured_arches", None)
+        state.pop("opencv_installed_configs", None)
+        state_changed = True
+
+    opencv_install_roots, opencv_changed = ensure_opencv_builds(
+        opencv_source_dir=opencv_source_dir,
+        opencv_root=opencv_root,
+        opencv_tag=opencv_tag,
+        generator_key=generator_key,
+        vs_generator=vs_generator,
+        dep_arches=dep_arches,
+        build_type=build_type,
+        state=state,
+    )
+
+    if (
+        state_changed
+        or vcpkg_changed
+        or blackbone_changed
+        or opencv_source_changed
+        or opencv_changed
+        or not state_file.exists()
+    ):
         save_bootstrap_state(state_file, state)
 
-    return vcpkg_root, blackbone_root, blackbone_libs
+    return vcpkg_root, blackbone_root, blackbone_libs, opencv_install_roots
 
 
 # ── Main ───────────────────────────────────────────────────────────
+
 
 def main():
     detected_default_generator = default_generator_key()
@@ -473,23 +788,26 @@ examples:
   python build.py -t Release -g nmake            # Release + NMake + x64
   python build.py -t RelWithDebInfo -g vs2019    # RelWithDebInfo + VS2019 + x64
   python build.py -t Release -g vs2026           # Release + VS2026 + x64
-  python build.py -t Release -a x86              # Release + VS2022 + x86
+  python build.py -t Release -a x86              # Release + default generator + x86
 """,
     )
     parser.add_argument(
-        "-t", "--type",
+        "-t",
+        "--type",
         choices=BUILD_TYPES,
         default="Release",
         help="Build type (default: Release)",
     )
     parser.add_argument(
-        "-g", "--generator",
+        "-g",
+        "--generator",
         choices=GENERATORS.keys(),
         default=detected_default_generator,
         help=f"CMake generator (default: {detected_default_generator})",
     )
     parser.add_argument(
-        "-a", "--arch",
+        "-a",
+        "--arch",
         choices=ARCHITECTURES,
         default="x64",
         help="Target architecture (default: x64)",
@@ -497,7 +815,7 @@ examples:
     parser.add_argument(
         "--no-bootstrap-deps",
         action="store_true",
-        help="Skip dependency bootstrap (vcpkg + BlackBone)",
+        help="Skip dependency bootstrap (vcpkg + BlackBone + OpenCV)",
     )
     parser.add_argument(
         "--deps-dir",
@@ -507,8 +825,8 @@ examples:
     parser.add_argument(
         "--deps-arch",
         choices=["both", "x86", "x64"],
-        default="both",
-        help="Architectures to prepare dependencies for (default: both)",
+        default=None,
+        help="Architectures to prepare dependencies for (default: follow --arch)",
     )
     parser.add_argument(
         "--vcpkg-root",
@@ -535,24 +853,36 @@ examples:
     print("=" * 60)
 
     # ── Bootstrap dependencies ──
-    dep_arches = ["x86", "x64"] if args.deps_arch == "both" else [args.deps_arch]
+    if args.deps_arch == "both":
+        dep_arches = ["x86", "x64"]
+    elif args.deps_arch in ("x86", "x64"):
+        dep_arches = [args.deps_arch]
+    else:
+        dep_arches = [arch]
+
     if arch not in dep_arches:
         dep_arches.append(arch)
 
     vcpkg_root: Path | None = None
     blackbone_root: Path | None = None
     blackbone_libs: dict[str, Path] = {}
+    opencv_install_roots: dict[str, Path] = {}
     if not args.no_bootstrap_deps:
-        dep_vs_generator_key = generator if generator.startswith("vs") else default_generator_key()
+        dep_vs_generator_key = (
+            generator if generator.startswith("vs") else default_generator_key()
+        )
         dep_vs_generator = GENERATORS[dep_vs_generator_key]["cmake"]
         print("\n[INFO] Bootstrapping third-party dependencies...")
-        vcpkg_root, blackbone_root, blackbone_libs = bootstrap_dependencies(
-            project_dir=project_dir,
-            deps_dir=deps_dir,
-            dep_arches=dep_arches,
-            generator_key=dep_vs_generator_key,
-            vs_generator=dep_vs_generator,
-            vcpkg_root_arg=args.vcpkg_root,
+        vcpkg_root, blackbone_root, blackbone_libs, opencv_install_roots = (
+            bootstrap_dependencies(
+                project_dir=project_dir,
+                deps_dir=deps_dir,
+                dep_arches=dep_arches,
+                generator_key=dep_vs_generator_key,
+                vs_generator=dep_vs_generator,
+                build_type=build_type,
+                vcpkg_root_arg=args.vcpkg_root,
+            )
         )
     elif args.vcpkg_root:
         vcpkg_root = resolve_path(project_dir, args.vcpkg_root)
@@ -566,18 +896,15 @@ examples:
         env["VCPKG_ROOT"] = str(vcpkg_root)
     if blackbone_root:
         env["BLACKBONE_ROOT"] = str(blackbone_root)
+    selected_opencv_root = opencv_install_roots.get(arch)
+    if selected_opencv_root:
+        env["OPENCV_ROOT"] = str(selected_opencv_root)
 
-    # ── Resolve vcpkg toolchain ──
+    # ── Resolve dependency-related configure args ──
     vcpkg_args = []
     env_vcpkg_root = env.get("VCPKG_ROOT")
     if env_vcpkg_root:
-        toolchain = Path(env_vcpkg_root) / "scripts" / "buildsystems" / "vcpkg.cmake"
-        print(f"[INFO] Using vcpkg toolchain: {toolchain}")
-        vcpkg_args = [f"-DCMAKE_TOOLCHAIN_FILE={toolchain}"]
-
-        overlay_dir = project_dir / "ci" / "triplets"
-        if overlay_dir.exists():
-            vcpkg_args.append(f"-DVCPKG_OVERLAY_TRIPLETS={overlay_dir}")
+        print(f"[INFO] Using vcpkg root: {env_vcpkg_root}")
 
     blackbone_args: list[str] = []
     if blackbone_root:
@@ -586,10 +913,18 @@ examples:
     selected_blackbone_lib = blackbone_libs.get(arch)
     if selected_blackbone_lib and blackbone_root is not None:
         blackbone_include = blackbone_root / "src"
-        blackbone_args.extend([
-            f"-DBLACKBONE_INCLUDE_DIR={blackbone_include}",
-            f"-DBLACKBONE_LIBRARY={selected_blackbone_lib}",
-        ])
+        blackbone_args.extend(
+            [
+                f"-DBLACKBONE_INCLUDE_DIR={blackbone_include}",
+                f"-DBLACKBONE_LIBRARY={selected_blackbone_lib}",
+            ]
+        )
+
+    opencv_args: list[str] = []
+    if selected_opencv_root:
+        print(f"[INFO] Using OpenCV root: {selected_opencv_root}")
+        opencv_args.append(f"-DOPENCV_ROOT={selected_opencv_root}")
+        opencv_args.append(f"-DOPENCV_LIB_SUFFIX={OPENCV_LIB_SUFFIX}")
 
     # ── Prepare build directory ──
     # Keep architecture/generator isolated to avoid CMake cache platform clashes
@@ -602,12 +937,16 @@ examples:
     print("\n[INFO] Configuring with CMake...")
     cmake_cmd = [
         "cmake",
-        "-S", str(project_dir),
-        "-B", str(build_dir),
-        "-G", gen_info["cmake"],
+        "-S",
+        str(project_dir),
+        "-B",
+        str(build_dir),
+        "-G",
+        gen_info["cmake"],
         f"-DCMAKE_BUILD_TYPE={build_type}",
         *vcpkg_args,
         *blackbone_args,
+        *opencv_args,
     ]
     if gen_info["ide"]:
         cmake_cmd += ["-A", "x64" if arch == "x64" else "Win32"]
@@ -618,9 +957,18 @@ examples:
     print("\n[INFO] Building...")
     run(["cmake", "--build", str(build_dir), "--config", build_type], env=env)
 
+    if build_type == "Release":
+        print("\n[INFO] Installing Release artifacts...")
+        run(
+            ["cmake", "--build", str(build_dir), "--config", build_type, "--target", "install"],
+            env=env,
+        )
+
     print(f"\n{'=' * 60}")
     print(f"  Build completed: {build_type} | {generator} | {arch}")
     print(f"  Build directory: {build_dir}")
+    if build_type == "Release":
+        print(f"  Install output:   {project_dir / 'bin' / arch}")
     print(f"{'=' * 60}")
 
 
