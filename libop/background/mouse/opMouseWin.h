@@ -1,8 +1,8 @@
 #pragma once
 #include "core/optype.h"
+#include <string>
 class opMouseWin {
   public:
-    static float getDPI();
     opMouseWin();
     virtual ~opMouseWin();
 
@@ -11,6 +11,8 @@ class opMouseWin {
     virtual long UnBind();
 
     virtual long GetCursorPos(long &x, long &y);
+
+    virtual long GetCursorShape(std::wstring &ret);
 
     virtual long MoveR(int rx, int ry);
 
@@ -42,9 +44,11 @@ class opMouseWin {
 
     virtual long WheelUp();
 
-  private:
+  protected:
+    POINT current_client_point() const;
+    long sync_system_cursor();
+
     HWND _hwnd;
     int _mode;
     int _x, _y;
-    float _dpi; // screen dpi
 };

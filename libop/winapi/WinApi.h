@@ -12,7 +12,7 @@ class WinApi {
   public:
     int retstringlen;
     DWORD WindowVerion;
-    DWORD IsEuemprosuccess;
+    int IsEuemprosuccess;
     DWORD npid[MAX_PATH];
     bool EnumWindow(HWND parent, const wchar_t *title, const wchar_t *class_name, LONG filter, wchar_t *retstring,
                     const wchar_t *process_name = NULL);

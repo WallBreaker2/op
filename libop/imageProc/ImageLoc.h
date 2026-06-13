@@ -7,6 +7,7 @@
 */
 #include "../core/optype.h"
 #include "../include/Dict.h"
+#include "../include/bitfunc.h"
 #include "../include/color.h"
 #include "./compute/ThreadPool.h"
 #include <string>
@@ -21,10 +22,6 @@ inline int HEX2INT(wchar_t c) {
         return c - L'a' + 10;
     return 0;
 }
-
-#define SET_BIT(x, idx) (x |= 1u << (idx))
-
-#define GET_BIT(x, idx) ((x >> (idx)) & 1u)
 
 using img_names = std::vector<std::wstring>;
 // 检查是否为透明图

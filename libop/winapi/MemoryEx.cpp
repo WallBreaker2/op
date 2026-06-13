@@ -186,11 +186,11 @@ size_t MemoryEx::str2address(const wstring &caddress) {
         return 0;
 
     vector<int> sk;
-    int idx1 = 0, idx2 = 0;
+    size_t idx1 = 0, idx2 = 0;
     size_t re = 0;
     idx1 = address.find(L'<');
     idx2 = address.find(L'>');
-    if (idx1 != -1 && idx2 != -1 && idx1 < idx2) {
+    if (idx1 != wstring::npos && idx2 != wstring::npos && idx1 < idx2) {
         auto mod_name = address.substr(idx1 + 1, idx2 - idx1 - 1);
         HMODULE hmod = NULL;
         if (_hwnd == 0)
@@ -206,11 +206,11 @@ size_t MemoryEx::str2address(const wstring &caddress) {
         wsprintf(buff, L"%X", hmod);
         address.replace(idx1, idx2 - idx1 + 1, buff);
     }
-    for (int i = 0; i < address.size();) {
+    for (size_t i = 0; i < address.size();) {
         if (address[i] == L'[')
-            push(sk, i);
+            push(sk, static_cast<int>(i));
         if (address[i] == L']') {
-            idx1 = pop(sk);
+            idx1 = (size_t)pop(sk);
             idx2 = i;
             auto sad = address.substr(idx1 + 1, idx2 - idx1 - 1);
             size_t src = stringcompute(sad.data());
@@ -231,7 +231,7 @@ void MemoryEx::hex2bins(vector<uchar> &bin, const wstring &hex, size_t size) {
     bin.resize(size);
     ZeroMemory(bin.data(), bin.size());
     int low = 1;
-    for (int i = hex.size() - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(hex.size()) - 1; i >= 0; --i) {
 
         bin[size - i / 2 - 1] |= low & 1 ? hex2bin(hex[i]) : hex2bin(hex[i]) << 4;
         low ^= 1;
@@ -242,7 +242,7 @@ void MemoryEx::bin2hexs(const vector<uchar> &bin, wstring &hex) {
     // hex.resize(bin.size() * 2);
     hex.reserve(bin.size() * 2);
     hex.clear();
-    for (int i = 0; i < bin.size(); ++i) {
+    for (size_t i = 0; i < bin.size(); ++i) {
         int ans = bin2hex(bin[i]);
         hex.push_back(ans >> 8);
         hex.push_back(ans & 0xff);

@@ -7,28 +7,36 @@ struct opMouseState {
     LONG lAxisX;
     LONG lAxisY;
     BYTE abButtons[3];
-    BYTE bPadding; // Structure must be DWORD multiple in size.
+    BYTE bPadding; // 保持结构体 4 字节对齐。
 };
 
 class InputHook {
   public:
-    /*target window hwnd*/
+    // 远端目标窗口，只在被注入进程内使用。
     static HWND input_hwnd;
-    static int input_type;
-    /*name of ...*/
-    static wchar_t shared_res_name[256];
-    static wchar_t mutex_name[256];
-    static void *old_address;
     static bool is_hooked;
-    //
-    static int setup(HWND hwnd_, int input_type_);
+
+    static int setup(HWND hwnd_);
     static int release();
-    // LParam is pos,key:-1-2,means null, left mid and right, down means keyState
-    static void upDataPos(LPARAM, int key, bool down);
+    static void moveTo(LPARAM lp);
+    static void button(LPARAM lp, int key, bool down);
     static void updateWheel(WPARAM, LPARAM);
     static LONG consumeWheelDelta();
+    static void updateKey(WPARAM vk, bool down);
+    static bool isKeyDown(int vk);
+    static void updateCursor(HCURSOR cursor, bool visible);
+    static unsigned long long cursorShapeHash();
+    static unsigned long long cursorShapeMeta();
     static opMouseState m_mouseState;
+    static BYTE m_vkState[256];
+    static BYTE m_keyboardState[256];
+    static LONG m_lastMouseX;
+    static LONG m_lastMouseY;
     static LONG m_wheelDelta;
+    static HCURSOR m_cursor;
+    static bool m_cursorVisible;
+    static unsigned long long m_cursorHash;
+    static unsigned long long m_cursorMeta;
 };
 
 #endif

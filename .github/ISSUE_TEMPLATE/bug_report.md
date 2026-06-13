@@ -25,7 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment:**
  - OS: [e.g. Windows 10 22H2, Windows 11 23H2]
- - OP Version: [e.g. 0.4.6.0, check with `op.Ver()`]
+ - OP Version: [e.g. 0.4.7.0, check with `op.Ver()`]
  - Architecture: [x86 / x64]
  - Language: [e.g. Python 3.12, C#, C++, Lua]
 

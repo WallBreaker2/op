@@ -2,11 +2,9 @@
 #include "opWGC.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
-#include "./core/opEnv.h"
 #include "./core/win_version.h"
 #include "./include/Image.hpp"
 #include <dwmapi.h>
-#include <iostream>
 #include <string>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Gaming.Input.h>
@@ -106,9 +104,6 @@ long opWGC::UnBindEx() {
 }
 
 bool opWGC::Init(HWND _hwnd) {
-    setlog("opWGC::Init begin hwnd=%p", _hwnd);
-
-
     auto activation_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>();
     auto interop_factory = activation_factory.as<IGraphicsCaptureItemInterop>();
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = {nullptr};
@@ -116,14 +111,16 @@ bool opWGC::Init(HWND _hwnd) {
     try {
         const HRESULT hr = interop_factory->CreateForWindow(_hwnd, winrt::guid_of<IGraphicsCaptureItem>(),
                                                             reinterpret_cast<void **>(winrt::put_abi(item)));
-        if (FAILED(hr))
+        if (FAILED(hr)) {
             setlog("CreateForWindow (0x%08X)", hr);
-        else
-            setlog("CreateForWindow ok");
+            return false;
+        }
     } catch (winrt::hresult_error &err) {
         setlog("CreateForWindow (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        return false;
     } catch (...) {
         setlog("CreateForWindow (0x%08X)", winrt::to_hresult().value);
+        return false;
     }
 
     if (!item) {
@@ -142,20 +139,18 @@ bool opWGC::Init(HWND _hwnd) {
                                          D3D_FEATURE_LEVEL_9_1};
     UINT NumFeatureLevels = ARRAYSIZE(FeatureLevels);
     D3D_FEATURE_LEVEL FeatureLevel;
+    HRESULT create_device_hr = S_OK;
 
     for (UINT DriverTypeIndex = 0; DriverTypeIndex < NumDriverTypes; ++DriverTypeIndex) {
-        HRESULT hr =
+        create_device_hr =
             D3D11CreateDevice(nullptr, DriverTypes[DriverTypeIndex], nullptr, 0, FeatureLevels, NumFeatureLevels,
                               D3D11_SDK_VERSION, &d3dDevice_, &FeatureLevel, &d3dDeviceContext_);
-        if (SUCCEEDED(hr)) {
-            setlog("D3D11CreateDevice ok driver=%u level=0x%04X", DriverTypeIndex, FeatureLevel);
+        if (SUCCEEDED(create_device_hr)) {
             break;
-        } else {
-            setlog("D3D11CreateDevice failed driver=%u hr=0x%08X", DriverTypeIndex, hr);
         }
     }
     if (d3dDevice_ == nullptr || d3dDeviceContext_ == nullptr) {
-        setlog("D3D11 device/context is null");
+        setlog("D3D11CreateDevice failed hr=0x%08X", create_device_hr);
         return false;
     }
     ComPtr<IDXGIDevice> dxgi_device;
@@ -169,7 +164,6 @@ bool opWGC::Init(HWND _hwnd) {
         setlog("Failed to get WinRT device wgc");
         return false;
     }
-    setlog("CreateDirect3D11DeviceFromDXGIDevice ok");
 
     const winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice device =
         inspectable.as<winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice>();
@@ -177,7 +171,6 @@ bool opWGC::Init(HWND _hwnd) {
         winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool::CreateFreeThreaded(
             device, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
     const winrt::Windows::Graphics::Capture::GraphicsCaptureSession session = frame_pool.CreateCaptureSession(item);
-    setlog("CreateCaptureSession ok");
 
     // 20348+ 才支持关闭捕获边框。
     if (IsWindows10BuildOrGreater(kWindowsServer2022Build)) {
@@ -226,7 +219,6 @@ bool opWGC::Init(HWND _hwnd) {
 
     try {
         session_.StartCapture();
-        setlog("StartCapture ok");
     } catch (winrt::hresult_error &err) {
         setlog("StartCapture (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
         return false;
@@ -246,7 +238,6 @@ bool opWGC::requestCapture(int x1, int y1, int w, int h, Image &img) {
     }
 
     if (!updateLatestFrame() || !hasFrame_) {
-        setlog("requestCapture: frame timeout");
         return false;
     }
 
@@ -277,7 +268,8 @@ bool opWGC::requestCapture(int x1, int y1, int w, int h, Image &img) {
     // WGC 这里按客户区坐标裁图，去掉标题栏和边框。
     int src_x = x1 + dx_;
     int src_y = y1 + dy_;
-    if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) || src_y + h > static_cast<int>(desc.Height)) {
+    if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) ||
+        src_y + h > static_cast<int>(desc.Height)) {
         setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, desc.Width, src_y, h,
                desc.Height);
         return false;
@@ -433,4 +425,3 @@ void opWGC::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
 }
 
 #endif
-

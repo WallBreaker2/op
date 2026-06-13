@@ -22,8 +22,81 @@ AUX_SOURCE_DIRECTORY(./ DIR_SRCS)
 
 #LINK_DIRECTORIES("/3rd_party/lib/x86")
 # 5.set environment variable
-# find_package(OpenCV REQUIRED)
-# include_directories(libop ${OpenCV_INCLUDE_DIRS})
+set(OP_HAS_OPENCV FALSE)
+set(OP_OPENCV_INCLUDE_DIR "")
+set(OP_OPENCV_LIB_DIR "")
+set(OP_OPENCV_LINK_LIBS "")
+if(NOT DEFINED OPENCV_LIB_SUFFIX)
+  set(OPENCV_LIB_SUFFIX "500")
+endif()
+
+function(_op_find_static_lib _op_out_var _op_lib_dir _op_lib_name)
+  set(_op_candidates
+    "${_op_lib_dir}/${_op_lib_name}.lib"
+    "${_op_lib_dir}/lib${_op_lib_name}.a"
+    "${_op_lib_dir}/${_op_lib_name}.a"
+  )
+  foreach(_op_candidate IN LISTS _op_candidates)
+    if(EXISTS "${_op_candidate}")
+      set(${_op_out_var} "${_op_candidate}" PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+  set(${_op_out_var} "" PARENT_SCOPE)
+endfunction()
+
+set(_op_opencv_root "")
+if(DEFINED OPENCV_ROOT)
+  set(_op_opencv_root "${OPENCV_ROOT}")
+elseif(DEFINED ENV{OPENCV_ROOT})
+  set(_op_opencv_root "$ENV{OPENCV_ROOT}")
+endif()
+
+if(NOT _op_opencv_root STREQUAL "")
+  file(TO_CMAKE_PATH "${_op_opencv_root}" _op_opencv_root)
+  set(OP_OPENCV_INCLUDE_DIR "${_op_opencv_root}/include")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(OP_OPENCV_LIB_DIR "${_op_opencv_root}/x64/vc18/staticlib")
+  else()
+    set(OP_OPENCV_LIB_DIR "${_op_opencv_root}/x86/vc18/staticlib")
+  endif()
+
+  set(_op_required_lib_names
+    "opencv_calib${OPENCV_LIB_SUFFIX}"
+    "opencv_objdetect${OPENCV_LIB_SUFFIX}"
+    "opencv_stereo${OPENCV_LIB_SUFFIX}"
+    "opencv_features${OPENCV_LIB_SUFFIX}"
+    "opencv_imgcodecs${OPENCV_LIB_SUFFIX}"
+    "opencv_imgproc${OPENCV_LIB_SUFFIX}"
+    "opencv_geometry${OPENCV_LIB_SUFFIX}"
+    "opencv_flann${OPENCV_LIB_SUFFIX}"
+    "opencv_core${OPENCV_LIB_SUFFIX}"
+    "libclapack"
+    "libjpeg-turbo"
+    "libpng"
+    "zlib"
+  )
+
+  set(_op_expected_libs "")
+  set(_op_all_libs_exist TRUE)
+  foreach(_op_lib_name IN LISTS _op_required_lib_names)
+    _op_find_static_lib(_op_lib_path "${OP_OPENCV_LIB_DIR}" "${_op_lib_name}")
+    if(_op_lib_path STREQUAL "")
+      set(_op_all_libs_exist FALSE)
+      message(WARNING "OpenCV library not found: ${_op_lib_name} (.lib/.a) in ${OP_OPENCV_LIB_DIR}")
+    else()
+      list(APPEND _op_expected_libs "${_op_lib_path}")
+    endif()
+  endforeach()
+
+  if(EXISTS "${OP_OPENCV_INCLUDE_DIR}/opencv2/core.hpp" AND _op_all_libs_exist)
+    set(OP_HAS_OPENCV TRUE)
+    set(OP_OPENCV_LINK_LIBS ${_op_expected_libs})
+    message(STATUS "OpenCV enabled via manual static libraries: ${OP_OPENCV_LIB_DIR}")
+  else()
+    message(WARNING "OPENCV_ROOT is set but required OpenCV headers or libraries were not found. Continuing without OpenCV support.")
+  endif()
+endif()
 
 
 #find_package(minhook CONFIG REQUIRED)
@@ -43,12 +116,15 @@ SET(SRC_FILES
 
   "./background/mouse/opMouseWin.cpp" 
   "./background/mouse/opMouseDx.cpp" 
+  "./background/mouse/CursorShape.cpp" 
 
   "./background/keypad/bkkeypad.cpp" 
   "./background/keypad/winkeypad.cpp" 
+  "./background/keypad/opKeypadDx.cpp" 
   
   "./background/Hook/DisplayHook.cpp"
   "./background/Hook/InputHook.cpp"
+  "./background/Hook/InputHookClient.cpp"
   "./background/Hook/HookExport.cpp"
   "./background/Hook/opDx12Hook.cpp"
 
@@ -78,6 +154,14 @@ if(enable_wgc)
   list(APPEND SRC_FILES "./background/display/opWGC.cpp")
 endif()
 
+if(OP_HAS_OPENCV AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv/OpenCvModule.cpp")
+  list(APPEND SRC_FILES
+    "./opencv/OpenCvBridge.cpp"
+    "./opencv/OpenCvHelpers.cpp"
+    "./opencv/OpenCvModule.cpp"
+  )
+endif()
+
 SET(COM_SRC_FILES 
 "./core/globalVar.cpp"
 "./com/op.cpp"
@@ -104,7 +188,7 @@ ADD_DEFINITIONS(-D _WINDLL)
 ADD_DEFINITIONS(-D _UNICODE)
 ADD_DEFINITIONS(-D UNICODE)
 ADD_DEFINITIONS(-DOP_EXPORTS)
-ADD_DEFINITIONS(-DOP_VERSION="0.4.6.0")
+ADD_DEFINITIONS(-DOP_VERSION="0.4.7.0")
  
 
 # 6.add lib file
@@ -157,10 +241,19 @@ target_include_directories(${op_com} PUBLIC
 "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+target_include_directories(libop PUBLIC
+"${PROJECT_BINARY_DIR}"
+"${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
 include_directories(
   ./
   ./core
 )
+
+if(OP_HAS_OPENCV)
+  include_directories(${OP_OPENCV_INCLUDE_DIR})
+endif()
 
 ## for tesseract lib
 # find_package(Tesseract)
@@ -201,11 +294,7 @@ if (OP_VCPKG_INSTALLED_DIR)
   set(OP_MINHOOK_LIB_DEBUG "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_MINHOOK_LIB_DEBUG_NAME}")
 
   if (EXISTS "${OP_MINHOOK_LIB_RELEASE}")
-    if (EXISTS "${OP_MINHOOK_LIB_DEBUG}")
-      TARGET_LINK_LIBRARIES(${op_com} optimized "${OP_MINHOOK_LIB_RELEASE}" debug "${OP_MINHOOK_LIB_DEBUG}")
-    else()
-      TARGET_LINK_LIBRARIES(${op_com} "${OP_MINHOOK_LIB_RELEASE}")
-    endif()
+    TARGET_LINK_LIBRARIES(${op_com} "${OP_MINHOOK_LIB_RELEASE}")
     set(OP_MINHOOK_LINKED TRUE)
     message(STATUS "Using static MinHook library: ${OP_MINHOOK_LIB_RELEASE}")
   endif()
@@ -226,6 +315,13 @@ if(enable_wgc)
 endif()
 target_link_libraries(libop dwmapi.lib)
 target_link_libraries(${op_com} dwmapi.lib)
+
+if(OP_HAS_OPENCV)
+  target_link_libraries(libop ${OP_OPENCV_LINK_LIBS})
+  target_link_libraries(${op_com} ${OP_OPENCV_LINK_LIBS})
+endif()
+
+set(OP_HAS_OPENCV "${OP_HAS_OPENCV}" PARENT_SCOPE)
 
 # target_link_libraries(libop  ${OpenCV_LIBS})
 # target_link_libraries(libop msvcrt.lib)

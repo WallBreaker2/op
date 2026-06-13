@@ -13,7 +13,7 @@
 #endif
 
 std::wstring _s2wstring(const std::string &s) {
-    size_t nlen = s.length();
+    const int nlen = static_cast<int>(s.length());
 
     wchar_t *m_char;
     int len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), nlen, NULL, 0);
@@ -36,7 +36,7 @@ std::string _ws2string(const std::wstring &ws) {
     // delete[]chDest;
     // setlocale(LC_ALL, strLocale.c_str());
     // return strResult;
-    int nlen = ws.length();
+    const int nlen = static_cast<int>(ws.length());
 
     char *m_char;
     int len = WideCharToMultiByte(CP_ACP, 0, ws.data(), nlen, NULL, 0, NULL, NULL);

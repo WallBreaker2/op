@@ -1,5 +1,8 @@
 #include "test_support.h"
 
+#include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -31,16 +34,14 @@ void PaintPixel(vector<uchar> &pixels, int width, int x, int y, uchar b, uchar g
 }
 
 void PaintGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, uchar b, uchar g, uchar r) {
-    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
-                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3}, {2, 3}, {3, 3}, {1, 4}, {3, 4}};
     for (auto [x, y] : points)
         PaintPixel(pixels, width, x + offset_x, y + offset_y, b, g, r);
 }
 
 void PaintScaledGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, int scale, uchar b, uchar g,
                        uchar r) {
-    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
-                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3}, {2, 3}, {3, 3}, {1, 4}, {3, 4}};
     for (auto [x, y] : points) {
         for (int dy = 0; dy < scale; ++dy) {
             for (int dx = 0; dx < scale; ++dx) {
@@ -50,10 +51,9 @@ void PaintScaledGlyphA(vector<uchar> &pixels, int width, int offset_x, int offse
     }
 }
 
-void PaintOutlinedGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, uchar outline_b,
-                         uchar outline_g, uchar outline_r, uchar fill_b, uchar fill_g, uchar fill_r) {
-    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
-                                                  {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+void PaintOutlinedGlyphA(vector<uchar> &pixels, int width, int offset_x, int offset_y, uchar outline_b, uchar outline_g,
+                         uchar outline_r, uchar fill_b, uchar fill_g, uchar fill_r) {
+    static const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3}, {2, 3}, {3, 3}, {1, 4}, {3, 4}};
     for (auto [x, y] : points) {
         for (int dy = -1; dy <= 1; ++dy) {
             for (int dx = -1; dx <= 1; ++dx) {
@@ -269,15 +269,9 @@ TEST(ImageColorTest, FindColorHonorsAllDirections) {
     ASSERT_EQ(ret, 1);
 
     const vector<wstring> expected = {
-        L"1,1|6,1|3,3|1,6|6,6",
-        L"1,6|6,6|3,3|1,1|6,1",
-        L"6,1|1,1|3,3|6,6|1,6",
-        L"6,6|1,6|3,3|6,1|1,1",
-        L"3,3|1,1|6,1|1,6|6,6",
-        L"1,1|1,6|3,3|6,1|6,6",
-        L"6,1|6,6|3,3|1,1|1,6",
-        L"1,6|1,1|3,3|6,6|6,1",
-        L"6,6|6,1|3,3|1,6|1,1",
+        L"1,1|6,1|3,3|1,6|6,6", L"1,6|6,6|3,3|1,1|6,1", L"6,1|1,1|3,3|6,6|1,6",
+        L"6,6|1,6|3,3|6,1|1,1", L"3,3|1,1|6,1|1,6|6,6", L"1,1|1,6|3,3|6,1|6,6",
+        L"6,1|6,6|3,3|1,1|1,6", L"1,6|1,1|3,3|6,6|6,1", L"6,6|6,1|3,3|1,6|1,1",
     };
     const vector<long> expected_x = {1, 1, 6, 6, 3, 1, 6, 1, 6};
     const vector<long> expected_y = {1, 6, 1, 6, 3, 1, 1, 6, 6};
@@ -327,15 +321,9 @@ TEST(ImageColorTest, FindMultiColorHonorsAllDirections) {
     ASSERT_EQ(ret, 1);
 
     const vector<wstring> expected = {
-        L"1,1|6,1|3,3|1,6|6,6",
-        L"1,6|6,6|3,3|1,1|6,1",
-        L"6,1|1,1|3,3|6,6|1,6",
-        L"6,6|1,6|3,3|6,1|1,1",
-        L"3,3|1,1|6,1|1,6|6,6",
-        L"1,1|1,6|3,3|6,1|6,6",
-        L"6,1|6,6|3,3|1,1|1,6",
-        L"1,6|1,1|3,3|6,6|6,1",
-        L"6,6|6,1|3,3|1,6|1,1",
+        L"1,1|6,1|3,3|1,6|6,6", L"1,6|6,6|3,3|1,1|6,1", L"6,1|1,1|3,3|6,6|1,6",
+        L"6,6|1,6|3,3|6,1|1,1", L"3,3|1,1|6,1|1,6|6,6", L"1,1|1,6|3,3|6,1|6,6",
+        L"6,1|6,6|3,3|1,1|1,6", L"1,6|1,1|3,3|6,6|6,1", L"6,6|6,1|3,3|1,6|1,1",
     };
     const vector<long> expected_x = {1, 1, 6, 6, 3, 1, 6, 1, 6};
     const vector<long> expected_y = {1, 6, 1, 6, 3, 1, 1, 6, 6};
@@ -403,14 +391,10 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     ASSERT_EQ(ret, 1);
 
     const vector<wstring> expected = {
-        L"0,2,3|0,24,3|0,15,15|0,2,25|0,24,25",
-        L"0,2,25|0,24,25|0,15,15|0,2,3|0,24,3",
-        L"0,24,3|0,2,3|0,15,15|0,24,25|0,2,25",
-        L"0,24,25|0,2,25|0,15,15|0,24,3|0,2,3",
-        L"0,15,15|0,24,25|0,24,3|0,2,25|0,2,3",
-        L"0,2,3|0,2,25|0,15,15|0,24,3|0,24,25",
-        L"0,24,3|0,24,25|0,15,15|0,2,3|0,2,25",
-        L"0,2,25|0,2,3|0,15,15|0,24,25|0,24,3",
+        L"0,2,3|0,24,3|0,15,15|0,2,25|0,24,25", L"0,2,25|0,24,25|0,15,15|0,2,3|0,24,3",
+        L"0,24,3|0,2,3|0,15,15|0,24,25|0,2,25", L"0,24,25|0,2,25|0,15,15|0,24,3|0,2,3",
+        L"0,15,15|0,24,25|0,24,3|0,2,25|0,2,3", L"0,2,3|0,2,25|0,15,15|0,24,3|0,24,25",
+        L"0,24,3|0,24,25|0,15,15|0,2,3|0,2,25", L"0,2,25|0,2,3|0,15,15|0,24,25|0,24,3",
         L"0,24,25|0,24,3|0,15,15|0,2,25|0,2,3",
     };
     const vector<long> expected_x = {2, 2, 24, 24, 15, 2, 24, 2, 24};
@@ -457,9 +441,7 @@ TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
     const int height = 16;
     vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
 
-    auto paint_screen = [&](int x, int y, uchar b, uchar g, uchar r) {
-        PaintPixel(pixels, width, x, y, b, g, r);
-    };
+    auto paint_screen = [&](int x, int y, uchar b, uchar g, uchar r) { PaintPixel(pixels, width, x, y, b, g, r); };
 
     const vector<pair<int, int>> points = {
         {1, 1}, {4, 1}, {2, 2}, {5, 2}, {3, 3}, {1, 4}, {4, 4}, {2, 5}, {5, 5}, {3, 6}, {5, 6},
@@ -558,6 +540,291 @@ TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
     EXPECT_TRUE(word_data.empty()) << "FetchWord should not emit a dictionary entry for a blank region";
 }
 
+TEST(ImageColorTest, AddDictSupportsDmPointTextFormat) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 14;
+
+    auto pixels = MakePixels(width, height);
+    for (auto [x, y] :
+         {pair{2, 3}, pair{1, 4}, pair{3, 4}, pair{1, 5}, pair{2, 5}, pair{3, 5}, pair{1, 6}, pair{3, 6},
+          pair{1, 7}, pair{3, 7}}) {
+        PaintPixel(pixels, width, x, y, 0x00, 0x00, 0x00);
+    }
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, L"1E0500780$A$0.0.10$11", &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, SetDictDoesNotImportOpTextDictFiles) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_op_text_dict.txt";
+    {
+        std::ofstream file(path, std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file << "A$4,3,8$5E0E\n";
+    }
+
+    libop op;
+    long ret = 0;
+    op.SetDict(0, path.c_str(), &ret);
+    EXPECT_EQ(ret, 0);
+
+    long count = -1;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 0);
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+}
+
+TEST(ImageColorTest, SetDictSupportsDmTextDictFiles) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_dm_text_dict.txt";
+    {
+        std::ofstream file(path, std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file << "1E0500780$A$0.0.10$11\n";
+    }
+
+    libop op;
+    long ret = 0;
+    op.SetDict(0, path.c_str(), &ret);
+    EXPECT_EQ(ret, 1);
+
+    long count = -1;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 1);
+
+    std::wstring converted;
+    op.GetDict(0, 0, converted);
+    EXPECT_EQ(converted, L"A$11,3,10$78A0001E00");
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+}
+
+TEST(ImageColorTest, SetMemDictSupportsDmPointTextFormat) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 14;
+
+    auto pixels = MakePixels(width, height);
+    for (auto [x, y] :
+         {pair{2, 3}, pair{1, 4}, pair{3, 4}, pair{1, 5}, pair{2, 5}, pair{3, 5}, pair{1, 6}, pair{3, 6},
+          pair{1, 7}, pair{3, 7}}) {
+        PaintPixel(pixels, width, x, y, 0x00, 0x00, 0x00);
+    }
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    const char *legacy = "1E0500780$A$0.0.10$11\n";
+    op.SetMemDict(0, reinterpret_cast<const wchar_t *>(legacy), static_cast<long>(strlen(legacy)), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, SetMemDictSupportsOpTextEntryFormat) {
+    libop op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    const char *op_text = "A$4,3,8$5E0E\n";
+    op.SetMemDict(0, reinterpret_cast<const wchar_t *>(op_text), static_cast<long>(strlen(op_text)), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindStr(0, 0, width, height, L"A", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, AddDictRejectsInvalidOpTextEntry) {
+    libop op;
+    long ret = 0;
+
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    const wchar_t *invalid_entries[] = {
+        L"A$4,3,8$5E",
+        L"A$4,3,8$5E0Z",
+        L"A$4,3,13$5E0E",
+        L"A$0,3,8$5E0E",
+    };
+
+    for (const auto entry : invalid_entries) {
+        op.AddDict(0, entry, &ret);
+        EXPECT_EQ(ret, 0);
+    }
+
+    long count = -1;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 0);
+}
+
+TEST(ImageColorTest, SetMemDictRejectsInvalidOpTextEntry) {
+    libop op;
+    long ret = 0;
+    const char *op_text = "A$4,3,8$5E\n";
+
+    op.SetMemDict(0, reinterpret_cast<const wchar_t *>(op_text), static_cast<long>(strlen(op_text)), &ret);
+    EXPECT_EQ(ret, 0);
+
+    long count = -1;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 0);
+}
+
+TEST(ImageColorTest, AddDictSupportsProvidedOpTextEntryFormats) {
+    libop op;
+    long ret = 0;
+    const wchar_t *ci = L"此$13,15,107$0010FFE37F00F4FFFE1F048320FFEFFFFF7F188801193C8307";
+    const wchar_t *diannao =
+        L"电脑$13,29,224$"
+        L"FC87FF9008124122FEFFFF2791249244F24FFEC9FF011800FEFFFF3712FEFFFF4FFEE81FCD2A4FE7C97ED12CF24FFE01";
+
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, ci, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, diannao, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long count = 0;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 2);
+
+    std::wstring converted;
+    op.GetDict(0, 0, converted);
+    EXPECT_EQ(converted, ci);
+    op.GetDict(0, 1, converted);
+    EXPECT_EQ(converted, diannao);
+}
+
+TEST(ImageColorTest, AddDictSupportsProvidedDmMultiCharFormat) {
+    libop op;
+    long ret = 0;
+    const wchar_t *legacy = L"1FE000007FF08010420840FFE08020080206000001FF24448891122FFE48891122244488FF001000003FFC488"
+                            L"91FFC0013F2844928E33C2CC4089F900$"
+                            L"此电脑$1.0.202$13";
+
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, legacy, &ret);
+    EXPECT_EQ(ret, 1);
+
+    long count = 0;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 1);
+
+    std::wstring converted;
+    op.GetDict(0, 0, converted);
+    EXPECT_FALSE(converted.empty());
+    EXPECT_EQ(converted.rfind(L"此电脑$11,44,", 0), 0u);
+}
+
+TEST(ImageColorTest, AddDictSupportsProvidedDmFeishuFormat) {
+    libop op;
+    long ret = 0;
+    const wchar_t *dm = L"80100200400801002007F80CE1404810840801C0000811022044088111FFC440881102237420F21C$"
+                        L"飞书$0.0.88$13";
+
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+    op.AddDict(0, dm, &ret);
+    EXPECT_EQ(ret, 1);
+
+    long count = 0;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 1);
+
+    std::wstring converted;
+    op.GetDict(0, 0, converted);
+    EXPECT_FALSE(converted.empty());
+    EXPECT_EQ(converted.rfind(L"飞书$11,29,", 0), 0u);
+}
+
+TEST(ImageColorTest, AddDictSupportsProvidedDmTextFormats) {
+    struct DmCase {
+        const wchar_t *entry;
+        const wchar_t *converted_prefix;
+    };
+    const DmCase cases[] = {
+        {L"8010020440881102204408FFF0220440881102204408$玉$0.1.62$16", L"玉$11,16,"},
+        {L"0801002004008010FFF0400801803F840C8290C23040080100$龙$0.0.78$17", L"龙$11,18,"},
+        {L"C019FF64EC9D93B2764ED9FFFB2764EC9D93B277FE00$更$0.1.131$17", L"更$11,16,"},
+        {L"012624FC989F1E624DC989012000FF90C2104210620F410$新$0.0.101$18", L"新$11,17,"},
+        {L"0083904208410E21846094D08E104208410821C430841C8390020$安$0.0.93$19", L"安$11,19,"},
+        {L"0FE12024048091F2124248490921242484FE800$卓$3.1.91$18", L"卓$11,14,"},
+        {L"0400811F9800000001A066F8F81202404809013E3FE7048080100$设$0.0.98$18", L"设$11,19,"},
+        {L"0640982298570BD14949392324448C93925A514E298700C018$备$0.0.114$18", L"备$11,18,"},
+        {L"40180300600C0180300600C0180300600C0180300600C0180300600C01800$一$0.0.43$2", L"一$11,22,"},
+        {L"0200C0388F83B0E670DE18C30C60CC0E10E20C01C1FF3FE000007FFFFE$剑$0.0.188$21", L"剑$11,21,"},
+        {L"008019839831801000483D3E2F84B08610C3FFFFF8610C2184308610020000000301E0FC7FBE06000007F8FF00000000000000FFCFF8"
+         L"00000000000FF1FE$诛仙$0.0.365$22",
+         L"诛仙$11,45,"},
+        {L"401803786FCC3F81F00600E01FFFFFF00C0180F07E7EDF180300200$平$1.1.164$21", L"平$11,20,"},
+        {L"0180703C3F0FC0B80700E01C0387FFFFF1C2380700E01C0380700E0080$生$0.1.180$21", L"生$11,21,"},
+        {L"1FE3FC03FFFFFE3E0701F07FFFFF04618C31BFFFFE38C318630C7FF7FE$烟$0.0.274$21", L"烟$11,21,"},
+        {L"4018FF3FE78CF19F337667CC7983FFFFFFF99A33666ECCF98F30E70CFF8FC$雨$0.0.244$21", L"雨$11,22,"},
+        {L"00660CE19E31E61CC180180700E1FFFFF7FE0E01C038FFFFFDFF8380700E0080000000000000000000000000000C0381B9F7FE7F8FE0"
+         L"FF07E01C0000000000000000000000000000000000738F78E78C700600C1FFFFFBFF1CE39C7187C1F8FF3FE3FF1FE3FC7F8EE1800000"
+         L"0000000000EE1DE39E71CE09FF3FE7FC3F00601EFFFFFFFF03E039C73CE3FE3FC0E01C$进入游戏$0.1.1035$24",
+         L"进入游戏$11,104,"},
+    };
+
+    for (const auto &item : cases) {
+        libop op;
+        long ret = 0;
+
+        op.ClearDict(0, &ret);
+        ASSERT_EQ(ret, 1);
+        op.AddDict(0, item.entry, &ret);
+        EXPECT_EQ(ret, 1);
+
+        long count = 0;
+        op.GetDictCount(0, &count);
+        EXPECT_EQ(count, 1);
+
+        std::wstring converted;
+        op.GetDict(0, 0, converted);
+        EXPECT_FALSE(converted.empty());
+        EXPECT_EQ(converted.rfind(item.converted_prefix, 0), 0u);
+    }
+}
+
 TEST(ImageColorTest, FindStrUsesChannelColorToleranceForBinaryText) {
     libop op;
     long ret = 0;
@@ -573,8 +840,8 @@ TEST(ImageColorTest, FindStrUsesChannelColorToleranceForBinaryText) {
             pixels[idx + 2] = r;
             pixels[idx + 3] = 0xff;
         };
-        for (auto [x, y] : {pair{2, 1}, pair{1, 2}, pair{3, 2}, pair{1, 3}, pair{2, 3}, pair{3, 3}, pair{1, 4},
-                            pair{3, 4}}) {
+        for (auto [x, y] :
+             {pair{2, 1}, pair{1, 2}, pair{3, 2}, pair{1, 3}, pair{2, 3}, pair{3, 3}, pair{1, 4}, pair{3, 4}}) {
             paint(x, y, 0x00, 0x00, 0x00);
         }
         if (add_blue_noise)
@@ -938,8 +1205,7 @@ TEST(ImageColorTest, GameHudFindsOutlinedTextWithMultipleForegroundColors) {
     PaintOutlinedGlyphA(dict_pixels, dict_width, 2, 2, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff);
     SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
     ASSERT_EQ(ret, 1);
-    ASSERT_NO_FATAL_FAILURE(
-        UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000|000000-000000", L"A", ret));
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"FFFFFF-000000|000000-000000", L"A", ret));
 
     const int width = 36;
     const int height = 20;
@@ -1001,8 +1267,7 @@ TEST(ImageColorTest, GameHudFindsGradientDamageTextWithinTolerance) {
     const int height = 18;
     auto pixels = MakePixels(width, height);
     PaintGameBackground(pixels, width, height);
-    const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3},
-                                           {2, 3}, {3, 3}, {1, 4}, {3, 4}};
+    const vector<pair<int, int>> points = {{2, 1}, {1, 2}, {3, 2}, {1, 3}, {2, 3}, {3, 3}, {1, 4}, {3, 4}};
     int idx = 0;
     for (auto [x, y] : points) {
         const auto b = static_cast<uchar>((idx % 3) * 0x10);
@@ -1093,8 +1358,7 @@ TEST(ImageColorTest, GameHudBackgroundModeSupportsTwoTonePanels) {
     PaintGlyphA(dict_pixels, dict_width, 3, 2, 0xff, 0xff, 0xff);
     SetMemBmp(op, dict_width, dict_height, dict_pixels, ret);
     ASSERT_EQ(ret, 1);
-    ASSERT_NO_FATAL_FAILURE(
-        UseSingleWordDict(op, dict_width, dict_height, L"@504030-080808|584838-080808", L"A", ret));
+    ASSERT_NO_FATAL_FAILURE(UseSingleWordDict(op, dict_width, dict_height, L"@504030-080808|584838-080808", L"A", ret));
 
     const int width = 34;
     const int height = 18;

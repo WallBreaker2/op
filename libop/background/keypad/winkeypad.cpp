@@ -4,6 +4,12 @@
 #include "./core/helpfunc.h"
 #include <string>
 
+namespace {
+long send_message_result(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
+    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
+}
+}
+
 static uint oem_code(uint key) {
     short code[256] = {0};
     code['q'] = 0x10;
@@ -181,7 +187,7 @@ long winkeypad::KeyDown(long vk_code) {
         const UINT message = use_system_message ? WM_SYSKEYDOWN : WM_KEYDOWN;
         const LPARAM lparam = build_windows_key_lparam(vk_code, false, extended, alt_context);
 
-        ret = ::SendMessageTimeout(_hwnd, message, vk_code, lparam, SMTO_BLOCK, 2000, nullptr);
+        ret = send_message_result(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {
@@ -207,7 +213,7 @@ long winkeypad::KeyUp(long vk_code) {
 
         INPUT Input = {0};
         Input.type = INPUT_KEYBOARD;
-        Input.ki.wVk = vk_code;
+        Input.ki.wVk = static_cast<WORD>(vk_code);
         Input.ki.wScan = 0;
         Input.ki.dwFlags = KEYEVENTF_KEYUP;
 
@@ -242,7 +248,7 @@ long winkeypad::KeyUp(long vk_code) {
         const UINT message = use_system_message ? WM_SYSKEYUP : WM_KEYUP;
         const LPARAM lparam = build_windows_key_lparam(vk_code, true, extended, alt_context);
 
-        ret = ::SendMessageTimeout(_hwnd, message, vk_code, lparam, SMTO_BLOCK, 2000, nullptr);
+        ret = send_message_result(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {

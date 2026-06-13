@@ -178,10 +178,8 @@ long ImageProc::SetDict(int idx, const wstring &file_name) {
     _dicts[idx].clear();
     wstring fullpath;
     if (Path2GlobalPath(file_name, _curr_path, fullpath)) {
-        if (fullpath.substr(fullpath.length() - 4) == L".txt")
-            _dicts[idx].read_dict_dm(fullpath);
-        else
-            _dicts[idx].read_dict(fullpath);
+        // SetDict 按文件内容识别：OP 二进制 .dict 优先，失败后兼容大漠 txt。
+        _dicts[idx].read_dict(fullpath);
     } else {
         setlog(L"file '%s' does not exist", file_name.c_str());
     }
@@ -193,7 +191,7 @@ std::wstring ImageProc::GetDict(long idx, long font_index) {
     wstring tp;
     if (idx < 0 || idx >= _max_dict)
         return tp;
-    if (font_index < 0 || font_index >= _dicts[idx].words.size())
+    if (font_index < 0 || static_cast<size_t>(font_index) >= _dicts[idx].words.size())
         return tp;
     return _dicts[idx].words[font_index].to_string();
 }
@@ -218,7 +216,7 @@ long ImageProc::AddDict(long idx, const wstring &dict_info) {
         return 0;
 
     word1_t word;
-    if (!word.from_string(dict_info))
+    if (!dict_entry_importer::parse_text_dict_entry(dict_info, word))
         return 0;
     _dicts[idx].add_word(word);
     return 1;

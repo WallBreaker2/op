@@ -134,6 +134,11 @@ option(enable_wgc "Enable Windows Graphics Capture backend" ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     MESSAGE(STATUS "----------------Now is MSVC EHA----------------")
+    if(POLICY CMP0091)
+        cmake_policy(SET CMP0091 NEW)
+    endif()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    add_compile_options(/FS)
     set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
     set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa")
     set(CMAKE_CXX_FLAGS_DEBUG "/MT /Zi /EHa")
@@ -247,6 +252,9 @@ include_directories(
 add_subdirectory ("libop")
 ## tools项目
 add_subdirectory("tools")
+if(EXISTS "${CMAKE_SOURCE_DIR}/tools/opencv_match_cli/CMakeLists.txt")
+    add_subdirectory("tools/opencv_match_cli")
+endif()
 ## 测试项目
 add_subdirectory("tests")
 ## swig 项目

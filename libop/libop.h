@@ -30,6 +30,11 @@ struct op_context;
 #undef FindWindowEx
 #undef SetWindowText
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
+
 class OP_API libop {
 
   public:
@@ -93,11 +98,11 @@ class OP_API libop {
     // A星算法
     void AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_points, long beginX, long beginY,
                        long endX, long endY, std::wstring &ret);
-    //
+    // 从坐标列表中查找距离指定坐标最近的点
     void FindNearestPos(const wchar_t *all_pos, long type, long x, long y, std::wstring &ret);
     //--------------------windows api------------------------------
     // 根据指定条件,枚举系统中符合条件的窗口
-    void EnumWindow(long parent, const wchar_t *title, const wchar_t *class_name, long filter, std::wstring &ret);
+    void EnumWindow(LONG_PTR parent, const wchar_t *title, const wchar_t *class_name, long filter, std::wstring &ret);
     // 根据指定进程以及其它条件,枚举系统中符合条件的窗口
     void EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name, long filter,
                              std::wstring &ret);
@@ -199,6 +204,8 @@ class OP_API libop {
     //--------------------mouse & keyboard------------------
     // 获取鼠标位置.
     void GetCursorPos(long *x, long *y, long *ret);
+    // 获取当前鼠标形状: visible,hash,width,height,hotX,hotY.
+    void GetCursorShape(std::wstring &ret);
     // 鼠标相对于上次的位置移动rx,ry.
     void MoveR(long x, long y, long *ret);
     // 把鼠标移动到目的点(x,y)
@@ -308,6 +315,56 @@ class OP_API libop {
     void GetScreenFrameInfo(long *frame_id, long *time);
     //
     void MatchPicName(const wchar_t *pic_name, std::wstring &retstr);
+    //----------------------opcv-------------------------
+    void CvLoadTemplate(const wchar_t *name, const wchar_t *file_path, long *ret);
+    void CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *template_path, const wchar_t *mask_path, long *ret);
+    void CvRemoveTemplate(const wchar_t *name, long *ret);
+    void CvRemoveAllTemplates(long *ret);
+    void CvHasTemplate(const wchar_t *name, long *ret);
+    void CvGetTemplateCount(long *ret);
+    void CvGetAllTemplateNames(std::wstring &retstr);
+    void CvGetOpenCvVersion(std::wstring &retstr);
+    void CvLoadTemplateList(const wchar_t *template_list, long *ret);
+    void CvToGray(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToBinary(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToEdge(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToOutline(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvDenoise(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvEqualize(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvCLAHE(const wchar_t *src_file, const wchar_t *dst_file, double clip_limit, long tile_grid_size, long *ret);
+    void CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size, long *ret);
+    void CvSharpen(const wchar_t *src_file, const wchar_t *dst_file, double strength, long *ret);
+    void CvCropValid(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvConnectedComponents(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret);
+    void CvFindContours(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret);
+    void CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *pipeline, long *ret);
+    void CvCrop(const wchar_t *src_file, long x, long y, long width, long height, const wchar_t *dst_file, long *ret);
+    void CvResize(const wchar_t *src_file, long width, long height, const wchar_t *dst_file, long *ret);
+    void CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, double threshold, double max_value,
+                     const wchar_t *mode, long *ret);
+    void CvInRange(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *color_space,
+                   const wchar_t *lower, const wchar_t *upper, long *ret);
+    void CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size,
+                      long iterations, long *ret);
+    void CvThin(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long *ret);
+    void CvMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                         long dir, long strip_mode, long method, long color_mode,
+                         std::wstring &retjson, long *ret);
+    void CvMatchTemplateScale(long x, long y, long width, long height, const wchar_t *template_name,
+                              const wchar_t *scales, double threshold, long method, long color_mode,
+                              std::wstring &retjson, long *ret);
+    void CvMatchAnyTemplate(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+                            long dir, long strip_mode, long method, long color_mode,
+                            std::wstring &retjson, long *ret);
+    void CvMatchAllTemplates(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+                             long dir, long strip_mode, long method, long color_mode,
+                             std::wstring &retjson, long *ret);
+    void CvFeatureMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+                                double threshold, std::wstring &retjson, long *ret);
+    void CvEdgeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                             std::wstring &retjson, long *ret);
+    void CvShapeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                              std::wstring &retjson, long *ret);
     //----------------------ocr-------------------------
     long SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv);
     // 设置字库文件
@@ -362,3 +419,7 @@ class OP_API libop {
     // 读取数据
     void ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr);
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
