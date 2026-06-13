@@ -40,7 +40,7 @@ HMODULE GetSystemModule(const char *module) {
     static std::string systemPath;
     if (systemPath.empty()) {
         systemPath.resize(2048);
-        uint32_t res = GetSystemDirectoryA(&systemPath[0], systemPath.size());
+        uint32_t res = GetSystemDirectoryA(&systemPath[0], static_cast<UINT>(systemPath.size()));
         systemPath.resize(res);
     }
 

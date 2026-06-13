@@ -246,6 +246,9 @@ class libop(object):
     def GetCursorPos(self):
         return _pyop.libop_GetCursorPos(self)
 
+    def GetCursorShape(self):
+        return _pyop.libop_GetCursorShape(self)
+
     def MoveR(self, x, y):
         return _pyop.libop_MoveR(self, x, y)
 
@@ -389,6 +392,111 @@ class libop(object):
 
     def MatchPicName(self, pic_name):
         return _pyop.libop_MatchPicName(self, pic_name)
+
+    def CvLoadTemplate(self, name, file_path):
+        return _pyop.libop_CvLoadTemplate(self, name, file_path)
+
+    def CvLoadMaskedTemplate(self, name, template_path, mask_path):
+        return _pyop.libop_CvLoadMaskedTemplate(self, name, template_path, mask_path)
+
+    def CvRemoveTemplate(self, name):
+        return _pyop.libop_CvRemoveTemplate(self, name)
+
+    def CvRemoveAllTemplates(self):
+        return _pyop.libop_CvRemoveAllTemplates(self)
+
+    def CvHasTemplate(self, name):
+        return _pyop.libop_CvHasTemplate(self, name)
+
+    def CvGetTemplateCount(self):
+        return _pyop.libop_CvGetTemplateCount(self)
+
+    def CvGetAllTemplateNames(self):
+        return _pyop.libop_CvGetAllTemplateNames(self)
+
+    def CvGetOpenCvVersion(self):
+        return _pyop.libop_CvGetOpenCvVersion(self)
+
+    def CvLoadTemplateList(self, template_list):
+        return _pyop.libop_CvLoadTemplateList(self, template_list)
+
+    def CvToGray(self, src_file, dst_file):
+        return _pyop.libop_CvToGray(self, src_file, dst_file)
+
+    def CvToBinary(self, src_file, dst_file):
+        return _pyop.libop_CvToBinary(self, src_file, dst_file)
+
+    def CvToEdge(self, src_file, dst_file):
+        return _pyop.libop_CvToEdge(self, src_file, dst_file)
+
+    def CvToOutline(self, src_file, dst_file):
+        return _pyop.libop_CvToOutline(self, src_file, dst_file)
+
+    def CvDenoise(self, src_file, dst_file):
+        return _pyop.libop_CvDenoise(self, src_file, dst_file)
+
+    def CvEqualize(self, src_file, dst_file):
+        return _pyop.libop_CvEqualize(self, src_file, dst_file)
+
+    def CvCLAHE(self, src_file, dst_file, clip_limit, tile_grid_size):
+        return _pyop.libop_CvCLAHE(self, src_file, dst_file, clip_limit, tile_grid_size)
+
+    def CvBlur(self, src_file, dst_file, mode, kernel_size):
+        return _pyop.libop_CvBlur(self, src_file, dst_file, mode, kernel_size)
+
+    def CvSharpen(self, src_file, dst_file, strength):
+        return _pyop.libop_CvSharpen(self, src_file, dst_file, strength)
+
+    def CvCropValid(self, src_file, dst_file):
+        return _pyop.libop_CvCropValid(self, src_file, dst_file)
+
+    def CvConnectedComponents(self, src_file, min_area):
+        return _pyop.libop_CvConnectedComponents(self, src_file, min_area)
+
+    def CvFindContours(self, src_file, min_area):
+        return _pyop.libop_CvFindContours(self, src_file, min_area)
+
+    def CvPreprocessPipeline(self, src_file, dst_file, pipeline):
+        return _pyop.libop_CvPreprocessPipeline(self, src_file, dst_file, pipeline)
+
+    def CvCrop(self, src_file, x, y, width, height, dst_file):
+        return _pyop.libop_CvCrop(self, src_file, x, y, width, height, dst_file)
+
+    def CvResize(self, src_file, width, height, dst_file):
+        return _pyop.libop_CvResize(self, src_file, width, height, dst_file)
+
+    def CvThreshold(self, src_file, dst_file, threshold, max_value, mode):
+        return _pyop.libop_CvThreshold(self, src_file, dst_file, threshold, max_value, mode)
+
+    def CvInRange(self, src_file, dst_file, color_space, lower, upper):
+        return _pyop.libop_CvInRange(self, src_file, dst_file, color_space, lower, upper)
+
+    def CvMorphology(self, src_file, dst_file, mode, kernel_size, iterations):
+        return _pyop.libop_CvMorphology(self, src_file, dst_file, mode, kernel_size, iterations)
+
+    def CvThin(self, src_file, dst_file, mode):
+        return _pyop.libop_CvThin(self, src_file, dst_file, mode)
+
+    def CvMatchTemplate(self, x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode):
+        return _pyop.libop_CvMatchTemplate(self, x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode)
+
+    def CvMatchTemplateScale(self, x, y, width, height, template_name, scales, threshold, method, color_mode):
+        return _pyop.libop_CvMatchTemplateScale(self, x, y, width, height, template_name, scales, threshold, method, color_mode)
+
+    def CvMatchAnyTemplate(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode):
+        return _pyop.libop_CvMatchAnyTemplate(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
+
+    def CvMatchAllTemplates(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode):
+        return _pyop.libop_CvMatchAllTemplates(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
+
+    def CvFeatureMatchTemplate(self, x, y, width, height, template_name, threshold):
+        return _pyop.libop_CvFeatureMatchTemplate(self, x, y, width, height, template_name, threshold)
+
+    def CvEdgeMatchTemplate(self, x, y, width, height, template_name, threshold):
+        return _pyop.libop_CvEdgeMatchTemplate(self, x, y, width, height, template_name, threshold)
+
+    def CvShapeMatchTemplate(self, x, y, width, height, template_name, threshold):
+        return _pyop.libop_CvShapeMatchTemplate(self, x, y, width, height, template_name, threshold)
 
     def SetOcrEngine(self, path_of_engine, dll_name, argv):
         return _pyop.libop_SetOcrEngine(self, path_of_engine, dll_name, argv)

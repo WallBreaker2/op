@@ -9,7 +9,7 @@ class Pipe {
     using string = std::string;
     Pipe();
     virtual ~Pipe();
-    int open(const string &cmd);
+    int open(const std::wstring &cmd);
     int close(DWORD process_wait_ms = 1000);
     virtual void on_read(const string &info);
     virtual int on_write(const string &info);
@@ -22,7 +22,7 @@ class Pipe {
     handle_t _hprocess;
     SECURITY_ATTRIBUTES _ai;
     PROCESS_INFORMATION _pi;
-    STARTUPINFOA _si;
+    STARTUPINFOW _si;
     std::atomic<bool> _reading;
     std::thread *_pthread;
     void reader();

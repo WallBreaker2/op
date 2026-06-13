@@ -3,7 +3,11 @@
 所有op的开放接口都从此cpp类衍生而出
 */
 #pragma once
+#include <memory>
+#include <atomic>
 #include <string>
+#include <vector>
+#include <Windows.h>
 // forward declare
 // class WinApi;
 // class opBackground;
@@ -25,6 +29,11 @@ struct op_context;
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)
+#endif
 
 class OP_API libop {
 
@@ -53,8 +62,8 @@ class OP_API libop {
     // std::wstring m_opPath;
     // long m_screen_data_mode;
     // int m_id;
-    op_context *m_context;
-    static int s_id;
+    std::unique_ptr<op_context> m_context;
+    static std::atomic<int> s_id;
 
   public:
     //---------------基本设置/属性-------------------
@@ -89,78 +98,83 @@ class OP_API libop {
     // A星算法
     void AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_points, long beginX, long beginY,
                        long endX, long endY, std::wstring &ret);
-    //
+    // 从坐标列表中查找距离指定坐标最近的点
     void FindNearestPos(const wchar_t *all_pos, long type, long x, long y, std::wstring &ret);
     //--------------------windows api------------------------------
     // 根据指定条件,枚举系统中符合条件的窗口
-    void EnumWindow(long parent, const wchar_t *title, const wchar_t *class_name, long filter, std::wstring &ret);
+    void EnumWindow(LONG_PTR parent, const wchar_t *title, const wchar_t *class_name, long filter, std::wstring &ret);
     // 根据指定进程以及其它条件,枚举系统中符合条件的窗口
     void EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name, long filter,
                              std::wstring &ret);
     // 根据指定进程名,枚举系统中符合条件的进程PID
     void EnumProcess(const wchar_t *name, std::wstring &ret);
     // 把窗口坐标转换为屏幕坐标
-    void ClientToScreen(long ClientToScreen, long *x, long *y, long *bret);
+    void ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret);
     // 查找符合类名或者标题名的顶层可见窗口
-    void FindWindow(const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 根据指定的进程名字，来查找可见窗口
-    void FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
+                             LONG_PTR *ret);
     // 根据指定的进程Id，来查找可见窗口
-    void FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 查找符合类名或者标题名的顶层可见窗口,如果指定了parent,则在parent的第一层子窗口中查找
-    void FindWindowEx(long parent, const wchar_t *class_name, const wchar_t *title, long *ret);
+    void FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *ret);
     // 获取窗口客户区域在屏幕上的位置
-    void GetClientRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
+    void GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
     // 获取窗口客户区域的宽度和高度
-    void GetClientSize(long hwnd, long *width, long *height, long *ret);
+    void GetClientSize(LONG_PTR hwnd, long *width, long *height, long *ret);
     // 获取顶层活动窗口中具有输入焦点的窗口句柄
-    void GetForegroundFocus(long *ret);
+    void GetForegroundFocus(LONG_PTR *ret);
     // 获取顶层活动窗口,可以获取到按键自带插件无法获取到的句柄
-    void GetForegroundWindow(long *ret);
+    void GetForegroundWindow(LONG_PTR *ret);
     // 获取鼠标指向的可见窗口句柄
-    void GetMousePointWindow(long *ret);
+    void GetMousePointWindow(LONG_PTR *ret);
     // 获取给定坐标的可见窗口句柄
-    void GetPointWindow(long x, long y, long *ret);
+    void GetPointWindow(long x, long y, LONG_PTR *ret);
     // 根据指定的pid获取进程详细信息
     void GetProcessInfo(long pid, std::wstring &ret);
     // 获取特殊窗口
-    void GetSpecialWindow(long flag, long *ret);
+    void GetSpecialWindow(long flag, LONG_PTR *ret);
     // 获取给定窗口相关的窗口句柄
-    void GetWindow(long hwnd, long flag, long *ret);
+    void GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *ret);
     // 获取窗口的类名
-    void GetWindowClass(long hwnd, std::wstring &ret);
+    void GetWindowClass(LONG_PTR hwnd, std::wstring &ret);
     // 获取指定窗口所在的进程ID
-    void GetWindowProcessId(long hwnd, long *ret);
+    void GetWindowProcessId(LONG_PTR hwnd, long *ret);
     // 获取指定窗口所在的进程的exe文件全路径
-    void GetWindowProcessPath(long hwnd, std::wstring &ret);
+    void GetWindowProcessPath(LONG_PTR hwnd, std::wstring &ret);
     // 获取窗口在屏幕上的位置
-    void GetWindowRect(long hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
+    void GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *ret);
     // 获取指定窗口的一些属性
-    void GetWindowState(long hwnd, long flag, long *ret);
+    void GetWindowState(LONG_PTR hwnd, long flag, long *ret);
     // 获取窗口的标题
-    void GetWindowTitle(long hwnd, std::wstring &rettitle);
+    void GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle);
     // 移动指定窗口到指定位置
-    void MoveWindow(long hwnd, long x, long y, long *ret);
+    void MoveWindow(LONG_PTR hwnd, long x, long y, long *ret);
     // 把屏幕坐标转换为窗口坐标
-    void ScreenToClient(long hwnd, long *x, long *y, long *ret);
+    void ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *ret);
     // 向指定窗口发送粘贴命令
-    void SendPaste(long hwnd, long *ret);
+    void SendPaste(LONG_PTR hwnd, long *ret);
     // 设置窗口客户区域的宽度和高度
-    void SetClientSize(long hwnd, long width, long hight, long *ret);
+    void SetClientSize(LONG_PTR hwnd, long width, long hight, long *ret);
     // 设置窗口的状态
-    void SetWindowState(long hwnd, long flag, long *ret);
+    void SetWindowState(LONG_PTR hwnd, long flag, long *ret);
     // 设置窗口的大小
-    void SetWindowSize(long hwnd, long width, long height, long *ret);
+    void SetWindowSize(LONG_PTR hwnd, long width, long height, long *ret);
+    // 按指定布局批量排列多个窗口。hwnds 格式例如 "123|456|789"。
+    void LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y, long gap_x,
+                       long gap_y, long size_mode, long window_width, long window_height, long anchor_mode,
+                       long *ret);
     // 设置窗口的标题
-    void SetWindowText(long hwnd, const wchar_t *title, long *ret);
+    void SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *ret);
     // 设置窗口的透明度
-    void SetWindowTransparent(long hwnd, long trans, long *ret);
+    void SetWindowTransparent(LONG_PTR hwnd, long trans, long *ret);
     // 向指定窗口发送文本数据
-    void SendString(long hwnd, const wchar_t *str, long *ret);
+    void SendString(LONG_PTR hwnd, const wchar_t *str, long *ret);
     // 向指定窗口发送文本数据-输入法
-    void SendStringIme(long hwnd, const wchar_t *str, long *ret);
+    void SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret);
     // 运行可执行文件,可指定模式
-    void RunApp(const wchar_t *cmdline, long mode, long *ret);
+    void RunApp(const wchar_t *cmdline, long mode, unsigned long *pid, long *ret);
     // 运行可执行文件，可指定显示模式
     void WinExec(const wchar_t *cmdline, long cmdshow, long *ret);
 
@@ -176,20 +190,22 @@ class OP_API libop {
     void Delays(long mis_min, long mis_max, long *ret);
     //--------------------Background -----------------------
     // 兼容旧接口的单句柄绑定。显示和输入都使用同一个 hwnd。
-    void BindWindow(long hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
+    void BindWindow(LONG_PTR hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, long mode,
                     long *ret);
     // 扩展绑定接口。显示截图使用 display_hwnd，鼠标和键盘输入使用 input_hwnd。
-    void BindWindowEx(long display_hwnd, long input_hwnd, const wchar_t *display, const wchar_t *mouse,
+    void BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wchar_t *display, const wchar_t *mouse,
                       const wchar_t *keypad, long mode, long *ret);
     // 解绑窗口
     void UnBindWindow(long *ret);
     // 获取当前对象已经绑定的显示窗口句柄. 无绑定返回0
-    void GetBindWindow(long *ret);
+    void GetBindWindow(LONG_PTR *ret);
     // 判定当前对象是否已绑定窗口.
     void IsBind(long *ret);
     //--------------------mouse & keyboard------------------
     // 获取鼠标位置.
     void GetCursorPos(long *x, long *y, long *ret);
+    // 获取当前鼠标形状: visible,hash,width,height,hotX,hotY.
+    void GetCursorShape(std::wstring &ret);
     // 鼠标相对于上次的位置移动rx,ry.
     void MoveR(long x, long y, long *ret);
     // 把鼠标移动到目的点(x,y)
@@ -254,6 +270,8 @@ class OP_API libop {
     // 查找指定区域内的所有颜色
     void FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long dir,
                      std::wstring &retstr);
+    // 查找指定区域内的所有颜色数量
+    void GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long *ret);
     // 根据指定的多点查找颜色坐标
     void FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color,
                         double sim, long dir, long *x, long *y, long *ret);
@@ -287,6 +305,8 @@ class OP_API libop {
     void FreePic(const wchar_t *file_name, long *ret);
     // 从内存加载要查找的图片
     void LoadMemPic(const wchar_t *file_name, void *data, long size, long *ret);
+    // 获取指定图片的尺寸，如果指定的图片已经被加入缓存，则从缓存中获取信息.此接口也会把此图片加入缓存
+    void GetPicSize(const wchar_t *pic_name, long *width, long *height, long *ret);
     //
     void GetScreenData(long x1, long y1, long x2, long y2, size_t *data, long *ret);
     //
@@ -295,14 +315,86 @@ class OP_API libop {
     void GetScreenFrameInfo(long *frame_id, long *time);
     //
     void MatchPicName(const wchar_t *pic_name, std::wstring &retstr);
+    //----------------------opcv-------------------------
+    void CvLoadTemplate(const wchar_t *name, const wchar_t *file_path, long *ret);
+    void CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *template_path, const wchar_t *mask_path, long *ret);
+    void CvRemoveTemplate(const wchar_t *name, long *ret);
+    void CvRemoveAllTemplates(long *ret);
+    void CvHasTemplate(const wchar_t *name, long *ret);
+    void CvGetTemplateCount(long *ret);
+    void CvGetAllTemplateNames(std::wstring &retstr);
+    void CvGetOpenCvVersion(std::wstring &retstr);
+    void CvLoadTemplateList(const wchar_t *template_list, long *ret);
+    void CvToGray(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToBinary(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToEdge(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvToOutline(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvDenoise(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvEqualize(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvCLAHE(const wchar_t *src_file, const wchar_t *dst_file, double clip_limit, long tile_grid_size, long *ret);
+    void CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size, long *ret);
+    void CvSharpen(const wchar_t *src_file, const wchar_t *dst_file, double strength, long *ret);
+    void CvCropValid(const wchar_t *src_file, const wchar_t *dst_file, long *ret);
+    void CvConnectedComponents(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret);
+    void CvFindContours(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret);
+    void CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *pipeline, long *ret);
+    void CvCrop(const wchar_t *src_file, long x, long y, long width, long height, const wchar_t *dst_file, long *ret);
+    void CvResize(const wchar_t *src_file, long width, long height, const wchar_t *dst_file, long *ret);
+    void CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, double threshold, double max_value,
+                     const wchar_t *mode, long *ret);
+    void CvInRange(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *color_space,
+                   const wchar_t *lower, const wchar_t *upper, long *ret);
+    void CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size,
+                      long iterations, long *ret);
+    void CvThin(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long *ret);
+    void CvMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                         long dir, long strip_mode, long method, long color_mode,
+                         std::wstring &retjson, long *ret);
+    void CvMatchTemplateScale(long x, long y, long width, long height, const wchar_t *template_name,
+                              const wchar_t *scales, double threshold, long method, long color_mode,
+                              std::wstring &retjson, long *ret);
+    void CvMatchAnyTemplate(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+                            long dir, long strip_mode, long method, long color_mode,
+                            std::wstring &retjson, long *ret);
+    void CvMatchAllTemplates(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+                             long dir, long strip_mode, long method, long color_mode,
+                             std::wstring &retjson, long *ret);
+    void CvFeatureMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+                                double threshold, std::wstring &retjson, long *ret);
+    void CvEdgeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                             std::wstring &retjson, long *ret);
+    void CvShapeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+                              std::wstring &retjson, long *ret);
     //----------------------ocr-------------------------
     long SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv);
     // 设置字库文件
     void SetDict(long idx, const wchar_t *file_name, long *ret);
+    // 获取指定字库中指定条目的字库信息
+    void GetDict(long idx, long font_index, std::wstring &retstr);
     // 设置内存字库文件
     void SetMemDict(long idx, const wchar_t *data, long size, long *ret);
     // 使用哪个字库文件进行识别
     void UseDict(long idx, long *ret);
+    // 给指定的字库中添加一条字库信息
+    void AddDict(long idx, const wchar_t *dict_info, long *ret);
+    // 保存指定的字库到指定的文件中
+    void SaveDict(long idx, const wchar_t *file_name, long *ret);
+    // 清空指定的字库
+    void ClearDict(long idx, long *ret);
+    // 获取指定的字库中的字符数量
+    void GetDictCount(long idx, long *ret);
+    // 获取当前使用的字库序号
+    void GetNowDict(long *ret);
+    // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
+    void FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, const wchar_t *word, std::wstring &retstr);
+    // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
+    void GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr);
+    // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
+    void GetWordResultCount(const wchar_t *result, long *ret);
+    // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
+    void GetWordResultPos(const wchar_t *result, long index, long *x, long *y, long *ret);
+    // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
+    void GetWordResultStr(const wchar_t *result, long index, std::wstring &ret_str);
     // 识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
     void Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &ret_str);
     // 回识别到的字符串，以及每个字符的坐标.
@@ -323,7 +415,11 @@ class OP_API libop {
     void FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr);
 
     // 向某进程写入数据
-    void WriteData(long hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret);
+    void WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret);
     // 读取数据
-    void ReadData(long hwnd, const wchar_t *address, long size, std::wstring &retstr);
+    void ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr);
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

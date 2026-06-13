@@ -1,128 +1,45 @@
-// #include "stdafx.h"
 #include "opMouseDx.h"
-#include "../HOOK/opMessage.h"
+#include "CursorShape.h"
+#include "../Hook/InputHookClient.h"
+#include "../Hook/opMessage.h"
 #include "../core/globalVar.h"
 #include "../core/helpfunc.h"
-#include "../core/opEnv.h"
-#include "BlackBone/Process/Process.h"
-#include "BlackBone/Process/RPC/RemoteFunction.hpp"
 
 namespace {
 long send_op_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
-    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1 : 0;
+    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
 }
 }
 
-opMouseDx::opMouseDx() : _hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI()) {
+opMouseDx::opMouseDx() {
 }
 
 opMouseDx::~opMouseDx() {
-    _hwnd = NULL;
+    UnBind();
 }
 
 long opMouseDx::Bind(HWND h, int mode) {
-    _hwnd = h;
-    _mode = mode;
-    DWORD id;
-    ::GetWindowThreadProcessId(_hwnd, &id);
+    if (_hwnd == h && _mode == mode)
+        return 1;
 
-    // attach 进程
-    blackbone::Process proc;
-    NTSTATUS hr;
-
-    hr = proc.Attach(id);
-    long ret = 0;
-    if (NT_SUCCESS(hr)) {
-        wstring dllname = opEnv::getOpName();
-        // 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
-        BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-        if (is64 != OP64) {
-            dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
-        }
-
-        bool injected = false;
-        // 判断是否已经注入
-        auto _dllptr = proc.modules().GetModule(dllname);
-        auto mods = proc.modules().GetAllModules();
-        if (_dllptr) {
-            injected = true;
-        } else {
-            wstring opFile = opEnv::getBasePath() + L"\\" + dllname;
-            if (::PathFileExistsW(opFile.data())) {
-                auto iret = proc.modules().Inject(opFile);
-                injected = (iret ? true : false);
-                if (!injected) {
-                    setlog(L"Inject failed. pid=%d hwnd=%d status=0x%X dll=%s", id, _hwnd, iret.status, opFile.c_str());
-                }
-            } else {
-                setlog(L"file:<%s> not exists!", opFile.data());
-            }
-        }
-        if (injected) {
-            using my_func_t = long(__stdcall *)(HWND, int);
-            auto PSetInputHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "SetInputHook");
-            if (PSetInputHook) {
-                // setlog("after MakeRemoteFunction");
-                auto cret = PSetInputHook(_hwnd, _mode);
-                // setlog("after pSetXHook");
-                ret = cret.result();
-                // setlog("after result");
-            } else {
-                setlog(L"remote function 'SetInputHook' not found.");
-            }
-        } else {
-            setlog(L"Inject false.");
-        }
-    } else {
-        setlog(L"attach false. pid=%d hwnd=%d hr=0x%X", id, _hwnd, hr);
-    }
-
-    proc.Detach();
-    // setlog("after Detach");
-
+    UnBind();
+    long ret = input_hook_client::Bind(h, mode);
     if (ret != 1) {
         _hwnd = NULL;
         _mode = 0;
+        return ret;
     }
+    _hwnd = h;
+    _mode = mode;
+    _x = _y = 0;
     return ret;
 }
 
 long opMouseDx::UnBind() {
-    DWORD id;
-    ::GetWindowThreadProcessId(_hwnd, &id);
-
-    // attach 进程
-    blackbone::Process proc;
-    NTSTATUS hr;
-
-    hr = proc.Attach(id);
-    long ret = 0;
-    if (NT_SUCCESS(hr)) {
-        wstring dllname = opEnv::getOpName();
-        // 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
-        BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-        if (is64 != OP64) {
-            dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
-        }
-        using my_func_t = long(__stdcall *)();
-        auto pReleaseInputHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "ReleaseInputHook");
-        if (pReleaseInputHook) {
-            // setlog("after MakeRemoteFunction");
-            auto cret = pReleaseInputHook();
-            // setlog("after pSetXHook");
-            ret = cret.result();
-            // setlog("after result");
-        } else {
-            setlog(L"remote function 'ReleaseInputHook' not found.");
-        }
-    } else {
-        setlog(L"attach false.");
-    }
-
-    proc.Detach();
-    // setlog("after Detach");
+    const long ret = input_hook_client::UnBind(_hwnd);
     _hwnd = 0;
     _mode = 0;
+    _x = _y = 0;
     return ret;
 }
 
@@ -138,17 +55,27 @@ long opMouseDx::GetCursorPos(long &x, long &y) {
     return ret;
 }
 
+long opMouseDx::GetCursorShape(std::wstring &ret) {
+    unsigned long long hash = 0;
+    unsigned long long meta = 0;
+    CursorShapeInfo info;
+    if (input_hook_client::GetCursorShape(_hwnd, hash, meta) && cursor_shape::UnpackMeta(meta, hash, info)) {
+        ret = cursor_shape::Format(info);
+        return 1;
+    }
+
+    return opMouseWin::GetCursorShape(ret);
+}
+
 long opMouseDx::MoveR(int rx, int ry) {
     return MoveTo(_x + rx, _y + ry);
 }
 
 long opMouseDx::MoveTo(int x, int y) {
-    // 启用DPI感知后，不需要在进行坐标处理
-    // x = x * _dpi;
-    // y = y * _dpi;
-    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+    const POINT pt{x, y};
+    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y));
 
-    _x = x, _y = y;
+    _x = pt.x, _y = pt.y;
     return ret;
 }
 
@@ -168,13 +95,11 @@ long opMouseDx::MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) {
 
 long opMouseDx::LeftClick() {
     long ret = 0, ret2 = 0;
+    const POINT pt = current_client_point();
 
-    /// ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-    ret = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-    // ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+    ret = send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
     ::Delay(MOUSE_DX_DELAY);
-    // ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-    ret2 = ::SendMessageTimeout(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+    ret2 = send_op_message(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
 
     return ret && ret2 ? 1 : 0;
 }
@@ -188,11 +113,13 @@ long opMouseDx::LeftDoubleClick() {
 }
 
 long opMouseDx::LeftDown() {
-    return send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::LeftUp() {
-    return send_op_message(_hwnd, OP_WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::MiddleClick() {
@@ -204,52 +131,44 @@ long opMouseDx::MiddleClick() {
 }
 
 long opMouseDx::MiddleDown() {
-    return send_op_message(_hwnd, OP_WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::MiddleUp() {
-    return send_op_message(_hwnd, OP_WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_MBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::RightClick() {
     long ret = 0;
     long r1, r2;
+    const POINT pt = current_client_point();
 
-    r1 = send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+    r1 = send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
     ::Delay(MOUSE_DX_DELAY);
-    r2 = send_op_message(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+    r2 = send_op_message(_hwnd, OP_WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
     ret = r1 && r2 ? 1 : 0;
 
     return ret;
 }
 
 long opMouseDx::RightDown() {
-    return send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::RightUp() {
-    return send_op_message(_hwnd, OP_WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::WheelDown() {
-    /*
-        wParam
-        The high-order word indicates the distance the wheel is rotated,
-        expressed in multiples or divisions of WHEEL_DELTA, which is 120.
-        A positive value indicates that the wheel was rotated forward, away from the user;
-        a negative value indicates that the wheel was rotated backward, toward the user.
-        The low-order word indicates whether various virtual keys are down.
-        This parameter can be one or more of the following values.
-        lParam
-        The low-order word specifies the x-coordinate of the pointer,
-        relative to the upper-left corner of the screen.
-        The high-order word specifies the y-coordinate of the pointer,
-        relative to the upper-left corner of the screen.
-        */
-    // If an application processes this message, it should return zero.
-    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
 }
 
 long opMouseDx::WheelUp() {
-    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(_x, _y));
+    const POINT pt = current_client_point();
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
 }

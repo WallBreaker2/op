@@ -93,14 +93,12 @@ struct Image {
             return false;
         }
         HRESULT hr = img.Load(pStream);
+        pStream->Release();
         if (hr == S_OK) {
-            pStream->Release();
-            GlobalFree(hGlobal);
             create(img.GetWidth(), img.GetHeight());
             translate((unsigned char *)img.GetBits(), img.GetBPP() / 8, img.GetPitch());
             return true;
         } else {
-            GlobalFree(hGlobal);
             return false;
         }
     }

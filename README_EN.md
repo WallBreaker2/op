@@ -5,293 +5,119 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue.svg)](https://microsoft.com/windows)
 
-## 📖 Introduction
+[中文](README.md)
 
-**OP** (Operator & Open) is an open-source automation plugin designed for Windows. It serves as a modern desktop automation solution, offering functionality for screen reading, input simulation, and image processing.
+OP (Operator & Open) is an open-source automation plugin for Windows. It provides window automation, background mouse and keyboard input, screen capture, image/color search, OCR, OpenCV image processing, memory access, and related desktop automation features. The core is written in C++ and exposed through COM interfaces with x86/x64 support.
 
-Project Features:
-*   **Native Development**: Written in C++17, focusing on efficiency.
-*   **Cross-Architecture**: Full support for both 32-bit and 64-bit applications.
-*   **Easy Integration**: Standard COM interface compatible with Python, C#, C++, Lua, and more.
+OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, including OP binary dictionaries and the text bitmap dictionary format compatible with DaMo; when no bitmap dictionary is used, OP can call the standalone OCR HTTP service [op_ocr_engine](https://github.com/WallBreaker2/op_ocr_engine), with Tesseract, PaddleOCR, and other general/model OCR backends.
 
-## 📖 Documentation & Tools
+## Documentation
 
-*   **Documentation**: [Wiki](https://github.com/WallBreaker2/op/wiki)
-*   **GUI Test Tool**: [OPTestTool](https://github.com/flaot/OPTestTool) (Provided by float)
+- [GitHub Wiki](https://github.com/WallBreaker2/op/wiki): installation, APIs, OpenCV, OCR, registration-free usage, and language demos
+- [Releases](https://github.com/WallBreaker2/op/releases)
+- [OPTestTool](https://github.com/flaot/OPTestTool)
 
-## ✨ Key Features
+## Features
 
-### 🖥️ Window & Input Automation
-*   **Background Operation**: Send keys and mouse clicks to non-active or minimized windows.
-*   **Input Simulation**: System-level simulation via Windows API (SendInput/SendMessage).
-*   **Window Management**: Find, move, resize, and query window states.
+- Window search, window state control, window layout, and background binding
+- Foreground and background mouse/keyboard simulation
+- GDI, DXGI, WGC, DirectX, and OpenGL capture modes
+- Color search, image search, image input sources, and memory image input
+- Bitmap-dictionary OCR, compatible with OP dictionaries and DaMo text bitmap dictionaries
+- Standalone OCR HTTP service integration for Tesseract, PaddleOCR, and other general/model OCR backends
+- OpenCV template matching, feature matching, and file preprocessing
+- Process memory access, assembly calls, and utility algorithms
 
-### 🖼️ Image & Color Processing
-*   **Smart Search**: Fuzzy image search with transparency and color deviation support.
-*   **Memory Search**: High-speed multi-point color finding in memory.
-*   **Capture Engines**: Support for GDI, DirectX (DX), and OpenGL screen capture.
-*   **Android Support**: Specialized capture for popular Android emulators.
+## Repository Layout
 
-### 📝 OCR (Optical Character Recognition)
-*   **Service-backed OCR**:
-    *   **Tesseract** service is supported by default at `http://127.0.0.1:8080/api/v1/ocr`.
-    *   **PaddleOCR** service can be used at `http://127.0.0.1:8081/api/v1/ocr`.
-*   **Native**: Lightweight, high-speed dict-based algorithm for fixed fonts.
-*   **Speed**: Optimized for real-time game text recognition.
-
-### OCR Service Mode (OcrEx / OcrAuto)
-
-- Default backend is Tesseract at `http://127.0.0.1:8080/api/v1/ocr`.
-- Recommended PaddleOCR endpoint is `http://127.0.0.1:8081/api/v1/ocr`.
-- Start the service first:
-  ```bash
-  # Tesseract HTTP service
-  ocr_server.exe --datapath ./tessdata --lang chi_sim --port 8080
-
-  # PaddleOCR HTTP service
-  python -m py_paddle_server.app --host 127.0.0.1 --port 8081 --print-results
-  ```
-- `SetOcrEngine` now supports explicit URLs, backend aliases, and timeout arguments:
-  - `path_of_engine` or `dll_name` can be a full URL
-  - Backend aliases: `tesseract` / `paddle`
-  - `argv` supports `--url=http://127.0.0.1:8080/api/v1/ocr --timeout=5000`
-- Default switching environment variables:
-  - `OP_OCR_BACKEND=tesseract` -> `http://127.0.0.1:8080/api/v1/ocr`
-  - `OP_OCR_BACKEND=paddle` -> `http://127.0.0.1:8081/api/v1/ocr`
-  - `OP_OCR_URL=http://127.0.0.1:9000/api/v1/ocr` overrides the default endpoint
-  - `OP_OCR_TIMEOUT_MS=5000` overrides the default timeout
-
-Python example:
-
-```python
-from win32com.client import Dispatch
-
-op = Dispatch("op.opsoft")
-
-# 1) Switch by backend alias
-op.SetOcrEngine("paddle", "", "--timeout=5000")
-
-# 2) Or use a full URL
-# op.SetOcrEngine("http://127.0.0.1:8081/api/v1/ocr", "", "--timeout=5000")
-
-text = op.OcrAutoFromFile("screen.bmp", 0.8)
-print(text)
+```text
+op/
+├─ libop/          Core plugin source
+│  ├─ com/         COM registration, IDL, type library, and IOpInterface implementation
+│  ├─ background/  Window binding, capture input sources, background display/mouse/keyboard dispatch
+│  ├─ imageProc/   Color/image search, bitmap OCR, and OCR HTTP service wrapper
+│  ├─ opencv/      OpenCV template matching, feature matching, preprocessing, and bridge layer
+│  ├─ winapi/      Windows API wrappers for windows, processes, memory, and injection
+│  ├─ core/        Shared utilities, paths, environment, pipes, and window layout helpers
+│  ├─ include/     Internal image, color, dictionary, and shared-memory structures
+│  ├─ algorithm/   Common algorithms such as A*
+│  ├─ libop.cpp    Main C++ interface implementation used by COM/SWIG
+│  └─ libop.h      Main C++ interface declarations
+├─ include/        Public headers and exported interfaces
+├─ tools/          Registration-free loader source, builds tools.dll
+├─ swig/           Python SWIG binding files
+├─ examples/       Local examples and test assets
+├─ tests/          C++ unit and integration tests
+├─ doc/op.wiki/    GitHub Wiki documentation source
+├─ 3rd_party/      Third-party source or local dependencies
+├─ ci/             CI helper scripts
+├─ bin/            Runtime files or built binaries
+├─ out/            Historical or optional output directory
+├─ build.py        Recommended one-command build entry
+└─ CMakeLists.txt  CMake project entry
 ```
 
-## 📦 Installation
+## Quick Start
 
-1.  **Download**: Get the latest binary release from [GitHub Releases](https://github.com/WallBreaker2/op/releases).
-2.  **Unpack**: Extract the files to a local directory.
-3.  **Register COM Component**:
-    Open a terminal as **Administrator** and run:
-    ```powershell
-    # For 32-bit applications
-    regsvr32 op_x86.dll
-
-    # For 64-bit applications
-    regsvr32 op_x64.dll
-    ```
-
-### Registration-Free COM
-
-If running `regsvr32` as Administrator is not possible, use registration-free COM (side-by-side activation):
-
-**1. Create an application manifest `YourApp.exe.manifest`:**
-
-```xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <file name="op_x86.dll">
-    <comClass
-        clsid="{12bec402-a06e-4fad-a7d4-830f967374c6}"
-        threadingModel="Apartment"
-        progid="op.opsoft" />
-  </file>
-</assembly>
-```
-
-**2. C# example** (.NET Framework / .NET 8+):
-
-```csharp
-using System;
-using System.Runtime.InteropServices;
-
-class Program
-{
-    [ComImport, Guid("12bec402-a06e-4fad-a7d4-830f967374c6")]
-    private class OpSoft { }
-
-    static void Main()
-    {
-        // Registration-free COM activation (place op_x86.dll or op_x64.dll in the
-        // application directory, and ensure YourApp.exe.manifest matches the exe name)
-        dynamic op = new OpSoft();
-        Console.WriteLine($"OP Version: {op.Ver()}");
-    }
-}
-```
-
-Notes:
-- The manifest file must be named `<YourExeName>.exe.manifest` (e.g. `MyApp.exe.manifest`) and placed alongside the exe.
-- For 64-bit applications, replace `op_x86.dll` with `op_x64.dll` in the manifest.
-- This approach requires no Administrator privileges and no `regsvr32` call.
-
-## 🚀 Quick Start (Python)
-
-Here is a simple example using Python to load the plugin and find an image.
-
-```python
-from win32com.client import Dispatch
-import os
-
-# 1. Initialize the COM object
-op = Dispatch("op.opsoft")
-print(f"OP Plugin Version: {op.Ver()}")
-
-# 2. Setup path (optional, sets base path for images)
-# op.SetPath("C:\\Your\\Image\\Folder")
-
-# 3. Perform an image search
-# Arguments: x1, y1, x2, y2, pic_name, delta_color, sim, dir
-ret, x, y = op.FindPic(0, 0, 1920, 1080, "test.png", "000000", 0.9, 0)
-
-if ret == 1:
-    print(f"Found image at: ({x}, {y})")
-    op.MoveTo(x, y)
-    op.LeftClick()
-else:
-    print("Image not found.")
-```
-
-Quick C# example (host bitness must match `op_x86.dll` / `op_x64.dll`):
-
-```csharp
-using System;
-
-var opType = Type.GetTypeFromProgID("op.opsoft");
-dynamic op = Activator.CreateInstance(opType!);
-
-Console.WriteLine($"Version: {op.Ver()}");
-int ret = op.BindWindow(hwnd, "gdi", "windows", "windows", 0);
-Console.WriteLine($"BindWindow: {ret}");
-```
-
-### Memory Image Input (SetDisplayInput)
-
-`SetDisplayInput` supports two `mem:` formats:
-
-- `mem:<ptr>`: `ptr` points to BMP bytes in memory (backward compatible).
-- `mem:<ptr>,<w>,<h>,<fmt>`: `ptr` points to raw pixel bytes, with `fmt` in `bgra` or `bgr` (`bgra` by default).
-
-Example (Python, OpenCV BGR buffer):
-
-```python
-img_bgr = cv2.cvtColor(np.asarray(client.screen), cv2.COLOR_RGB2BGR)
-mode = f"mem:{img_bgr.ctypes.data},{img_bgr.shape[1]},{img_bgr.shape[0]},bgr"
-ret = op.SetDisplayInput(mode)
-```
-
-Note: raw OpenCV/Numpy buffers must use the full `mem:<ptr>,<w>,<h>,<fmt>` form. A bare `mem:<ptr>` is interpreted as BMP bytes and will return `0` for raw pixel buffers.
-
-Note: `<ptr>` accepts both decimal and hex address strings (for example, `0x7FF...`).
-
-### Text Input Notes (SendString / SendStringIme)
-
-- `SendString(hwnd, str)`: prefers `WM_CHAR` to the current focused control under the target window. Best for ASCII letters, digits, and most symbols.
-- `SendStringIme(hwnd, str)`: supports both `WM_CHAR` and `WM_IME_CHAR` paths for IME-related text (for example Chinese).
-- Recommendation: in background-window scenarios, ensure the target edit control already has focus before sending text.
-- Keyboard layout differences (for example full-width/half-width or non-US layouts) can affect symbol input; validate on the target machine.
-
-### Background Input Notes
-
-- `mouse=normal/windows/dx` are supported. For game windows, try `dx` first.
-- `keypad=normal/normal.hd/windows` are supported. `keypad=dx` is not currently available.
-- In `dx` mode, wheel behavior and key state handling depend on the target-process input hook. Re-run `BindWindow` after the target process restarts.
-- Background hotkeys, wheel input, and some game-specific input paths depend on whether the target accepts window messages or injected hook events. They cannot be guaranteed across all games.
-- If a background key combination is business-critical, validate it on the target machine with a minimal script first. Renderer choice, anti-cheat, and focus behavior all matter.
-
-### Troubleshooting Notes
-
-- `MoveToEx(x, y, w, h)` moves to a random point inside the requested range and returns the actual target as an `"x,y"` string. Negative `w`/`h` randomize left/up respectively.
-- `OcrFromFile(file, color_format, sim)` applies `color_format` during recognition. If the result is unexpected, verify that the foreground/background color range matches the source image.
-- For `C#` / `.NET`, make sure the host process bitness matches `op_x86.dll` or `op_x64.dll`. Bitness mismatch often looks like object creation succeeds but image/color or OCR calls fail later.
-- In `PySide6` / `QThread` style flows, avoid force-killing worker threads with `terminate()`. Prefer cooperative shutdown and create/release the COM object inside the worker thread.
-- See `doc/open_issues_scan.md` for a maintained triage summary of current open issues.
-
-## 🛠️ Build from Source
-
-### Prerequisites
-*   **Visual Studio 2022** (MSVC v143 toolset)
-*   **CMake** (3.24 or newer)
-*   **Windows SDK** (10.0.19041.0 or newer)
-
-### Dependencies
-The project relies on several third-party libraries:
-*   **Blackbone**: For process memory and injection (Static Link).
-*   **Kiero**: For DirectX hooking (Source integration).
-*   **Tesseract**: For OCR capabilities (Dynamic Link).
-
-The recommended flow is now using root-level `build.py` for one-click dependency bootstrap and build. The script automatically:
-*   Installs or reuses `vcpkg` (prefers existing `VCPKG_ROOT` or `%USERPROFILE%\\vcpkg`).
-*   Installs `gtest` and `minhook` for both `x86/x64` in one pass.
-*   Clones and builds `BlackBone` (cached under `build/_deps`).
-
-If you still want manual CMake configuration, you can provide BlackBone paths via environment variables. The recommended way is setting `BLACKBONE_ROOT` to the BlackBone repository root; CMake will auto-detect common output layouts (both command-line builds and legacy VS-generated layouts).
+Download a release package, then register the DLL that matches your host process bitness:
 
 ```powershell
-set BLACKBONE_ROOT="D:\path\to\Blackbone"
+# 32-bit host process
+regsvr32 op_x86.dll
+
+# 64-bit host process
+regsvr32 op_x64.dll
 ```
 
-If auto-detection fails, pass explicit paths:
+Minimal Python example:
 
-```bash
-cmake -S . -B build -DBLACKBONE_INCLUDE_DIR="D:/path/to/Blackbone/src" -DBLACKBONE_LIBRARY="D:/path/to/Blackbone/build/x64/BlackBone/Release/BlackBone.lib"
+```python
+from win32com.client import Dispatch
+
+op = Dispatch("op.opsoft")
+print("op version:", op.Ver())
 ```
 
-### Build Steps
+For registration-free usage, see the Wiki:
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/WallBreaker2/op.git
-    cd op
-    ```
+- [Installation and registration-free usage](https://github.com/WallBreaker2/op/wiki/docs/install)
+- [Python registration-free example](https://github.com/WallBreaker2/op/wiki/demo/python-regfree)
+- [C# / Lua / Golang / Rust / Node.js / Java demos](https://github.com/WallBreaker2/op/wiki/Home)
 
-2.  One-click dependency bootstrap and build (recommended):
-    ```bash
-    python build.py
-    ```
+## Build
 
-3.  Common options:
-    ```bash
-    # Build x86 target
-    python build.py -a x86
+Requirements:
 
-    # Skip dependency bootstrap (when your environment is already prepared)
-    python build.py --no-bootstrap-deps
+- Visual Studio 2022 or newer
+- CMake 3.24 or newer
+- Windows SDK 10.0.19041.0 or newer
 
-    # Reuse an existing vcpkg installation
-    python build.py --vcpkg-root D:/path/to/vcpkg
-    ```
+Recommended build entry:
 
-4.  Traditional CMake flow (optional for advanced users):
-    ```bash
-    cmake -S . -B build/Release
-    cmake --build build/Release --config Release
-    ```
+```powershell
+# Default: Release + x64
+python build.py
 
-## 🤝 Community & Support
+# Build x86
+python build.py -a x86
 
-*   **Issues**: [GitHub Issues](https://github.com/WallBreaker2/op/issues) - Report bugs or request features.
-*   **Discussions**: [GitHub Discussions](https://github.com/WallBreaker2/op/discussions) - Ask questions and share ideas.
-*   **QQ Groups**: 
-    *   Group 1: `743710486` (Full)
-    *   Group 2: `27872381` (Active)
+# Debug build
+python build.py -t Debug
+```
 
-## 📜 License
+Release artifacts are installed to `bin/x86` or `bin/x64`.
 
-This project is licensed under the [MIT License](LICENSE).
+## Community
 
-## 📚 References
+- [GitHub Issues](https://github.com/WallBreaker2/op/issues)
+- [GitHub Discussions](https://github.com/WallBreaker2/op/discussions)
+- QQ groups: `743710486`, `27872381`
 
-*   [TSPLUG](https://github.com/tcplugins/tsplug) - Referenced for some function implementations.
-*   [Kiero](https://github.com/Rebzzel/kiero) - Basis for D3DHook.
+## License
+
+[MIT License](LICENSE)
+
+## References
+
+- [TSPLUG](https://github.com/tcplugins/tsplug)
+- [Kiero](https://github.com/Rebzzel/kiero)

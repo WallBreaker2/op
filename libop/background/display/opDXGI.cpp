@@ -3,9 +3,7 @@
 #include "opDXGI.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
-#include "./core/opEnv.h"
 #include "./include/Image.hpp"
-#include <iostream>
 #include <string>
 
 opDXGI::opDXGI()
@@ -69,7 +67,6 @@ bool opDXGI::requestCapture(int x1, int y1, int w, int h, Image &img) {
     }
 
     if (texture2D == nullptr) {
-        setlog("Acquire frame timeout");
         return false;
     }
 

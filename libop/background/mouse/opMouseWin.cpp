@@ -1,33 +1,16 @@
 // #include "stdafx.h"
 #include "opMouseWin.h"
+#include "CursorShape.h"
 #include "./core/globalVar.h"
 #include "./core/helpfunc.h"
 
-float opMouseWin::getDPI() {
-    HDC hdcScreen;
-    hdcScreen = CreateDCW(L"DISPLAY", NULL, NULL, NULL);
-
-    int logx = GetDeviceCaps(hdcScreen, LOGPIXELSX);
-    // int logy = GetDeviceCaps(hdcScreen, LOGPIXELSY);
-    // setlog("logx = %d", logx);
-    if (NULL != hdcScreen) {
-        DeleteDC(hdcScreen);
-    }
-    float dpi = 1.0;
-    if (logx == 96) {
-        dpi = 1.0;
-    } else if (logx == 120) {
-        dpi = 1.25;
-    } else if (logx == 144) {
-        dpi = 1.50;
-    } else if (logx == 192) {
-        dpi = 2.0;
-    }
-
-    return dpi;
+namespace {
+long send_message_result(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
+    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
+}
 }
 
-opMouseWin::opMouseWin() : _hwnd(NULL), _mode(0), _x(0), _y(0), _dpi(getDPI()) {
+opMouseWin::opMouseWin() : _hwnd(NULL), _mode(0), _x(0), _y(0) {
 }
 
 opMouseWin::~opMouseWin() {
@@ -37,12 +20,14 @@ opMouseWin::~opMouseWin() {
 long opMouseWin::Bind(HWND h, int mode) {
     _hwnd = h;
     _mode = mode;
+    _x = _y = 0;
     return 1;
 }
 
 long opMouseWin::UnBind() {
     _hwnd = 0;
     _mode = 0;
+    _x = _y = 0;
     return 1;
 }
 
@@ -58,11 +43,23 @@ long opMouseWin::GetCursorPos(long &x, long &y) {
     return ret;
 }
 
+long opMouseWin::GetCursorShape(std::wstring &ret) {
+    CursorShapeInfo info;
+    if (!cursor_shape::FromSystem(info)) {
+        ret.clear();
+        return 0;
+    }
+
+    ret = cursor_shape::Format(info);
+    return 1;
+}
+
 long opMouseWin::MoveR(int rx, int ry) {
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
         // https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/ns-winuser-mouseinput
-        _x += rx, _y += ry;
+        _x += rx;
+        _y += ry;
 
         INPUT Input = {0};
         Input.type = INPUT_MOUSE;
@@ -76,42 +73,49 @@ long opMouseWin::MoveR(int rx, int ry) {
 }
 
 long opMouseWin::MoveTo(int x, int y) {
-    // 启用DPI感知后，不需要在进行坐标处理
-    // x = x * _dpi;
-    // y = y * _dpi;
     long ret = 0;
+    POINT client_pt{x, y};
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
-        POINT pt;
-        pt.x = x, pt.y = y;
+        POINT pt = client_pt;
         if (_hwnd)
             ::ClientToScreen(_hwnd, &pt);
-        x = pt.x, y = pt.y;
-        // setlog(L"hwnd:%d,pt:%d,%d",_hwnd, 0, y);
-        static double fScreenWidth = ::GetSystemMetrics(SM_CXSCREEN) - 1;
-        static double fScreenHeight = ::GetSystemMetrics(SM_CYSCREEN) - 1;
-        double fx = x * (65535.0f / fScreenWidth);
-        double fy = y * (65535.0f / fScreenHeight);
+
+        const int screen_x = ::GetSystemMetrics(SM_XVIRTUALSCREEN);
+        const int screen_y = ::GetSystemMetrics(SM_YVIRTUALSCREEN);
+        const int screen_width = ::GetSystemMetrics(SM_CXVIRTUALSCREEN);
+        const int screen_height = ::GetSystemMetrics(SM_CYVIRTUALSCREEN);
+        const double width = screen_width > 1 ? static_cast<double>(screen_width - 1) : 1.0;
+        const double height = screen_height > 1 ? static_cast<double>(screen_height - 1) : 1.0;
+        const double fx = (pt.x - screen_x) * (65535.0 / width);
+        const double fy = (pt.y - screen_y) * (65535.0 / height);
+
         INPUT Input = {0};
         Input.type = INPUT_MOUSE;
-        Input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+        Input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
         Input.mi.dx = static_cast<LONG>(fx);
         Input.mi.dy = static_cast<LONG>(fy);
-        /*The function returns the number of events that it successfully inserted into the keyboard or mouse input
-        stream. If the function returns zero, the input was already blocked by another thread. To get extended error
-        information, call GetLastError. This function fails when it is blocked by UIPI. Note that neither GetLastError
-        nor the return value will indicate the failure was caused by UIPI blocking.
-        */
         ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(x, y), SMTO_BLOCK, 2000, nullptr);
+        ret = send_message_result(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(client_pt.x, client_pt.y));
         break;
     }
     }
-    _x = x, _y = y;
+    _x = client_pt.x, _y = client_pt.y;
     return ret;
+}
+
+POINT opMouseWin::current_client_point() const {
+    return POINT{_x, _y};
+}
+
+long opMouseWin::sync_system_cursor() {
+    POINT pt = current_client_point();
+    if (_hwnd)
+        ::ClientToScreen(_hwnd, &pt);
+    return ::SetCursorPos(pt.x, pt.y) ? 1 : 0;
 }
 
 long opMouseWin::MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) {
@@ -132,13 +136,13 @@ long opMouseWin::LeftClick() {
     long ret = 0, ret2 = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left down
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
         ::Delay(MOUSE_NORMAL_DELAY);
-        // left up
         ::ZeroMemory(&Input, sizeof(INPUT));
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
@@ -147,17 +151,10 @@ long opMouseWin::LeftClick() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
         ::Delay(MOUSE_WINDOWS_DELAY);
-        ret2 = ::SendMessageTimeout(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-        /// ret=::PostMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-        // ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-        // ret = ::SendNotifyMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-        //::Sleep(100);
-        // ret = ::SendMessage(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y));
-        // ret2=::SendMessageTimeout(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
-        // ret2 = ::SendMessage(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(_x, _y));
-        //::SendMessage(_hwnd, WM_CAPTURECHANGED, 0, 0);
+        ret2 = send_message_result(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -185,8 +182,9 @@ long opMouseWin::LeftDown() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left down
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
@@ -194,7 +192,8 @@ long opMouseWin::LeftDown() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -205,8 +204,9 @@ long opMouseWin::LeftUp() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left up
         ::ZeroMemory(&Input, sizeof(INPUT));
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
@@ -215,7 +215,8 @@ long opMouseWin::LeftUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_LBUTTONUP, MK_LBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -243,8 +244,9 @@ long opMouseWin::MiddleDown() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left down
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
@@ -252,7 +254,8 @@ long opMouseWin::MiddleDown() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -263,8 +266,9 @@ long opMouseWin::MiddleUp() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left up
         ::ZeroMemory(&Input, sizeof(INPUT));
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
@@ -273,7 +277,8 @@ long opMouseWin::MiddleUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_MBUTTONUP, MK_MBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_MBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -285,13 +290,13 @@ long opMouseWin::RightClick() {
     long r1, r2;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left down
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
         r1 = ::SendInput(1, &Input, sizeof(INPUT));
         ::Delay(MOUSE_NORMAL_DELAY);
-        // left up
         ::ZeroMemory(&Input, sizeof(INPUT));
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
@@ -301,9 +306,10 @@ long opMouseWin::RightClick() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        r1 = ::SendMessageTimeout(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        r1 = send_message_result(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
         ::Delay(MOUSE_WINDOWS_DELAY);
-        r2 = ::SendMessageTimeout(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        r2 = send_message_result(_hwnd, WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
         ret = r1 && r2 ? 1 : 0;
         break;
     }
@@ -315,15 +321,17 @@ long opMouseWin::RightDown() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left down
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
         ret = ::SendInput(1, &Input, sizeof(INPUT)) > 0 ? 1 : 0;
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -334,8 +342,9 @@ long opMouseWin::RightUp() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left up
         ::ZeroMemory(&Input, sizeof(INPUT));
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_RIGHTUP;
@@ -344,7 +353,8 @@ long opMouseWin::RightUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = ::SendMessageTimeout(_hwnd, WM_RBUTTONUP, MK_RBUTTON, MAKELPARAM(_x, _y), SMTO_BLOCK, 2000, nullptr);
+        const POINT pt = current_client_point();
+        ret = send_message_result(_hwnd, WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -355,14 +365,9 @@ long opMouseWin::WheelDown() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // down
-        /*
-        If dwFlags contains MOUSEEVENTF_WHEEL, then dwData specifies the amount of wheel movement.
-        A positive value indicates that the wheel was rotated forward, away from the user;
-        a negative value indicates that the wheel was rotated backward, toward the user.
-        One wheel click is defined as WHEEL_DELTA, which is 120.
-        */
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_WHEEL;
         Input.mi.mouseData = -WHEEL_DELTA;
@@ -371,26 +376,10 @@ long opMouseWin::WheelDown() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        /*
-        wParam
-        The high-order word indicates the distance the wheel is rotated,
-        expressed in multiples or divisions of WHEEL_DELTA, which is 120.
-        A positive value indicates that the wheel was rotated forward, away from the user;
-        a negative value indicates that the wheel was rotated backward, toward the user.
-        The low-order word indicates whether various virtual keys are down.
-        This parameter can be one or more of the following values.
-        lParam
-        The low-order word specifies the x-coordinate of the pointer,
-        relative to the upper-left corner of the screen.
-        The high-order word specifies the y-coordinate of the pointer,
-        relative to the upper-left corner of the screen.
-        */
-        // If an application processes this message, it should return zero.
-        POINT pt{};
-        pt.x = _x, pt.y = _y;
+        // WM_MOUSEWHEEL 的 lParam 使用屏幕坐标。
+        POINT pt = current_client_point();
         ::ClientToScreen(_hwnd, &pt);
-        ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y),
-                                   SMTO_BLOCK, 2000, nullptr);
+        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -402,8 +391,9 @@ long opMouseWin::WheelUp() {
     long ret = 0;
     switch (_mode) {
     case INPUT_TYPE::IN_NORMAL: {
+        if (!sync_system_cursor())
+            return 0;
         INPUT Input = {0};
-        // left up
         Input.type = INPUT_MOUSE;
         Input.mi.dwFlags = MOUSEEVENTF_WHEEL;
         Input.mi.mouseData = WHEEL_DELTA;
@@ -412,11 +402,10 @@ long opMouseWin::WheelUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        POINT pt{};
-        pt.x = _x, pt.y = _y;
+        // WM_MOUSEWHEEL 的 lParam 使用屏幕坐标。
+        POINT pt = current_client_point();
         ::ClientToScreen(_hwnd, &pt);
-        ret = ::SendMessageTimeout(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y), SMTO_BLOCK,
-                                   2000, nullptr);
+        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
