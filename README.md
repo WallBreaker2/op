@@ -80,9 +80,9 @@ print("op version:", op.Ver())
 
 免注册调用请参考 Wiki：
 
-- [安装与免注册](https://github.com/WallBreaker2/op/wiki/docs/install)
-- [Python 免注册示例](https://github.com/WallBreaker2/op/wiki/demo/python-regfree)
-- [C# / Lua / Golang / Rust / Node.js / Java 示例](https://github.com/WallBreaker2/op/wiki/Home)
+- [安装与免注册](https://github.com/WallBreaker2/op/wiki/install)
+- [Python 免注册示例](https://github.com/WallBreaker2/op/wiki/python-regfree)
+- [C# / Lua / Golang / Rust / Node.js / Java 示例](https://github.com/WallBreaker2/op/wiki#demo)
 
 ## 源码编译
 
