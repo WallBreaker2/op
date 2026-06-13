@@ -93,7 +93,7 @@ extern long MOUSE_DX_DELAY;
 #define MAKE_OP_VERSION(a, b, c, d) _TOSTRING(a##.##b##.##c##.##d)
 
 #ifndef OP_VERSION
-#define OP_VERSION MAKE_OP_VERSION(0, 4, 6, 0)
+#define OP_VERSION MAKE_OP_VERSION(0, 4, 7, 0)
 #endif
 // 模块句柄
 // extern HINSTANCE gInstance;
