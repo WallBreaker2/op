@@ -160,8 +160,7 @@ long opBackground::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, cons
         return 0;
     }
 
-    // 等待线程创建好
-    Sleep(200);
+    _pbkdisplay->waitForBindReady();
 
     _is_bind = 1;
     return 1;
@@ -282,6 +281,11 @@ long opBackground::RectConvert(long &x1, long &y1, long &x2, long &y2) {
         x1 += _pbkdisplay->_client_x; y1 += _pbkdisplay->_client_y;
         x2 += _pbkdisplay->_client_x; y2 += _pbkdisplay->_client_y;
     }*/
+
+    // WGC 在窗口最小化/恢复后尺寸会异步变化，裁剪前先给后端一次刷新机会。
+    if (_pbkdisplay) {
+        _pbkdisplay->refreshMetrics();
+    }
 
     x2 = std::min<long>(this->get_width(), x2);
     y2 = std::min<long>(this->get_height(), y2);

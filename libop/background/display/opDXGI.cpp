@@ -6,10 +6,7 @@
 #include "./include/Image.hpp"
 #include <string>
 
-opDXGI::opDXGI()
-    : device_(nullptr), deviceContext_(nullptr), duplication_(nullptr), lastTexture_(nullptr), m_first(true),
-      m_frameInfo(), dx_(0), dy_(0), m_desc() {
-}
+opDXGI::opDXGI() = default;
 
 opDXGI::~opDXGI() {
     UnBindEx();
