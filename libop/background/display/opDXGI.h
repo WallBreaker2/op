@@ -25,13 +25,13 @@ class opDXGI : public IDisplay {
     bool GetDesktopFrame(ID3D11Texture2D **texture);
 
   private:
-    ID3D11Device *device_;
-    ID3D11DeviceContext *deviceContext_;
-    IDXGIOutputDuplication *duplication_;
-    ID3D11Texture2D *lastTexture_;
-    bool m_first;
-    FrameInfo m_frameInfo;
-    long dx_, dy_;
-    D3D11_TEXTURE2D_DESC m_desc;
+    ID3D11Device *device_{nullptr};
+    ID3D11DeviceContext *deviceContext_{nullptr};
+    IDXGIOutputDuplication *duplication_{nullptr};
+    ID3D11Texture2D *lastTexture_{nullptr};
+    bool m_first{true};
+    FrameInfo m_frameInfo{};
+    long dx_{0}, dy_{0};
+    D3D11_TEXTURE2D_DESC m_desc{};
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };

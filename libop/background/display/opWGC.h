@@ -25,35 +25,51 @@ class opWGC : public IDisplay {
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
+    void refreshMetrics() override;
 
     bool Init(HWND _hwnd);
 
   private:
-    ID3D11Device *d3dDevice_;
-    ID3D11DeviceContext *d3dDeviceContext_;
-    ID3D11Texture2D *stagingTexture_;
+    ID3D11Device *d3dDevice_{nullptr};
+    ID3D11DeviceContext *d3dDeviceContext_{nullptr};
+    ID3D11Texture2D *stagingTexture_{nullptr};
     IDirect3DDevice device_{nullptr};
     GraphicsCaptureItem item_{nullptr};
     Direct3D11CaptureFramePool framePool_{nullptr};
     GraphicsCaptureSession session_{nullptr};
     winrt::event_token frameArrivedToken_{};
     bool hasFrameArrivedToken_{false};
-    FrameInfo m_frameInfo;
+    FrameInfo m_frameInfo{};
     long captureWidth_{0};
     long captureHeight_{0};
-    bool hasFrame_;
+    bool hasFrame_{false};
     int sharedWidth_{0};
     int sharedHeight_{0};
     int dx_{0};
     int dy_{0};
+    unsigned long long frameSerial_{0};
+    bool hasWindowState_{false};
+    bool lastWindowIconic_{false};
+    bool pendingMetricsChanged_{false};
+    bool pendingBecameIconic_{false};
+    bool pendingRestored_{false};
+    long lastClientWidth_{0};
+    long lastClientHeight_{0};
+    int lastDx_{0};
+    int lastDy_{0};
     std::mutex frameMutex_;
 
     bool ensureStagingTexture(int width, int height);
     bool ensureSharedResources(int width, int height);
-    void refreshWindowMetrics();
+    bool refreshWindowMetrics(bool *iconic_changed = nullptr, bool *is_iconic = nullptr);
+    void closeCaptureSession();
+    bool restartCaptureSession();
     bool copyFrameToStaging(const Direct3D11CaptureFrame &frame);
     Direct3D11CaptureFrame tryGetLatestFrame(const Direct3D11CaptureFramePool &frame_pool);
     bool updateLatestFrame();
+    bool waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms);
+    unsigned long long currentFrameSerial();
+    bool hasCapturedFrame();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };
 
