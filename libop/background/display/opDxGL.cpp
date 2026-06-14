@@ -12,6 +12,22 @@
 #include "./include/Image.hpp"
 
 #include <sstream>
+
+namespace {
+
+constexpr DWORD kHookFrameReadyTimeoutMs = 200;
+constexpr DWORD kHookFramePollIntervalMs = 10;
+
+bool isHookFrameReady(const FrameInfo &info, HWND hwnd) {
+    FrameInfo expected = info;
+    const auto chk = expected.chk;
+    expected.fmtChk();
+    return chk == expected.chk && info.hwnd == reinterpret_cast<unsigned __int64>(hwnd) && info.width > 0 &&
+           info.height > 0;
+}
+
+} // namespace
+
 opDxGL::opDxGL() : IDisplay(), m_opPath(opEnv::getBasePath()) {
 }
 
@@ -146,6 +162,23 @@ long opDxGL::UnBindEx() {
     proc.Detach();
     // bind_release();
     return 1;
+}
+
+void opDxGL::waitForBindReady() {
+    if (!_pmutex || !_shmem) {
+        return;
+    }
+
+    // 远端 hook 成功后，要等目标进程下一帧写入共享内存。
+    const auto start = ::GetTickCount64();
+    do {
+        FrameInfo info = {};
+        getFrameInfo(info);
+        if (isHookFrameReady(info, _hwnd)) {
+            return;
+        }
+        ::Sleep(kHookFramePollIntervalMs);
+    } while (::GetTickCount64() - start < kHookFrameReadyTimeoutMs);
 }
 
 long opDxGL::BindNox(HWND hwnd, long render_type) {

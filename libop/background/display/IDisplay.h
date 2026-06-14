@@ -16,6 +16,12 @@ class IDisplay {
     // unbind window
     // virtual long UnBind(HWND hwnd) = 0;
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) = 0;
+    // 截图前刷新动态尺寸，默认后端尺寸稳定，不需要处理。
+    virtual void refreshMetrics() {
+    }
+    // 绑定后等待后端就绪，默认后端同步完成，不需要处理。
+    virtual void waitForBindReady() {
+    }
 
     promutex *get_mutex() {
         return _pmutex;
