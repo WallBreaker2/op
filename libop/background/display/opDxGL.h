@@ -16,6 +16,7 @@ class opDxGL : public IDisplay {
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
+    void waitForBindReady() override;
 
     // nox mode
     long BindNox(HWND hwnd, long render_type);

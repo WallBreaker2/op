@@ -4,17 +4,14 @@
 #include "./core/helpfunc.h"
 #include "./core/win_version.h"
 #include "./include/Image.hpp"
+#include <algorithm>
 #include <dwmapi.h>
 #include <string>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Gaming.Input.h>
 
 #ifdef OP_ENABLE_WGC
-opWGC::opWGC()
-    : device_(nullptr), item_(nullptr), framePool_(nullptr), session_(nullptr), d3dDevice_(nullptr),
-      d3dDeviceContext_(nullptr), stagingTexture_(nullptr), m_frameInfo(), captureWidth_(0), captureHeight_(0),
-      hasFrame_(false), dx_(0), dy_(0) {
-}
+opWGC::opWGC() = default;
 
 opWGC::~opWGC() {
     UnBindEx();
@@ -29,39 +26,7 @@ long opWGC::BindEx(HWND _hwnd, long render_type) {
 }
 
 long opWGC::UnBindEx() {
-    if (framePool_ && hasFrameArrivedToken_) {
-        try {
-            framePool_.FrameArrived(frameArrivedToken_);
-        } catch (winrt::hresult_error &err) {
-            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
-        } catch (...) {
-            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X)", winrt::to_hresult().value);
-        }
-        hasFrameArrivedToken_ = false;
-    }
-
-    if (framePool_) {
-        try {
-            framePool_.Close();
-        } catch (winrt::hresult_error &err) {
-            setlog("Direct3D11CaptureFramePool::Close (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
-        } catch (...) {
-            setlog("Direct3D11CaptureFramePool::Close (0x%08X)", winrt::to_hresult().value);
-        }
-    }
-
-    if (session_) {
-        try {
-            session_.Close();
-        } catch (winrt::hresult_error &err) {
-            setlog("GraphicsCaptureSession::Close (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
-        } catch (...) {
-            setlog("GraphicsCaptureSession::Close (0x%08X)", winrt::to_hresult().value);
-        }
-    }
+    closeCaptureSession();
 
     if (device_) {
         try {
@@ -99,6 +64,16 @@ long opWGC::UnBindEx() {
     captureHeight_ = 0;
     dx_ = 0;
     dy_ = 0;
+    frameSerial_ = 0;
+    hasWindowState_ = false;
+    lastWindowIconic_ = false;
+    pendingMetricsChanged_ = false;
+    pendingBecameIconic_ = false;
+    pendingRestored_ = false;
+    lastClientWidth_ = 0;
+    lastClientHeight_ = 0;
+    lastDx_ = 0;
+    lastDy_ = 0;
 
     return 0;
 }
@@ -231,58 +206,130 @@ bool opWGC::Init(HWND _hwnd) {
 }
 
 bool opWGC::requestCapture(int x1, int y1, int w, int h, Image &img) {
+    bool iconic_changed = false;
+    bool is_iconic = false;
+    bool metrics_changed = refreshWindowMetrics(&iconic_changed, &is_iconic);
+    bool became_iconic = iconic_changed && is_iconic;
+    bool restored = iconic_changed && !is_iconic;
+    metrics_changed = metrics_changed || pendingMetricsChanged_;
+    became_iconic = became_iconic || pendingBecameIconic_;
+    restored = restored || pendingRestored_;
+    if (restored) {
+        became_iconic = false;
+    }
+    pendingMetricsChanged_ = false;
+    pendingBecameIconic_ = false;
+    pendingRestored_ = false;
+    if (is_iconic || became_iconic) {
+        setlog("requestCapture: window is minimized");
+        return false;
+    }
+
+    if (x1 < 0 || y1 < 0 || x1 >= _width || y1 >= _height) {
+        setlog("requestCapture: invalid client rect x=%d,y=%d,width=%ld,height=%ld", x1, y1, _width, _height);
+        return false;
+    }
+
+    w = std::min<int>(w, static_cast<int>(_width) - x1);
+    h = std::min<int>(h, static_cast<int>(_height) - y1);
+    if (w <= 0 || h <= 0) {
+        setlog("requestCapture: invalid capture size w=%d,h=%d,width=%ld,height=%ld", w, h, _width, _height);
+        return false;
+    }
+
     img.create(w, h);
     if (!_shmem || !_pmutex) {
         setlog("requestCapture: shared memory not initialized");
         return false;
     }
 
-    if (!updateLatestFrame() || !hasFrame_) {
+    if (metrics_changed || restored) {
+        // 尺寸变化后队列里可能还有旧帧，先抽干一次，再按状态变化等待后续帧。
+        updateLatestFrame();
+        const unsigned long long drained_serial = currentFrameSerial();
+        const unsigned int frame_count = restored ? 2 : 1;
+        const unsigned long timeout_ms = restored ? 700 : 100;
+        if (!waitForFramesAfter(drained_serial, frame_count, timeout_ms)) {
+            if (!restored) {
+                setlog("requestCapture: no fresh WGC frame after window metrics change");
+            } else {
+                // 从最小化恢复时 WGC 偶尔不继续吐帧，重启捕获会话能避免恢复后一直失败。
+                setlog("requestCapture: no fresh WGC frame after restore, restarting capture session");
+                if (!restartCaptureSession()) {
+                    setlog("requestCapture: restart WGC capture session failed after restore");
+                    return false;
+                }
+                const unsigned long long restarted_serial = currentFrameSerial();
+                if (!waitForFramesAfter(restarted_serial, 1, 1000)) {
+                    setlog("requestCapture: no fresh WGC frame after restore");
+                    return false;
+                }
+            }
+        }
+    } else if (!updateLatestFrame()) {
         return false;
     }
 
-    refreshWindowMetrics();
-    D3D11_TEXTURE2D_DESC desc;
-    {
-        std::scoped_lock lock(frameMutex_);
-        stagingTexture_->GetDesc(&desc);
+    if (!hasCapturedFrame()) {
+        return false;
     }
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+    D3D11_TEXTURE2D_DESC desc = {};
+    D3D11_MAPPED_SUBRESOURCE mappedResource = {};
     HRESULT hr = S_OK;
     {
         std::scoped_lock lock(frameMutex_);
+        stagingTexture_->GetDesc(&desc);
         hr = d3dDeviceContext_->Map(stagingTexture_, 0, D3D11_MAP_READ, 0, &mappedResource);
-    }
-    if (FAILED(hr)) {
-        setlog("requestCapture: Map failed hr=0x%08X", hr);
-        return false;
-    }
 
-    uint8_t *pData = (uint8_t *)mappedResource.pData;
-    if (_pmutex && _shmem) {
-        _pmutex->lock();
-        fmtFrameInfo(_shmem->data<byte>(), _hwnd, _width, _height);
-        _pmutex->unlock();
-    }
+        if (FAILED(hr)) {
+            setlog("requestCapture: Map failed hr=0x%08X", hr);
+            return false;
+        }
 
-    // WGC 这里按客户区坐标裁图，去掉标题栏和边框。
-    int src_x = x1 + dx_;
-    int src_y = y1 + dy_;
-    if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) ||
-        src_y + h > static_cast<int>(desc.Height)) {
-        setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, desc.Width, src_y, h,
-               desc.Height);
-        return false;
-    }
+        uint8_t *pData = (uint8_t *)mappedResource.pData;
+        if (_pmutex && _shmem) {
+            _pmutex->lock();
+            fmtFrameInfo(_shmem->data<byte>(), _hwnd, _width, _height);
+            _pmutex->unlock();
+        }
 
-    for (int i = 0; i < h; i++) {
-        memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * w);
-    }
-    {
-        std::scoped_lock lock(frameMutex_);
+        // WGC 这里按客户区坐标裁图，去掉标题栏和边框。
+        int src_x = x1 + dx_;
+        int src_y = y1 + dy_;
+        bool ok = true;
+        if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) ||
+            src_y + h > static_cast<int>(desc.Height)) {
+            setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, desc.Width,
+                   src_y, h, desc.Height);
+            ok = false;
+        } else {
+            for (int i = 0; i < h; i++) {
+                memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * w);
+            }
+        }
+
         d3dDeviceContext_->Unmap(stagingTexture_, 0);
+        return ok;
     }
-    return true;
+}
+
+void opWGC::refreshMetrics() {
+    bool iconic_changed = false;
+    bool is_iconic = false;
+    if (refreshWindowMetrics(&iconic_changed, &is_iconic)) {
+        pendingMetricsChanged_ = true;
+    }
+    if (iconic_changed) {
+        // RectConvert 会先刷新尺寸，但真正等待新帧要留给 requestCapture 处理。
+        if (is_iconic) {
+            pendingBecameIconic_ = true;
+            pendingRestored_ = false;
+        } else {
+            pendingBecameIconic_ = false;
+            pendingRestored_ = true;
+        }
+    }
 }
 
 bool opWGC::ensureStagingTexture(int width, int height) {
@@ -340,11 +387,13 @@ bool opWGC::ensureSharedResources(int width, int height) {
     return false;
 }
 
-void opWGC::refreshWindowMetrics() {
+bool opWGC::refreshWindowMetrics(bool *iconic_changed, bool *is_iconic) {
     RECT window_rect = {};
     RECT client_rect = {};
     RECT visible_rect = {};
     POINT pt = {0, 0};
+    const bool was_iconic = hasWindowState_ && lastWindowIconic_;
+    const bool now_iconic = ::IsIconic(_hwnd) != FALSE;
     ::GetWindowRect(_hwnd, &window_rect);
     ::GetClientRect(_hwnd, &client_rect);
     ::ClientToScreen(_hwnd, &pt);
@@ -357,12 +406,134 @@ void opWGC::refreshWindowMetrics() {
     _height = client_rect.bottom - client_rect.top;
     dx_ = pt.x - window_rect.left;
     dy_ = pt.y - window_rect.top;
+
+    const bool changed = !hasWindowState_ || lastClientWidth_ != _width || lastClientHeight_ != _height ||
+                         lastDx_ != dx_ || lastDy_ != dy_ || was_iconic != now_iconic;
+    if (iconic_changed) {
+        *iconic_changed = hasWindowState_ && was_iconic != now_iconic;
+    }
+    if (is_iconic) {
+        *is_iconic = now_iconic;
+    }
+    hasWindowState_ = true;
+    lastWindowIconic_ = now_iconic;
+    lastClientWidth_ = _width;
+    lastClientHeight_ = _height;
+    lastDx_ = dx_;
+    lastDy_ = dy_;
+    return changed;
+}
+
+void opWGC::closeCaptureSession() {
+    if (framePool_ && hasFrameArrivedToken_) {
+        try {
+            framePool_.FrameArrived(frameArrivedToken_);
+        } catch (winrt::hresult_error &err) {
+            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X): %s", err.code().value,
+                   winrt::to_string(err.message()).c_str());
+        } catch (...) {
+            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X)", winrt::to_hresult().value);
+        }
+        hasFrameArrivedToken_ = false;
+    }
+
+    if (framePool_) {
+        try {
+            framePool_.Close();
+        } catch (winrt::hresult_error &err) {
+            setlog("Direct3D11CaptureFramePool::Close (0x%08X): %s", err.code().value,
+                   winrt::to_string(err.message()).c_str());
+        } catch (...) {
+            setlog("Direct3D11CaptureFramePool::Close (0x%08X)", winrt::to_hresult().value);
+        }
+    }
+
+    if (session_) {
+        try {
+            session_.Close();
+        } catch (winrt::hresult_error &err) {
+            setlog("GraphicsCaptureSession::Close (0x%08X): %s", err.code().value,
+                   winrt::to_string(err.message()).c_str());
+        } catch (...) {
+            setlog("GraphicsCaptureSession::Close (0x%08X)", winrt::to_hresult().value);
+        }
+    }
+
+    session_ = nullptr;
+    framePool_ = nullptr;
+    frameArrivedToken_ = {};
+    hasFrameArrivedToken_ = false;
+}
+
+bool opWGC::restartCaptureSession() {
+    if (!device_ || !item_) {
+        return false;
+    }
+
+    closeCaptureSession();
+
+    const auto item_size = item_.Size();
+    if (item_size.Width <= 0 || item_size.Height <= 0) {
+        setlog("restartCaptureSession: invalid WGC item size width=%d height=%d", item_size.Width, item_size.Height);
+        return false;
+    }
+
+    captureWidth_ = item_size.Width;
+    captureHeight_ = item_size.Height;
+    if (!ensureStagingTexture(captureWidth_, captureHeight_)) {
+        setlog("restartCaptureSession: create staging texture failed");
+        return false;
+    }
+    if (!ensureSharedResources(captureWidth_, captureHeight_)) {
+        setlog("restartCaptureSession: create shared resources failed");
+        return false;
+    }
+
+    {
+        std::scoped_lock lock(frameMutex_);
+        hasFrame_ = false;
+    }
+
+    try {
+        framePool_ = winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool::CreateFreeThreaded(
+            device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item_size);
+        session_ = framePool_.CreateCaptureSession(item_);
+
+        // 20348+ 才支持关闭捕获边框。
+        if (IsWindows10BuildOrGreater(kWindowsServer2022Build)) {
+            session_.IsBorderRequired(false);
+        }
+
+        // 19041+ 才支持关闭光标捕获。
+        if (IsWindows10BuildOrGreater(kWindows10Build2004)) {
+            session_.IsCursorCaptureEnabled(false);
+        }
+
+        frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
+            auto frame = tryGetLatestFrame(sender);
+            if (frame) {
+                copyFrameToStaging(frame);
+            }
+        });
+        hasFrameArrivedToken_ = true;
+        session_.StartCapture();
+    } catch (winrt::hresult_error &err) {
+        setlog("restartCaptureSession (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        closeCaptureSession();
+        return false;
+    } catch (...) {
+        setlog("restartCaptureSession (0x%08X)", winrt::to_hresult().value);
+        closeCaptureSession();
+        return false;
+    }
+
+    return true;
 }
 
 bool opWGC::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
     const auto frame_content_size = frame.ContentSize();
     if (frame_content_size.Width <= 0 || frame_content_size.Height <= 0) {
-        return hasFrame_;
+        return hasCapturedFrame();
     }
 
     if (frame_content_size.Width != captureWidth_ || frame_content_size.Height != captureHeight_) {
@@ -370,11 +541,11 @@ bool opWGC::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
         captureHeight_ = frame_content_size.Height;
         if (!ensureStagingTexture(captureWidth_, captureHeight_)) {
             setlog("copyFrameToStaging: resize staging texture failed");
-            return hasFrame_;
+            return hasCapturedFrame();
         }
         if (!ensureSharedResources(captureWidth_, captureHeight_)) {
             setlog("copyFrameToStaging: resize shared resources failed");
-            return hasFrame_;
+            return hasCapturedFrame();
         }
         framePool_.Recreate(device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
                             frame_content_size);
@@ -384,8 +555,9 @@ bool opWGC::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
     {
         std::scoped_lock lock(frameMutex_);
         d3dDeviceContext_->CopyResource(stagingTexture_, frame_surface.get());
+        hasFrame_ = true;
+        ++frameSerial_;
     }
-    hasFrame_ = true;
     return true;
 }
 
@@ -411,6 +583,32 @@ bool opWGC::updateLatestFrame() {
         return copyFrameToStaging(frame);
     }
 
+    return hasCapturedFrame();
+}
+
+bool opWGC::waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms) {
+    const unsigned long long deadline = ::GetTickCount64() + timeout_ms;
+    do {
+        if (updateLatestFrame() && currentFrameSerial() >= frame_serial + frame_count) {
+            return true;
+        }
+        if (currentFrameSerial() >= frame_serial + frame_count) {
+            return true;
+        }
+        ::Sleep(8);
+    } while (::GetTickCount64() < deadline);
+
+    updateLatestFrame();
+    return currentFrameSerial() >= frame_serial + frame_count;
+}
+
+unsigned long long opWGC::currentFrameSerial() {
+    std::scoped_lock lock(frameMutex_);
+    return frameSerial_;
+}
+
+bool opWGC::hasCapturedFrame() {
+    std::scoped_lock lock(frameMutex_);
     return hasFrame_;
 }
 
