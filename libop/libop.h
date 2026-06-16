@@ -367,6 +367,9 @@ class OP_API libop {
                               std::wstring &retjson, long *ret);
     //----------------------ocr-------------------------
     long SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv);
+    long SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv);
+    void YoloDetect(long x1, long y1, long x2, long y2, double conf, double iou, std::wstring &retjson, long *ret);
+    void YoloDetectFromFile(const wchar_t *file_name, double conf, double iou, std::wstring &retjson, long *ret);
     // 设置字库文件
     void SetDict(long idx, const wchar_t *file_name, long *ret);
     // 获取指定字库中指定条目的字库信息

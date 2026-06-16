@@ -7,9 +7,9 @@
 
 [中文](README.md)
 
-OP (Operator & Open) is an open-source automation plugin for Windows. It provides window automation, background mouse and keyboard input, screen capture, image/color search, OCR, OpenCV image processing, memory access, and related desktop automation features. The core is written in C++ and exposed through COM interfaces with x86/x64 support.
+OP (Operator & Open) is an open-source automation plugin for Windows. It provides window automation, background mouse and keyboard input, screen capture, image/color search, OCR, YOLO HTTP detection, OpenCV image processing, memory access, and related desktop automation features. The core is written in C++ and exposed through COM interfaces with x86/x64 support.
 
-OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, including OP binary dictionaries and the text bitmap dictionary format compatible with DaMo; when no bitmap dictionary is used, OP can call the standalone OCR HTTP service [op_ocr_engine](https://github.com/WallBreaker2/op_ocr_engine), with Tesseract, PaddleOCR, and other general/model OCR backends.
+OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, including OP binary dictionaries and the text bitmap dictionary format compatible with DaMo; when no bitmap dictionary is used, OP can call the standalone OCR HTTP service [op_ocr_engine](https://github.com/WallBreaker2/op_ocr_engine), with Tesseract, PaddleOCR, and other general/model OCR backends. YOLO detection uses the same external HTTP service pattern: OP captures or loads images, then sends them to a separate YOLO11/YOLOv11 backend. See [YOLO HTTP detection](doc/yolo.md). A minimal sample service is available at `tools/op_yolo_engine.py`.
 
 ## Documentation
 
@@ -25,6 +25,7 @@ OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, 
 - Color search, image search, image input sources, and memory image input
 - Bitmap-dictionary OCR, compatible with OP dictionaries and DaMo text bitmap dictionaries
 - Standalone OCR HTTP service integration for Tesseract, PaddleOCR, and other general/model OCR backends
+- Standalone YOLO HTTP detection service integration for YOLO11/YOLOv11 and other external detection backends
 - OpenCV template matching, feature matching, and file preprocessing
 - Process memory access, assembly calls, and utility algorithms
 
@@ -35,7 +36,7 @@ op/
 ├─ libop/          Core plugin source
 │  ├─ com/         COM registration, IDL, type library, and IOpInterface implementation
 │  ├─ background/  Window binding, capture input sources, background display/mouse/keyboard dispatch
-│  ├─ imageProc/   Color/image search, bitmap OCR, and OCR HTTP service wrapper
+│  ├─ imageProc/   Color/image search, bitmap OCR, OCR HTTP wrapper, and YOLO HTTP wrapper
 │  ├─ opencv/      OpenCV template matching, feature matching, preprocessing, and bridge layer
 │  ├─ winapi/      Windows API wrappers for windows, processes, memory, and injection
 │  ├─ core/        Shared utilities, paths, environment, pipes, and window layout helpers
@@ -121,3 +122,4 @@ Release artifacts are installed to `bin/x86` or `bin/x64`.
 
 - [TSPLUG](https://github.com/tcplugins/tsplug)
 - [Kiero](https://github.com/Rebzzel/kiero)
+
