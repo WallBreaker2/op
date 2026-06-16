@@ -767,6 +767,29 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR argv,
             /* [retval][out] */ LONG *ret) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetYoloEngine( 
+            /* [in] */ BSTR path_of_engine,
+            /* [in] */ BSTR dll_name,
+            /* [in] */ BSTR argv,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE YoloDetect( 
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [in] */ DOUBLE conf,
+            /* [in] */ DOUBLE iou,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE YoloDetectFromFile( 
+            /* [in] */ BSTR file_name,
+            /* [in] */ DOUBLE conf,
+            /* [in] */ DOUBLE iou,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret) = 0;
+        
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE SetMemDict( 
             /* [in] */ LONG idx,
             /* [in] */ BSTR data,
@@ -2058,6 +2081,35 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ BSTR argv,
             /* [retval][out] */ LONG *ret);
         
+        DECLSPEC_XFGVIRT(IOpInterface, SetYoloEngine)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetYoloEngine )( 
+            IOpInterface * This,
+            /* [in] */ BSTR path_of_engine,
+            /* [in] */ BSTR dll_name,
+            /* [in] */ BSTR argv,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, YoloDetect)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *YoloDetect )( 
+            IOpInterface * This,
+            /* [in] */ LONG x1,
+            /* [in] */ LONG y1,
+            /* [in] */ LONG x2,
+            /* [in] */ LONG y2,
+            /* [in] */ DOUBLE conf,
+            /* [in] */ DOUBLE iou,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
+        DECLSPEC_XFGVIRT(IOpInterface, YoloDetectFromFile)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *YoloDetectFromFile )( 
+            IOpInterface * This,
+            /* [in] */ BSTR file_name,
+            /* [in] */ DOUBLE conf,
+            /* [in] */ DOUBLE iou,
+            /* [out] */ BSTR *retjson,
+            /* [retval][out] */ LONG *ret);
+        
         DECLSPEC_XFGVIRT(IOpInterface, SetMemDict)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *SetMemDict )( 
             IOpInterface * This,
@@ -2866,6 +2918,15 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_SetOcrEngine(This,path_of_engine,dll_name,argv,ret)	\
     ( (This)->lpVtbl -> SetOcrEngine(This,path_of_engine,dll_name,argv,ret) ) 
 
+#define IOpInterface_SetYoloEngine(This,path_of_engine,dll_name,argv,ret)	\
+    ( (This)->lpVtbl -> SetYoloEngine(This,path_of_engine,dll_name,argv,ret) ) 
+
+#define IOpInterface_YoloDetect(This,x1,y1,x2,y2,conf,iou,retjson,ret)	\
+    ( (This)->lpVtbl -> YoloDetect(This,x1,y1,x2,y2,conf,iou,retjson,ret) ) 
+
+#define IOpInterface_YoloDetectFromFile(This,file_name,conf,iou,retjson,ret)	\
+    ( (This)->lpVtbl -> YoloDetectFromFile(This,file_name,conf,iou,retjson,ret) ) 
+
 #define IOpInterface_SetMemDict(This,idx,data,size,ret)	\
     ( (This)->lpVtbl -> SetMemDict(This,idx,data,size,ret) ) 
 
@@ -3018,6 +3079,51 @@ EXTERN_C const IID IID_IOpInterface;
 
 #endif 	/* C style interface */
 
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_YoloDetectFromFile_Proxy( 
+    IOpInterface * This,
+    /* [in] */ BSTR file_name,
+    /* [in] */ DOUBLE conf,
+    /* [in] */ DOUBLE iou,
+    /* [out] */ BSTR *retjson,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_YoloDetectFromFile_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_SetMemDict_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG idx,
+    /* [in] */ BSTR data,
+    /* [in] */ LONG size,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_SetMemDict_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_GetDict_Proxy( 
+    IOpInterface * This,
+    /* [in] */ LONG idx,
+    /* [in] */ LONG font_index,
+    /* [retval][out] */ BSTR *retstr);
+
+
+void __RPC_STUB IOpInterface_GetDict_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
 
 
 /* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_AddDict_Proxy( 
