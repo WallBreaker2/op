@@ -29,7 +29,7 @@ if ($Generator -eq "") {
 Write-Host "Bootstrapping native dependencies (generator=$Generator, arch=$Arch)..."
 python build.py -g $Generator -t Release -a $Arch --deps-arch $Arch
 
-$stateFile = Join-Path "build" "_deps" ".deps-bootstrap-state.json"
+$stateFile = Join-Path (Join-Path "build" "_deps") ".deps-bootstrap-state.json"
 if (-not (Test-Path $stateFile)) {
     Write-Error "Bootstrap state not found: $stateFile"
 }
@@ -39,7 +39,7 @@ if ($state.vcpkg_root) {
     $env:VCPKG_ROOT = $state.vcpkg_root
 }
 
-$env:BLACKBONE_ROOT = (Resolve-Path (Join-Path "build" "_deps" "BlackBone")).Path
+$env:BLACKBONE_ROOT = (Resolve-Path (Join-Path (Join-Path "build" "_deps") "BlackBone")).Path
 $blackboneInclude = Join-Path $env:BLACKBONE_ROOT "src"
 
 if ($Arch -eq "x86") {
@@ -47,6 +47,8 @@ if ($Arch -eq "x86") {
     $vsArch = "Win32"
     $env:PYTHON32_ROOT = Split-Path (Get-Command python).Source -Parent
     $blackboneCandidates = @(
+        (Join-Path $env:BLACKBONE_ROOT "build/$Generator-Win32/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/Win32/BlackBone/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/Win32/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/x86/Release/BlackBone.lib")
     )
@@ -55,6 +57,8 @@ if ($Arch -eq "x86") {
     $vsArch = "x64"
     $env:PYTHON64_ROOT = Split-Path (Get-Command python).Source -Parent
     $blackboneCandidates = @(
+        (Join-Path $env:BLACKBONE_ROOT "build/$Generator-x64/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/x64/BlackBone/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/X64/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/x64/Release/BlackBone.lib")
     )
@@ -71,22 +75,22 @@ if (-not $blackboneLib) {
     Write-Error "BlackBone import library not found under $($env:BLACKBONE_ROOT)/build"
 }
 
-$opencvRoot = Join-Path "build" "_deps" "opencv" "install" "$Generator-$vsArch"
+$opencvRoot = Join-Path (Join-Path (Join-Path (Join-Path "build" "_deps") "opencv") "install") "$Generator-$vsArch"
 $opencvArgs = @()
 if (Test-Path $opencvRoot) {
     $opencvResolved = (Resolve-Path $opencvRoot).Path
     $env:OPENCV_ROOT = $opencvResolved
     $opencvArgs = @(
-        "-DOPENCV_ROOT=$opencvResolved",
+        "-DOPENCV_ROOT=$($opencvResolved -replace '\\', '/')",
         "-DOPENCV_LIB_SUFFIX=500"
     )
 }
 
 $cmakeArgs = @(
     "-DCMAKE_GENERATOR_PLATFORM=$cmakePlatform",
-    "-DBLACKBONE_ROOT=$($env:BLACKBONE_ROOT)",
-    "-DBLACKBONE_INCLUDE_DIR=$blackboneInclude",
-    "-DBLACKBONE_LIBRARY=$blackboneLib",
+    "-DBLACKBONE_ROOT=$($env:BLACKBONE_ROOT -replace '\\', '/')",
+    "-DBLACKBONE_INCLUDE_DIR=$($blackboneInclude -replace '\\', '/')",
+    "-DBLACKBONE_LIBRARY=$($blackboneLib -replace '\\', '/')",
     "-DOP_PYTHON_WHEEL=ON",
     "-DOP_BUILD_TESTS=OFF",
     "-Dbuild_swig_py=ON"

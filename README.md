@@ -81,14 +81,17 @@ print("op version:", op.Ver())
 
 ### pip 安装（推荐 Python 用户使用）
 
-`op-pyop` 通过 pip 发布多版本 wheel（Python 3.9–3.12，win32/win_amd64），自动匹配本地 Python 版本，无需手动挑选 `_pyop.pyd`：
+`op-plugins` 通过 PyPI 发布多版本 wheel（Python 3.9–3.12，win32/win_amd64），自动匹配本地 Python 版本，无需手动挑选 `_pyop.pyd`：
 
 ```powershell
-# 从 GitHub Release 安装（将 <tag> 和 <wheel> 替换为实际文件名）
+# 从 PyPI 安装（推荐）
+pip install op-plugins
+
+# 或从 GitHub Release 安装指定 wheel（将 <tag> 和 <wheel> 替换为实际文件名）
 pip install https://github.com/WallBreaker2/op/releases/download/<tag>/<wheel>.whl
 
 # 示例：64 位 Python 3.12
-pip install https://github.com/WallBreaker2/op/releases/download/v1.0.0/op_pyop-1.0.0-cp312-cp312-win_amd64.whl
+pip install https://github.com/WallBreaker2/op/releases/download/v1.0.0/op_plugins-1.0.0-cp312-cp312-win_amd64.whl
 ```
 
 安装后使用 SWIG 绑定：

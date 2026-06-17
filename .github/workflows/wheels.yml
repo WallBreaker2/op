@@ -48,7 +48,7 @@ jobs:
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: op-pyop-wheels-${{ github.ref_name }}
+          name: op-plugins-wheels-${{ github.ref_name }}
           path: wheelhouse/*.whl
 
       - name: Attach wheels to GitHub Release
@@ -58,3 +58,23 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: wheelhouse/*.whl
           fail_on_unmatched_files: false
+
+  pypi-publish:
+    name: Publish to PyPI
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: op-plugins-wheels-${{ github.ref_name }}
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

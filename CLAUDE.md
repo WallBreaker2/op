@@ -29,7 +29,7 @@ cmake --build build/vs2022-x86-Release --config Release
 ## Python pip wheels
 
 Multi-version wheels are built via `cibuildwheel` on tag push (`.github/workflows/wheels.yml`).
-Package name: `op-pyop`, import name: `pyop`. Supports cp39–cp312 on win32/win_amd64.
+Package name: `op-plugins`, import name: `pyop`. Supports cp39–cp312 on win32/win_amd64. Published to PyPI via Trusted Publisher on tag push (`.github/workflows/wheels.yml`).
 
 ```bash
 # Verify after installing a wheel
