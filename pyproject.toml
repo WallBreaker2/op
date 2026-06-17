@@ -1,0 +1,55 @@
+[project]
+name = "op-pyop"
+dynamic = ["version"]
+description = "Python bindings for OP Windows automation plugin"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "WallBreaker2" }]
+keywords = ["automation", "windows", "op", "screen-capture", "ocr"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/WallBreaker2/op"
+Repository = "https://github.com/WallBreaker2/op"
+Issues = "https://github.com/WallBreaker2/op/issues"
+
+[build-system]
+requires = ["scikit-build-core>=0.10", "setuptools-scm>=8"]
+build-backend = "scikit_build_core.build"
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.24"
+cmake.build-type = "Release"
+wheel.packages = ["python/pyop"]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+
+[tool.scikit-build.cmake.define]
+OP_BUILD_TESTS = "OFF"
+OP_PYTHON_WHEEL = "ON"
+build_swig_py = "ON"
+
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-*"
+skip = "pp* *-manylinux* *-musllinux* *-macosx*"
+archs = ["AMD64", "x86"]
+build-verbosity = 1
+
+[tool.cibuildwheel.windows]
+environment-pass = ["VCPKG_ROOT", "BLACKBONE_ROOT", "OPENCV_ROOT"]

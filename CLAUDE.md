@@ -26,6 +26,23 @@ cmake --build build/vs2022-x64-Release --config Release
 cmake --build build/vs2022-x86-Release --config Release
 ```
 
+## Python pip wheels
+
+Multi-version wheels are built via `cibuildwheel` on tag push (`.github/workflows/wheels.yml`).
+Package name: `op-pyop`, import name: `pyop`. Supports cp39–cp312 on win32/win_amd64.
+
+```bash
+# Verify after installing a wheel
+python -c "from pyop import libop; print(libop().Ver())"
+```
+
+Wheel build uses `OP_PYTHON_WHEEL=ON` (see `pyproject.toml` + `swig/CMakeLists.txt`).
+Pure Python package lives in `python/pyop/`; native artifacts (`_pyop.pyd`, `op_*.dll`, `tools.dll`)
+are installed into the same package directory via CMake install rules.
+
+Regenerating SWIG bindings (`swig/genPythonWrap.bat`) also requires copying `swig/pyop.py`
+to `python/pyop/_binding.py`.
+
 ## Test commands
 
 ```bash
@@ -69,6 +86,8 @@ tests/                   — GoogleTest suite with custom test environment (OpEn
                            OpEnvironment for global setup/teardown.
 tools/                   — EasyCom DLL (COM helper, separate from the main plugin)
 swig/                    — Python bindings via SWIG (_pyop.pyd + pyop.py)
+python/pyop/             — pip wheel package (__init__.py, _binding.py)
+pyproject.toml           — scikit-build-core + cibuildwheel configuration
 3rd_party/               — Pre-built libs (x86/x64) + headers + Kiero source
 ci/triplets/             — vcpkg overlay triplets for custom build configuration
 build.py                 — Unified build: bootstraps vcpkg, clones+builds BlackBone,

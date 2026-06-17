@@ -1,0 +1,60 @@
+name: Wheels
+
+on:
+  push:
+    tags:
+      - '[0-9]*'
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-wheels:
+    runs-on: windows-2025-vs2026
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout op
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python for dependency bootstrap
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+
+      - name: Cache bootstrapped dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: op-deps-${{ runner.os }}-both-${{ hashFiles('build.py', 'CMakeLists.txt', 'libop/CMakeLists.txt', 'ci/triplets/*.cmake') }}
+          restore-keys: |
+            op-deps-${{ runner.os }}-both-
+            op-deps-${{ runner.os }}-x64-
+            op-deps-${{ runner.os }}-x86-
+
+      - name: Bootstrap native dependencies
+        shell: pwsh
+        run: ./scripts/cibw_before_all.ps1
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2
+        env:
+          CIBW_BEFORE_BUILD: powershell ./scripts/cibw_before_build.ps1
+          CIBW_BUILD_VERBOSITY: 1
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: op-pyop-wheels-${{ github.ref_name }}
+          path: wheelhouse/*.whl
+
+      - name: Attach wheels to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: wheelhouse/*.whl
+          fail_on_unmatched_files: false

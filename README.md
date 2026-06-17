@@ -46,6 +46,7 @@ op/
 ├─ include/        对外头文件和导出接口
 ├─ tools/          免注册加载工具源码，生成 tools.dll
 ├─ swig/           Python SWIG 绑定文件
+├─ python/         pip wheel 包源码（python/pyop）
 ├─ examples/       本地测试示例和测试资源
 ├─ tests/          C++ 单元测试和集成测试
 ├─ doc/op.wiki/    GitHub Wiki 文档源码
@@ -69,13 +70,46 @@ regsvr32 op_x86.dll
 regsvr32 op_x64.dll
 ```
 
-Python 最小示例：
+Python 最小示例（COM，与 Python 版本无关）：
 
 ```python
 from win32com.client import Dispatch
 
 op = Dispatch("op.opsoft")
 print("op version:", op.Ver())
+```
+
+### pip 安装（推荐 Python 用户使用）
+
+`op-pyop` 通过 pip 发布多版本 wheel（Python 3.9–3.12，win32/win_amd64），自动匹配本地 Python 版本，无需手动挑选 `_pyop.pyd`：
+
+```powershell
+# 从 GitHub Release 安装（将 <tag> 和 <wheel> 替换为实际文件名）
+pip install https://github.com/WallBreaker2/op/releases/download/<tag>/<wheel>.whl
+
+# 示例：64 位 Python 3.12
+pip install https://github.com/WallBreaker2/op/releases/download/v1.0.0/op_pyop-1.0.0-cp312-cp312-win_amd64.whl
+```
+
+安装后使用 SWIG 绑定：
+
+```python
+from pyop import libop
+
+op = libop()
+print("op version:", op.Ver())
+```
+
+注意：
+
+- 64 位 Python 请安装 `win_amd64` wheel；32 位 Python / 32 位游戏场景请安装 `win32` wheel
+- wheel 已内置 `op_x64.dll` / `op_x86.dll` 和 `tools.dll`，无需单独下载 zip
+- 若仍使用 zip 分发，须确保 `_pyop.pyd` 与本地 Python 版本一致（如 cp312 对应 Python 3.12）
+
+验证安装：
+
+```powershell
+python -c "from pyop import libop; print(libop().Ver())"
 ```
 
 免注册调用请参考 Wiki：
@@ -109,6 +143,14 @@ python build.py -t Release -a x64 -g vs2026
 ```
 
 Release 产物会安装到 `bin/x86` 或 `bin/x64`。
+
+本地构建 pip wheel（需已 bootstrap 依赖）：
+
+```powershell
+$env:PYTHON64_ROOT = "C:\Python312"
+pip install scikit-build-core setuptools-scm cibuildwheel
+pip wheel . --no-deps -w wheelhouse
+```
 
 ## 社区
 
