@@ -40,7 +40,7 @@ jobs:
         run: ./scripts/cibw_before_all.ps1
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2
+        uses: pypa/cibuildwheel@v2.23.4
         env:
           CIBW_BEFORE_BUILD: powershell ./scripts/cibw_before_build.ps1
           CIBW_BUILD_VERBOSITY: 1

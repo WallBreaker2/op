@@ -13,41 +13,57 @@ if ($arch -eq "x86") {
     $cmakePlatform = "Win32"
     $depArch = "x86"
     $vsArch = "Win32"
-    $blackboneLib = Join-Path $env:BLACKBONE_ROOT "build/Win32/Release/BlackBone.lib"
+    $blackboneCandidates = @(
+        (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-Win32/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/Win32/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/Win32/Release/BlackBone.lib")
+    )
 } else {
     $env:PYTHON64_ROOT = $pythonRoot
     $cmakePlatform = "x64"
     $depArch = "x64"
     $vsArch = "x64"
-    $blackboneLib = Join-Path $env:BLACKBONE_ROOT "build/X64/Release/BlackBone.lib"
+    $blackboneCandidates = @(
+        (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-x64/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/x64/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/X64/Release/BlackBone.lib")
+    )
 }
 
-if (-not (Test-Path $blackboneLib)) {
+$blackboneLib = $null
+foreach ($candidate in $blackboneCandidates) {
+    if (Test-Path $candidate) {
+        $blackboneLib = $candidate
+        break
+    }
+}
+
+if (-not $blackboneLib) {
     $blackboneLib = Join-Path $env:BLACKBONE_ROOT "build/$vsArch/Release/BlackBone.lib"
 }
 
-if (-not (Test-Path $blackboneLib)) {
-    Write-Error "BlackBone import library not found for $arch at $blackboneLib"
-}
-
-$opencvRoot = Join-Path "build" "_deps" "opencv" "install" "$generatorKey-$vsArch"
+$opencvRoot = Join-Path (Join-Path (Join-Path (Join-Path "build" "_deps") "opencv") "install") "$generatorKey-$vsArch"
 $opencvArgs = @()
 if (Test-Path $opencvRoot) {
     $opencvResolved = (Resolve-Path $opencvRoot).Path
     $env:OPENCV_ROOT = $opencvResolved
     $opencvArgs = @(
-        "-DOPENCV_ROOT=$opencvResolved",
+        "-DOPENCV_ROOT=$($opencvResolved -replace '\\', '/')",
         "-DOPENCV_LIB_SUFFIX=500"
     )
     Write-Host "OPENCV_ROOT=$opencvResolved"
 }
 
+if (-not (Test-Path $blackboneLib)) {
+    Write-Error "BlackBone import library not found for $arch"
+}
+
 $blackboneInclude = Join-Path $env:BLACKBONE_ROOT "src"
 $cmakeArgs = @(
     "-DCMAKE_GENERATOR_PLATFORM=$cmakePlatform",
-    "-DBLACKBONE_ROOT=$env:BLACKBONE_ROOT",
-    "-DBLACKBONE_INCLUDE_DIR=$blackboneInclude",
-    "-DBLACKBONE_LIBRARY=$blackboneLib",
+    "-DBLACKBONE_ROOT=$($env:BLACKBONE_ROOT -replace '\\', '/')",
+    "-DBLACKBONE_INCLUDE_DIR=$($blackboneInclude -replace '\\', '/')",
+    "-DBLACKBONE_LIBRARY=$($blackboneLib -replace '\\', '/')",
     "-DOP_PYTHON_WHEEL=ON",
     "-DOP_BUILD_TESTS=OFF",
     "-Dbuild_swig_py=ON"
