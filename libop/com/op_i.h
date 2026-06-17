@@ -845,6 +845,55 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr) = 0;
         
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadInt(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [retval][out] */ hyper *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteInt(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ hyper value,
+            /* [retval][out] */ LONG *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadFloat(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [retval][out] */ DOUBLE *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteFloat(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ DOUBLE value,
+            /* [retval][out] */ LONG *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadDouble(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [retval][out] */ DOUBLE *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteDouble(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ DOUBLE value,
+            /* [retval][out] */ LONG *ret) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE ReadString(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ LONG len,
+            /* [retval][out] */ BSTR *retstr) = 0;
+
+        virtual /* [id] */ HRESULT STDMETHODCALLTYPE WriteString(
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ BSTR value,
+            /* [retval][out] */ LONG *ret) = 0;
+
         virtual /* [id] */ HRESULT STDMETHODCALLTYPE CvLoadTemplate( 
             /* [in] */ BSTR name,
             /* [in] */ BSTR file_path,
@@ -2164,6 +2213,71 @@ EXTERN_C const IID IID_IOpInterface;
             /* [in] */ LONG size,
             /* [retval][out] */ BSTR *retstr);
         
+        DECLSPEC_XFGVIRT(IOpInterface, ReadInt)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadInt )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [retval][out] */ hyper *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, WriteInt)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteInt )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ hyper value,
+            /* [retval][out] */ LONG *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, ReadFloat)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadFloat )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [retval][out] */ DOUBLE *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, WriteFloat)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteFloat )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ DOUBLE value,
+            /* [retval][out] */ LONG *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, ReadDouble)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadDouble )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [retval][out] */ DOUBLE *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, WriteDouble)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteDouble )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ DOUBLE value,
+            /* [retval][out] */ LONG *ret);
+
+        DECLSPEC_XFGVIRT(IOpInterface, ReadString)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *ReadString )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ LONG len,
+            /* [retval][out] */ BSTR *retstr);
+
+        DECLSPEC_XFGVIRT(IOpInterface, WriteString)
+        /* [id] */ HRESULT ( STDMETHODCALLTYPE *WriteString )(
+            IOpInterface * This,
+            /* [in] */ hyper hwnd,
+            /* [in] */ BSTR address,
+            /* [in] */ LONG type,
+            /* [in] */ BSTR value,
+            /* [retval][out] */ LONG *ret);
+
         DECLSPEC_XFGVIRT(IOpInterface, CvLoadTemplate)
         /* [id] */ HRESULT ( STDMETHODCALLTYPE *CvLoadTemplate )( 
             IOpInterface * This,
@@ -2908,6 +3022,30 @@ EXTERN_C const IID IID_IOpInterface;
 #define IOpInterface_ReadData(This,hwnd,address,size,retstr)	\
     ( (This)->lpVtbl -> ReadData(This,hwnd,address,size,retstr) ) 
 
+#define IOpInterface_ReadInt(This,hwnd,address,type,ret)	\
+    ( (This)->lpVtbl -> ReadInt(This,hwnd,address,type,ret) )
+
+#define IOpInterface_WriteInt(This,hwnd,address,type,value,ret)	\
+    ( (This)->lpVtbl -> WriteInt(This,hwnd,address,type,value,ret) )
+
+#define IOpInterface_ReadFloat(This,hwnd,address,ret)	\
+    ( (This)->lpVtbl -> ReadFloat(This,hwnd,address,ret) )
+
+#define IOpInterface_WriteFloat(This,hwnd,address,value,ret)	\
+    ( (This)->lpVtbl -> WriteFloat(This,hwnd,address,value,ret) )
+
+#define IOpInterface_ReadDouble(This,hwnd,address,ret)	\
+    ( (This)->lpVtbl -> ReadDouble(This,hwnd,address,ret) )
+
+#define IOpInterface_WriteDouble(This,hwnd,address,value,ret)	\
+    ( (This)->lpVtbl -> WriteDouble(This,hwnd,address,value,ret) )
+
+#define IOpInterface_ReadString(This,hwnd,address,type,len,retstr)	\
+    ( (This)->lpVtbl -> ReadString(This,hwnd,address,type,len,retstr) )
+
+#define IOpInterface_WriteString(This,hwnd,address,type,value,ret)	\
+    ( (This)->lpVtbl -> WriteString(This,hwnd,address,type,value,ret) )
+
 #define IOpInterface_CvLoadTemplate(This,name,file_path,ret)	\
     ( (This)->lpVtbl -> CvLoadTemplate(This,name,file_path,ret) ) 
 
@@ -3189,6 +3327,127 @@ void __RPC_STUB IOpInterface_WriteData_Stub(
 
 
 void __RPC_STUB IOpInterface_ReadData_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ReadInt_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ LONG type,
+    /* [retval][out] */ hyper *ret);
+
+
+void __RPC_STUB IOpInterface_ReadInt_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_WriteInt_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ LONG type,
+    /* [in] */ hyper value,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_WriteInt_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ReadFloat_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [retval][out] */ DOUBLE *ret);
+
+
+void __RPC_STUB IOpInterface_ReadFloat_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_WriteFloat_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ DOUBLE value,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_WriteFloat_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ReadDouble_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [retval][out] */ DOUBLE *ret);
+
+
+void __RPC_STUB IOpInterface_ReadDouble_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_WriteDouble_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ DOUBLE value,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_WriteDouble_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_ReadString_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ LONG type,
+    /* [in] */ LONG len,
+    /* [retval][out] */ BSTR *retstr);
+
+
+void __RPC_STUB IOpInterface_ReadString_Stub(
+    IRpcStubBuffer *This,
+    IRpcChannelBuffer *_pRpcChannelBuffer,
+    PRPC_MESSAGE _pRpcMessage,
+    DWORD *_pdwStubPhase);
+
+
+/* [id] */ HRESULT STDMETHODCALLTYPE IOpInterface_WriteString_Proxy(
+    IOpInterface * This,
+    /* [in] */ hyper hwnd,
+    /* [in] */ BSTR address,
+    /* [in] */ LONG type,
+    /* [in] */ BSTR value,
+    /* [retval][out] */ LONG *ret);
+
+
+void __RPC_STUB IOpInterface_WriteString_Stub(
     IRpcStubBuffer *This,
     IRpcChannelBuffer *_pRpcChannelBuffer,
     PRPC_MESSAGE _pRpcMessage,

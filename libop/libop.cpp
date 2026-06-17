@@ -2425,13 +2425,148 @@ void libop::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, d
     }
 }
 
+static LONG_PTR resolve_memory_hwnd(libop *self, LONG_PTR hwnd) {
+    if (hwnd != 0)
+        return hwnd;
+    LONG_PTR bind_hwnd = 0;
+    self->GetBindWindow(&bind_hwnd);
+    return bind_hwnd;
+}
+
 void libop::WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret) {
-    *ret = 0;
-    MemoryEx mem;
-    *ret = mem.WriteData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, data, size);
+    if (ret)
+        *ret = 0;
+    if (!ret || !address || !data || size < 0)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.WriteData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, data, size);
+    } catch (...) {
+        *ret = 0;
+    }
 }
 // 读取数据
 void libop::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr) {
-    MemoryEx mem;
-    retstr = mem.ReadData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, size);
+    retstr.clear();
+    if (!address || size < 0)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        retstr = mem.ReadData(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, size);
+    } catch (...) {
+        retstr.clear();
+    }
+}
+
+void libop::ReadInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t *ret) {
+    if (ret)
+        *ret = 0;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.ReadInt(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, type);
+    } catch (...) {
+        *ret = 0;
+    }
+}
+
+void libop::WriteInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t value, long *ret) {
+    if (ret)
+        *ret = 0;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.WriteInt(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, type, value);
+    } catch (...) {
+        *ret = 0;
+    }
+}
+
+void libop::ReadFloat(LONG_PTR hwnd, const wchar_t *address, float *ret) {
+    if (ret)
+        *ret = 0.0f;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.ReadFloat(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address);
+    } catch (...) {
+        *ret = 0.0f;
+    }
+}
+
+void libop::WriteFloat(LONG_PTR hwnd, const wchar_t *address, float value, long *ret) {
+    if (ret)
+        *ret = 0;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.WriteFloat(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, value);
+    } catch (...) {
+        *ret = 0;
+    }
+}
+
+void libop::ReadDouble(LONG_PTR hwnd, const wchar_t *address, double *ret) {
+    if (ret)
+        *ret = 0.0;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.ReadDouble(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address);
+    } catch (...) {
+        *ret = 0.0;
+    }
+}
+
+void libop::WriteDouble(LONG_PTR hwnd, const wchar_t *address, double value, long *ret) {
+    if (ret)
+        *ret = 0;
+    if (!address || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.WriteDouble(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, value);
+    } catch (...) {
+        *ret = 0;
+    }
+}
+
+void libop::ReadString(LONG_PTR hwnd, const wchar_t *address, long type, long len, std::wstring &retstr) {
+    retstr.clear();
+    if (!address)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        retstr = mem.ReadString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, type, len);
+    } catch (...) {
+        retstr.clear();
+    }
+}
+
+void libop::WriteString(LONG_PTR hwnd, const wchar_t *address, long type, const wchar_t *value, long *ret) {
+    if (ret)
+        *ret = 0;
+    if (!address || !value || !ret)
+        return;
+    hwnd = resolve_memory_hwnd(this, hwnd);
+    try {
+        MemoryEx mem;
+        *ret = mem.WriteString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), address, type, value);
+    } catch (...) {
+        *ret = 0;
+    }
 }

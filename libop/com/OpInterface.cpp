@@ -4,6 +4,7 @@
 #include "stdafx.h"
 
 #include "../core/globalVar.h"
+#include <cstdint>
 #include <filesystem>
 #include <string>
 // OpInterface
@@ -1096,6 +1097,67 @@ STDMETHODIMP OpInterface::ReadData(LONGLONG hwnd, BSTR address, LONG size, BSTR 
     CComBSTR newstr;
     newstr.Append(s.data());
     newstr.CopyTo(retstr);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::ReadInt(LONGLONG hwnd, BSTR address, LONG type, LONGLONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    int64_t value = 0;
+    obj.ReadInt(static_cast<LONG_PTR>(hwnd), address, type, &value);
+    *ret = static_cast<LONGLONG>(value);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::WriteInt(LONGLONG hwnd, BSTR address, LONG type, LONGLONG value, LONG *ret) {
+    obj.WriteInt(static_cast<LONG_PTR>(hwnd), address, type, static_cast<int64_t>(value), ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::ReadFloat(LONGLONG hwnd, BSTR address, DOUBLE *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    float value = 0.0f;
+    obj.ReadFloat(static_cast<LONG_PTR>(hwnd), address, &value);
+    *ret = static_cast<DOUBLE>(value);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::WriteFloat(LONGLONG hwnd, BSTR address, DOUBLE value, LONG *ret) {
+    obj.WriteFloat(static_cast<LONG_PTR>(hwnd), address, static_cast<float>(value), ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::ReadDouble(LONGLONG hwnd, BSTR address, DOUBLE *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    double value = 0.0;
+    obj.ReadDouble(static_cast<LONG_PTR>(hwnd), address, &value);
+    *ret = static_cast<DOUBLE>(value);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::WriteDouble(LONGLONG hwnd, BSTR address, DOUBLE value, LONG *ret) {
+    obj.WriteDouble(static_cast<LONG_PTR>(hwnd), address, static_cast<double>(value), ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::ReadString(LONGLONG hwnd, BSTR address, LONG type, LONG len, BSTR *retstr) {
+    if (!retstr)
+        return E_POINTER;
+
+    wstring s;
+    obj.ReadString(static_cast<LONG_PTR>(hwnd), address, type, len, s);
+    CComBSTR newstr;
+    newstr.Append(s.data());
+    return newstr.CopyTo(retstr);
+}
+
+STDMETHODIMP OpInterface::WriteString(LONGLONG hwnd, BSTR address, LONG type, BSTR value, LONG *ret) {
+    obj.WriteString(static_cast<LONG_PTR>(hwnd), address, type, value, ret);
     return S_OK;
 }
 

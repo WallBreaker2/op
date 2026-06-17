@@ -358,6 +358,15 @@ class ATL_NO_VTABLE OpInterface
     STDMETHOD(WriteData)(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret);
     // 读取数据
     STDMETHOD(ReadData)(LONGLONG hwnd, BSTR address, LONG size, BSTR *retstr);
+    // 类型化读写，和内存地址表达式规则保持一致。
+    STDMETHOD(ReadInt)(LONGLONG hwnd, BSTR address, LONG type, LONGLONG *ret);
+    STDMETHOD(WriteInt)(LONGLONG hwnd, BSTR address, LONG type, LONGLONG value, LONG *ret);
+    STDMETHOD(ReadFloat)(LONGLONG hwnd, BSTR address, DOUBLE *ret);
+    STDMETHOD(WriteFloat)(LONGLONG hwnd, BSTR address, DOUBLE value, LONG *ret);
+    STDMETHOD(ReadDouble)(LONGLONG hwnd, BSTR address, DOUBLE *ret);
+    STDMETHOD(WriteDouble)(LONGLONG hwnd, BSTR address, DOUBLE value, LONG *ret);
+    STDMETHOD(ReadString)(LONGLONG hwnd, BSTR address, LONG type, LONG len, BSTR *retstr);
+    STDMETHOD(WriteString)(LONGLONG hwnd, BSTR address, LONG type, BSTR value, LONG *ret);
     //-----------------------opcv---------------------------------
     STDMETHOD(CvLoadTemplate)(BSTR name, BSTR file_path, LONG *ret);
     STDMETHOD(CvLoadMaskedTemplate)(BSTR name, BSTR template_path, BSTR mask_path, LONG *ret);
