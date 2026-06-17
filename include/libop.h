@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 #include <atomic>
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -418,6 +419,15 @@ class OP_API libop {
     void WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret);
     // 读取数据
     void ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr);
+    // 大漠兼容内存接口
+    void ReadInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t *ret);
+    void WriteInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t value, long *ret);
+    void ReadFloat(LONG_PTR hwnd, const wchar_t *address, float *ret);
+    void WriteFloat(LONG_PTR hwnd, const wchar_t *address, float value, long *ret);
+    void ReadDouble(LONG_PTR hwnd, const wchar_t *address, double *ret);
+    void WriteDouble(LONG_PTR hwnd, const wchar_t *address, double value, long *ret);
+    void ReadString(LONG_PTR hwnd, const wchar_t *address, long type, long len, std::wstring &retstr);
+    void WriteString(LONG_PTR hwnd, const wchar_t *address, long type, const wchar_t *value, long *ret);
 };
 
 #ifdef _MSC_VER

@@ -172,6 +172,9 @@ SET(COM_SRC_FILES
 "./com/op_i.c"
 "./com/op.def")
 
+SET(C_API_SRC_FILES
+"./c_api/op_c_api.cpp")
+
 
 
 
@@ -195,6 +198,7 @@ ADD_DEFINITIONS(-DOP_VERSION="0.4.7.0")
 #add_library(libop SHARED  ${SRC_FILES})
 
 add_library(libop ${SRC_FILES})
+target_compile_definitions(libop PRIVATE U_STATIC_IMPLEMENTATION)
 
 if(enable_wgc AND MSVC)
   set_source_files_properties(
@@ -223,6 +227,9 @@ add_custom_command(
 add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
 SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
 
+add_library(${op_c_api} SHARED ${C_API_SRC_FILES})
+target_compile_definitions(${op_c_api} PRIVATE OP_C_API_EXPORTS)
+
 if(enable_wgc AND MSVC)
   set_source_files_properties(
     "./background/opBackground.cpp"
@@ -237,6 +244,12 @@ endif()
 
 
 target_include_directories(${op_com} PUBLIC
+"${PROJECT_BINARY_DIR}"
+"${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_include_directories(${op_c_api} PUBLIC
+"${PROJECT_SOURCE_DIR}/include"
 "${PROJECT_BINARY_DIR}"
 "${CMAKE_CURRENT_SOURCE_DIR}"
 )
@@ -264,8 +277,10 @@ endif()
 # 7.add link library
 # BlackBone 仍通过外部提供的 BlackBone.lib 链接
 TARGET_LINK_LIBRARIES(${op_com} "${BLACKBONE_LIBRARY}")
+TARGET_LINK_LIBRARIES(${op_c_api} libop "${BLACKBONE_LIBRARY}")
 if(enable_wgc)
   TARGET_LINK_LIBRARIES(${op_com} windowsapp runtimeobject.lib)
+  TARGET_LINK_LIBRARIES(${op_c_api} windowsapp runtimeobject.lib)
 endif()
 
 # MinHook 使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
@@ -295,6 +310,7 @@ if (OP_VCPKG_INSTALLED_DIR)
 
   if (EXISTS "${OP_MINHOOK_LIB_RELEASE}")
     TARGET_LINK_LIBRARIES(${op_com} "${OP_MINHOOK_LIB_RELEASE}")
+    TARGET_LINK_LIBRARIES(${op_c_api} "${OP_MINHOOK_LIB_RELEASE}")
     set(OP_MINHOOK_LINKED TRUE)
     message(STATUS "Using static MinHook library: ${OP_MINHOOK_LIB_RELEASE}")
   endif()
@@ -305,8 +321,10 @@ if (NOT OP_MINHOOK_LINKED)
   find_package(minhook CONFIG QUIET)
   if (minhook_FOUND)
     TARGET_LINK_LIBRARIES(${op_com} minhook::minhook)
+    TARGET_LINK_LIBRARIES(${op_c_api} minhook::minhook)
   else()
     TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
+    TARGET_LINK_LIBRARIES(${op_c_api} minhook.lib)
   endif()
 endif()
 
@@ -315,10 +333,12 @@ if(enable_wgc)
 endif()
 target_link_libraries(libop dwmapi.lib)
 target_link_libraries(${op_com} dwmapi.lib)
+target_link_libraries(${op_c_api} dwmapi.lib)
 
 if(OP_HAS_OPENCV)
   target_link_libraries(libop ${OP_OPENCV_LINK_LIBS})
   target_link_libraries(${op_com} ${OP_OPENCV_LINK_LIBS})
+  target_link_libraries(${op_c_api} ${OP_OPENCV_LINK_LIBS})
 endif()
 
 set(OP_HAS_OPENCV "${OP_HAS_OPENCV}" PARENT_SCOPE)
@@ -329,14 +349,19 @@ set(OP_HAS_OPENCV "${OP_HAS_OPENCV}" PARENT_SCOPE)
 
  
 install(FILES libop.h DESTINATION "${PROJECT_SOURCE_DIR}/include")
+install(FILES "${PROJECT_SOURCE_DIR}/include/op_c_api.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
 IF(CMAKE_CL_64)
   #install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
   #install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
   install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
+  install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+  install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
 ELSE(CMAKE_CL_64)
   #install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   #install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
+  install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+  install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
 ENDIF(CMAKE_CL_64)
