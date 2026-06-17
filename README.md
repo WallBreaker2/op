@@ -144,13 +144,21 @@ python build.py -t Release -a x64 -g vs2026
 
 Release 产物会安装到 `bin/x86` 或 `bin/x64`。
 
-本地构建 pip wheel（需已 bootstrap 依赖）：
+本地构建 pip wheel（推荐用脚本自动 bootstrap 依赖并设置 CMake 参数）：
 
 ```powershell
-$env:PYTHON64_ROOT = "C:\Python312"
-pip install scikit-build-core setuptools-scm cibuildwheel
+# 先确保已安装构建依赖
+pip install scikit-build-core setuptools-scm
+
+# 一键构建（默认 x64，自动检测 VS 版本）
+./scripts/build_wheel.ps1
+
+# 或手动：先 bootstrap，再 pip wheel
+python build.py -t Release -a x64
 pip wheel . --no-deps -w wheelhouse
 ```
+
+若 `pip wheel` 报 BlackBone 未找到，说明尚未运行 `python build.py` 或 `./scripts/build_wheel.ps1` 完成依赖引导。
 
 ## 社区
 

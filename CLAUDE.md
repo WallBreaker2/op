@@ -40,6 +40,9 @@ Wheel build uses `OP_PYTHON_WHEEL=ON` (see `pyproject.toml` + `swig/CMakeLists.t
 Pure Python package lives in `python/pyop/`; native artifacts (`_pyop.pyd`, `op_*.dll`, `tools.dll`)
 are installed into the same package directory via CMake install rules.
 
+Local wheel build: `./scripts/build_wheel.ps1` (bootstraps deps via `build.py`, sets `CMAKE_ARGS`, runs `pip wheel`).
+CMake also auto-detects `build/_deps/{BlackBone,vcpkg,opencv}` when env vars are unset.
+
 Regenerating SWIG bindings (`swig/genPythonWrap.bat`) also requires copying `swig/pyop.py`
 to `python/pyop/_binding.py`.
 
