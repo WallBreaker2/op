@@ -182,6 +182,14 @@ interface IOpInterface : IDispatch
 
 	[id(250)] HRESULT WriteData([in] hyper hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
 	[id(251)] HRESULT ReadData([in] hyper hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
+	[id(252)] HRESULT ReadInt([in] hyper hwnd, [in] BSTR address, [in] LONG type, [out, retval] hyper* ret);
+	[id(253)] HRESULT WriteInt([in] hyper hwnd, [in] BSTR address, [in] LONG type, [in] hyper value, [out, retval] LONG* ret);
+	[id(254)] HRESULT ReadFloat([in] hyper hwnd, [in] BSTR address, [out, retval] DOUBLE* ret);
+	[id(255)] HRESULT WriteFloat([in] hyper hwnd, [in] BSTR address, [in] DOUBLE value, [out, retval] LONG* ret);
+	[id(256)] HRESULT ReadDouble([in] hyper hwnd, [in] BSTR address, [out, retval] DOUBLE* ret);
+	[id(257)] HRESULT WriteDouble([in] hyper hwnd, [in] BSTR address, [in] DOUBLE value, [out, retval] LONG* ret);
+	[id(258)] HRESULT ReadString([in] hyper hwnd, [in] BSTR address, [in] LONG type, [in] LONG len, [out, retval] BSTR* retstr);
+	[id(259)] HRESULT WriteString([in] hyper hwnd, [in] BSTR address, [in] LONG type, [in] BSTR value, [out, retval] LONG* ret);
 	[id(300)] HRESULT CvLoadTemplate([in] BSTR name, [in] BSTR file_path, [out, retval] LONG* ret);
 	[id(301)] HRESULT CvLoadMaskedTemplate([in] BSTR name, [in] BSTR template_path, [in] BSTR mask_path, [out, retval] LONG* ret);
 	[id(302)] HRESULT CvRemoveTemplate([in] BSTR name, [out, retval] LONG* ret);

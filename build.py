@@ -66,6 +66,7 @@ OPENCV_BUILD_SIG = json.dumps(
     },
     sort_keys=True,
 )
+BLACKBONE_ASMJIT_STATIC_EXPORT_PATCH_SIG = "asmjit-static-no-dllexport-v3"
 ARCH_TO_TRIPLET = {"x86": "x86-windows", "x64": "x64-windows"}
 ARCH_TO_VS = {"x86": "Win32", "x64": "x64"}
 BOOTSTRAP_STATE_FILE = ".deps-bootstrap-state.json"
@@ -510,6 +511,59 @@ def ensure_blackbone_repo(blackbone_root: Path) -> None:
     run(["git", "clone", "https://github.com/DarthTon/Blackbone", str(blackbone_root)])
 
 
+def patch_blackbone_asmjit_static_exports(blackbone_root: Path) -> bool:
+    """Prevent vendored AsmJit objects from forcing C++ exports into our DLLs."""
+    cmake_file = blackbone_root / "src" / "BlackBone" / "CMakeLists.txt"
+    if not cmake_file.exists():
+        print(f"[ERROR] BlackBone CMakeLists.txt not found: {cmake_file}")
+        sys.exit(1)
+
+    changed = False
+    cmake_text = cmake_file.read_text(encoding="utf-8")
+    old_compile_def = (
+        "target_compile_definitions(BlackBone PRIVATE BLACKBONE_STATIC ASMJIT_STATIC)"
+    )
+    compile_def = "target_compile_definitions(BlackBone PRIVATE BLACKBONE_STATIC)"
+    if old_compile_def in cmake_text:
+        cmake_text = cmake_text.replace(old_compile_def, compile_def, 1)
+        cmake_file.write_text(cmake_text, encoding="utf-8")
+        changed = True
+    if compile_def not in cmake_text:
+        cmake_text = cmake_text.replace(
+            "add_library(BlackBone STATIC ${SOURCE_LIB} ${HEADER_LIB})",
+            "add_library(BlackBone STATIC ${SOURCE_LIB} ${HEADER_LIB})\n"
+            f"{compile_def}",
+            1,
+        )
+        cmake_file.write_text(cmake_text, encoding="utf-8")
+        changed = True
+
+    asmjit_root = blackbone_root / "src" / "3rd_party" / "AsmJit"
+    if not asmjit_root.exists():
+        print(f"[ERROR] AsmJit source directory not found: {asmjit_root}")
+        sys.exit(1)
+
+    needle = "#define ASMJIT_EXPORTS"
+    guarded_replacement = (
+        "#if !defined(ASMJIT_STATIC) && !defined(BLACKBONE_STATIC)\n"
+        "#define ASMJIT_EXPORTS\n"
+        "#endif"
+    )
+    old_replacement = "#if !defined(ASMJIT_STATIC)\n#define ASMJIT_EXPORTS\n#endif"
+    for source in sorted(asmjit_root.rglob("*.cpp")):
+        text = source.read_text(encoding="utf-8")
+        updated = text.replace(guarded_replacement, needle, 1)
+        if updated == text:
+            updated = text.replace(old_replacement, needle, 1)
+        if updated == text:
+            continue
+        if updated != text:
+            source.write_text(updated, encoding="utf-8")
+            changed = True
+
+    return changed
+
+
 def ensure_blackbone_builds(
     blackbone_root: Path,
     generator_key: str,
@@ -525,6 +579,18 @@ def ensure_blackbone_builds(
     if not src_dir.exists():
         print(f"[ERROR] BlackBone source directory not found: {src_dir}")
         sys.exit(1)
+
+    blackbone_patch_changed = patch_blackbone_asmjit_static_exports(blackbone_root)
+    if (
+        blackbone_patch_changed
+        or state.get("blackbone_asmjit_patch_sig")
+        != BLACKBONE_ASMJIT_STATIC_EXPORT_PATCH_SIG
+    ):
+        built_arches.clear()
+        state["blackbone_asmjit_patch_sig"] = (
+            BLACKBONE_ASMJIT_STATIC_EXPORT_PATCH_SIG
+        )
+        changed = True
 
     for arch in dep_arches:
         vs_arch = ARCH_TO_VS[arch]
