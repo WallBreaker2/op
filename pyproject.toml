@@ -1,5 +1,5 @@
 [project]
-name = "op-pyop"
+name = "op-plugins"
 dynamic = ["version"]
 description = "Python bindings for OP Windows automation plugin"
 readme = "README.md"
