@@ -25,7 +25,16 @@ if(BLACKBONE_INCLUDE_DIR STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
 endif()
 
 if(BLACKBONE_INCLUDE_DIR STREQUAL "")
-    message(FATAL_ERROR "BlackBone include path is not set. Please configure BLACKBONE_INCLUDE_DIR or BLACKBONE_ROOT.")
+    set(_op_default_blackbone "${CMAKE_SOURCE_DIR}/build/_deps/BlackBone")
+    if(EXISTS "${_op_default_blackbone}/src/BlackBone/Process/Process.h")
+        set(BLACKBONE_ROOT "${_op_default_blackbone}" CACHE PATH "Path to BlackBone repository root" FORCE)
+        set(BLACKBONE_INCLUDE_DIR "${BLACKBONE_ROOT}/src" CACHE PATH "Path to BlackBone include root (contains BlackBone/Process/Process.h)" FORCE)
+        message(STATUS "Auto-detected BlackBone from ${BLACKBONE_ROOT}")
+    endif()
+endif()
+
+if(BLACKBONE_INCLUDE_DIR STREQUAL "")
+    message(FATAL_ERROR "BlackBone include path is not set. Run 'python build.py' to bootstrap build/_deps, or configure BLACKBONE_INCLUDE_DIR / BLACKBONE_ROOT.")
 endif()
 
 
@@ -130,9 +139,15 @@ endif()
 
 
 # Integrate vcpkg toolchain if VCPKG_ROOT is set
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-        CACHE STRING "Vcpkg toolchain file")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    if(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    elseif(EXISTS "${CMAKE_SOURCE_DIR}/build/_deps/vcpkg/scripts/buildsystems/vcpkg.cmake")
+        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/build/_deps/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+        message(STATUS "Auto-detected vcpkg toolchain from build/_deps")
+    endif()
 endif()
 
 project ("op")
@@ -174,6 +189,24 @@ ELSE()
     add_compile_definitions(_X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
+
+if(OP_PYTHON_WHEEL AND NOT DEFINED OPENCV_ROOT AND NOT DEFINED ENV{OPENCV_ROOT})
+    set(_op_opencv_arch "x64")
+    if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(_op_opencv_arch "Win32")
+    endif()
+    file(GLOB _opencv_candidates LIST_DIRECTORIES true
+        "${CMAKE_SOURCE_DIR}/build/_deps/opencv/install/*-${_op_opencv_arch}")
+    if(_opencv_candidates)
+        list(SORT _opencv_candidates COMPARE NATURAL ORDER DESCENDING)
+        list(GET _opencv_candidates 0 _opencv_root)
+        set(OPENCV_ROOT "${_opencv_root}" CACHE PATH "OpenCV install root" FORCE)
+        if(NOT DEFINED OPENCV_LIB_SUFFIX)
+            set(OPENCV_LIB_SUFFIX "500" CACHE STRING "OpenCV library version suffix" FORCE)
+        endif()
+        message(STATUS "Auto-detected OPENCV_ROOT: ${OPENCV_ROOT}")
+    endif()
+endif()
 
 if(enable_wgc)
     set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
