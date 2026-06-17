@@ -116,6 +116,24 @@ jobs:
           python build.py -g vs2026 -t Release -a x64 --deps-arch both
           python build.py -g vs2026 -t Release -a x86 --deps-arch both
 
+      - name: Build Python wheel
+        shell: pwsh
+        run: |
+          foreach ($arch in @('x86', 'x64')) {
+            $dll = "bin\$arch\op_c_api_$arch.dll"
+            if (-not (Test-Path $dll)) {
+              Write-Error "Required Python package DLL not found: $dll"
+            }
+
+            $targetDir = "python\op\bin\$arch"
+            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+            Copy-Item $dll $targetDir
+          }
+
+          $python = "${{ steps.setup-python-x64.outputs.python-path }}"
+          & $python -m pip install --upgrade build
+          & $python -m build --wheel --outdir dist .\python
+
       - name: Package artifacts
         shell: pwsh
         run: |
@@ -131,14 +149,21 @@ jobs:
               Remove-Item -Recurse -Force $stageDir
             }
             New-Item -ItemType Directory -Path $stageDir -Force | Out-Null
+            New-Item -ItemType Directory -Path "$stageDir\lib" -Force | Out-Null
 
-            foreach ($name in @("op_$arch.dll", "tools.dll", "_pyop.pyd", "pyop.py")) {
+            foreach ($name in @("op_$arch.dll", "op_c_api_$arch.dll", "tools.dll", "_pyop.pyd", "pyop.py")) {
               $file = Join-Path $sourceDir $name
               if (-not (Test-Path $file)) {
                 Write-Error "Required release artifact not found: $file"
               }
               Copy-Item $file $stageDir
             }
+
+            $importLib = "lib\$arch\op_c_api_$arch.lib"
+            if (-not (Test-Path $importLib)) {
+              Write-Error "Required C API import library not found: $importLib"
+            }
+            Copy-Item $importLib "$stageDir\lib"
 
             if (-not (Get-ChildItem $stageDir -ErrorAction SilentlyContinue)) {
               Write-Error "No release artifacts were collected for $arch"
@@ -154,6 +179,7 @@ jobs:
           path: |
             op-${{ github.ref_name }}-x86.zip
             op-${{ github.ref_name }}-x64.zip
+            dist/*.whl
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -162,4 +188,5 @@ jobs:
           files: |
             op-${{ github.ref_name }}-x86.zip
             op-${{ github.ref_name }}-x64.zip
+            dist/*.whl
           generate_release_notes: true
