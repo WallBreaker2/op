@@ -30,6 +30,13 @@ endif()
 
 
 option(build_swig_py "build swig py,requrie python" ON)
+option(OP_PYTHON_WHEEL "Build for pip wheel packaging" OFF)
+option(OP_BUILD_TESTS "Build test targets" ON)
+
+if(OP_PYTHON_WHEEL)
+    set(build_swig_py ON CACHE BOOL "build swig py,requrie python" FORCE)
+    set(OP_BUILD_TESTS OFF CACHE BOOL "Build test targets" FORCE)
+endif()
 
 set(_op_target_is_64bit FALSE)
 if(CMAKE_GENERATOR_PLATFORM STREQUAL "x64" OR CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
@@ -38,7 +45,7 @@ elseif(DEFINED CMAKE_SIZEOF_VOID_P AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(_op_target_is_64bit TRUE)
 endif()
 
-if(build_swig_py)
+if(build_swig_py AND NOT OP_PYTHON_WHEEL)
     if(_op_target_is_64bit)
         set(_op_python_home "$ENV{PYTHON64_ROOT}")
     else()
@@ -66,13 +73,15 @@ if(build_swig_py)
     if(NOT _op_python_home STREQUAL "")
         file(TO_CMAKE_PATH "${_op_python_home}" _op_python_home)
         if(_op_target_is_64bit)
-            if(NOT EXISTS "${_op_python_home}/python312.dll"
+            if(NOT EXISTS "${_op_python_home}/python313.dll"
+               AND NOT EXISTS "${_op_python_home}/python312.dll"
                AND NOT EXISTS "${_op_python_home}/python311.dll"
                AND NOT EXISTS "${_op_python_home}/python310.dll"
                AND NOT EXISTS "${_op_python_home}/python39.dll")
                 message(STATUS "Disable swig python build: no supported 64-bit Python runtime found under ${_op_python_home}")
                 set(build_swig_py OFF)
-            elseif(NOT EXISTS "${_op_python_home}/libs/python312.lib"
+            elseif(NOT EXISTS "${_op_python_home}/libs/python313.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python312.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
@@ -83,17 +92,20 @@ if(build_swig_py)
             if(_op_python_bitness STREQUAL "64")
                 message(STATUS "Disable swig python build: detected Python interpreter is 64-bit but current target is x86")
                 set(build_swig_py OFF)
-            elseif(NOT EXISTS "${_op_python_home}/python312.dll"
+            elseif(NOT EXISTS "${_op_python_home}/python313.dll"
+                   AND NOT EXISTS "${_op_python_home}/python312.dll"
                    AND NOT EXISTS "${_op_python_home}/python311.dll"
                    AND NOT EXISTS "${_op_python_home}/python310.dll"
                    AND NOT EXISTS "${_op_python_home}/python39.dll")
                 message(STATUS "Disable swig python build: no supported 32-bit Python runtime found under ${_op_python_home}")
                 set(build_swig_py OFF)
-            elseif(EXISTS "${_op_python_home}/python312.dll"
+            elseif(EXISTS "${_op_python_home}/python313.dll"
+                   OR EXISTS "${_op_python_home}/python312.dll"
                    OR EXISTS "${_op_python_home}/python311.dll"
                    OR EXISTS "${_op_python_home}/python310.dll"
                    OR EXISTS "${_op_python_home}/python39.dll")
-                if(NOT EXISTS "${_op_python_home}/libs/python312.lib"
+                if(NOT EXISTS "${_op_python_home}/libs/python313.lib"
+                   AND NOT EXISTS "${_op_python_home}/libs/python312.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
                    AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
@@ -256,7 +268,9 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/tools/opencv_match_cli/CMakeLists.txt")
     add_subdirectory("tools/opencv_match_cli")
 endif()
 ## 测试项目
-add_subdirectory("tests")
+if(OP_BUILD_TESTS)
+    add_subdirectory("tests")
+endif()
 ## swig 项目
 if(build_swig_py)
     add_subdirectory("swig")
