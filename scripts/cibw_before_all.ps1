@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "Bootstrapping native dependencies for wheel builds..."
-python build.py -g vs2022 -t Release -a x64 --deps-arch both
+python build.py -g vs2022 -t Release -a x64 --deps-arch both --deps-only
 
 $stateFile = Join-Path (Join-Path "build" "_deps") ".deps-bootstrap-state.json"
 if (-not (Test-Path $stateFile)) {
