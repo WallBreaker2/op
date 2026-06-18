@@ -197,10 +197,29 @@ if(OP_PYTHON_WHEEL AND NOT DEFINED OPENCV_ROOT AND NOT DEFINED ENV{OPENCV_ROOT})
     if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(_op_opencv_arch "Win32")
     endif()
-    file(GLOB _opencv_candidates LIST_DIRECTORIES true
+    set(_op_opencv_generator_key "")
+    if(CMAKE_GENERATOR MATCHES "Visual Studio 17 2022")
+        set(_op_opencv_generator_key "vs2022")
+    elseif(CMAKE_GENERATOR MATCHES "Visual Studio 18 2026")
+        set(_op_opencv_generator_key "vs2026")
+    elseif(CMAKE_GENERATOR MATCHES "Visual Studio 16 2019")
+        set(_op_opencv_generator_key "vs2019")
+    endif()
+    set(_opencv_candidates "")
+    if(NOT _op_opencv_generator_key STREQUAL "")
+        set(_op_opencv_preferred_root "${CMAKE_SOURCE_DIR}/build/_deps/opencv/install/${_op_opencv_generator_key}-${_op_opencv_arch}")
+        if(EXISTS "${_op_opencv_preferred_root}")
+            list(APPEND _opencv_candidates "${_op_opencv_preferred_root}")
+        endif()
+    endif()
+    file(GLOB _opencv_glob_candidates LIST_DIRECTORIES true
         "${CMAKE_SOURCE_DIR}/build/_deps/opencv/install/*-${_op_opencv_arch}")
+    list(APPEND _opencv_candidates ${_opencv_glob_candidates})
     if(_opencv_candidates)
-        list(SORT _opencv_candidates COMPARE NATURAL ORDER DESCENDING)
+        list(REMOVE_DUPLICATES _opencv_candidates)
+        if(_op_opencv_generator_key STREQUAL "")
+            list(SORT _opencv_candidates COMPARE NATURAL ORDER DESCENDING)
+        endif()
         list(GET _opencv_candidates 0 _opencv_root)
         set(OPENCV_ROOT "${_opencv_root}" CACHE PATH "OpenCV install root" FORCE)
         if(NOT DEFINED OPENCV_LIB_SUFFIX)
@@ -219,6 +238,9 @@ endif()
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
     if(_op_target_is_64bit)
         set(_blackbone_candidates
+            "${BLACKBONE_ROOT}/build/vs2022-x64/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/vs2022-x64/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/vs2022-x64/src/BlackBone/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/X64/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/x64/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/X64/BlackBone/Release/BlackBone.lib"
@@ -228,6 +250,9 @@ if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
         )
     else()
         set(_blackbone_candidates
+            "${BLACKBONE_ROOT}/build/vs2022-Win32/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/vs2022-Win32/BlackBone/Release/BlackBone.lib"
+            "${BLACKBONE_ROOT}/build/vs2022-Win32/src/BlackBone/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/Win32/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/x86/Release/BlackBone.lib"
             "${BLACKBONE_ROOT}/build/Win32/BlackBone/Release/BlackBone.lib"
@@ -254,12 +279,12 @@ if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
             file(TO_CMAKE_PATH "${_lib}" _lib_norm)
             string(TOLOWER "${_lib_norm}" _lib_lower)
             if(_op_target_is_64bit)
-                if(_lib_lower MATCHES "/x64/" OR _lib_lower MATCHES "/amd64/")
+                if(_lib_lower MATCHES "/x64/" OR _lib_lower MATCHES "-x64/" OR _lib_lower MATCHES "/amd64/")
                     set(BLACKBONE_LIBRARY "${_lib_norm}")
                     break()
                 endif()
             else()
-                if(_lib_lower MATCHES "/win32/" OR _lib_lower MATCHES "/x86/")
+                if(_lib_lower MATCHES "/win32/" OR _lib_lower MATCHES "-win32/" OR _lib_lower MATCHES "/x86/")
                     set(BLACKBONE_LIBRARY "${_lib_norm}")
                     break()
                 endif()

@@ -50,6 +50,3 @@ build = "cp39-* cp310-* cp311-* cp312-*"
 skip = "pp* *-manylinux* *-musllinux* *-macosx*"
 archs = ["AMD64", "x86"]
 build-verbosity = 1
-
-[tool.cibuildwheel.windows]
-environment-pass = ["VCPKG_ROOT", "BLACKBONE_ROOT", "OPENCV_ROOT", "CMAKE_ARGS", "PYTHON32_ROOT", "PYTHON64_ROOT"]

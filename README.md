@@ -142,7 +142,7 @@ python build.py -a x86
 python build.py -t Debug
 
 # 指定环境
-python build.py -t Release -a x64 -g vs2026
+python build.py -t Release -a x64 -g vs2022
 ```
 
 Release 产物会安装到 `bin/x86` 或 `bin/x64`。
@@ -159,6 +159,18 @@ pip install scikit-build-core setuptools-scm
 # 或手动：先 bootstrap，再 pip wheel
 python build.py -t Release -a x64
 pip wheel . --no-deps -w wheelhouse
+
+# 本地模拟 CI 的单版本双架构 wheel 构建
+pip install cibuildwheel==2.23.4
+$env:CIBW_BUILD="cp312-*"
+$env:CIBW_ARCHS_WINDOWS="AMD64"
+$env:CIBW_BEFORE_BUILD_WINDOWS="powershell ./scripts/cibw_before_build.ps1"
+$env:CIBW_ENVIRONMENT_WINDOWS='CMAKE_GENERATOR="Visual Studio 17 2022" CMAKE_ARGS="-A x64 -DOP_PYTHON_WHEEL=ON -DOP_BUILD_TESTS=OFF -Dbuild_swig_py=ON"'
+python -m cibuildwheel --platform windows
+
+$env:CIBW_ARCHS_WINDOWS="x86"
+$env:CIBW_ENVIRONMENT_WINDOWS='CMAKE_GENERATOR="Visual Studio 17 2022" CMAKE_ARGS="-A Win32 -DOP_PYTHON_WHEEL=ON -DOP_BUILD_TESTS=OFF -Dbuild_swig_py=ON"'
+python -m cibuildwheel --platform windows
 ```
 
 若 `pip wheel` 报 BlackBone 未找到，说明尚未运行 `python build.py` 或 `./scripts/build_wheel.ps1` 完成依赖引导。
