@@ -121,4 +121,16 @@ struct ocr_rec_t {
 
 using vocr_rec_t = std::vector<ocr_rec_t>;
 
+using byte = unsigned char;
+
+struct yolo_rec_t {
+    int class_id = -1;
+    wstring label;
+    point_t left_top;
+    point_t right_bottom;
+    float confidence = 0.0f;
+};
+
+using vyolo_rec_t = std::vector<yolo_rec_t>;
+
 #endif
