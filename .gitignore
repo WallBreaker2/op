@@ -305,3 +305,13 @@ __pycache__/
 
 # cmake
 ./CMakeSettings.json
+
+# codegraph
+.codegraph/
+# wheelhouse
+wheelhouse*
+
+.venv*
+
+# com
+libop/com/op_i.h
