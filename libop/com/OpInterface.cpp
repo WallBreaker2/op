@@ -1084,6 +1084,26 @@ STDMETHODIMP OpInterface::SetOcrEngine(BSTR path_of_engine, BSTR dll_name, BSTR 
     return S_OK;
 }
 
+STDMETHODIMP OpInterface::SetYoloEngine(BSTR path_of_engine, BSTR dll_name, BSTR argv, LONG *ret) {
+    *ret = obj.SetYoloEngine(path_of_engine, dll_name, argv);
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::YoloDetect(LONG x1, LONG y1, LONG x2, LONG y2, DOUBLE conf, DOUBLE iou, BSTR *retjson,
+                                     LONG *ret) {
+    std::wstring s;
+    obj.YoloDetect(x1, y1, x2, y2, conf, iou, s, ret);
+    *retjson = ::SysAllocString(s.c_str());
+    return S_OK;
+}
+
+STDMETHODIMP OpInterface::YoloDetectFromFile(BSTR file_name, DOUBLE conf, DOUBLE iou, BSTR *retjson, LONG *ret) {
+    std::wstring s;
+    obj.YoloDetectFromFile(file_name, conf, iou, s, ret);
+    *retjson = ::SysAllocString(s.c_str());
+    return S_OK;
+}
+
 STDMETHODIMP OpInterface::WriteData(LONGLONG hwnd, BSTR address, BSTR data, LONG size, LONG *ret) {
     obj.WriteData(static_cast<LONG_PTR>(hwnd), address, data, size, ret);
 
