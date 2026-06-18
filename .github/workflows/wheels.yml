@@ -90,7 +90,36 @@ jobs:
           name: op-plugins-wheels-${{ github.ref_name }}
           path: dist/
 
+      - name: Check PyPI version
+        id: pypi_version
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import urllib.error
+          import urllib.request
+
+          version = os.environ["GITHUB_REF_NAME"]
+          if version.startswith("v"):
+              version = version[1:]
+
+          url = f"https://pypi.org/pypi/op-plugins/{version}/json"
+          exists = "false"
+          try:
+              with urllib.request.urlopen(url, timeout=20) as response:
+                  if response.status == 200:
+                      exists = "true"
+          except urllib.error.HTTPError as exc:
+              if exc.code != 404:
+                  raise
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"exists={exists}\n")
+          print(f"op-plugins {version} exists on PyPI: {exists}")
+          PY
+
       - name: Publish to PyPI
+        if: steps.pypi_version.outputs.exists != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
