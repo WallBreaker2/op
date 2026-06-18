@@ -377,11 +377,24 @@ def has_opencv_install_layout(install_root: Path, arch: str) -> bool:
     return not missing_opencv_install_items(install_root, arch)
 
 
-def find_blackbone_lib(blackbone_root: Path, vs_arch: str) -> Path | None:
+def find_blackbone_lib(
+    blackbone_root: Path, vs_arch: str, generator_key: str | None = None
+) -> Path | None:
     build_root = blackbone_root / "build"
-    search_roots = sorted(
-        [path for path in build_root.glob(f"*-{vs_arch}") if path.is_dir()],
-        reverse=True,
+    search_roots: list[Path] = []
+    if generator_key:
+        preferred_root = build_root / f"{generator_key}-{vs_arch}"
+        if preferred_root.exists():
+            search_roots.append(preferred_root)
+    search_roots.extend(
+        sorted(
+            [
+                path
+                for path in build_root.glob(f"*-{vs_arch}")
+                if path.is_dir() and path not in search_roots
+            ],
+            reverse=True,
+        )
     )
     fallback_root = build_root / vs_arch
     if fallback_root.exists():
@@ -606,7 +619,7 @@ def ensure_blackbone_builds(
     for arch in dep_arches:
         vs_arch = ARCH_TO_VS[arch]
         state_key = f"{generator_key}:{arch}"
-        lib = find_blackbone_lib(blackbone_root, vs_arch)
+        lib = find_blackbone_lib(blackbone_root, vs_arch, generator_key)
         if state_key in built_arches and lib is not None:
             libs[arch] = lib
             continue
@@ -629,7 +642,7 @@ def ensure_blackbone_builds(
         )
         run(["cmake", "--build", str(build_dir), "--config", "Release"])
 
-        lib = find_blackbone_lib(blackbone_root, vs_arch)
+        lib = find_blackbone_lib(blackbone_root, vs_arch, generator_key)
         if lib is None:
             print(f"[ERROR] BlackBone.lib not found under: {build_dir}")
             sys.exit(1)
@@ -910,6 +923,11 @@ examples:
         default=None,
         help="Use an existing vcpkg root directory",
     )
+    parser.add_argument(
+        "--deps-only",
+        action="store_true",
+        help="Bootstrap dependencies and exit before configuring the main project",
+    )
     args = parser.parse_args()
     ensure_cmake_on_path()
 
@@ -961,6 +979,9 @@ examples:
                 vcpkg_root_arg=args.vcpkg_root,
             )
         )
+        if args.deps_only:
+            print("\n[INFO] Dependency bootstrap completed; skipping main project build.")
+            return
     elif args.vcpkg_root:
         vcpkg_root = resolve_path(project_dir, args.vcpkg_root)
 
