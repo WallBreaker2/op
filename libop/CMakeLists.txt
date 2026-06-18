@@ -155,6 +155,7 @@ SET(SRC_FILES
 	"./imageProc/imageloc.cpp"
 	"./imageProc/imageproc.cpp"
 #	 "imageProc/tess_ocr.cpp"
+	"imageProc/HttpWrapper.cpp"
 	"imageProc/OcrWrapper.cpp"
 	"imageProc/YoloWrapper.cpp"
 "./winapi/injecter.cpp"
