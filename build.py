@@ -327,7 +327,10 @@ def missing_opencv_install_items(install_root: Path, arch: str) -> list[str]:
     """返回当前项目需要但 OpenCV 安装目录中缺失的头文件或静态库。"""
     include_header = install_root / "include" / "opencv2" / "core.hpp"
     opencv_arch_dir = "x64" if arch == "x64" else "x86"
-    staticlib_dir = install_root / opencv_arch_dir / "vc18" / "staticlib"
+    staticlib_dirs = [
+        install_root / opencv_arch_dir / vc_dir / "staticlib"
+        for vc_dir in ("vc18", "vc17", "vc16")
+    ]
     required_libs = (
         f"opencv_core{OPENCV_LIB_SUFFIX}",
         f"opencv_imgproc{OPENCV_LIB_SUFFIX}",
@@ -343,21 +346,29 @@ def missing_opencv_install_items(install_root: Path, arch: str) -> list[str]:
         "zlib",
         "libclapack",
     )
+
     def has_static_lib(stem: str) -> bool:
-        return (
+        return any(
             (staticlib_dir / f"{stem}.lib").exists()
             or (staticlib_dir / f"lib{stem}.a").exists()
             or (staticlib_dir / f"{stem}.a").exists()
+            for staticlib_dir in staticlib_dirs
         )
 
     missing: list[str] = []
     if not include_header.exists():
         missing.append(str(include_header))
-    if not staticlib_dir.exists():
-        missing.append(str(staticlib_dir))
+    if not any(staticlib_dir.exists() for staticlib_dir in staticlib_dirs):
+        missing.append(
+            "one of: "
+            + ", ".join(str(staticlib_dir) for staticlib_dir in staticlib_dirs)
+        )
     for name in required_libs:
         if not has_static_lib(name):
-            missing.append(f"{name} (.lib/.a) in {staticlib_dir}")
+            missing.append(
+                f"{name} (.lib/.a) in one of: "
+                + ", ".join(str(staticlib_dir) for staticlib_dir in staticlib_dirs)
+            )
     return missing
 
 
