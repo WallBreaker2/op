@@ -136,6 +136,7 @@ set(SRC_FILES
   "image_color_test.cpp"
   "wgc_test.cpp"
   "ocr_test.cpp"
+  "yolo_test.cpp"
   "utils_test.cpp"
   "../libop/core/window_layout.cpp"
   "../libop/background/mouse/CursorShape.cpp"
@@ -208,3 +209,5 @@ if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/debug_runner/ma
     install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   ENDIF()
 endif()
+
+
