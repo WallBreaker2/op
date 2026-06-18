@@ -132,7 +132,12 @@ jobs:
 
           $python = "${{ steps.setup-python-x64.outputs.python-path }}"
           & $python -m pip install --upgrade build
-          & $python -m build --wheel --outdir dist .\python
+          Push-Location .\python
+          try {
+            & $python -m build --wheel --outdir ..\dist .
+          } finally {
+            Pop-Location
+          }
 
       - name: Package artifacts
         shell: pwsh
