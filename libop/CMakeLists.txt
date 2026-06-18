@@ -56,9 +56,23 @@ if(NOT _op_opencv_root STREQUAL "")
   file(TO_CMAKE_PATH "${_op_opencv_root}" _op_opencv_root)
   set(OP_OPENCV_INCLUDE_DIR "${_op_opencv_root}/include")
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(OP_OPENCV_LIB_DIR "${_op_opencv_root}/x64/vc18/staticlib")
+    set(_op_opencv_arch_dir "x64")
   else()
-    set(OP_OPENCV_LIB_DIR "${_op_opencv_root}/x86/vc18/staticlib")
+    set(_op_opencv_arch_dir "x86")
+  endif()
+  set(_op_opencv_lib_dir_candidates
+    "${_op_opencv_root}/${_op_opencv_arch_dir}/vc18/staticlib"
+    "${_op_opencv_root}/${_op_opencv_arch_dir}/vc17/staticlib"
+    "${_op_opencv_root}/${_op_opencv_arch_dir}/vc16/staticlib"
+  )
+  foreach(_op_opencv_lib_dir_candidate IN LISTS _op_opencv_lib_dir_candidates)
+    if(EXISTS "${_op_opencv_lib_dir_candidate}")
+      set(OP_OPENCV_LIB_DIR "${_op_opencv_lib_dir_candidate}")
+      break()
+    endif()
+  endforeach()
+  if(OP_OPENCV_LIB_DIR STREQUAL "")
+    list(GET _op_opencv_lib_dir_candidates 0 OP_OPENCV_LIB_DIR)
   endif()
 
   set(_op_required_lib_names

@@ -1,38 +1,62 @@
-# Configure Python roots and CMake args for each cibuildwheel matrix entry.
+# Validate the per-wheel build environment used by cibuildwheel.
 $ErrorActionPreference = "Stop"
 
-$pythonRoot = Split-Path (Get-Command python).Source -Parent
+$pythonCommand = Get-Command python
+$pythonRoot = Split-Path $pythonCommand.Source -Parent
+$pythonBits = python -c "import struct; print(struct.calcsize('P') * 8)"
+$identifier = $env:CIBUILDWHEEL_BUILD_IDENTIFIER
 $arch = $env:CIBW_ARCHS
-$generatorKey = "vs2026"
+$generatorKey = "vs2022"
 
-Write-Host "cibuildwheel arch: $arch"
-Write-Host "Python root: $pythonRoot"
+Write-Host "CIBUILDWHEEL_BUILD_IDENTIFIER=$identifier"
+Write-Host "CIBW_ARCHS=$arch"
+Write-Host "python=$($pythonCommand.Source)"
+Write-Host "python_root=$pythonRoot"
+Write-Host "python_bits=$pythonBits"
+Write-Host "CMAKE_GENERATOR=$env:CMAKE_GENERATOR"
+Write-Host "CMAKE_ARGS=$env:CMAKE_ARGS"
+Write-Host "VCPKG_ROOT=$env:VCPKG_ROOT"
+Write-Host "BLACKBONE_ROOT=$env:BLACKBONE_ROOT"
 
-$isX86 = ($arch -eq "x86")
-$isX64 = ($arch -in @("x64", "AMD64"))
+$isX86 = ($identifier -like "*-win32") -or ($arch -eq "x86")
+$isX64 = ($identifier -like "*-win_amd64") -or ($arch -in @("AMD64", "x64"))
 
 if (-not $isX86 -and -not $isX64) {
-    Write-Error "Unsupported cibuildwheel arch: $arch"
+    Write-Error "Unsupported cibuildwheel target: identifier=$identifier arch=$arch"
+}
+
+if ($isX86 -and $pythonBits -ne "32") {
+    Write-Error "Expected 32-bit Python for win32 wheel, got $pythonBits-bit: $($pythonCommand.Source)"
+}
+
+if ($isX64 -and $pythonBits -ne "64") {
+    Write-Error "Expected 64-bit Python for win_amd64 wheel, got $pythonBits-bit: $($pythonCommand.Source)"
+}
+
+if (-not $env:BLACKBONE_ROOT) {
+    Write-Error "BLACKBONE_ROOT is not set"
+}
+
+if (-not $env:VCPKG_ROOT) {
+    Write-Error "VCPKG_ROOT is not set"
 }
 
 if ($isX86) {
-    $env:PYTHON32_ROOT = $pythonRoot
-    $cmakePlatform = "Win32"
-    $depArch = "x86"
     $vsArch = "Win32"
     $blackboneCandidates = @(
         (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-Win32/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-Win32/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/Win32/BlackBone/Release/BlackBone.lib"),
-        (Join-Path $env:BLACKBONE_ROOT "build/Win32/Release/BlackBone.lib")
+        (Join-Path $env:BLACKBONE_ROOT "build/Win32/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/x86/Release/BlackBone.lib")
     )
 } else {
-    $env:PYTHON64_ROOT = $pythonRoot
-    $cmakePlatform = "x64"
-    $depArch = "x64"
     $vsArch = "x64"
     $blackboneCandidates = @(
         (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-x64/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/$generatorKey-x64/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/x64/BlackBone/Release/BlackBone.lib"),
+        (Join-Path $env:BLACKBONE_ROOT "build/x64/Release/BlackBone.lib"),
         (Join-Path $env:BLACKBONE_ROOT "build/X64/Release/BlackBone.lib")
     )
 }
@@ -40,42 +64,27 @@ if ($isX86) {
 $blackboneLib = $null
 foreach ($candidate in $blackboneCandidates) {
     if (Test-Path $candidate) {
-        $blackboneLib = $candidate
+        $blackboneLib = (Resolve-Path $candidate).Path
         break
     }
 }
 
 if (-not $blackboneLib) {
-    $blackboneLib = Join-Path $env:BLACKBONE_ROOT "build/$vsArch/Release/BlackBone.lib"
+    Write-Host "=== Available BlackBone libs ==="
+    Get-ChildItem (Join-Path $env:BLACKBONE_ROOT "build") -Recurse -Filter BlackBone.lib -ErrorAction SilentlyContinue | ForEach-Object {
+        Write-Host $_.FullName
+    }
+    Write-Error "BlackBone import library not found for $identifier"
 }
 
 $opencvRoot = Join-Path (Join-Path (Join-Path (Join-Path "build" "_deps") "opencv") "install") "$generatorKey-$vsArch"
-$opencvArgs = @()
-if (Test-Path $opencvRoot) {
-    $opencvResolved = (Resolve-Path $opencvRoot).Path
-    $env:OPENCV_ROOT = $opencvResolved
-    $opencvArgs = @(
-        "-DOPENCV_ROOT=$($opencvResolved -replace '\\', '/')",
-        "-DOPENCV_LIB_SUFFIX=500"
-    )
-    Write-Host "OPENCV_ROOT=$opencvResolved"
+if (-not (Test-Path $opencvRoot)) {
+    Write-Host "=== Available OpenCV install roots ==="
+    Get-ChildItem (Join-Path (Join-Path (Join-Path "build" "_deps") "opencv") "install") -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        Write-Host $_.FullName
+    }
+    Write-Error "OpenCV install root not found for $identifier`: $opencvRoot"
 }
 
-if (-not (Test-Path $blackboneLib)) {
-    Write-Error "BlackBone import library not found for $arch"
-}
-
-$blackboneInclude = Join-Path $env:BLACKBONE_ROOT "src"
-$cmakeArgs = @(
-    "-DCMAKE_GENERATOR_PLATFORM=$cmakePlatform",
-    "-DBLACKBONE_ROOT=$($env:BLACKBONE_ROOT -replace '\\', '/')",
-    "-DBLACKBONE_INCLUDE_DIR=$($blackboneInclude -replace '\\', '/')",
-    "-DBLACKBONE_LIBRARY=$($blackboneLib -replace '\\', '/')",
-    "-DOP_PYTHON_WHEEL=ON",
-    "-DOP_BUILD_TESTS=OFF",
-    "-Dbuild_swig_py=ON"
-) + $opencvArgs
-
-$env:CMAKE_ARGS = ($cmakeArgs -join " ")
-Write-Host "CMAKE_ARGS=$env:CMAKE_ARGS"
 Write-Host "BLACKBONE_LIBRARY=$blackboneLib"
+Write-Host "OPENCV_ROOT=$((Resolve-Path $opencvRoot).Path)"
