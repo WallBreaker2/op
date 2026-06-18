@@ -18,8 +18,13 @@ Write-Host "CMAKE_ARGS=$env:CMAKE_ARGS"
 Write-Host "VCPKG_ROOT=$env:VCPKG_ROOT"
 Write-Host "BLACKBONE_ROOT=$env:BLACKBONE_ROOT"
 
-$isX86 = ($identifier -like "*-win32") -or ($arch -eq "x86")
-$isX64 = ($identifier -like "*-win_amd64") -or ($arch -in @("AMD64", "x64"))
+$isX86 = ($identifier -like "*-win32") -or ($arch -eq "x86") -or ($env:CMAKE_ARGS -match "(^| )-A Win32( |$)")
+$isX64 = ($identifier -like "*-win_amd64") -or ($arch -in @("AMD64", "x64")) -or ($env:CMAKE_ARGS -match "(^| )-A x64( |$)")
+
+if (-not $isX86 -and -not $isX64) {
+    $isX86 = ($pythonBits -eq "32")
+    $isX64 = ($pythonBits -eq "64")
+}
 
 if (-not $isX86 -and -not $isX64) {
     Write-Error "Unsupported cibuildwheel target: identifier=$identifier arch=$arch"
