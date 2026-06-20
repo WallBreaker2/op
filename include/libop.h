@@ -1,20 +1,15 @@
-﻿// libop的声明
+// op::Client的声明
 /*
 所有op的开放接口都从此cpp类衍生而出
 */
 #pragma once
-#include <memory>
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <Windows.h>
-// forward declare
-// class WinApi;
-// class opBackground;
-// class ImageProc;
-struct op_context;
-
+#include <BaseTsd.h>
 #ifdef U_STATIC_IMPLEMENTATION
 #define OP_API
 #else
@@ -26,7 +21,7 @@ struct op_context;
 #endif
 #endif
 #endif
-// libop
+// op::Client
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
@@ -36,34 +31,61 @@ struct op_context;
 #pragma warning(disable : 4251)
 #endif
 
-class OP_API libop {
+namespace op {
+
+namespace internal {
+struct ClientContext;
+}
+
+class OP_API Client {
 
   public:
-    libop();
-    ~libop();
+    Client();
+    ~Client();
     // 复制构造
-    libop(libop const &) = delete;
-    libop &operator=(libop const rhs) = delete;
+    Client(Client const &) = delete;
+    Client &operator=(Client const rhs) = delete;
+
+    using RuntimeService = Client;
+    using WindowService = Client;
+    using BindingService = Client;
+    using InputService = Client;
+    using ImageService = Client;
+    using OcrService = Client;
+    using OpenCvService = Client;
+    using YoloService = Client;
+    using MemoryService = Client;
+
+    RuntimeService &runtime() noexcept {
+        return *this;
+    }
+    WindowService &window() noexcept {
+        return *this;
+    }
+    BindingService &binding() noexcept {
+        return *this;
+    }
+    InputService &input() noexcept {
+        return *this;
+    }
+    ImageService &image() noexcept {
+        return *this;
+    }
+    OcrService &ocr() noexcept {
+        return *this;
+    }
+    OpenCvService &opencv() noexcept {
+        return *this;
+    }
+    YoloService &yolo() noexcept {
+        return *this;
+    }
+    MemoryService &memory() noexcept {
+        return *this;
+    }
 
   private:
-    // 一些共用变量
-
-    ////1. Windows API
-    // WinApi* _winapi;
-    //// background module
-    // opBackground* _bkproc;
-    ////image process
-    // ImageProc* _image_proc;
-    //// work path
-    // std::wstring _curr_path;
-    //
-    // std::map<std::wstring, long> _vkmap;
-    // bytearray _screenData;
-    // bytearray _screenDataBmp;
-    // std::wstring m_opPath;
-    // long m_screen_data_mode;
-    // int m_id;
-    std::unique_ptr<op_context> m_context;
+    std::unique_ptr<internal::ClientContext> m_context;
     static std::atomic<int> s_id;
 
   public:
@@ -432,6 +454,8 @@ class OP_API libop {
     void ReadString(LONG_PTR hwnd, const wchar_t *address, long type, long len, std::wstring &retstr);
     void WriteString(LONG_PTR hwnd, const wchar_t *address, long type, const wchar_t *value, long *ret);
 };
+
+} // namespace op
 
 #ifdef _MSC_VER
 #pragma warning(pop)

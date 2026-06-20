@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
-ADD_DEFINITIONS(-D _UNICODE)
-ADD_DEFINITIONS(-D UNICODE)
-
-ADD_DEFINITIONS(-D _CMAKE_BUILD)
-
 SET(SRC_FILES "op_wrap.cxx")
 
 add_library(pyop SHARED ${SRC_FILES})
+target_compile_definitions(pyop PRIVATE _UNICODE UNICODE _CMAKE_BUILD)
+if(DEFINED OP_ARCH_DEFINITION AND NOT OP_ARCH_DEFINITION STREQUAL "")
+    target_compile_definitions(pyop PRIVATE "${OP_ARCH_DEFINITION}")
+endif()
 
 set_target_properties(pyop PROPERTIES PREFIX "_")
 set_target_properties(pyop PROPERTIES SUFFIX ".pyd")

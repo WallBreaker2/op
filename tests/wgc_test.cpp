@@ -26,7 +26,7 @@ TEST(WgcTest, CapturesStaticWindowFromStart) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    libop op;
+    op::Client op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -59,7 +59,7 @@ TEST(WgcTest, DISABLED_CapturesAnimatedWindowLatestFrame) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(true));
 
-    libop op;
+    op::Client op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 

@@ -12,11 +12,13 @@
 #include <windowsx.h>
 #include <winhttp.h>
 
-#include "../libop/background/Hook/opMessage.h"
-#include "../libop/core/optype.h"
-#include "../libop/libop.h"
+#include "../libop/hook/HookProtocol.h"
+#include "../libop/runtime/Types.h"
+#include "../include/libop.h"
 
 namespace test_support {
+
+using op::uchar;
 
 class OpEnvironment : public ::testing::Environment {
   public:
@@ -103,7 +105,7 @@ struct ColorPulseWindow {
 
 class OcrTest : public ::testing::Test {
   protected:
-    libop op;
+    op::Client op;
     long ret = 0;
 
     void SetUp() override;

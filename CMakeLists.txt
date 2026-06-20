@@ -180,7 +180,7 @@ IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     )
     set(op_com op_x64)
     set(op_c_api op_c_api_x64)
-    add_compile_definitions(_AMD64_)
+    set(OP_ARCH_DEFINITION _AMD64_)
 	MESSAGE(STATUS "----------------Platform x64----------------")
 ELSE()
     link_directories(
@@ -188,7 +188,7 @@ ELSE()
         )
     set(op_com op_x86)
     set(op_c_api op_c_api_x86)
-    add_compile_definitions(_X86_)
+    set(OP_ARCH_DEFINITION _X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
 
@@ -231,7 +231,6 @@ endif()
 
 if(enable_wgc)
     set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
-    add_compile_definitions(OP_ENABLE_WGC)
     message(STATUS "----------------WGC enabled----------------")
 endif()
 
@@ -310,14 +309,6 @@ set(BLACKBONE_LIBRARY "${BLACKBONE_LIBRARY}" CACHE FILEPATH "Full path to BlackB
 
 message(STATUS "BlackBone include: ${BLACKBONE_INCLUDE_DIR}")
 message(STATUS "BlackBone library: ${BLACKBONE_LIBRARY}")
-
-include_directories( 
-  ./
-  ${CMAKE_SOURCE_DIR}/3rd_party/include/
-  ${CMAKE_SOURCE_DIR}/3rd_party/include/3rd_party
-  ${BLACKBONE_INCLUDE_DIR}
-  ${BLACKBONE_INCLUDE_DIR}/3rd_party
-) 
 
 # 包含子项目。
 ## libop主项目

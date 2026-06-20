@@ -41,7 +41,7 @@ bool WriteBinaryFile(const std::wstring &path, const std::vector<uchar> &buffer)
 } // namespace
 
 void OpEnvironment::SetUp() {
-    libop op;
+    op::Client op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 }

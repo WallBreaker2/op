@@ -1,4 +1,4 @@
-﻿// dllmain.h: 模块类的声明。
+// dllmain.h: 模块类的声明。
 #include "op_i.h"
 #include "resource.h"
 #include <atlbase.h>
@@ -8,7 +8,7 @@
 class CopModule : public ATL::CAtlDllModuleT<CopModule> {
   public:
     DECLARE_LIBID(LIBID_opLib)
-    DECLARE_REGISTRY_APPID_RESOURCEID(IDR_OP, "{66b9c175-82f2-45e9-af86-58ad5ded5adc}")
+    DECLARE_REGISTRY_APPID_RESOURCEID(IDR_OP, "{40297cce-e4de-4d31-acfb-81bb8d14d261}")
 };
 
 extern class CopModule _AtlModule;

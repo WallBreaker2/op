@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../background/opBackground.h"
-#include "../imageProc/ImageProc.h"
-#include "OpenCvModule.h"
+#include "../binding/BindingSession.h"
+#include "../image/ImageSearchService.h"
+#include "TemplateMatcher.h"
 
 #include <string>
 #include <vector>
@@ -19,8 +19,8 @@ bool ParseTemplateNames(const wchar_t *text, std::vector<std::wstring> &names);
 bool ParseScaleList(const wchar_t *text, std::vector<double> &scales);
 
 bool CaptureRegion(
-    opBackground &background,
-    ImageProc &image_proc,
+    op::binding::BindingSession &binding_session,
+    op::image::ImageSearchService &image_proc,
     long x,
     long y,
     long width,
