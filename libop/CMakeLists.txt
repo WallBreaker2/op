@@ -119,6 +119,16 @@ set(OP_HOOK_SOURCES
   "hook/InputHookClient.cpp"
   "hook/HookExport.cpp"
   "hook/Dx12Hook.cpp"
+  "hook/MinHookRuntime.cpp"
+)
+
+set(OP_KIERO2_SOURCES
+  "../3rd_party/kiero2/kiero_intern.cpp"
+  "../3rd_party/kiero2/kiero_d3d9.cpp"
+  "../3rd_party/kiero2/kiero_d3d10.cpp"
+  "../3rd_party/kiero2/kiero_d3d11.cpp"
+  "../3rd_party/kiero2/kiero_d3d12.cpp"
+  "../3rd_party/kiero2/kiero_opengl.cpp"
 )
 
 set(OP_RUNTIME_SOURCES
@@ -201,9 +211,15 @@ set(OP_LIBOP_SOURCES
   ${OP_MEMORY_SOURCES}
   ${OP_IPC_SOURCES}
   ${OP_OPENCV_SOURCES}
-  "../3rd_party/src/kiero.cpp"
+  ${OP_KIERO2_SOURCES}
   "libop.cpp"
 )
+
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d9.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=0")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d10.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=1")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d11.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=2")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d12.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=3")
+set_source_files_properties("../3rd_party/kiero2/kiero_opengl.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=4")
 
 set(OP_COM_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/com_generated")
 set(OP_COM_I_C "${OP_COM_GENERATED_DIR}/op_i.c")
@@ -269,8 +285,7 @@ set(OP_PRIVATE_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/ipc"
   "${CMAKE_CURRENT_SOURCE_DIR}/hook"
   "${CMAKE_CURRENT_SOURCE_DIR}/hook/vendor"
-  "${PROJECT_SOURCE_DIR}/3rd_party/include"
-  "${PROJECT_SOURCE_DIR}/3rd_party/include/3rd_party"
+  "${PROJECT_SOURCE_DIR}/3rd_party/kiero2"
   "${BLACKBONE_INCLUDE_DIR}"
   "${BLACKBONE_INCLUDE_DIR}/3rd_party"
 )
@@ -348,44 +363,13 @@ if(enable_wgc)
   target_link_libraries(${op_c_api} PRIVATE windowsapp runtimeobject.lib)
 endif()
 
-set(OP_MINHOOK_LINKED FALSE)
-set(OP_VCPKG_INSTALLED_DIR "")
-if(DEFINED VCPKG_INSTALLED_DIR)
-  set(OP_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
-elseif(DEFINED _VCPKG_INSTALLED_DIR)
-  set(OP_VCPKG_INSTALLED_DIR "${_VCPKG_INSTALLED_DIR}")
-elseif(DEFINED ENV{VCPKG_ROOT})
-  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}/installed" OP_VCPKG_INSTALLED_DIR)
-endif()
-
-if(OP_VCPKG_INSTALLED_DIR)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(OP_MINHOOK_STATIC_TRIPLET "x64-windows-static")
-    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x64.lib")
-  else()
-    set(OP_MINHOOK_STATIC_TRIPLET "x86-windows-static")
-    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x32.lib")
-  endif()
-
-  set(OP_MINHOOK_LIB_RELEASE "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/lib/${OP_MINHOOK_LIB_RELEASE_NAME}")
-  if(EXISTS "${OP_MINHOOK_LIB_RELEASE}")
-    target_link_libraries(${op_com} PRIVATE "${OP_MINHOOK_LIB_RELEASE}")
-    target_link_libraries(${op_c_api} PRIVATE "${OP_MINHOOK_LIB_RELEASE}")
-    set(OP_MINHOOK_LINKED TRUE)
-    message(STATUS "Using static MinHook library: ${OP_MINHOOK_LIB_RELEASE}")
-  endif()
-endif()
-
-if(NOT OP_MINHOOK_LINKED)
-  find_package(minhook CONFIG QUIET)
-  if(minhook_FOUND)
-    target_link_libraries(${op_com} PRIVATE minhook::minhook)
-    target_link_libraries(${op_c_api} PRIVATE minhook::minhook)
-  else()
-    target_link_libraries(${op_com} PRIVATE minhook.lib)
-    target_link_libraries(${op_c_api} PRIVATE minhook.lib)
-  endif()
-endif()
+# MinHook 通过 vcpkg 提供的 imported target 链接,头文件与库均由 minhook::minhook
+# 的 INTERFACE_INCLUDE_DIRECTORIES / IMPORTED_LOCATION 提供。链到所有编译
+# MinHook 源码(kiero.cpp / InputHook.cpp)的 target,确保 include 目录可达。
+find_package(minhook CONFIG REQUIRED)
+target_link_libraries(libop       PRIVATE minhook::minhook)
+target_link_libraries(${op_com}   PRIVATE minhook::minhook)
+target_link_libraries(${op_c_api} PRIVATE minhook::minhook)
 
 target_link_libraries(libop PRIVATE dwmapi.lib)
 target_link_libraries(${op_com} PRIVATE dwmapi.lib)
