@@ -53,7 +53,7 @@ TEST(WgcTest, CapturesStaticWindowFromStart) {
     PumpMessagesFor(400);
 }
 
-// 回归：覆盖本轮针对 OBS 对照修复的几个运行时场景（单会话内串联，规避多会话连开的偶发不稳定）。
+// 回归：覆盖本轮对修复的几个运行时场景（单会话内串联，规避多会话连开的偶发不稳定）。
 TEST(WgcTest, FirstFrameResizeAndCloseScenarios) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));

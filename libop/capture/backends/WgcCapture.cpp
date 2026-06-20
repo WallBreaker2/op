@@ -66,12 +66,15 @@ bool wgcSessionPropertyPresent(const wchar_t *property_name) {
 void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptureSession &session) {
     try {
         if (wgcSessionPropertyPresent(L"IsBorderRequired")) {
-            // 与 OBS 一致：关黄框前先申请 Borderless 访问，确保部分 Windows 版本上 IsBorderRequired(false) 真正生效。
-            // 注意：.get() 在 STA 线程上可能抛 RPC_E_WRONG_THREAD；捕获后仍继续执行下面的关框，行为不退化。
+            // 关黄框前先申请 Borderless 访问，确保部分 Windows 版本上 IsBorderRequired(false) 真正生效。
+            // 这里不要同步 .get()。在部分宿主线程/窗口模型下，这个异步请求可能一直不返回，
+            // 从而把 BindWindow("normal.wgc", ...) 整个卡死。这里退化成纯 best-effort：
+            // 发起请求即可，真正能否隐藏黄框不影响 WGC 捕获主流程。
             try {
-                winrt::Windows::Graphics::Capture::GraphicsCaptureAccess::RequestAccessAsync(
-                    winrt::Windows::Graphics::Capture::GraphicsCaptureAccessKind::Borderless)
-                    .get();
+                const auto access_request =
+                    winrt::Windows::Graphics::Capture::GraphicsCaptureAccess::RequestAccessAsync(
+                        winrt::Windows::Graphics::Capture::GraphicsCaptureAccessKind::Borderless);
+                (void)access_request;
             } catch (...) {
             }
             session.IsBorderRequired(false);
@@ -693,7 +696,7 @@ bool WgcCapture::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
         return hasCapturedFrame();
     }
 
-    // ContentSize 不可靠（OBS 同样如此），以 surface 的真实尺寸为准：
+    // ContentSize 不可靠，以 surface 的真实尺寸为准：
     // CopyResource 要求源/目标尺寸、格式完全一致，否则静默失败/花屏。
     D3D11_TEXTURE2D_DESC surface_desc = {};
     frame_surface->GetDesc(&surface_desc);
@@ -718,9 +721,9 @@ bool WgcCapture::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
         const auto frame_content_size = frame.ContentSize();
         if (frame_content_size.Width > 0 && frame_content_size.Height > 0) {
             try {
-                framePool_.Recreate(
-                    device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
-                    frame_content_size);
+                framePool_.Recreate(device_,
+                                    winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
+                                    frame_content_size);
             } catch (...) {
                 // 重建失败下一帧再试，不影响本帧拷贝。
             }
@@ -770,7 +773,8 @@ bool WgcCapture::updateLatestFrame() {
     return hasCapturedFrame();
 }
 
-bool WgcCapture::waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms) {
+bool WgcCapture::waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count,
+                                    unsigned long timeout_ms) {
     const unsigned long long deadline = ::GetTickCount64() + timeout_ms;
     do {
         if (updateLatestFrame() && currentFrameSerial() >= frame_serial + frame_count) {
