@@ -1033,6 +1033,15 @@ class Op:
     def set_ocr_engine(self, path_of_engine: str | Path, dll_name: str, argv: str) -> bool:
         return self._call_ok("OpSetOcrEngine", str(path_of_engine), dll_name, argv)
 
+    def set_yolo_engine(self, path_of_engine: str | Path, dll_name: str, argv: str) -> bool:
+        return self._call_ok("OpSetYoloEngine", str(path_of_engine), dll_name, argv)
+
+    def yolo_detect(self, x1: int, y1: int, x2: int, y2: int, conf: float, iou: float) -> str:
+        return self._call_string("OpYoloDetect", int(x1), int(y1), int(x2), int(y2), float(conf), float(iou))
+
+    def yolo_detect_from_file(self, file_name: str | Path, conf: float, iou: float) -> str:
+        return self._call_string("OpYoloDetectFromFile", str(file_name), float(conf), float(iou))
+
     def set_dict(self, idx: int, file_name: str | Path) -> bool:
         return self._call_ok("OpSetDict", int(idx), str(file_name))
 
