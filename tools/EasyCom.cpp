@@ -1,9 +1,9 @@
-﻿// EasyCom.cpp : 定义 DLL 的导出函数。
+// EasyCom.cpp : 定义 DLL 的导出函数。
 //
 #include "EasyCom.h"
 #include "framework.h"
 
-#include "../libop/com/op_i.h"
+#include "op_i.h"
 #include "MinHook.h"
 #include <comdef.h>
 #include <fstream>
@@ -25,7 +25,7 @@ HRESULT __stdcall myCLSIDFromProgID(_In_ LPCOLESTR lpszProgID, _Out_ LPCLSID lpc
     // MessageBoxW(NULL, L"myCLSIDFromProgID",lpszProgID, 0);
     // printf("myCLSIDFromProgID\n");
     if (wcscmp(lpszProgID, L"op.opsoft") == 0) {
-        memcpy(lpclsid, &CLSID_OpInterface, sizeof(CLSID_OpInterface));
+        memcpy(lpclsid, &CLSID_OpAutomation, sizeof(CLSID_OpAutomation));
         // MessageBoxW(NULL, L"memcpy", lpszProgID, 0);
         return S_OK;
     } else {
@@ -39,7 +39,7 @@ HRESULT __stdcall myCoCreateInstance(_In_ REFCLSID rclsid, _In_opt_ LPUNKNOWN pU
                                      _In_ REFIID riid,
                                      _COM_Outptr_ _At_(*ppv, _Post_readable_size_(_Inexpressible_(varies)))
                                          LPVOID FAR *ppv) {
-    /*if (IsEqualCLSID(rclsid, CLSID_OpInterface))printf("CLSID_OpInterface\n");
+    /*if (IsEqualCLSID(rclsid, CLSID_OpAutomation))printf("CLSID_OpAutomation\n");
     else printf("unknown clsid\n");
 
     if (IsEqualCLSID(riid, IID_IDispatch))
@@ -50,8 +50,8 @@ HRESULT __stdcall myCoCreateInstance(_In_ REFCLSID rclsid, _In_opt_ LPUNKNOWN pU
         printf("unknown riid\n");
     */
     // return oCoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
-    if (memcmp(&rclsid, &CLSID_OpInterface, sizeof(CLSID_OpInterface)) != 0
-        /*|| memcmp(riid, &IID_IOpInterface, sizeof(IID_IOpInterface)) != 0*/) {
+    if (memcmp(&rclsid, &CLSID_OpAutomation, sizeof(CLSID_OpAutomation)) != 0
+        /*|| memcmp(riid, &IID_IOpAutomation, sizeof(IID_IOpAutomation)) != 0*/) {
 
         // MessageBoxA(NULL, "oCoCreateInstance", "", 0);
         return oCoCreateInstance(rclsid, pUnkOuter, dwClsContext, riid, ppv);
@@ -76,18 +76,18 @@ HRESULT __stdcall myCoCreateInstance(_In_ REFCLSID rclsid, _In_opt_ LPUNKNOWN pU
     // printf("GetProcAddress !\n");
     IClassFactory *fac = 0;
 
-    dynamiDllGetClassObject(CLSID_OpInterface, IID_IClassFactory, (void **)&fac);
+    dynamiDllGetClassObject(CLSID_OpAutomation, IID_IClassFactory, (void **)&fac);
 
     // IClassFa
-    // pfun1(&CLSID_OpInterface, riid, (void**)&fac);
+    // pfun1(&CLSID_OpAutomation, riid, (void**)&fac);
     if (!fac) {
         // printf("DllGetClassObject false!\n");
         MessageBoxW(NULL, L"DllGetClassObject", NULL, 0);
         return -3;
     }
     // printf("DllGetClassObject !\n");
-    IOpInterface *op;
-    // fac->lpVtbl->CreateInstance(fac, NULL, &IID_IOpInterface, (void**)&op);
+    IOpAutomation *op;
+    // fac->lpVtbl->CreateInstance(fac, NULL, &IID_IOpAutomation, (void**)&op);
     fac->CreateInstance(NULL, riid, (void **)&op);
     // fac->lpVtbl->QueryInterface()
     if (!op) {
@@ -104,7 +104,7 @@ HRESULT __stdcall myCoGetClassObject(_In_ REFCLSID rclsid, _In_ DWORD dwClsConte
                                      _In_ REFIID riid, _Outptr_ LPVOID FAR *ppv) {
     // printf("myCoGetClassObject\n");
     // flaot:在这里如果走原始"oCoGetClassObject"则会失败，找注册表肯定找不到
-    if (memcmp(&rclsid, &CLSID_OpInterface, sizeof(CLSID_OpInterface)) == 0) {
+    if (memcmp(&rclsid, &CLSID_OpAutomation, sizeof(CLSID_OpAutomation)) == 0) {
 
         HMODULE hdll = LoadLibraryA(dllpathA);
         if (!hdll) {
@@ -121,7 +121,7 @@ HRESULT __stdcall myCoGetClassObject(_In_ REFCLSID rclsid, _In_ DWORD dwClsConte
         }
 
         IClassFactory *fac = 0;
-        dynamiDllGetClassObject(CLSID_OpInterface, IID_IClassFactory, (void **)&fac);
+        dynamiDllGetClassObject(CLSID_OpAutomation, IID_IClassFactory, (void **)&fac);
         *ppv = fac;
         return S_OK;
     }

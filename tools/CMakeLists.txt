@@ -1,21 +1,26 @@
 cmake_minimum_required(VERSION 3.10)
 
-ADD_DEFINITIONS(-D _UNICODE)
-ADD_DEFINITIONS(-D UNICODE)
-
-ADD_DEFINITIONS(-D _CMAKE_BUILD)
-
-#ADD_DEFINITIONS(-D EASYCOM_EXPORTS)
-
 # find_library(minhook_lib libminhook.x86 ./3rd_party/lib/x86 NO_DEFAULT_PATH)
 
 SET(TOOLS_SRC_FILES 
 "dllmain.c"
-"../libop/com/op_i.c"
+"${OP_COM_I_C}"
 "easycom.cpp")
+set_source_files_properties("${OP_COM_I_C}" PROPERTIES GENERATED TRUE)
 
 
 add_library(tools SHARED ${TOOLS_SRC_FILES})
+target_compile_definitions(tools PRIVATE _UNICODE UNICODE _CMAKE_BUILD)
+if(DEFINED OP_ARCH_DEFINITION AND NOT OP_ARCH_DEFINITION STREQUAL "")
+  target_compile_definitions(tools PRIVATE "${OP_ARCH_DEFINITION}")
+endif()
+target_include_directories(tools PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${PROJECT_SOURCE_DIR}"
+  "${OP_COM_GENERATED_DIR}"
+  "${PROJECT_SOURCE_DIR}/3rd_party/include"
+  "${PROJECT_SOURCE_DIR}/3rd_party/include/3rd_party"
+)
 
 # MinHook 使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
 set(OP_TOOLS_MINHOOK_LINKED FALSE)
