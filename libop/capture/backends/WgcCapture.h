@@ -11,6 +11,7 @@
 #include <dxgi1_2.h>
 #include <inspectable.h>
 #include <mutex>
+#include <atomic>
 #pragma comment(lib, "d3d11.lib")
 #ifdef OP_ENABLE_WGC
 // this code ref https://www.jianshu.com/p/e775b0f45376
@@ -30,6 +31,7 @@ class WgcCapture : public ICaptureBackend {
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
     void refreshMetrics() override;
+    void waitForBindReady() override;
 
     bool Init(HWND _hwnd);
 
@@ -43,6 +45,9 @@ class WgcCapture : public ICaptureBackend {
     GraphicsCaptureSession session_{nullptr};
     winrt::event_token frameArrivedToken_{};
     bool hasFrameArrivedToken_{false};
+    winrt::event_token closedToken_{};
+    bool hasClosedToken_{false};
+    std::atomic<bool> itemClosed_{false};
     FrameInfo m_frameInfo{};
     long captureWidth_{0};
     long captureHeight_{0};
@@ -75,6 +80,9 @@ class WgcCapture : public ICaptureBackend {
     unsigned long long currentFrameSerial();
     bool hasCapturedFrame();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
+    bool isDeviceLost();
+    bool recoverFromDeviceLoss();
+    void revokeItemClosed();
 };
 
 // DEFINE_GUID(

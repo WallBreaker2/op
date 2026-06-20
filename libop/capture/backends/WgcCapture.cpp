@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Foundation.Metadata.h>
 #include <winrt/Windows.Gaming.Input.h>
 
 #ifdef OP_ENABLE_WGC
@@ -51,6 +52,40 @@ class D3D11TextureMap {
     bool mapped_ = false;
 };
 
+bool wgcSessionPropertyPresent(const wchar_t *property_name) {
+    try {
+        return winrt::Windows::Foundation::Metadata::ApiInformation::IsPropertyPresent(
+            L"Windows.Graphics.Capture.GraphicsCaptureSession", property_name);
+    } catch (...) {
+        return false;
+    }
+}
+
+// 用 WinRT API 特性探测替代 Windows build 号判断，可靠地关闭黄框与光标，
+// 避免它们污染找色/找图/OCR 的像素。Init 与 restartCaptureSession 共用。
+void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptureSession &session) {
+    try {
+        if (wgcSessionPropertyPresent(L"IsBorderRequired")) {
+            // 与 OBS 一致：关黄框前先申请 Borderless 访问，确保部分 Windows 版本上 IsBorderRequired(false) 真正生效。
+            // 注意：.get() 在 STA 线程上可能抛 RPC_E_WRONG_THREAD；捕获后仍继续执行下面的关框，行为不退化。
+            try {
+                winrt::Windows::Graphics::Capture::GraphicsCaptureAccess::RequestAccessAsync(
+                    winrt::Windows::Graphics::Capture::GraphicsCaptureAccessKind::Borderless)
+                    .get();
+            } catch (...) {
+            }
+            session.IsBorderRequired(false);
+        }
+    } catch (...) {
+    }
+    try {
+        if (wgcSessionPropertyPresent(L"IsCursorCaptureEnabled")) {
+            session.IsCursorCaptureEnabled(false);
+        }
+    } catch (...) {
+    }
+}
+
 } // namespace
 
 WgcCapture::WgcCapture() = default;
@@ -69,6 +104,7 @@ long WgcCapture::BindEx(HWND _hwnd, long render_type) {
 
 long WgcCapture::UnBindEx() {
     closeCaptureSession();
+    revokeItemClosed();
 
     if (device_) {
         try {
@@ -90,6 +126,7 @@ long WgcCapture::UnBindEx() {
     item_ = nullptr;
     frameArrivedToken_ = {};
     hasFrameArrivedToken_ = false;
+    itemClosed_.store(false);
     hasFrame_ = false;
     sharedWidth_ = 0;
     sharedHeight_ = 0;
@@ -183,15 +220,7 @@ bool WgcCapture::Init(HWND _hwnd) {
             device, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
     const winrt::Windows::Graphics::Capture::GraphicsCaptureSession session = frame_pool.CreateCaptureSession(item);
 
-    // 20348+ 才支持关闭捕获边框。
-    if (IsWindows10BuildOrGreater(kWindowsServer2022Build)) {
-        session.IsBorderRequired(false);
-    }
-
-    // 19041+ 才支持关闭光标捕获。
-    if (IsWindows10BuildOrGreater(kWindows10Build2004)) {
-        session.IsCursorCaptureEnabled(false);
-    }
+    applySessionOptions(session);
 
     const auto item_size = item.Size();
     captureWidth_ = item_size.Width;
@@ -217,6 +246,9 @@ bool WgcCapture::Init(HWND _hwnd) {
     }
 
     item_ = item;
+    itemClosed_.store(false);
+    closedToken_ = item_.Closed([this](auto const &, auto const &) { itemClosed_.store(true); });
+    hasClosedToken_ = true;
     device_ = device;
     framePool_ = frame_pool;
     session_ = session;
@@ -242,6 +274,15 @@ bool WgcCapture::Init(HWND _hwnd) {
 }
 
 bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
+    if (itemClosed_.load()) {
+        setlog("requestCapture: capture item closed (target window gone)");
+        return false;
+    }
+    if (isDeviceLost()) {
+        setlog("requestCapture: D3D device lost, rebuilding WGC capture");
+        recoverFromDeviceLoss();
+        return false;
+    }
     bool iconic_changed = false;
     bool is_iconic = false;
     bool metrics_changed = refreshWindowMetrics(&iconic_changed, &is_iconic);
@@ -283,8 +324,10 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         // 尺寸变化后队列里可能还有旧帧，先抽干一次，再按状态变化等待后续帧。
         updateLatestFrame();
         const unsigned long long drained_serial = currentFrameSerial();
-        const unsigned int frame_count = restored ? 2 : 1;
-        const unsigned long timeout_ms = restored ? 700 : 100;
+        // 恢复后只等 1 帧、且只给很短的自恢复窗口(150ms)：WGC 常在恢复后停吐帧，
+        // 与其干等再重启，不如尽快落到下面的重启会话路径(能自恢复的机器仍会在 150ms 内命中)。
+        const unsigned int frame_count = 1;
+        const unsigned long timeout_ms = restored ? 150 : 100;
         if (!waitForFramesAfter(drained_serial, frame_count, timeout_ms)) {
             if (!restored) {
                 setlog("requestCapture: no fresh WGC frame after window metrics change");
@@ -334,15 +377,30 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         // WGC 这里按客户区坐标裁图，去掉标题栏和边框。
         int src_x = x1 + dx_;
         int src_y = y1 + dy_;
+        // dx_/dy_ 已防负，这里再夹一次以防 DPI/边框异常导致越界。
+        if (src_x < 0)
+            src_x = 0;
+        if (src_y < 0)
+            src_y = 0;
+        // 越界时夹取实际可拷区域，而不是整张失败（边界/缩放/resize 瞬间本可成功）。
+        int copy_w = w;
+        int copy_h = h;
+        if (src_x + copy_w > static_cast<int>(desc.Width))
+            copy_w = static_cast<int>(desc.Width) - src_x;
+        if (src_y + copy_h > static_cast<int>(desc.Height))
+            copy_h = static_cast<int>(desc.Height) - src_y;
         bool ok = true;
-        if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(desc.Width) ||
-            src_y + h > static_cast<int>(desc.Height)) {
-            setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, desc.Width,
-                   src_y, h, desc.Height);
+        if (copy_w <= 0 || copy_h <= 0) {
+            setlog("requestCapture: clamp empty src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w,
+                   desc.Width, src_y, h, desc.Height);
             ok = false;
         } else {
-            for (int i = 0; i < h; i++) {
-                memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * w);
+            // 夹取后实际尺寸变小时按实际尺寸重建输出图，调用方按 _src 尺寸搜索，坐标仍以 (x1,y1) 为原点。
+            if (copy_w != w || copy_h != h) {
+                img.create(copy_w, copy_h);
+            }
+            for (int i = 0; i < copy_h; i++) {
+                memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * copy_w);
             }
         }
 
@@ -366,6 +424,15 @@ void WgcCapture::refreshMetrics() {
             pendingRestored_ = true;
         }
     }
+}
+
+void WgcCapture::waitForBindReady() {
+    // WGC 绑定后由后台异步推送首帧；等第一帧到达再返回，
+    // 避免 bind 后第一次 FindColor/FindPic/OCR 因首帧未就绪而假失败（与 HookCapture 行为一致）。
+    if (!framePool_) {
+        return;
+    }
+    waitForFramesAfter(0, 1, 1000);
 }
 
 bool WgcCapture::ensureStagingTexture(int width, int height) {
@@ -439,19 +506,22 @@ bool WgcCapture::refreshWindowMetrics(bool *iconic_changed, bool *is_iconic) {
     RECT visible_rect = {};
     POINT pt = {0, 0};
     const bool was_iconic = hasWindowState_ && lastWindowIconic_;
-    const bool now_iconic = ::IsIconic(_hwnd) != FALSE;
+    const bool iconic_before = ::IsIconic(_hwnd) != FALSE;
     ::GetWindowRect(_hwnd, &window_rect);
     ::GetClientRect(_hwnd, &client_rect);
     ::ClientToScreen(_hwnd, &pt);
     if (::DwmGetWindowAttribute(_hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &visible_rect, sizeof(visible_rect)) == S_OK) {
         window_rect = visible_rect;
     }
+    // ABA 防护：读取度量期间窗口若发生最小化，本次度量不可信，按最小化处理。
+    const bool now_iconic = iconic_before || (::IsIconic(_hwnd) != FALSE);
 
     // WGC 对外仍按客户区大小工作，上层坐标也按客户区理解。
     _width = client_rect.right - client_rect.left;
     _height = client_rect.bottom - client_rect.top;
-    dx_ = pt.x - window_rect.left;
-    dy_ = pt.y - window_rect.top;
+    // dx_/dy_ 防负：客户区原点理论上不会在扩展边框的左/上侧之外，异常时夹到 0。
+    dx_ = pt.x > window_rect.left ? pt.x - window_rect.left : 0;
+    dy_ = pt.y > window_rect.top ? pt.y - window_rect.top : 0;
 
     const bool changed = !hasWindowState_ || lastClientWidth_ != _width || lastClientHeight_ != _height ||
                          lastDx_ != dx_ || lastDy_ != dy_ || was_iconic != now_iconic;
@@ -541,15 +611,7 @@ bool WgcCapture::restartCaptureSession() {
             device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item_size);
         session_ = framePool_.CreateCaptureSession(item_);
 
-        // 20348+ 才支持关闭捕获边框。
-        if (IsWindows10BuildOrGreater(kWindowsServer2022Build)) {
-            session_.IsBorderRequired(false);
-        }
-
-        // 19041+ 才支持关闭光标捕获。
-        if (IsWindows10BuildOrGreater(kWindows10Build2004)) {
-            session_.IsCursorCaptureEnabled(false);
-        }
+        applySessionOptions(session_);
 
         frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
             auto frame = tryGetLatestFrame(sender);
@@ -572,30 +634,110 @@ bool WgcCapture::restartCaptureSession() {
     return true;
 }
 
+bool WgcCapture::isDeviceLost() {
+    if (!d3dDevice_) {
+        return false;
+    }
+    return FAILED(d3dDevice_->GetDeviceRemovedReason());
+}
+
+void WgcCapture::revokeItemClosed() {
+    if (item_ && hasClosedToken_) {
+        try {
+            item_.Closed(closedToken_);
+        } catch (...) {
+        }
+    }
+    closedToken_ = {};
+    hasClosedToken_ = false;
+}
+
+bool WgcCapture::recoverFromDeviceLoss() {
+    HWND hwnd = _hwnd;
+    if (!hwnd) {
+        return false;
+    }
+
+    // 释放旧的会话/帧池/设备（保留 _hwnd 与共享内存），随后用新设备重新初始化。
+    closeCaptureSession();
+    revokeItemClosed();
+    if (device_) {
+        try {
+            device_.Close();
+        } catch (...) {
+        }
+    }
+    stagingTexture_.Release();
+    d3dDeviceContext_.Release();
+    d3dDevice_.Release();
+    device_ = nullptr;
+    item_ = nullptr;
+    {
+        std::scoped_lock lock(frameMutex_);
+        hasFrame_ = false;
+        frameSerial_ = 0;
+    }
+
+    if (!Init(hwnd)) {
+        setlog("recoverFromDeviceLoss: re-init failed");
+        return false;
+    }
+    // 重建后等一帧，让下一次 requestCapture 能直接拿到画面。
+    waitForFramesAfter(0, 1, 500);
+    return true;
+}
+
 bool WgcCapture::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
-    const auto frame_content_size = frame.ContentSize();
-    if (frame_content_size.Width <= 0 || frame_content_size.Height <= 0) {
+    auto frame_surface = GetDXGIInterfaceFromObject<ID3D11Texture2D>(frame.Surface());
+    if (!frame_surface) {
         return hasCapturedFrame();
     }
 
-    if (frame_content_size.Width != captureWidth_ || frame_content_size.Height != captureHeight_) {
-        captureWidth_ = frame_content_size.Width;
-        captureHeight_ = frame_content_size.Height;
-        if (!ensureStagingTexture(captureWidth_, captureHeight_)) {
+    // ContentSize 不可靠（OBS 同样如此），以 surface 的真实尺寸为准：
+    // CopyResource 要求源/目标尺寸、格式完全一致，否则静默失败/花屏。
+    D3D11_TEXTURE2D_DESC surface_desc = {};
+    frame_surface->GetDesc(&surface_desc);
+    const int surface_w = static_cast<int>(surface_desc.Width);
+    const int surface_h = static_cast<int>(surface_desc.Height);
+    if (surface_w <= 0 || surface_h <= 0) {
+        return hasCapturedFrame();
+    }
+
+    if (surface_w != captureWidth_ || surface_h != captureHeight_) {
+        captureWidth_ = surface_w;
+        captureHeight_ = surface_h;
+        if (!ensureStagingTexture(surface_w, surface_h)) {
             setlog("copyFrameToStaging: resize staging texture failed");
             return hasCapturedFrame();
         }
-        if (!ensureSharedResources(captureWidth_, captureHeight_)) {
+        if (!ensureSharedResources(surface_w, surface_h)) {
             setlog("copyFrameToStaging: resize shared resources failed");
             return hasCapturedFrame();
         }
-        framePool_.Recreate(device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
-                            frame_content_size);
+        // 窗口尺寸增大时让 WGC 帧池跟随内容大小重建（帧池按 content size 约定）。
+        const auto frame_content_size = frame.ContentSize();
+        if (frame_content_size.Width > 0 && frame_content_size.Height > 0) {
+            try {
+                framePool_.Recreate(
+                    device_, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
+                    frame_content_size);
+            } catch (...) {
+                // 重建失败下一帧再试，不影响本帧拷贝。
+            }
+        }
     }
 
-    auto frame_surface = GetDXGIInterfaceFromObject<ID3D11Texture2D>(frame.Surface());
     {
         std::scoped_lock lock(frameMutex_);
+        if (!stagingTexture_) {
+            return hasCapturedFrame();
+        }
+        // 锁内再次确认 staging 与 surface 尺寸一致，避免与 resize 竞态后尺寸漂移导致 CopyResource 失败。
+        D3D11_TEXTURE2D_DESC staging_desc = {};
+        stagingTexture_->GetDesc(&staging_desc);
+        if (static_cast<int>(staging_desc.Width) != surface_w || static_cast<int>(staging_desc.Height) != surface_h) {
+            return hasCapturedFrame();
+        }
         d3dDeviceContext_->CopyResource(stagingTexture_, frame_surface.get());
         hasFrame_ = true;
         ++frameSerial_;
