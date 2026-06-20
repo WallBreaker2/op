@@ -175,17 +175,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(
-        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
-    )
     set(op_com op_x64)
     set(op_c_api op_c_api_x64)
     set(OP_ARCH_DEFINITION _AMD64_)
 	MESSAGE(STATUS "----------------Platform x64----------------")
 ELSE()
-    link_directories(
-        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x86
-        )
     set(op_com op_x86)
     set(op_c_api op_c_api_x86)
     set(OP_ARCH_DEFINITION _X86_)

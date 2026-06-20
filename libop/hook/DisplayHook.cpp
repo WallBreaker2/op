@@ -13,16 +13,25 @@
 #include <ddraw.h>
 #include <exception>
 
-#include "../../3rd_party/include/kiero.h"
 #include "../capture/FrameInfo.h"
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeUtils.h"
-#include "../runtime/RuntimeEnvironment.h"
 #include "../hook/ApiResolver.h"
+#include "../runtime/AutomationModes.h"
+#include "../runtime/RuntimeEnvironment.h"
+#include "../runtime/RuntimeUtils.h"
 #include "Dx12Hook.h"
+#include "MinHook.h"
+#include "MinHookRuntime.h"
+#include "kiero.hpp"
+#include "kiero_d3d9.hpp"
+#include "kiero_d3d10.hpp"
+#include "kiero_d3d11.hpp"
+#include "kiero_d3d12.hpp"
+#include "kiero_opengl.hpp"
 #include <atlbase.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
+#include <string>
+#include <unordered_map>
 #include <wingdi.h>
 #define DEBUG_HOOK 0
 
@@ -35,6 +44,7 @@ int DisplayHook::render_type = 0;
 std::wstring DisplayHook::shared_res_name;
 std::wstring DisplayHook::mutex_name;
 void *DisplayHook::old_address;
+void *DisplayHook::hook_target;
 bool DisplayHook::is_hooked = false;
 static int is_capture;
 
@@ -148,66 +158,118 @@ unsigned int __stdcall gl_hkeglSwapBuffers(void *dpy, void *surface);
 // glfinish
 void __stdcall gl_hkglFinish(void);
 
+namespace {
+
+constexpr int kPresentIndex = 8;
+constexpr int kD3D9EndSceneIndex = 42;
+
+template <typename T> void *method_at(const std::vector<T> &methods, size_t index) {
+    return index < methods.size() ? reinterpret_cast<void *>(methods[index]) : nullptr;
+}
+
+int locate_render_method(int render_type, void **target, void **detour) {
+    if (!target || !detour)
+        return 0;
+
+    *target = nullptr;
+    *detour = nullptr;
+
+    if (render_type == RDT_DX_DEFAULT || render_type == RDT_DX_D3D9) {
+        kiero::D3D9Output output;
+        if (kiero::locate<kiero::Implementation_D3D9>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = method_at(output.device_methods, kD3D9EndSceneIndex);
+        *detour = reinterpret_cast<void *>(dx9_hkEndScene);
+    } else if (render_type == RDT_DX_D3D10) {
+        kiero::D3D10Output output;
+        if (kiero::locate<kiero::Implementation_D3D10>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = method_at(output.swapchain_methods, kPresentIndex);
+        *detour = reinterpret_cast<void *>(dx10_hkPresent);
+    } else if (render_type == RDT_DX_D3D11) {
+        kiero::D3D11Output output;
+        if (kiero::locate<kiero::Implementation_D3D11>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = method_at(output.swapchain_methods, kPresentIndex);
+        *detour = reinterpret_cast<void *>(dx11_hkPresent);
+    } else if (render_type == RDT_DX_D3D12) {
+        kiero::D3D12Output output;
+        if (kiero::locate<kiero::Implementation_D3D12>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = method_at(output.swapchain_methods, kPresentIndex);
+        *detour = reinterpret_cast<void *>(dx12_hkPresent);
+    } else if (render_type == RDT_GL_DEFAULT || render_type == RDT_GL_NOX) {
+        kiero::OpenGLOutput output;
+        if (kiero::locate<kiero::Implementation_OpenGL>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = output.methods["wglSwapBuffers"];
+        *detour = reinterpret_cast<void *>(gl_hkwglSwapBuffers);
+    } else if (render_type == RDT_GL_STD) {
+        kiero::OpenGLOutput output;
+        if (kiero::locate<kiero::Implementation_OpenGL>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = output.methods["glBegin"];
+        *detour = reinterpret_cast<void *>(gl_hkglBegin);
+    } else if (render_type == RDT_GL_ES) {
+        *target = ResolveApi("libEGL.dll", "eglSwapBuffers");
+        *detour = reinterpret_cast<void *>(gl_hkeglSwapBuffers);
+    } else if (render_type == RDT_GL_FI) {
+        kiero::OpenGLOutput output;
+        if (kiero::locate<kiero::Implementation_OpenGL>(nullptr, &output) != kiero::Error_Nil)
+            return 0;
+        *target = output.methods["glFinish"];
+        *detour = reinterpret_cast<void *>(gl_hkglFinish);
+    }
+
+    return *target && *detour ? 1 : 0;
+}
+
+} // namespace
+
 int DisplayHook::setup(HWND hwnd_, int render_type_) {
     DisplayHook::render_hwnd = hwnd_;
     DisplayHook::shared_res_name = MakeOpSharedResourceName(hwnd_);
     DisplayHook::mutex_name = MakeOpMutexName(hwnd_);
 
-    int idx = 0;
+    render_type = render_type_;
+    old_address = nullptr;
+    hook_target = nullptr;
+
     void *address = nullptr;
-    if (render_type_ == RDT_DX_DEFAULT || render_type_ == RDT_DX_D3D9) {
+    if (!locate_render_method(render_type_, &hook_target, &address))
+        return 0;
 
-        render_type = kiero::RenderType::D3D9;
-        idx = 42;
-        address = dx9_hkEndScene;
-    } else if (render_type_ == RDT_DX_D3D10) {
-        render_type = kiero::RenderType::D3D10;
-        idx = 8;
-        address = dx10_hkPresent;
-    } else if (render_type_ == RDT_DX_D3D11) {
-        render_type = kiero::RenderType::D3D11;
-        idx = 8;
-        address = dx11_hkPresent;
-    } else if (render_type_ == RDT_DX_D3D12) {
-        render_type = kiero::RenderType::D3D12;
-        idx = 140;
-        address = dx12_hkPresent;
-    } else if (render_type_ == RDT_GL_DEFAULT || render_type_ == RDT_GL_NOX) {
-        render_type = kiero::RenderType::OpenGL;
-        idx = 2;
-        address = gl_hkwglSwapBuffers;
-    } else if (render_type_ == RDT_GL_STD) {
-        render_type = kiero::RenderType::OpenGL;
-        idx = 0;
-        address = gl_hkglBegin;
-    } else if (render_type_ == RDT_GL_ES) {
-        render_type = kiero::RenderType::OpenglES;
-        idx = 0;
-        address = gl_hkeglSwapBuffers;
-    } else if (render_type_ == RDT_GL_FI) {
-        render_type = kiero::RenderType::OpenGL;
-        idx = 3;
-        address = gl_hkglFinish;
+    if (!AcquireMinHook())
+        return 0;
 
-    } else {
-        render_type = kiero::RenderType::None;
-    }
-    kiero::Status::Enum ret = kiero::init(render_type);
-    if (ret != kiero::Status::Success) {
-        return ret;
+    const MH_STATUS create_status = MH_CreateHook(hook_target, address, &old_address);
+    const MH_STATUS enable_status = create_status == MH_OK ? MH_EnableHook(hook_target) : MH_UNKNOWN;
+    if (create_status != MH_OK || enable_status != MH_OK) {
+        if (create_status == MH_OK) {
+            MH_DisableHook(hook_target);
+            MH_RemoveHook(hook_target);
+        }
+        ReleaseMinHook();
+        old_address = nullptr;
+        hook_target = nullptr;
+        return 0;
     }
 
-    is_capture = kiero::bind(idx, &old_address, address);
+    is_capture = 1;
     return is_capture;
 }
 
 int DisplayHook::release() {
     is_capture = 0;
-    kiero::unbind();
-    kiero::shutdown();
+    if (hook_target) {
+        MH_DisableHook(hook_target);
+        MH_RemoveHook(hook_target);
+        ReleaseMinHook();
+    }
     old_address = nullptr;
+    hook_target = nullptr;
     render_hwnd = NULL;
-    render_type = kiero::RenderType::None;
+    render_type = 0;
     return 1;
 }
 

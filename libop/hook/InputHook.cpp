@@ -3,6 +3,7 @@
 #include "../runtime/RuntimeEnvironment.h"
 #include "../input/mouse/CursorShape.h"
 #include "../hook/ApiResolver.h"
+#include "MinHookRuntime.h"
 #include "MinHook.h"
 #include "HookProtocol.h"
 
@@ -16,6 +17,7 @@
 #include <cstring>
 #include <deque>
 #include <mutex>
+#include <vector>
 
 namespace op::hook {
 
@@ -58,6 +60,7 @@ std::array<void *, 32> g_mouseVtable{};
 std::array<void *, 32> g_keyboardVtable{};
 void **g_mouseVtablePtr = nullptr;
 void **g_keyboardVtablePtr = nullptr;
+std::vector<void *> g_hookTargets;
 std::mutex g_eventMutex;
 std::deque<DIDEVICEOBJECTDATA> g_mouseEvents;
 std::deque<DIDEVICEOBJECTDATA> g_keyboardEvents;
@@ -117,6 +120,32 @@ UINT WINAPI hkGetRegisteredRawInputDevices(PRAWINPUTDEVICE devices, PUINT count,
 HCURSOR WINAPI hkSetCursor(HCURSOR cursor);
 LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 bool is_extended_vk(WPARAM vk);
+
+bool create_hook(void *target, void *detour, void **original = nullptr) {
+    if (!target || !detour)
+        return false;
+
+    const MH_STATUS status = MH_CreateHook(target, detour, original);
+    if (status != MH_OK && status != MH_ERROR_ALREADY_CREATED)
+        return false;
+
+    if (std::find(g_hookTargets.begin(), g_hookTargets.end(), target) == g_hookTargets.end())
+        g_hookTargets.push_back(target);
+    return true;
+}
+
+void enable_input_hooks() {
+    for (void *target : g_hookTargets)
+        MH_EnableHook(target);
+}
+
+void remove_input_hooks() {
+    for (void *target : g_hookTargets) {
+        MH_DisableHook(target);
+        MH_RemoveHook(target);
+    }
+    g_hookTargets.clear();
+}
 WORD scan_code(WPARAM vk);
 
 template <typename Target, typename Value> void set_out(Target *target, Value value) {
@@ -276,38 +305,38 @@ bool hook_dinput() {
 
     bool hooked = false;
     if (g_mouseVtable[kGetDeviceStateIndex]) {
-        hooked |=
-            MH_CreateHook(g_mouseVtable[kGetDeviceStateIndex], hkGetDeviceState, &g_mouseGetDeviceStateRaw) == MH_OK;
+        hooked |= create_hook(g_mouseVtable[kGetDeviceStateIndex], reinterpret_cast<void *>(hkGetDeviceState),
+                              &g_mouseGetDeviceStateRaw);
         if (g_mouseVtable[kGetDeviceDataIndex])
-            hooked |= MH_CreateHook(g_mouseVtable[kGetDeviceDataIndex], hkGetDeviceData, &g_mouseGetDeviceDataRaw) ==
-                      MH_OK;
+            hooked |= create_hook(g_mouseVtable[kGetDeviceDataIndex], reinterpret_cast<void *>(hkGetDeviceData),
+                                  &g_mouseGetDeviceDataRaw);
         if (g_mouseVtable[kPollIndex])
-            MH_CreateHook(g_mouseVtable[kPollIndex], hkPoll, nullptr);
+            create_hook(g_mouseVtable[kPollIndex], reinterpret_cast<void *>(hkPoll));
     }
     if (g_keyboardVtable[kGetDeviceStateIndex]) {
         if (g_keyboardVtable[kGetDeviceStateIndex] == g_mouseVtable[kGetDeviceStateIndex]) {
             g_keyboardGetDeviceStateRaw = g_mouseGetDeviceStateRaw;
             hooked = true;
         } else {
-            hooked |= MH_CreateHook(g_keyboardVtable[kGetDeviceStateIndex], hkGetDeviceState,
-                                    &g_keyboardGetDeviceStateRaw) == MH_OK;
+            hooked |= create_hook(g_keyboardVtable[kGetDeviceStateIndex], reinterpret_cast<void *>(hkGetDeviceState),
+                                  &g_keyboardGetDeviceStateRaw);
         }
         if (g_keyboardVtable[kGetDeviceDataIndex]) {
             if (g_keyboardVtable[kGetDeviceDataIndex] == g_mouseVtable[kGetDeviceDataIndex]) {
                 g_keyboardGetDeviceDataRaw = g_mouseGetDeviceDataRaw;
                 hooked = true;
             } else {
-                hooked |= MH_CreateHook(g_keyboardVtable[kGetDeviceDataIndex], hkGetDeviceData,
-                                        &g_keyboardGetDeviceDataRaw) == MH_OK;
+                hooked |= create_hook(g_keyboardVtable[kGetDeviceDataIndex], reinterpret_cast<void *>(hkGetDeviceData),
+                                      &g_keyboardGetDeviceDataRaw);
             }
         }
         if (g_keyboardVtable[kPollIndex] && g_keyboardVtable[kPollIndex] != g_mouseVtable[kPollIndex])
-            MH_CreateHook(g_keyboardVtable[kPollIndex], hkPoll, nullptr);
+            create_hook(g_keyboardVtable[kPollIndex], reinterpret_cast<void *>(hkPoll));
     }
     if (g_mouseVtable[kAcquireIndex])
-        MH_CreateHook(g_mouseVtable[kAcquireIndex], hkAcquire, nullptr);
+        create_hook(g_mouseVtable[kAcquireIndex], reinterpret_cast<void *>(hkAcquire));
     if (g_keyboardVtable[kAcquireIndex] && g_keyboardVtable[kAcquireIndex] != g_mouseVtable[kAcquireIndex])
-        MH_CreateHook(g_keyboardVtable[kAcquireIndex], hkAcquire, nullptr);
+        create_hook(g_keyboardVtable[kAcquireIndex], reinterpret_cast<void *>(hkAcquire));
 
     return hooked;
 }
@@ -318,17 +347,17 @@ void hook_win32_key_state() {
     auto getKeyboardState = reinterpret_cast<void *>(ResolveApi("user32.dll", "GetKeyboardState"));
 
     if (getKeyState)
-        MH_CreateHook(getKeyState, hkGetKeyState, &g_getKeyStateRaw);
+        create_hook(getKeyState, reinterpret_cast<void *>(hkGetKeyState), &g_getKeyStateRaw);
     if (getAsyncKeyState)
-        MH_CreateHook(getAsyncKeyState, hkGetAsyncKeyState, &g_getAsyncKeyStateRaw);
+        create_hook(getAsyncKeyState, reinterpret_cast<void *>(hkGetAsyncKeyState), &g_getAsyncKeyStateRaw);
     if (getKeyboardState)
-        MH_CreateHook(getKeyboardState, hkGetKeyboardState, &g_getKeyboardStateRaw);
+        create_hook(getKeyboardState, reinterpret_cast<void *>(hkGetKeyboardState), &g_getKeyboardStateRaw);
 }
 
 void hook_win32_cursor() {
     auto setCursor = reinterpret_cast<void *>(ResolveApi("user32.dll", "SetCursor"));
     if (setCursor)
-        MH_CreateHook(setCursor, hkSetCursor, &g_setCursorRaw);
+        create_hook(setCursor, reinterpret_cast<void *>(hkSetCursor), &g_setCursorRaw);
 }
 
 void hook_raw_input() {
@@ -342,20 +371,24 @@ void hook_raw_input() {
         reinterpret_cast<void *>(ResolveApi("user32.dll", "GetRegisteredRawInputDevices"));
 
     if (getRawInputData)
-        MH_CreateHook(getRawInputData, hkGetRawInputData, &g_getRawInputDataRaw);
+        create_hook(getRawInputData, reinterpret_cast<void *>(hkGetRawInputData), &g_getRawInputDataRaw);
     if (getRawInputBuffer)
-        MH_CreateHook(getRawInputBuffer, hkGetRawInputBuffer, &g_getRawInputBufferRaw);
+        create_hook(getRawInputBuffer, reinterpret_cast<void *>(hkGetRawInputBuffer), &g_getRawInputBufferRaw);
     if (registerRawInputDevices)
-        MH_CreateHook(registerRawInputDevices, hkRegisterRawInputDevices, &g_registerRawInputDevicesRaw);
+        create_hook(registerRawInputDevices, reinterpret_cast<void *>(hkRegisterRawInputDevices),
+                    &g_registerRawInputDevicesRaw);
     if (getRawInputDeviceInfoW)
-        MH_CreateHook(getRawInputDeviceInfoW, hkGetRawInputDeviceInfoW, &g_getRawInputDeviceInfoWRaw);
+        create_hook(getRawInputDeviceInfoW, reinterpret_cast<void *>(hkGetRawInputDeviceInfoW),
+                    &g_getRawInputDeviceInfoWRaw);
     if (getRawInputDeviceInfoA)
-        MH_CreateHook(getRawInputDeviceInfoA, hkGetRawInputDeviceInfoA, &g_getRawInputDeviceInfoARaw);
+        create_hook(getRawInputDeviceInfoA, reinterpret_cast<void *>(hkGetRawInputDeviceInfoA),
+                    &g_getRawInputDeviceInfoARaw);
     if (getRawInputDeviceList)
-        MH_CreateHook(getRawInputDeviceList, hkGetRawInputDeviceList, &g_getRawInputDeviceListRaw);
+        create_hook(getRawInputDeviceList, reinterpret_cast<void *>(hkGetRawInputDeviceList),
+                    &g_getRawInputDeviceListRaw);
     if (getRegisteredRawInputDevices)
-        MH_CreateHook(getRegisteredRawInputDevices, hkGetRegisteredRawInputDevices,
-                      &g_getRegisteredRawInputDevicesRaw);
+        create_hook(getRegisteredRawInputDevices, reinterpret_cast<void *>(hkGetRegisteredRawInputDevices),
+                    &g_getRegisteredRawInputDevicesRaw);
 }
 
 void fill_mouse_state(DWORD size, LPVOID ptr) {
@@ -721,14 +754,16 @@ int InputHook::setup(HWND hwnd) {
     m_lastMouseY = 0;
     m_wheelDelta = 0;
 
-    MH_Initialize();
+    if (!AcquireMinHook())
+        return 0;
+
     if (!hook_dinput()) {
         setlog("input hook dinput setup failed");
     }
     hook_win32_key_state();
     hook_win32_cursor();
     hook_raw_input();
-    MH_EnableHook(NULL);
+    enable_input_hooks();
 
     g_rawWindowProc =
         reinterpret_cast<WNDPROC>(::SetWindowLongPtr(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(opWndProc)));
@@ -745,9 +780,8 @@ int InputHook::release() {
         restored = ::SetWindowLongPtr(input_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(g_rawWindowProc));
     }
 
-    MH_DisableHook(NULL);
-    MH_RemoveHook(NULL);
-    MH_Uninitialize();
+    remove_input_hooks();
+    ReleaseMinHook();
 
     g_rawWindowProc = nullptr;
     input_hwnd = nullptr;

@@ -2,7 +2,6 @@
 #include "../runtime/RuntimeEnvironment.h"
 #include "DisplayHook.h"
 #include "InputHook.h"
-#include "../../3rd_party/include/kiero.h"
 
 using op::hook::DisplayHook;
 using op::hook::InputHook;
@@ -11,23 +10,6 @@ namespace {
 
 int g_ref_count = 0;
 int g_input_ref_count = 0;
-
-int to_kiero_render_type(int render_type_) {
-    if (render_type_ == RDT_DX_DEFAULT || render_type_ == RDT_DX_D3D9)
-        return kiero::RenderType::D3D9;
-    if (render_type_ == RDT_DX_D3D10)
-        return kiero::RenderType::D3D10;
-    if (render_type_ == RDT_DX_D3D11)
-        return kiero::RenderType::D3D11;
-    if (render_type_ == RDT_DX_D3D12)
-        return kiero::RenderType::D3D12;
-    if (render_type_ == RDT_GL_DEFAULT || render_type_ == RDT_GL_NOX || render_type_ == RDT_GL_STD ||
-        render_type_ == RDT_GL_FI)
-        return kiero::RenderType::OpenGL;
-    if (render_type_ == RDT_GL_ES)
-        return kiero::RenderType::OpenglES;
-    return kiero::RenderType::None;
-}
 
 void release_module_if_idle() {
     if (g_ref_count == 0) {
@@ -45,7 +27,7 @@ long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
         DisplayHook::is_hooked = ret == 1;
         g_ref_count += DisplayHook::is_hooked;
     } else {
-        if (DisplayHook::render_hwnd == hwnd_ && DisplayHook::render_type == to_kiero_render_type(render_type_)) {
+        if (DisplayHook::render_hwnd == hwnd_ && DisplayHook::render_type == render_type_) {
             ret = 1;
         } else {
             DisplayHook::release();

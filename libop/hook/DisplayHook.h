@@ -15,6 +15,7 @@ class DisplayHook {
     static std::wstring shared_res_name;
     static std::wstring mutex_name;
     static void *old_address;
+    static void *hook_target;
     static bool is_hooked;
     //
     static int setup(HWND hwnd_, int render_type_);

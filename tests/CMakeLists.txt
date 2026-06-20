@@ -176,8 +176,6 @@ target_include_directories(op_test PRIVATE
   "${PROJECT_SOURCE_DIR}/libop/ocr"
   "${PROJECT_SOURCE_DIR}/libop/opencv"
   "${OP_COM_GENERATED_DIR}"
-  "${PROJECT_SOURCE_DIR}/3rd_party/include"
-  "${PROJECT_SOURCE_DIR}/3rd_party/include/3rd_party"
   "${BLACKBONE_INCLUDE_DIR}"
   "${BLACKBONE_INCLUDE_DIR}/3rd_party"
 )
