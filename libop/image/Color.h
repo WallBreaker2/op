@@ -23,7 +23,7 @@ constexpr char HEX_DIGIT_A(unsigned char value) {
 constexpr wchar_t HEX_DIGIT_W(unsigned char value) {
     return value < 10 ? static_cast<wchar_t>(L'0' + value) : static_cast<wchar_t>(L'A' + value - 10);
 }
-// ��ɫ�ṹ
+// 颜色结构
 
 // #pragma pack(push)
 #pragma pack(1)
@@ -80,14 +80,14 @@ struct color_t {
     }
 };
 #pragma pack()
-// ��ɫ-ƫɫ�ṹ
+// 颜色-偏色结构
 struct color_df_t {
-    // ��ɫ
+    // 颜色
     color_t color;
-    // ƫɫ
+    // 偏色
     color_t df;
 };
-// ����-��ɫ-ƫɫ�ṹ
+// 坐标-颜色-偏色结构
 struct pt_cr_df_t {
     int x, y;
     std::vector<color_df_t> crdfs;
