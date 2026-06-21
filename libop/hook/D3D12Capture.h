@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 #include <cstdint>
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <string>
 #include <string_view>

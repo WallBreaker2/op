@@ -3,7 +3,9 @@
 
 #include <atlimage.h>
 
+#include <cstddef>
 #include <fstream>
+#include <span>
 
 #include "../../window/WindowService.h"
 #include "../../image/Image.h"
@@ -32,6 +34,16 @@ void release_memory_dc(HDC &memory_dc) {
 
     DeleteDC(memory_dc);
     memory_dc = NULL;
+}
+
+std::span<std::byte> shared_pixels(op::SharedMemory *shared_memory, int width, int height) {
+    const auto pixelBytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+    return {shared_memory->data<std::byte>() + sizeof(op::capture::FrameInfo), pixelBytes};
+}
+
+std::span<const std::byte> gdi_row(std::span<const std::byte> pixels, int src_width, int row, int x, int width) {
+    const auto offset = (static_cast<size_t>(row) * static_cast<size_t>(src_width) + static_cast<size_t>(x)) * 4;
+    return pixels.subspan(offset, static_cast<size_t>(width) * 4);
 }
 
 } // namespace
@@ -202,9 +214,12 @@ bool GdiCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
 
         // 将数据拷贝到目标注意实际数据是反的
+        auto pixels = shared_pixels(_shmem, w, h);
 
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), _shmem->data<byte>() + sizeof(FrameInfo) + (h - 1 - i) * 4 * w, 4 * w);
+            // GDI DIB 默认自底向上，span 行视图让翻转行拷贝的偏移更直观。
+            const auto row = gdi_row(pixels, w, h - 1 - i, 0, w);
+            memcpy(img.ptr<uchar>(i), row.data(), row.size());
         }
     } else if (RDT_GDI_DX2 == _render_type) {
         ATL::CImage image;
@@ -267,9 +282,10 @@ bool GdiCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         release_capture_bitmap(_hmdc, _hbmpscreen, _hbmp_old);
 
         // 将数据拷贝到目标注意实际数据是反的(注意偏移)
-        auto ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
+        auto pixels = shared_pixels(_shmem, ww, wh);
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), ppixels + (wh - 1 - i - y1 - dy_) * 4 * ww + (x1 + dx_) * 4, 4 * w);
+            const auto row = gdi_row(pixels, ww, wh - 1 - i - y1 - dy_, x1 + dx_, w);
+            memcpy(img.ptr<uchar>(i), row.data(), row.size());
         }
     }
     return 1;

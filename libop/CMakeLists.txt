@@ -136,6 +136,20 @@ set(OP_KIERO2_SOURCES
   "../3rd_party/kiero2/kiero_opengl.cpp"
 )
 
+# 局部启用 C++20: 只覆盖确实使用 C++20 的内部实现,避免影响 public C API、
+# COM/IDL 生成代码、三方源码以及尚未改造的捕获路径。
+set(OP_LOCAL_CXX20_SOURCES
+  "binding/BindingSession.cpp"
+  "capture/sources/MemoryImageSource.cpp"
+  "capture/backends/GdiCapture.cpp"
+  "capture/backends/HookCapture.cpp"
+  "hook/D3D10Capture.cpp"
+  "hook/D3D11Capture.cpp"
+)
+if(enable_wgc)
+  list(APPEND OP_LOCAL_CXX20_SOURCES "capture/backends/WgcCapture.cpp")
+endif()
+
 set(OP_RUNTIME_SOURCES
   "runtime/AutomationModes.cpp"
   "runtime/RuntimeUtils.cpp"
@@ -349,10 +363,8 @@ if(enable_wgc)
   target_compile_definitions(${op_c_api} PRIVATE OP_ENABLE_WGC)
 endif()
 
-if(enable_wgc AND MSVC)
-  set_source_files_properties(
-    "binding/BindingSession.cpp"
-    "capture/backends/WgcCapture.cpp"
+if(MSVC)
+  set_source_files_properties(${OP_LOCAL_CXX20_SOURCES}
     PROPERTIES
       COMPILE_OPTIONS "/std:c++20;/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
   )
