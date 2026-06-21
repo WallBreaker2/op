@@ -228,6 +228,20 @@ if(enable_wgc)
     message(STATUS "----------------WGC enabled----------------")
 endif()
 
+set(_op_static_minhook_triplet "")
+if(_op_target_is_64bit)
+    set(_op_static_minhook_triplet "x64-windows-static")
+else()
+    set(_op_static_minhook_triplet "x86-windows-static")
+endif()
+
+set(_op_static_minhook_prefix "${CMAKE_SOURCE_DIR}/build/_deps/vcpkg/installed/${_op_static_minhook_triplet}")
+if(EXISTS "${_op_static_minhook_prefix}/share/minhook/minhook-config.cmake")
+    list(PREPEND CMAKE_PREFIX_PATH "${_op_static_minhook_prefix}")
+    set(minhook_DIR "${_op_static_minhook_prefix}/share/minhook" CACHE PATH "Path to the static MinHook package" FORCE)
+    message(STATUS "Using static MinHook package: ${_op_static_minhook_prefix}")
+endif()
+
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
     if(_op_target_is_64bit)
         set(_blackbone_candidates
