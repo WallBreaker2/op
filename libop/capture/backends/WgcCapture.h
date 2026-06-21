@@ -54,8 +54,6 @@ class WgcCapture : public ICaptureBackend {
     bool hasFrame_{false};
     int sharedWidth_{0};
     int sharedHeight_{0};
-    int dx_{0};
-    int dy_{0};
     unsigned long long frameSerial_{0};
     bool hasWindowState_{false};
     bool lastWindowIconic_{false};
@@ -64,13 +62,13 @@ class WgcCapture : public ICaptureBackend {
     bool pendingRestored_{false};
     long lastClientWidth_{0};
     long lastClientHeight_{0};
-    int lastDx_{0};
-    int lastDy_{0};
     std::mutex frameMutex_;
 
     bool ensureStagingTexture(int width, int height);
     bool ensureSharedResources(int width, int height);
     bool refreshWindowMetrics(bool *iconic_changed = nullptr, bool *is_iconic = nullptr);
+    bool getClientBox(int surface_width, int surface_height, D3D11_BOX &client_box, int &client_width,
+                      int &client_height);
     void closeCaptureSession();
     bool restartCaptureSession();
     bool copyFrameToStaging(const Direct3D11CaptureFrame &frame);

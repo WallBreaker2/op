@@ -4,6 +4,9 @@
 #include "../runtime/RuntimeUtils.h"
 #include "../runtime/WindowsVersion.h"
 #include <algorithm>
+#include <cwctype>
+#include <tuple>
+#include <vector>
 
 #include "../capture/backends/DxgiCapture.h"
 #include "../capture/backends/GdiCapture.h"
@@ -32,6 +35,104 @@ using op::input::DxMouse;
 using op::input::KeyboardBackend;
 using op::input::WinKeyboard;
 using op::input::WinMouse;
+
+namespace {
+
+std::wstring to_lower_ascii(std::wstring value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](wchar_t ch) {
+        return static_cast<wchar_t>(std::towlower(ch));
+    });
+    return value;
+}
+
+std::wstring window_class_name(HWND hwnd) {
+    std::wstring buffer(256, L'\0');
+    for (;;) {
+        const int copied = ::GetClassNameW(hwnd, buffer.data(), static_cast<int>(buffer.size()));
+        if (copied <= 0)
+            return L"";
+        if (static_cast<size_t>(copied) < buffer.size() - 1) {
+            buffer.resize(static_cast<size_t>(copied));
+            return buffer;
+        }
+        buffer.assign(buffer.size() * 2, L'\0');
+    }
+}
+
+bool class_contains(const std::wstring &class_name, const wchar_t *needle) {
+    return to_lower_ascii(class_name).find(to_lower_ascii(needle)) != std::wstring::npos;
+}
+
+bool class_equals(const std::wstring &class_name, const wchar_t *needle) {
+    return to_lower_ascii(class_name) == to_lower_ascii(needle);
+}
+
+bool prefers_wgc(HWND hwnd) {
+    const std::wstring class_name = window_class_name(hwnd);
+    if (class_name.empty())
+        return false;
+
+    const wchar_t *partial_matches[] = {L"Chrome", L"Mozilla", nullptr};
+    for (const wchar_t **match = partial_matches; *match; ++match) {
+        if (class_contains(class_name, *match))
+            return true;
+    }
+
+    const wchar_t *whole_matches[] = {
+        L"ApplicationFrameWindow",
+        L"Windows.UI.Core.CoreWindow",
+        L"WinUIDesktopWin32WindowClass",
+        L"GAMINGSERVICESUI_HOSTING_WINDOW_CLASS",
+        L"XLMAIN",
+        L"PPTFrameClass",
+        L"screenClass",
+        L"PodiumParent",
+        L"OpusApp",
+        L"OMain",
+        L"Framework::CFrame",
+        L"rctrl_renwnd32",
+        L"MSWinPub",
+        L"OfficeApp-Frame",
+        L"SDL_app",
+        nullptr,
+    };
+    for (const wchar_t **match = whole_matches; *match; ++match) {
+        if (class_equals(class_name, *match))
+            return true;
+    }
+
+    return false;
+}
+
+std::vector<int> choose_auto_displays(HWND hwnd) {
+    std::vector<int> displays;
+    // 对已知容易被 GDI/DXGI 截黑的窗口优先 WGC，其余普通窗口优先 DXGI。
+#ifdef OP_ENABLE_WGC
+    if (IsWindows10BuildOrGreater(kWindows10Build1903) && prefers_wgc(hwnd))
+        displays.push_back(RDT_NORMAL_WGC);
+#else
+    (void)hwnd;
+#endif
+    if (IsWindowsVersionAtLeast(6, 2, 0))
+        displays.push_back(RDT_NORMAL_DXGI);
+    displays.push_back(RDT_NORMAL);
+    return displays;
+}
+
+const wchar_t *display_mode_name(int display) {
+    switch (display) {
+    case RDT_NORMAL:
+        return L"normal";
+    case RDT_NORMAL_DXGI:
+        return L"normal.dxgi";
+    case RDT_NORMAL_WGC:
+        return L"normal.wgc";
+    default:
+        return L"normal.auto";
+    }
+}
+
+} // namespace
 
 BindingSession::BindingSession()
     : _display_hwnd(0), _input_hwnd(0), _is_bind(0), _capture(nullptr), _mouse(std::make_unique<WinMouse>()),
@@ -62,8 +163,13 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
     }
 
     int display, mouse, keypad;
+    std::vector<int> display_candidates;
+    const bool auto_display = sdisplay == L"normal.auto";
     // step 3.check display... mode
-    if (sdisplay == L"normal")
+    if (auto_display) {
+        display_candidates = choose_auto_displays(displayWnd);
+        display = display_candidates.front();
+    } else if (sdisplay == L"normal")
         display = RDT_NORMAL;
     else if (sdisplay == L"normal.dxgi")
         display = RDT_NORMAL_DXGI;
@@ -99,6 +205,8 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         setlog(L"error display mode: %s", sdisplay.c_str());
         return 0;
     }
+    if (!auto_display)
+        display_candidates.push_back(display);
     // check mouse
     if (smouse == L"normal")
         mouse = INPUT_TYPE::IN_NORMAL;
@@ -135,28 +243,54 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         return 0;
     }
 
-    // step 4.init
-    _mode = mode;
-    _display = display;
-    _display_hwnd = displayWnd;
-    _input_hwnd = inputWnd;
-    set_display_method(L"screen");
+    auto prepare_backends = [&]() {
+        _mode = mode;
+        _display = display;
+        _display_hwnd = displayWnd;
+        _input_hwnd = inputWnd;
+        set_display_method(L"screen");
 
-    // step 5. create instance
-    _capture = createDisplay(display);
-    _mouse = createMouse(mouse);
-    _keyboard = createKeypad(keypad);
+        _capture = createDisplay(display);
+        _mouse = createMouse(mouse);
+        _keyboard = createKeypad(keypad);
+        return _capture && _mouse && _keyboard;
+    };
 
-    if (!_capture || !_mouse || !_keyboard) {
-        setlog("create instance error!");
-        UnBindWindow();
-        return 0;
+    auto try_bind = [&]() {
+        const long display_ret = _capture->Bind(displayWnd, display);
+        const long mouse_ret = display_ret == 1 ? _mouse->Bind(inputWnd, mouse) : 0;
+        const long keypad_ret = (display_ret == 1 && mouse_ret == 1) ? _keyboard->Bind(inputWnd, keypad) : 0;
+        return std::make_tuple(display_ret, mouse_ret, keypad_ret);
+    };
+
+    // normal.auto 逐个尝试候选后端，前一个失败时释放资源再进入下一个。
+    long display_ret = 0;
+    long mouse_ret = 0;
+    long keypad_ret = 0;
+    bool bind_ok = false;
+    for (size_t i = 0; i < display_candidates.size(); ++i) {
+        if (i > 0)
+            reset_bind_state(false);
+
+        display = display_candidates[i];
+        if (!prepare_backends()) {
+            setlog("create instance error!");
+            continue;
+        }
+
+        std::tie(display_ret, mouse_ret, keypad_ret) = try_bind();
+        if (display_ret == 1 && mouse_ret == 1 && keypad_ret == 1) {
+            bind_ok = true;
+            break;
+        }
+
+        if (auto_display && i + 1 < display_candidates.size()) {
+            setlog(L"normal.auto selected %s but bind failed, fallback to %s", display_mode_name(display),
+                   display_mode_name(display_candidates[i + 1]));
+            reset_bind_state(false);
+        }
     }
-    // step 6.try bind
-    const long display_ret = _capture->Bind(displayWnd, display);
-    const long mouse_ret = display_ret == 1 ? _mouse->Bind(inputWnd, mouse) : 0;
-    const long keypad_ret = (display_ret == 1 && mouse_ret == 1) ? _keyboard->Bind(inputWnd, keypad) : 0;
-    if (display_ret != 1 || mouse_ret != 1 || keypad_ret != 1) {
+    if (!bind_ok) {
         setlog(L"BindWindowEx failed. display_hwnd=%p input_hwnd=%p display=%s(%d) ret=%d mouse=%s(%d) ret=%d "
                L"keypad=%s(%d) ret=%d",
                displayWnd, inputWnd, sdisplay.c_str(), display, display_ret, smouse.c_str(), mouse, mouse_ret,
