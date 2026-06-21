@@ -37,7 +37,10 @@ def dll_name(bits: int | None = None) -> str:
 
 
 def _repo_root() -> Path:
-    return _PACKAGE_DIR.parents[1]
+    for parent in _PACKAGE_DIR.parents:
+        if (parent / "include" / "op_c_api.h").is_file():
+            return parent
+    return _PACKAGE_DIR.parents[2]
 
 
 def _candidate_paths(dll_path: str | os.PathLike[str] | None, dll_dir: str | os.PathLike[str] | None) -> Iterable[Path]:
