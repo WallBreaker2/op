@@ -20,6 +20,16 @@ void PumpMessagesFor(int milliseconds) {
     }
 }
 
+class WgcTest : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        // GitHub Actions 的 Windows runner 通常没有稳定的交互式桌面，真实 WGC 截图测试在 CI 中容易误报。
+        if (!test_support::GetEnvString(L"OP_SKIP_WGC_TESTS").empty()) {
+            GTEST_SKIP() << "WGC capture tests are disabled by OP_SKIP_WGC_TESTS.";
+        }
+    }
+};
+
 struct NamedClassColorWindow {
     HWND hwnd = nullptr;
     const wchar_t *class_name = nullptr;
@@ -78,7 +88,7 @@ struct NamedClassColorWindow {
 
 } // namespace
 
-TEST(WgcTest, CapturesStaticWindowFromStart) {
+TEST_F(WgcTest, CapturesStaticWindowFromStart) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
@@ -109,7 +119,7 @@ TEST(WgcTest, CapturesStaticWindowFromStart) {
     PumpMessagesFor(400);
 }
 
-TEST(WgcTest, NormalAutoCapturesPlainWindows) {
+TEST_F(WgcTest, NormalAutoCapturesPlainWindows) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
@@ -138,7 +148,7 @@ TEST(WgcTest, NormalAutoCapturesPlainWindows) {
     PumpMessagesFor(200);
 }
 
-TEST(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
+TEST_F(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
     NamedClassColorWindow window;
     ASSERT_TRUE(window.Create(L"Chrome_WidgetWin_1"));
 
@@ -160,7 +170,7 @@ TEST(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
 }
 
 // 回归：覆盖本轮对修复的几个运行时场景（单会话内串联，规避多会话连开的偶发不稳定）。
-TEST(WgcTest, FirstFrameResizeAndCloseScenarios) {
+TEST_F(WgcTest, FirstFrameResizeAndCloseScenarios) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
@@ -210,7 +220,7 @@ TEST(WgcTest, FirstFrameResizeAndCloseScenarios) {
 }
 
 // 回归：最小化后恢复，应能重新正常截图（覆盖 requestCapture 的 restore 等帧/重启会话分支）。
-TEST(WgcTest, MinimizeRestoreStillCaptures) {
+TEST_F(WgcTest, MinimizeRestoreStillCaptures) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
@@ -253,7 +263,7 @@ TEST(WgcTest, MinimizeRestoreStillCaptures) {
     PumpMessagesFor(200);
 }
 
-TEST(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
+TEST_F(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
@@ -292,7 +302,7 @@ TEST(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
 
 // This scenario is useful for local WGC stress validation, but it is still
 // flaky when multiple capture sessions are created back-to-back in the same process.
-TEST(WgcTest, DISABLED_CapturesAnimatedWindowLatestFrame) {
+TEST_F(WgcTest, DISABLED_CapturesAnimatedWindowLatestFrame) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(true));
 

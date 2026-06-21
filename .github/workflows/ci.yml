@@ -64,6 +64,7 @@ jobs:
         run: |
           $bld = "build\vs2026-${{ matrix.arch }}-Release"
           $env:OP_SKIP_OCR_TESTS = "1"
+          $env:OP_SKIP_WGC_TESTS = "1"
           cd $bld
           ctest -C Release --output-on-failure
 
