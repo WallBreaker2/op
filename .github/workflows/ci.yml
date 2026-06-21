@@ -125,16 +125,16 @@ jobs:
               Write-Error "Required Python package DLL not found: $dll"
             }
 
-            $targetDir = "python\op\bin\$arch"
+            $targetDir = "bindings\python\op\bin\$arch"
             New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
             Copy-Item $dll $targetDir
           }
 
           $python = "${{ steps.setup-python-x64.outputs.python-path }}"
           & $python -m pip install --upgrade build
-          Push-Location .\python
+          Push-Location .\bindings\python
           try {
-            & $python -m build --wheel --outdir ..\dist .
+            & $python -m build --wheel --outdir ..\..\dist .
           } finally {
             Pop-Location
           }
