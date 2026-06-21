@@ -33,7 +33,7 @@ Package name: `op-plugins`, import name: `pyop`. Supports cp39–cp312 on win32/
 
 ```bash
 # Verify after installing a wheel
-python -c "from pyop import libop; print(libop().Ver())"
+python -c "from pyop import Client; print(Client().Ver())"
 ```
 
 Wheel build uses `OP_PYTHON_WHEEL=ON` (see `pyproject.toml` + `swig/CMakeLists.txt`).
@@ -67,24 +67,25 @@ cd build/vs2022-x64-Release
 ## Architecture
 
 ```
-include/libop.h          — Public API declaration (class libop, exported via OP_API)
-libop/libop.h            — Private libop declaration wrapping op_context via pimpl
-libop/libop.cpp          — Main implementation: delegates to WinApi, opBackground, ImageProc
-libop/com/op.idl         — MIDL COM interface definition (IOpInterface, ~300 dispids)
-libop/com/OpInterface.*  — COM IDispatch implementation, calls through to libop
-libop/core/optype.h      — Core types: point_t, rect_t, ocr_rec_t, bytearray aliases
-libop/core/globalVar.h   — Render type enums, input types, shared constants, version string
-libop/core/helpfunc.*    — Utility functions (string conversion, hex dump, error helpers)
-libop/background/        — Screen capture engines (GDI, DXGI, D3D9-12, OpenGL, WGC),
-                           mouse/key input simulators (win32 + DX hook),
-                           DLL injection hooks for display/input interception
-libop/imageProc/         — Image search (ImageLoc), image processing (ImageProc),
-                           OCR via HTTP service (OcrWrapper, singleton with mutex),
-                           dict-based OCR (tess_ocr)
-libop/winapi/            — Win32 wrappers, process injection (BlackBone-based), memory ops
+include/libop.h          — Public API declaration (class op::Client, exported via OP_API)
+libop/libop.cpp          — Main implementation: coordinates WindowService, BindingSession, capture/input backends, and ImageSearchService
+libop/com/op.idl         — MIDL COM interface definition (IOpAutomation, ~300 dispids)
+libop/com/OpAutomation.*  — COM IDispatch implementation, calls through to libop
+libop/runtime/Types.h       — Core types: point_t, rect_t, ocr_rec_t, bytearray aliases
+libop/runtime/AutomationModes.h   — Render type enums, input types, shared constants, version string
+libop/runtime/RuntimeUtils.*   — Utility functions (string conversion, hex dump, error helpers)
+libop/binding/           — Window binding and background-mode orchestration
+libop/capture/           — Capture sources and GDI/DXGI/WGC/Hook backends
+libop/input/             — Mouse, keyboard, and DX input backends
+libop/hook/              — Display/input hooks, injection protocol, and hook exports
+libop/ipc/               — Shared memory and process mutex primitives
+libop/image/             — Image search (ImageSearchAlgorithms), image processing (ImageSearchService),
+                           OCR via HTTP service (HttpOcrService, singleton with mutex),
+                           dict-based OCR (TesseractOcr)
+libop/window/            — Window, process, clipboard, command, injection, and layout services
 libop/algorithm/         — A* pathfinding (AStar.hpp)
 tests/                   — GoogleTest suite with custom test environment (OpEnvironment)
-                           Tests are split by category (core_algorithm_winapi, mouse_keyboard,
+                           Tests are split by category (core_algorithm_windows, mouse_keyboard,
                            image_color, ocr). main.cpp defines its own main() and registers
                            OpEnvironment for global setup/teardown.
 tools/                   — EasyCom DLL (COM helper, separate from the main plugin)
@@ -99,10 +100,10 @@ build.py                 — Unified build: bootstraps vcpkg, clones+builds Blac
 
 ### Key architectural patterns
 
-- **Pimpl + COM**: `class libop` (in `include/libop.h`) is the public DLL-exported facade. It holds a `unique_ptr<op_context>` which bundles `WinApi`, `opBackground`, and `ImageProc` instances. The COM layer (`IOpInterface` / `OpInterface`) converts `BSTR`/`VARIANT` arguments and delegates to `libop`.
+- **Pimpl + COM**: `class op::Client` (in `include/libop.h`) is the public DLL-exported facade. It holds a `unique_ptr<op_context>` which bundles Windows API helpers, window binding/capture state, and `ImageSearchService`. The COM layer (`IOpAutomation` / `OpAutomation`) converts `BSTR`/`VARIANT` arguments and delegates to `libop`.
 - **COINIT_APARTMENTTHREADED**: The COM object uses apartment threading. All calls from a single thread share the same `op_context`.
 - **Screen capture modes**: Controlled by `SetDisplayInput()` — supports GDI (`normal`), DXGI, WGC, and `mem:<ptr>` for external pixel buffers.
-- **OCR has two code paths**: Local dict-based (`SetDict`/`UseDict`, fast for fixed fonts) and HTTP service-backed (`OcrEx`/`OcrAuto`, via `OcrWrapper` → `ocr_server.exe` or PaddleOCR).
+- **OCR has two code paths**: Local dict-based (`SetDict`/`UseDict`, fast for fixed fonts) and HTTP service-backed (`OcrEx`/`OcrAuto`, via `HttpOcrService` → `ocr_server.exe` or PaddleOCR).
 - **Input modes**: `mouse`/`keypad` accept `normal`, `windows`, or `dx` backends. `dx` mode uses MinHook-injected DLLs to intercept/replay input in the target process.
 - **Pre-commit**: clang-format (v16) runs on `.c/.h/.cpp/.hpp/.cc/.cxx` files.
 

@@ -175,20 +175,14 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 endif()
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(
-        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x64
-    )
     set(op_com op_x64)
     set(op_c_api op_c_api_x64)
-    add_compile_definitions(_AMD64_)
+    set(OP_ARCH_DEFINITION _AMD64_)
 	MESSAGE(STATUS "----------------Platform x64----------------")
 ELSE()
-    link_directories(
-        ${CMAKE_SOURCE_DIR}/3rd_party/lib/x86
-        )
     set(op_com op_x86)
     set(op_c_api op_c_api_x86)
-    add_compile_definitions(_X86_)
+    set(OP_ARCH_DEFINITION _X86_)
 	MESSAGE(STATUS "----------------Platform x86----------------")
 ENDIF()
 
@@ -231,8 +225,21 @@ endif()
 
 if(enable_wgc)
     set(enable_wgc ON CACHE BOOL "Enable Windows Graphics Capture backend" FORCE)
-    add_compile_definitions(OP_ENABLE_WGC)
     message(STATUS "----------------WGC enabled----------------")
+endif()
+
+set(_op_static_minhook_triplet "")
+if(_op_target_is_64bit)
+    set(_op_static_minhook_triplet "x64-windows-static")
+else()
+    set(_op_static_minhook_triplet "x86-windows-static")
+endif()
+
+set(_op_static_minhook_prefix "${CMAKE_SOURCE_DIR}/build/_deps/vcpkg/installed/${_op_static_minhook_triplet}")
+if(EXISTS "${_op_static_minhook_prefix}/share/minhook/minhook-config.cmake")
+    list(PREPEND CMAKE_PREFIX_PATH "${_op_static_minhook_prefix}")
+    set(minhook_DIR "${_op_static_minhook_prefix}/share/minhook" CACHE PATH "Path to the static MinHook package" FORCE)
+    message(STATUS "Using static MinHook package: ${_op_static_minhook_prefix}")
 endif()
 
 if(BLACKBONE_LIBRARY STREQUAL "" AND NOT BLACKBONE_ROOT STREQUAL "")
@@ -310,14 +317,6 @@ set(BLACKBONE_LIBRARY "${BLACKBONE_LIBRARY}" CACHE FILEPATH "Full path to BlackB
 
 message(STATUS "BlackBone include: ${BLACKBONE_INCLUDE_DIR}")
 message(STATUS "BlackBone library: ${BLACKBONE_LIBRARY}")
-
-include_directories( 
-  ./
-  ${CMAKE_SOURCE_DIR}/3rd_party/include/
-  ${CMAKE_SOURCE_DIR}/3rd_party/include/3rd_party
-  ${BLACKBONE_INCLUDE_DIR}
-  ${BLACKBONE_INCLUDE_DIR}/3rd_party
-) 
 
 # 包含子项目。
 ## libop主项目

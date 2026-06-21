@@ -1,10 +1,10 @@
-﻿//{{NO_DEPENDENCIES}}
+//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ 生成的包含文件。
 // 供 op.rc 使用
 //
 #define IDS_PROJNAME 100
 #define IDR_OP 101
-#define IDR_OPINTERFACE 106
+#define IDR_OPAUTOMATION 106
 
 // Next default values for new objects
 //

@@ -37,16 +37,18 @@ YOLO 检测采用同类外部 HTTP 服务模式：OP 负责截图、读图和 HT
 ```text
 op/
 ├─ libop/          核心插件源码
-│  ├─ com/         COM 注册、IDL、类型库和 IOpInterface 对外接口实现
-│  ├─ background/  窗口绑定、截图输入源、后台显示/鼠标/键盘调度
-│  ├─ imageProc/   找色、找图、点阵 OCR、OCR HTTP 服务封装
+│  ├─ com/         COM 注册、IDL、类型库和 IOpAutomation 对外接口实现
+│  ├─ binding/     窗口绑定与后台模式调度
+│  ├─ capture/     截图输入源和 GDI/DXGI/WGC/Hook 采集后端
+│  ├─ input/       鼠标、键盘和 DX 输入后端
+│  ├─ hook/        显示/输入 hook、注入协议和导出入口
+│  ├─ image/       找色、找图、点阵 OCR、OCR HTTP 服务封装
 │  ├─ opencv/      OpenCV 模板匹配、特征匹配、预处理和桥接层
-│  ├─ winapi/      窗口、进程、内存、注入等 Windows API 封装
+│  ├─ windows/      窗口、进程、内存、注入等 Windows API 封装
 │  ├─ core/        公共工具、路径、环境、管道、窗口布局等基础能力
-│  ├─ include/     图像、颜色、字库、共享内存等内部基础结构
+│  ├─ common/      图像、颜色、字库、共享内存等内部基础结构
 │  ├─ algorithm/   A* 等通用算法
 │  ├─ libop.cpp    C++ 主接口实现，COM/SWIG 最终调用到这里
-│  └─ libop.h      C++ 主接口声明
 ├─ include/        对外头文件和导出接口
 ├─ tools/          免注册加载工具源码，生成 tools.dll
 ├─ swig/           Python SWIG 绑定文件
@@ -101,9 +103,9 @@ pip install https://github.com/WallBreaker2/op/releases/download/v1.0.0/op_plugi
 安装后使用 SWIG 绑定：
 
 ```python
-from pyop import libop
+from pyop import Client
 
-op = libop()
+op = Client()
 print("op version:", op.Ver())
 ```
 
@@ -116,7 +118,7 @@ print("op version:", op.Ver())
 验证安装：
 
 ```powershell
-python -c "from pyop import libop; print(libop().Ver())"
+python -c "from pyop import Client; print(Client().Ver())"
 ```
 
 免注册调用请参考 Wiki：

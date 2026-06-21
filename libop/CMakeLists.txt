@@ -1,27 +1,5 @@
-# 1.cmake version
 cmake_minimum_required(VERSION 3.10)
 
-
-
-# 3.include path
-#INCLUDE_DIRECTORIES(
-#    include
-#)
-
-
-
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEF:op.def /NODEFAULTLIB")
-
- 
-
-# set_target_properties(target PROPERTIES VcpkgEnabled "true")
-
-# 4.source directory
-AUX_SOURCE_DIRECTORY(./ DIR_SRCS)
-
-#LINK_DIRECTORIES("/3rd_party/lib/x86")
-# 5.set environment variable
 set(OP_HAS_OPENCV FALSE)
 set(OP_OPENCV_INCLUDE_DIR "")
 set(OP_OPENCV_LIB_DIR "")
@@ -112,272 +90,329 @@ if(NOT _op_opencv_root STREQUAL "")
   endif()
 endif()
 
+set(OP_CAPTURE_SOURCES
+  "binding/BindingSession.cpp"
+  "capture/FrameInfo.cpp"
+  "capture/ICaptureBackend.cpp"
+  "capture/sources/MemoryImageSource.cpp"
+  "capture/backends/GdiCapture.cpp"
+  "capture/backends/DxgiCapture.cpp"
+  "capture/backends/HookCapture.cpp"
+)
+if(enable_wgc)
+  list(APPEND OP_CAPTURE_SOURCES "capture/backends/WgcCapture.cpp")
+endif()
 
-#find_package(minhook CONFIG REQUIRED)
- #message(STATUS ${minhook_lib})
-
-
-
-
-SET(SRC_FILES 
-	"./background/opBackground.cpp" 
-	"./background/displayInputHelper.cpp"
-
-  "./background/display/opGDI.cpp" 
-  "./background/display/opDXGI.cpp" 
-  "./background/display/opDxGL.cpp" 
-  "./background/display/IDisplay.cpp" 
-
-  "./background/mouse/opMouseWin.cpp" 
-  "./background/mouse/opMouseDx.cpp" 
-  "./background/mouse/CursorShape.cpp" 
-
-  "./background/keypad/bkkeypad.cpp" 
-  "./background/keypad/winkeypad.cpp" 
-  "./background/keypad/opKeypadDx.cpp" 
-  
-  "./background/Hook/DisplayHook.cpp"
-  "./background/Hook/InputHook.cpp"
-  "./background/Hook/InputHookClient.cpp"
-  "./background/Hook/HookExport.cpp"
-  "./background/Hook/opDx12Hook.cpp"
-
- 
-"./core/globalVar.cpp"
-"./core/diaGuids.cpp"
-"./core/helpfunc.cpp"
-"./core/pipe.cpp"
-"./core/opEnv.cpp"
-"./core/win_version.cpp"
-"./core/window_layout.cpp"
-
-
-	"./imageProc/imageloc.cpp"
-	"./imageProc/imageproc.cpp"
-#	 "imageProc/tess_ocr.cpp"
-	"imageProc/HttpWrapper.cpp"
-	"imageProc/OcrWrapper.cpp"
-	"imageProc/YoloWrapper.cpp"
-"./winapi/injecter.cpp"
-"./winapi/memoryEx.cpp"
- "./winapi/query_api.cpp"
- "./winapi/winapi.cpp"
-"../3rd_party/src/kiero.cpp"
-"libop.cpp"
+set(OP_INPUT_SOURCES
+  "input/mouse/WinMouse.cpp"
+  "input/mouse/DxMouse.cpp"
+  "input/mouse/CursorShape.cpp"
+  "input/keyboard/KeyboardBackend.cpp"
+  "input/keyboard/WinKeyboard.cpp"
+  "input/keyboard/DxKeyboard.cpp"
 )
 
+set(OP_HOOK_SOURCES
+  "hook/ApiResolver.cpp"
+  "hook/D3D9Capture.cpp"
+  "hook/D3D10Capture.cpp"
+  "hook/D3D11Capture.cpp"
+  "hook/D3D12Capture.cpp"
+  "hook/DisplayHook.cpp"
+  "hook/DxCaptureCommon.cpp"
+  "hook/InputHook.cpp"
+  "hook/InputHookClient.cpp"
+  "hook/HookExport.cpp"
+  "hook/MinHookRuntime.cpp"
+  "hook/OpenGLCapture.cpp"
+)
+
+set(OP_KIERO2_SOURCES
+  "../3rd_party/kiero2/kiero_intern.cpp"
+  "../3rd_party/kiero2/kiero_d3d9.cpp"
+  "../3rd_party/kiero2/kiero_d3d10.cpp"
+  "../3rd_party/kiero2/kiero_d3d11.cpp"
+  "../3rd_party/kiero2/kiero_d3d12.cpp"
+  "../3rd_party/kiero2/kiero_opengl.cpp"
+)
+
+# 局部启用 C++20: 只覆盖确实使用 C++20 的内部实现,避免影响 public C API、
+# COM/IDL 生成代码、三方源码以及尚未改造的捕获路径。
+set(OP_LOCAL_CXX20_SOURCES
+  "binding/BindingSession.cpp"
+  "capture/sources/MemoryImageSource.cpp"
+  "capture/backends/GdiCapture.cpp"
+  "capture/backends/HookCapture.cpp"
+  "hook/D3D10Capture.cpp"
+  "hook/D3D11Capture.cpp"
+)
 if(enable_wgc)
-  list(APPEND SRC_FILES "./background/display/opWGC.cpp")
+  list(APPEND OP_LOCAL_CXX20_SOURCES "capture/backends/WgcCapture.cpp")
 endif()
 
-if(OP_HAS_OPENCV AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv/OpenCvModule.cpp")
-  list(APPEND SRC_FILES
-    "./opencv/OpenCvBridge.cpp"
-    "./opencv/OpenCvHelpers.cpp"
-    "./opencv/OpenCvModule.cpp"
+set(OP_RUNTIME_SOURCES
+  "runtime/AutomationModes.cpp"
+  "runtime/RuntimeUtils.cpp"
+  "runtime/RuntimeEnvironment.cpp"
+  "runtime/WindowsVersion.cpp"
+)
+
+set(OP_WINDOW_SOURCES
+  "window/DllInjector.cpp"
+  "window/WindowProcess.cpp"
+  "window/WindowService.cpp"
+  "window/WindowState.cpp"
+  "window/WindowText.cpp"
+  "window/WindowLayout.cpp"
+)
+
+set(OP_IMAGE_SOURCES
+  "image/ImageSearchAlgorithms.cpp"
+  "image/ImageSearchService.cpp"
+)
+
+set(OP_NETWORK_SOURCES
+  "network/HttpClient.cpp"
+)
+
+set(OP_OCR_SOURCES
+  "ocr/OcrService.cpp"
+)
+
+set(OP_YOLO_SOURCES
+  "yolo/YoloDetector.cpp"
+)
+
+set(OP_MEMORY_SOURCES
+  "memory/DiaGuids.cpp"
+  "memory/ProcessMemory.cpp"
+)
+
+set(OP_IPC_SOURCES
+  "ipc/Pipe.cpp"
+)
+
+set(OP_CLIENT_SOURCES
+  "client/ClientContext.cpp"
+  "client/ClientRuntime.cpp"
+  "client/ClientProcess.cpp"
+  "client/ClientClipboard.cpp"
+  "client/ClientWindow.cpp"
+  "client/ClientInput.cpp"
+  "client/ClientAlgorithm.cpp"
+  "client/ClientImage.cpp"
+  "client/ClientOpenCv.cpp"
+  "client/ClientOcr.cpp"
+  "client/ClientYolo.cpp"
+  "client/ClientMemory.cpp"
+)
+
+set(OP_OPENCV_SOURCES "")
+if(OP_HAS_OPENCV AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv/TemplateMatcher.cpp")
+  set(OP_OPENCV_SOURCES
+    "opencv/OpenCvBridge.cpp"
+    "opencv/OpenCvHelpers.cpp"
+    "opencv/TemplateMatcher.cpp"
   )
 endif()
 
-SET(COM_SRC_FILES 
-"./core/globalVar.cpp"
-"./com/op.cpp"
-"./com/opinterface.cpp"
-"./com/stdafx.cpp"
-"./com/compreg.cpp"
-"./com/dllmain.cpp"
-"./com/op_i.c"
-"./com/op.def")
+set(OP_LIBOP_SOURCES
+  ${OP_CLIENT_SOURCES}
+  ${OP_CAPTURE_SOURCES}
+  ${OP_INPUT_SOURCES}
+  ${OP_HOOK_SOURCES}
+  ${OP_RUNTIME_SOURCES}
+  ${OP_WINDOW_SOURCES}
+  ${OP_IMAGE_SOURCES}
+  ${OP_NETWORK_SOURCES}
+  ${OP_OCR_SOURCES}
+  ${OP_YOLO_SOURCES}
+  ${OP_MEMORY_SOURCES}
+  ${OP_IPC_SOURCES}
+  ${OP_OPENCV_SOURCES}
+  ${OP_KIERO2_SOURCES}
+  "libop.cpp"
+)
 
-SET(C_API_SRC_FILES
-"./c_api/op_c_api.cpp")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d9.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=0")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d10.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=1")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d11.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=2")
+set_source_files_properties("../3rd_party/kiero2/kiero_d3d12.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=3")
+set_source_files_properties("../3rd_party/kiero2/kiero_opengl.cpp" PROPERTIES COMPILE_DEFINITIONS "KIERO_IMPL_FIRST_SLOT=4")
 
+set(OP_COM_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/com_generated")
+set(OP_COM_I_C "${OP_COM_GENERATED_DIR}/op_i.c")
+set(OP_COM_I_H "${OP_COM_GENERATED_DIR}/op_i.h")
+set(OP_COM_TLB "${OP_COM_GENERATED_DIR}/op.tlb")
+set(OP_COM_PROXY_C "${OP_COM_GENERATED_DIR}/op_p.c")
+set(OP_COM_DLLDATA_C "${OP_COM_GENERATED_DIR}/dlldata.c")
+set(OP_COM_GENERATED_FILES
+  "${OP_COM_I_C}"
+  "${OP_COM_I_H}"
+  "${OP_COM_TLB}"
+  "${OP_COM_PROXY_C}"
+  "${OP_COM_DLLDATA_C}"
+)
+set_source_files_properties(${OP_COM_GENERATED_FILES} PROPERTIES GENERATED TRUE)
+set(OP_COM_GENERATED_DIR "${OP_COM_GENERATED_DIR}" PARENT_SCOPE)
+set(OP_COM_I_C "${OP_COM_I_C}" PARENT_SCOPE)
+set(OP_COM_I_H "${OP_COM_I_H}" PARENT_SCOPE)
+set(OP_COM_TLB "${OP_COM_TLB}" PARENT_SCOPE)
+set(OP_COM_GENERATED_FILES "${OP_COM_GENERATED_FILES}" PARENT_SCOPE)
 
+set(OP_COM_SOURCES
+  "com/op.cpp"
+  "com/OpAutomation.cpp"
+  "com/stdafx.cpp"
+  "com/compreg.cpp"
+  "com/dllmain.cpp"
+  "${OP_COM_I_C}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/com/op.def"
+  "${CMAKE_CURRENT_SOURCE_DIR}/com/op.rc"
+)
 
+set(OP_C_API_SOURCES
+  "c_api/op_c_api.cpp"
+)
 
-
-
-ADD_DEFINITIONS(-DUNICODE -D_UNICODE)
-ADD_DEFINITIONS(-D WIN32)
-ADD_DEFINITIONS(-D _WINDOWS)
-ADD_DEFINITIONS(-D _USRDLL)
-ADD_DEFINITIONS(-D _CRT_NON_CONFORMING_SWPRINTFS)
-ADD_DEFINITIONS(-D _CRT_SECURE_NO_WARNINGS)
-ADD_DEFINITIONS(-D _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
-ADD_DEFINITIONS(-D _WINDLL)
-ADD_DEFINITIONS(-D _UNICODE)
-ADD_DEFINITIONS(-D UNICODE)
-ADD_DEFINITIONS(-DOP_EXPORTS)
-ADD_DEFINITIONS(-DOP_VERSION="0.4.7.0")
- 
-
-# 6.add lib file
-#add_library(libop SHARED  ${SRC_FILES})
-
-add_library(libop ${SRC_FILES})
-target_compile_definitions(libop PRIVATE U_STATIC_IMPLEMENTATION)
-
-if(enable_wgc AND MSVC)
-  set_source_files_properties(
-    "./background/opBackground.cpp"
-    "./background/display/opWGC.cpp"
-    PROPERTIES
-      COMPILE_OPTIONS "/std:c++20;/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
-  )
+set(OP_COMMON_DEFINITIONS
+  WIN32
+  _WINDOWS
+  _CRT_NON_CONFORMING_SWPRINTFS
+  _CRT_SECURE_NO_WARNINGS
+  _SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING
+  _UNICODE
+  UNICODE
+  OP_VERSION="0.4.7.0"
+)
+if(DEFINED OP_ARCH_DEFINITION AND NOT OP_ARCH_DEFINITION STREQUAL "")
+  list(APPEND OP_COMMON_DEFINITIONS "${OP_ARCH_DEFINITION}")
 endif()
 
-# ----------op_x86/x64
+set(OP_PRIVATE_INCLUDE_DIRS
+  "${PROJECT_BINARY_DIR}"
+  "${PROJECT_SOURCE_DIR}/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/runtime"
+  "${CMAKE_CURRENT_SOURCE_DIR}/window"
+  "${CMAKE_CURRENT_SOURCE_DIR}/image"
+  "${CMAKE_CURRENT_SOURCE_DIR}/network"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ocr"
+  "${CMAKE_CURRENT_SOURCE_DIR}/opencv"
+  "${CMAKE_CURRENT_SOURCE_DIR}/yolo"
+  "${CMAKE_CURRENT_SOURCE_DIR}/memory"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ipc"
+  "${CMAKE_CURRENT_SOURCE_DIR}/hook"
+  "${PROJECT_SOURCE_DIR}/3rd_party/kiero2"
+  "${BLACKBONE_INCLUDE_DIR}"
+  "${BLACKBONE_INCLUDE_DIR}/3rd_party"
+)
+if(OP_HAS_OPENCV)
+  list(APPEND OP_PRIVATE_INCLUDE_DIRS "${OP_OPENCV_INCLUDE_DIR}")
+endif()
+list(APPEND OP_PRIVATE_INCLUDE_DIRS "${OP_COM_GENERATED_DIR}")
+
+add_library(libop)
+target_sources(libop PRIVATE ${OP_LIBOP_SOURCES})
+target_compile_definitions(libop PRIVATE ${OP_COMMON_DEFINITIONS} U_STATIC_IMPLEMENTATION)
+target_include_directories(libop
+  PUBLIC "${PROJECT_SOURCE_DIR}/include"
+  PRIVATE ${OP_PRIVATE_INCLUDE_DIRS}
+)
 
 add_custom_command(
-  OUTPUT
-    ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/com/op_i.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/com/op.tlb
-    ${CMAKE_CURRENT_SOURCE_DIR}/op_p.c
-  COMMAND midl ./com/op.idl /iid
-  "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb 
-  "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"
+  OUTPUT ${OP_COM_GENERATED_FILES}
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${OP_COM_GENERATED_DIR}"
+  COMMAND midl "${CMAKE_CURRENT_SOURCE_DIR}/com/op.idl"
+    /iid "${OP_COM_I_C}" /env win32 /h "${OP_COM_I_H}" /W1 /char signed
+    /tlb "${OP_COM_TLB}" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo
+    /proxy "${OP_COM_PROXY_C}" /dlldata "${OP_COM_DLLDATA_C}"
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/com/op.idl
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  )
+)
+set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/com/op.rc" PROPERTIES OBJECT_DEPENDS "${OP_COM_TLB}")
 
-add_library(${op_com} SHARED ${SRC_FILES} ${COM_SRC_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/./com/op.rc)
-SET_TARGET_PROPERTIES(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"op.def\" /NODEFAULTLIB:\"mfc110d\"")
+add_library(${op_com} SHARED)
+target_sources(${op_com} PRIVATE ${OP_LIBOP_SOURCES} ${OP_COM_SOURCES})
+target_compile_definitions(${op_com} PRIVATE
+  ${OP_COMMON_DEFINITIONS}
+  _USRDLL
+  _WINDLL
+  OP_EXPORTS
+)
+target_include_directories(${op_com}
+  PRIVATE ${OP_PRIVATE_INCLUDE_DIRS}
+)
+set_target_properties(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"${CMAKE_CURRENT_SOURCE_DIR}/com/op.def\" /NODEFAULTLIB:\"mfc110d\"")
 
-add_library(${op_c_api} SHARED ${C_API_SRC_FILES})
-target_compile_definitions(${op_c_api} PRIVATE OP_C_API_EXPORTS)
+add_library(${op_c_api} SHARED)
+target_sources(${op_c_api} PRIVATE ${OP_C_API_SOURCES})
+target_compile_definitions(${op_c_api} PRIVATE
+  ${OP_COMMON_DEFINITIONS}
+  U_STATIC_IMPLEMENTATION
+  OP_C_API_EXPORTS
+)
+target_include_directories(${op_c_api}
+  PUBLIC "${PROJECT_SOURCE_DIR}/include"
+  PRIVATE ${OP_PRIVATE_INCLUDE_DIRS}
+)
 
-if(enable_wgc AND MSVC)
-  set_source_files_properties(
-    "./background/opBackground.cpp"
-    "./background/display/opWGC.cpp"
+if(enable_wgc)
+  target_compile_definitions(libop PRIVATE OP_ENABLE_WGC)
+  target_compile_definitions(${op_com} PRIVATE OP_ENABLE_WGC)
+  target_compile_definitions(${op_c_api} PRIVATE OP_ENABLE_WGC)
+endif()
+
+if(MSVC)
+  set_source_files_properties(${OP_LOCAL_CXX20_SOURCES}
     PROPERTIES
       COMPILE_OPTIONS "/std:c++20;/D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS"
   )
 endif()
-# add_custom_command(TARGET ${op_com} PRE_BUILD  COMMAND midl ./com/op.idl /iid "./com/op_i.c" /env win32 /h "./com/op_i.h" /W1 /char signed /tlb "./com/op.tlb" /Oicf /target "NT60" /D "NDEBUG" /robust /nologo /proxy "op_p.c"  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
 
-
-
-
-target_include_directories(${op_com} PUBLIC
-"${PROJECT_BINARY_DIR}"
-"${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-target_include_directories(${op_c_api} PUBLIC
-"${PROJECT_SOURCE_DIR}/include"
-"${PROJECT_BINARY_DIR}"
-"${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-target_include_directories(libop PUBLIC
-"${PROJECT_BINARY_DIR}"
-"${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-include_directories(
-  ./
-  ./core
-)
-
-if(OP_HAS_OPENCV)
-  include_directories(${OP_OPENCV_INCLUDE_DIR})
-endif()
-
-## for tesseract lib
-# find_package(Tesseract)
-# include_directories(${Tesseract_INCLUDE_DIRS})
-# target_link_libraries(${op_com} Tesseract::libtesseract)
-
-
-# 7.add link library
-# BlackBone 仍通过外部提供的 BlackBone.lib 链接
-TARGET_LINK_LIBRARIES(${op_com} "${BLACKBONE_LIBRARY}")
-TARGET_LINK_LIBRARIES(${op_c_api} libop "${BLACKBONE_LIBRARY}")
-if(enable_wgc)
-  TARGET_LINK_LIBRARIES(${op_com} windowsapp runtimeobject.lib)
-  TARGET_LINK_LIBRARIES(${op_c_api} windowsapp runtimeobject.lib)
-endif()
-
-# MinHook 使用 vcpkg static triplet 的静态库，避免运行时依赖 minhook.x*.dll。
-set(OP_MINHOOK_LINKED FALSE)
-set(OP_VCPKG_INSTALLED_DIR "")
-if (DEFINED VCPKG_INSTALLED_DIR)
-  set(OP_VCPKG_INSTALLED_DIR "${VCPKG_INSTALLED_DIR}")
-elseif(DEFINED _VCPKG_INSTALLED_DIR)
-  set(OP_VCPKG_INSTALLED_DIR "${_VCPKG_INSTALLED_DIR}")
-elseif(DEFINED ENV{VCPKG_ROOT})
-  file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}/installed" OP_VCPKG_INSTALLED_DIR)
-endif()
-
-if (OP_VCPKG_INSTALLED_DIR)
-  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(OP_MINHOOK_STATIC_TRIPLET "x64-windows-static")
-    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x64.lib")
-    set(OP_MINHOOK_LIB_DEBUG_NAME "minhook.x64d.lib")
-  else()
-    set(OP_MINHOOK_STATIC_TRIPLET "x86-windows-static")
-    set(OP_MINHOOK_LIB_RELEASE_NAME "minhook.x32.lib")
-    set(OP_MINHOOK_LIB_DEBUG_NAME "minhook.x32d.lib")
-  endif()
-
-  set(OP_MINHOOK_LIB_RELEASE "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/lib/${OP_MINHOOK_LIB_RELEASE_NAME}")
-  set(OP_MINHOOK_LIB_DEBUG "${OP_VCPKG_INSTALLED_DIR}/${OP_MINHOOK_STATIC_TRIPLET}/debug/lib/${OP_MINHOOK_LIB_DEBUG_NAME}")
-
-  if (EXISTS "${OP_MINHOOK_LIB_RELEASE}")
-    TARGET_LINK_LIBRARIES(${op_com} "${OP_MINHOOK_LIB_RELEASE}")
-    TARGET_LINK_LIBRARIES(${op_c_api} "${OP_MINHOOK_LIB_RELEASE}")
-    set(OP_MINHOOK_LINKED TRUE)
-    message(STATUS "Using static MinHook library: ${OP_MINHOOK_LIB_RELEASE}")
-  endif()
-endif()
-
-if (NOT OP_MINHOOK_LINKED)
-  # 兼容历史环境：优先 package target，最终退回库名
-  find_package(minhook CONFIG QUIET)
-  if (minhook_FOUND)
-    TARGET_LINK_LIBRARIES(${op_com} minhook::minhook)
-    TARGET_LINK_LIBRARIES(${op_c_api} minhook::minhook)
-  else()
-    TARGET_LINK_LIBRARIES(${op_com} minhook.lib)
-    TARGET_LINK_LIBRARIES(${op_c_api} minhook.lib)
-  endif()
-endif()
+target_link_libraries(${op_com} PRIVATE "${BLACKBONE_LIBRARY}")
+target_link_libraries(${op_c_api} PRIVATE libop "${BLACKBONE_LIBRARY}")
 
 if(enable_wgc)
-  target_link_libraries(libop windowsapp runtimeobject.lib)
+  target_link_libraries(libop PRIVATE windowsapp runtimeobject.lib)
+  target_link_libraries(${op_com} PRIVATE windowsapp runtimeobject.lib)
+  target_link_libraries(${op_c_api} PRIVATE windowsapp runtimeobject.lib)
 endif()
-target_link_libraries(libop dwmapi.lib)
-target_link_libraries(${op_com} dwmapi.lib)
-target_link_libraries(${op_c_api} dwmapi.lib)
+
+# MinHook 通过 vcpkg 提供的 imported target 链接,头文件与库均由 minhook::minhook
+# 的 INTERFACE_INCLUDE_DIRECTORIES / IMPORTED_LOCATION 提供。链到所有编译
+# MinHook 源码(kiero.cpp / InputHook.cpp)的 target,确保 include 目录可达。
+find_package(minhook CONFIG REQUIRED)
+find_package(directx-headers CONFIG REQUIRED)
+target_link_libraries(libop       PRIVATE minhook::minhook)
+target_link_libraries(${op_com}   PRIVATE minhook::minhook)
+target_link_libraries(${op_c_api} PRIVATE minhook::minhook)
+target_link_libraries(libop       PRIVATE Microsoft::DirectX-Headers)
+target_link_libraries(${op_com}   PRIVATE Microsoft::DirectX-Headers)
+target_link_libraries(${op_c_api} PRIVATE Microsoft::DirectX-Headers)
+
+target_link_libraries(libop PRIVATE dwmapi.lib)
+target_link_libraries(${op_com} PRIVATE dwmapi.lib)
+target_link_libraries(${op_c_api} PRIVATE dwmapi.lib)
 
 if(OP_HAS_OPENCV)
-  target_link_libraries(libop ${OP_OPENCV_LINK_LIBS})
-  target_link_libraries(${op_com} ${OP_OPENCV_LINK_LIBS})
-  target_link_libraries(${op_c_api} ${OP_OPENCV_LINK_LIBS})
+  target_link_libraries(libop PRIVATE ${OP_OPENCV_LINK_LIBS})
+  target_link_libraries(${op_com} PRIVATE ${OP_OPENCV_LINK_LIBS})
+  target_link_libraries(${op_c_api} PRIVATE ${OP_OPENCV_LINK_LIBS})
 endif()
 
 set(OP_HAS_OPENCV "${OP_HAS_OPENCV}" PARENT_SCOPE)
 
-# target_link_libraries(libop  ${OpenCV_LIBS})
-# target_link_libraries(libop msvcrt.lib)
-
-
- 
-install(FILES libop.h DESTINATION "${PROJECT_SOURCE_DIR}/include")
+install(FILES "${PROJECT_SOURCE_DIR}/include/libop.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
 install(FILES "${PROJECT_SOURCE_DIR}/include/op_c_api.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
-IF(CMAKE_CL_64)
-  #install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-  #install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
+if(CMAKE_CL_64)
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
   install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
   install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
   install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
-ELSE(CMAKE_CL_64)
-  #install(TARGETS libop RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-  #install(TARGETS libop ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
+else()
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
   install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
   install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
-ENDIF(CMAKE_CL_64)
+endif()

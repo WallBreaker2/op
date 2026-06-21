@@ -34,16 +34,18 @@ OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, 
 ```text
 op/
 ├─ libop/          Core plugin source
-│  ├─ com/         COM registration, IDL, type library, and IOpInterface implementation
-│  ├─ background/  Window binding, capture input sources, background display/mouse/keyboard dispatch
-│  ├─ imageProc/   Color/image search, bitmap OCR, OCR HTTP wrapper, and YOLO HTTP wrapper
+│  ├─ com/         COM registration, IDL, type library, and IOpAutomation implementation
+│  ├─ binding/     Window binding and background-mode dispatch
+│  ├─ capture/     Capture sources and GDI/DXGI/WGC/Hook capture backends
+│  ├─ input/       Mouse, keyboard, and DX input backends
+│  ├─ hook/        Display/input hooks, injection protocol, and exported hook entrypoints
+│  ├─ image/       Color/image search, bitmap OCR, OCR HTTP wrapper, and YOLO HTTP wrapper
 │  ├─ opencv/      OpenCV template matching, feature matching, preprocessing, and bridge layer
-│  ├─ winapi/      Windows API wrappers for windows, processes, memory, and injection
+│  ├─ windows/      Windows API wrappers for windows, processes, memory, and injection
 │  ├─ core/        Shared utilities, paths, environment, pipes, and window layout helpers
-│  ├─ include/     Internal image, color, dictionary, and shared-memory structures
+│  ├─ common/      Internal image, color, dictionary, and shared-memory structures
 │  ├─ algorithm/   Common algorithms such as A*
 │  ├─ libop.cpp    Main C++ interface implementation used by COM/SWIG
-│  └─ libop.h      Main C++ interface declarations
 ├─ include/        Public headers and exported interfaces
 ├─ tools/          Registration-free loader source, builds tools.dll
 ├─ swig/           Python SWIG binding files
