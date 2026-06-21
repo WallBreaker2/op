@@ -122,6 +122,7 @@ class LayoutAnchor(IntEnum):
 
 class DisplayMode(str, Enum):
     NORMAL = "normal"
+    NORMAL_AUTO = "normal.auto"
     NORMAL_DXGI = "normal.dxgi"
     NORMAL_WGC = "normal.wgc"
     GDI = "gdi"
@@ -216,7 +217,6 @@ class Strip(IntEnum):
 class Threshold(str, Enum):
     BINARY = "binary"
     BINARY_INV = "binary_inv"
-    INV = "inv"
     OTSU = "otsu"
     OTSU_INV = "otsu_inv"
     ADAPTIVE = "adaptive"
@@ -227,7 +227,6 @@ class ColorSpace(str, Enum):
     BGR = "bgr"
     HSV = "hsv"
     GRAY = "gray"
-    GREY = "grey"
 
 
 class Morphology(str, Enum):
@@ -239,9 +238,7 @@ class Morphology(str, Enum):
 
 class Thin(str, Enum):
     ZHANG_SUEN = "zhang_suen"
-    ZHANGSUEN = "zhangsuen"
     GUO_HALL = "guo_hall"
-    GUOHALL = "guohall"
     MORPH = "morph"
 
 
@@ -250,4 +247,3 @@ class Blur(str, Enum):
     MEDIAN = "median"
     BILATERAL = "bilateral"
     BOX = "box"
-    MEAN = "mean"
