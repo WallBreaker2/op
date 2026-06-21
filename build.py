@@ -37,8 +37,8 @@ GENERATORS = {
 
 BUILD_TYPES = ["Debug", "Release", "RelWithDebInfo"]
 ARCHITECTURES = ["x86", "x64"]
-VCPKG_PACKAGES = ("gtest", "minhook")
-VCPKG_TEST_STATIC_PACKAGES = ("gtest", "minhook")
+VCPKG_PACKAGES = ("directx-headers", "gtest", "minhook")
+VCPKG_TEST_STATIC_PACKAGES = ("directx-headers", "gtest", "minhook")
 OPENCV_REQUIRED_MODULES = (
     "core",
     "imgcodecs",

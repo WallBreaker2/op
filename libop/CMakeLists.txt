@@ -114,12 +114,17 @@ set(OP_INPUT_SOURCES
 
 set(OP_HOOK_SOURCES
   "hook/ApiResolver.cpp"
+  "hook/D3D9Capture.cpp"
+  "hook/D3D10Capture.cpp"
+  "hook/D3D11Capture.cpp"
+  "hook/D3D12Capture.cpp"
   "hook/DisplayHook.cpp"
+  "hook/DxCaptureCommon.cpp"
   "hook/InputHook.cpp"
   "hook/InputHookClient.cpp"
   "hook/HookExport.cpp"
-  "hook/Dx12Hook.cpp"
   "hook/MinHookRuntime.cpp"
+  "hook/OpenGLCapture.cpp"
 )
 
 set(OP_KIERO2_SOURCES
@@ -284,7 +289,6 @@ set(OP_PRIVATE_INCLUDE_DIRS
   "${CMAKE_CURRENT_SOURCE_DIR}/memory"
   "${CMAKE_CURRENT_SOURCE_DIR}/ipc"
   "${CMAKE_CURRENT_SOURCE_DIR}/hook"
-  "${CMAKE_CURRENT_SOURCE_DIR}/hook/vendor"
   "${PROJECT_SOURCE_DIR}/3rd_party/kiero2"
   "${BLACKBONE_INCLUDE_DIR}"
   "${BLACKBONE_INCLUDE_DIR}/3rd_party"
@@ -367,9 +371,13 @@ endif()
 # 的 INTERFACE_INCLUDE_DIRECTORIES / IMPORTED_LOCATION 提供。链到所有编译
 # MinHook 源码(kiero.cpp / InputHook.cpp)的 target,确保 include 目录可达。
 find_package(minhook CONFIG REQUIRED)
+find_package(directx-headers CONFIG REQUIRED)
 target_link_libraries(libop       PRIVATE minhook::minhook)
 target_link_libraries(${op_com}   PRIVATE minhook::minhook)
 target_link_libraries(${op_c_api} PRIVATE minhook::minhook)
+target_link_libraries(libop       PRIVATE Microsoft::DirectX-Headers)
+target_link_libraries(${op_com}   PRIVATE Microsoft::DirectX-Headers)
+target_link_libraries(${op_c_api} PRIVATE Microsoft::DirectX-Headers)
 
 target_link_libraries(libop PRIVATE dwmapi.lib)
 target_link_libraries(${op_com} PRIVATE dwmapi.lib)

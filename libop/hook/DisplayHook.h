@@ -20,6 +20,8 @@ class DisplayHook {
     //
     static int setup(HWND hwnd_, int render_type_);
     static int release();
+    static bool capture_enabled();
+    static void set_capture_enabled(bool enabled);
 };
 // 以下函数用于HOOK DX9
 
