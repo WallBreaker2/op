@@ -184,7 +184,7 @@ TEST_F(OcrFixture, WordResultParsing) {
 }
 
 TEST(OcrParsing, WordResultParsingHandlesBadInput) {
-    libop op;
+    op::Client op;
     const wchar_t *result = L"12,34-first/56,78-second/";
 
     long word_count = -1;
@@ -294,7 +294,7 @@ TEST_F(OcrFixture, OcrAutoFromGeneratedConsoleLikeBmpContainsExpectedText) {
 }
 
 TEST(OcrDiagnostics, DISABLED_ProgramManagerDmSoftOcrDiagnostics) {
-    libop op;
+    op::Client op;
     long ret = 0;
 
     LONG_PTR hwnd = 0;
@@ -320,7 +320,7 @@ TEST(OcrDiagnostics, DISABLED_ProgramManagerDmSoftOcrDiagnostics) {
 
     wstring dict_info;
     op.GetDict(0, 0, dict_info);
-    cout << "Dict[0]: " << (dict_info.empty() ? "(empty)" : WideToUtf8(dict_info.substr(0, 120))) << endl;
+    cout << "Dictionary[0]: " << (dict_info.empty() ? "(empty)" : WideToUtf8(dict_info.substr(0, 120))) << endl;
 
     wstring ocr;
     op.Ocr(0, 0, 800, 600, L"ffffff-000000", 0.8, ocr);
@@ -352,7 +352,7 @@ TEST(OcrDiagnostics, DISABLED_ProgramManagerDmSoftOcrDiagnostics) {
 }
 
 TEST(OcrDiagnostics, DISABLED_ProgramManagerOpDictOcrDiagnostics) {
-    libop op;
+    op::Client op;
     long ret = 0;
 
     LONG_PTR hwnd = 0;
@@ -377,7 +377,7 @@ TEST(OcrDiagnostics, DISABLED_ProgramManagerOpDictOcrDiagnostics) {
     for (long i = 0; i < dict_count; ++i) {
         wstring dict_info;
         op.GetDict(0, i, dict_info);
-        cout << "Dict[" << i << "]: " << (dict_info.empty() ? "(empty)" : WideToUtf8(dict_info.substr(0, 120))) << endl;
+        cout << "Dictionary[" << i << "]: " << (dict_info.empty() ? "(empty)" : WideToUtf8(dict_info.substr(0, 120))) << endl;
     }
 
     wstring ocr;

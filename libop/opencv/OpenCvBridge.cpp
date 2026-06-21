@@ -1,6 +1,6 @@
 #include "OpenCvBridge.h"
 
-#include "../core/helpfunc.h"
+#include "../runtime/RuntimeUtils.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -132,8 +132,8 @@ bool ParseScaleList(const wchar_t *text, std::vector<double> &scales) {
 }
 
 bool CaptureRegion(
-    opBackground &background,
-    ImageProc &image_proc,
+    op::binding::BindingSession &binding_session,
+    op::image::ImageSearchService &image_proc,
     long x,
     long y,
     long width,
@@ -155,10 +155,10 @@ bool CaptureRegion(
     long y1 = y;
     long x2 = x + width;
     long y2 = y + height;
-    if (!background.check_bind() || !background.RectConvert(x1, y1, x2, y2)) {
+    if (!binding_session.check_bind() || !binding_session.RectConvert(x1, y1, x2, y2)) {
         return false;
     }
-    if (!background.requestCapture(x1, y1, x2 - x1, y2 - y1, image_proc._src)) {
+    if (!binding_session.requestCapture(x1, y1, x2 - x1, y2 - y1, image_proc._src)) {
         setlog("error requestCapture");
         return false;
     }

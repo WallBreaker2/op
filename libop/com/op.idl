@@ -1,4 +1,4 @@
-﻿// op.idl: op 的 IDL 源
+// op.idl: op 的 IDL 源
 //
 
 // 此文件将由 MIDL 工具处理以
@@ -25,12 +25,12 @@ import "ocidl.idl";
 
 [
 	object,
-	uuid(51e59a6f-85f4-4da0-a01e-c9b6b3b8b8a7),
+	uuid(85f31925-b7ce-4e26-918e-082893bde6ff),
 	dual,
 	nonextensible,
 	pointer_default(unique)
 ]
-interface IOpInterface : IDispatch
+interface IOpAutomation : IDispatch
 {
 	//base config 1-19
 	[id(1)] HRESULT Ver([out, retval] BSTR* ret);
@@ -44,6 +44,7 @@ interface IOpInterface : IDispatch
 	[id(9)] HRESULT InjectDll([in] BSTR process_name, [in] BSTR dll_name, [out, retval] LONG* ret);
 	[id(10)] HRESULT EnablePicCache([in] LONG enable, [out, retval] LONG* ret);
 	[id(11)] HRESULT CapturePre([in]BSTR file_name, [out, retval] LONG* ret);
+	[id(12)] HRESULT SetScreenDataMode([in] LONG mode, [out, retval] LONG* ret);
 	//algorithm 20-49
 	[id(20)] HRESULT AStarFindPath([in] LONG mapWidth, [in] LONG mapHeight, [in] BSTR disable_points, [in] LONG beginX, [in] LONG beginY, [in] LONG endX, [in] LONG endY, [out, retval] BSTR* path);
 	[id(21)] HRESULT FindNearestPos([in] BSTR all_pos, [in] LONG type, [in] LONG x, [in] LONG y, [out, retval] BSTR* retstr);
@@ -154,6 +155,7 @@ interface IOpInterface : IDispatch
 	[id(177)] HRESULT KeyPressStr([in]BSTR key_str,[in]LONG delay,[out, retval] LONG* ret);
 	[id(178)] HRESULT GetColorNum([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out, retval]LONG* ret);
 	[id(179)] HRESULT GetPicSize([in] BSTR pic_name, [out] VARIANT* width, [out] VARIANT* height, [out, retval] LONG* ret);
+	[id(180)] HRESULT GetScreenFrameInfo([out] LONG* frame_id, [out] LONG* time);
 	
 	//ocr 200-230
 	[id(200)] HRESULT SetDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);
@@ -233,7 +235,7 @@ interface IOpInterface : IDispatch
 
 };
 [
-	uuid(66b9c175-82f2-45e9-af86-58ad5ded5adc),
+	uuid(40297cce-e4de-4d31-acfb-81bb8d14d261),
 	version(1.0),
 	custom(a817e7a1-43fa-11d0-9e44-00aa00b6770a, "{54ca0535-fb49-4d91-8709-786fb8725132}")
 ]
@@ -248,11 +250,11 @@ library opLib
 		[default] interface IComponentRegistrar;
 	};*/
 	[
-		uuid(12bec402-a06e-4fad-a7d4-830f967374c6)
+		uuid(6d0fe2a0-f265-4961-9f92-ec22b64fb80c)
 	]
-	coclass OpInterface
+	coclass OpAutomation
 	{
-		[default] interface IOpInterface;
+		[default] interface IOpAutomation;
 	};
 };
 

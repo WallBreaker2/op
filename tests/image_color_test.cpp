@@ -8,6 +8,7 @@
 #include <vector>
 
 using namespace std;
+using namespace op;
 using test_support::BuildBmp32TopDown;
 using test_support::PtrToWString;
 
@@ -76,13 +77,13 @@ void PaintGameBackground(vector<uchar> &pixels, int width, int height) {
     }
 }
 
-void SetMemBmp(libop &op, int width, int height, const vector<uchar> &pixels, long &ret) {
+void SetMemBmp(op::Client &op, int width, int height, const vector<uchar> &pixels, long &ret) {
     auto bmp = BuildBmp32TopDown(width, height, pixels);
     wstring mode = L"mem:" + PtrToWString(bmp.data());
     op.SetDisplayInput(mode.c_str(), &ret);
 }
 
-void UseSingleWordDict(libop &op, int width, int height, const wchar_t *color, const wchar_t *word, long &ret) {
+void UseSingleWordDict(op::Client &op, int width, int height, const wchar_t *color, const wchar_t *word, long &ret) {
     wstring dict_entry;
     op.FetchWord(0, 0, width, height, color, word, dict_entry);
     ASSERT_FALSE(dict_entry.empty());
@@ -96,7 +97,7 @@ void UseSingleWordDict(libop &op, int width, int height, const wchar_t *color, c
 } // namespace
 
 TEST(ImageColorTest, GetColor) {
-    libop op;
+    op::Client op;
     wstring color;
     op.GetColor(10, 10, color);
     wcout << L"Color at (10,10): " << color << endl;
@@ -104,7 +105,7 @@ TEST(ImageColorTest, GetColor) {
 }
 
 TEST(ImageColorTest, CmpColor) {
-    libop op;
+    op::Client op;
     wstring color;
     op.GetColor(10, 10, color);
     ASSERT_EQ(color.length(), 6u);
@@ -115,7 +116,7 @@ TEST(ImageColorTest, CmpColor) {
 }
 
 TEST(ImageColorTest, CmpColorUsesSimilarityAndExplicitDelta) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 32;
     const int height = 32;
@@ -145,7 +146,7 @@ TEST(ImageColorTest, CmpColorUsesSimilarityAndExplicitDelta) {
 }
 
 TEST(ImageColorTest, FindStrIgnoresEmptyAlternatives) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -169,7 +170,7 @@ TEST(ImageColorTest, FindStrIgnoresEmptyAlternatives) {
 }
 
 TEST(ImageColorTest, FindStrMapsMatchesInsideMultiCharacterDictWords) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -193,7 +194,7 @@ TEST(ImageColorTest, FindStrMapsMatchesInsideMultiCharacterDictWords) {
 }
 
 TEST(ImageColorTest, FindColor) {
-    libop op;
+    op::Client op;
     wstring color;
     op.GetColor(10, 10, color);
     ASSERT_EQ(color.length(), 6u);
@@ -204,7 +205,7 @@ TEST(ImageColorTest, FindColor) {
 }
 
 TEST(ImageColorTest, FindColorUsesSimilarity) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 16;
     const int height = 16;
@@ -243,7 +244,7 @@ TEST(ImageColorTest, FindColorUsesSimilarity) {
 }
 
 TEST(ImageColorTest, FindColorHonorsAllDirections) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -291,7 +292,7 @@ TEST(ImageColorTest, FindColorHonorsAllDirections) {
 }
 
 TEST(ImageColorTest, FindMultiColorHonorsAllDirections) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -343,7 +344,7 @@ TEST(ImageColorTest, FindMultiColorHonorsAllDirections) {
 }
 
 TEST(ImageColorTest, FindPicHonorsDirection) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 32;
     const int height = 32;
@@ -435,7 +436,7 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
 }
 
 TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 16;
     const int height = 16;
@@ -480,7 +481,7 @@ TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
 }
 
 TEST(ImageColorTest, FetchWordUsesProvidedWordName) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -523,7 +524,7 @@ TEST(ImageColorTest, FetchWordUsesProvidedWordName) {
 }
 
 TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -541,7 +542,7 @@ TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
 }
 
 TEST(ImageColorTest, AddDictSupportsDmPointTextFormat) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 14;
@@ -578,7 +579,7 @@ TEST(ImageColorTest, SetDictDoesNotImportOpTextDictFiles) {
         file << "A$4,3,8$5E0E\n";
     }
 
-    libop op;
+    op::Client op;
     long ret = 0;
     op.SetDict(0, path.c_str(), &ret);
     EXPECT_EQ(ret, 0);
@@ -599,7 +600,7 @@ TEST(ImageColorTest, SetDictSupportsDmTextDictFiles) {
         file << "1E0500780$A$0.0.10$11\n";
     }
 
-    libop op;
+    op::Client op;
     long ret = 0;
     op.SetDict(0, path.c_str(), &ret);
     EXPECT_EQ(ret, 1);
@@ -617,7 +618,7 @@ TEST(ImageColorTest, SetDictSupportsDmTextDictFiles) {
 }
 
 TEST(ImageColorTest, SetMemDictSupportsDmPointTextFormat) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 14;
@@ -646,7 +647,7 @@ TEST(ImageColorTest, SetMemDictSupportsDmPointTextFormat) {
 }
 
 TEST(ImageColorTest, SetMemDictSupportsOpTextEntryFormat) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -671,7 +672,7 @@ TEST(ImageColorTest, SetMemDictSupportsOpTextEntryFormat) {
 }
 
 TEST(ImageColorTest, AddDictRejectsInvalidOpTextEntry) {
-    libop op;
+    op::Client op;
     long ret = 0;
 
     op.ClearDict(0, &ret);
@@ -695,7 +696,7 @@ TEST(ImageColorTest, AddDictRejectsInvalidOpTextEntry) {
 }
 
 TEST(ImageColorTest, SetMemDictRejectsInvalidOpTextEntry) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const char *op_text = "A$4,3,8$5E\n";
 
@@ -708,7 +709,7 @@ TEST(ImageColorTest, SetMemDictRejectsInvalidOpTextEntry) {
 }
 
 TEST(ImageColorTest, AddDictSupportsProvidedOpTextEntryFormats) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const wchar_t *ci = L"此$13,15,107$0010FFE37F00F4FFFE1F048320FFEFFFFF7F188801193C8307";
     const wchar_t *diannao =
@@ -734,7 +735,7 @@ TEST(ImageColorTest, AddDictSupportsProvidedOpTextEntryFormats) {
 }
 
 TEST(ImageColorTest, AddDictSupportsProvidedDmMultiCharFormat) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const wchar_t *legacy = L"1FE000007FF08010420840FFE08020080206000001FF24448891122FFE48891122244488FF001000003FFC488"
                             L"91FFC0013F2844928E33C2CC4089F900$"
@@ -756,7 +757,7 @@ TEST(ImageColorTest, AddDictSupportsProvidedDmMultiCharFormat) {
 }
 
 TEST(ImageColorTest, AddDictSupportsProvidedDmFeishuFormat) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const wchar_t *dm = L"80100200400801002007F80CE1404810840801C0000811022044088111FFC440881102237420F21C$"
                         L"飞书$0.0.88$13";
@@ -806,7 +807,7 @@ TEST(ImageColorTest, AddDictSupportsProvidedDmTextFormats) {
     };
 
     for (const auto &item : cases) {
-        libop op;
+        op::Client op;
         long ret = 0;
 
         op.ClearDict(0, &ret);
@@ -826,7 +827,7 @@ TEST(ImageColorTest, AddDictSupportsProvidedDmTextFormats) {
 }
 
 TEST(ImageColorTest, FindStrUsesChannelColorToleranceForBinaryText) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -878,7 +879,7 @@ TEST(ImageColorTest, FindStrUsesChannelColorToleranceForBinaryText) {
 }
 
 TEST(ImageColorTest, FindStrKeepsAntialiasedTextWithinTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -912,7 +913,7 @@ TEST(ImageColorTest, FindStrKeepsAntialiasedTextWithinTolerance) {
 }
 
 TEST(ImageColorTest, FindStrSupportsColoredTextWithChannelTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -947,7 +948,7 @@ TEST(ImageColorTest, FindStrSupportsColoredTextWithChannelTolerance) {
 }
 
 TEST(ImageColorTest, FindStrSupportsMultipleForegroundColors) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -992,7 +993,7 @@ TEST(ImageColorTest, FindStrSupportsMultipleForegroundColors) {
 }
 
 TEST(ImageColorTest, LocalOcrApisUseBinaryColorTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 16;
     const int height = 8;
@@ -1030,7 +1031,7 @@ TEST(ImageColorTest, LocalOcrApisUseBinaryColorTolerance) {
 }
 
 TEST(ImageColorTest, PointTextUsesSimilarityAsImplicitColorTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 16;
     const int height = 8;
@@ -1080,7 +1081,7 @@ TEST(ImageColorTest, PointTextUsesSimilarityAsImplicitColorTolerance) {
 }
 
 TEST(ImageColorTest, PointTextExplicitZeroDeltaOverridesSimilarityTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -1114,7 +1115,7 @@ TEST(ImageColorTest, PointTextExplicitZeroDeltaOverridesSimilarityTolerance) {
 }
 
 TEST(ImageColorTest, FetchWordTreatsMultipleBackgroundColorsAsBackground) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -1135,7 +1136,7 @@ TEST(ImageColorTest, FetchWordTreatsMultipleBackgroundColorsAsBackground) {
 }
 
 TEST(ImageColorTest, FindStrSupportsAutoBackgroundBinarization) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;
@@ -1169,7 +1170,7 @@ TEST(ImageColorTest, FindStrSupportsAutoBackgroundBinarization) {
 }
 
 TEST(ImageColorTest, GameHudFindsBrightTextOnDynamicBackground) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 8;
     const int dict_height = 8;
@@ -1196,7 +1197,7 @@ TEST(ImageColorTest, GameHudFindsBrightTextOnDynamicBackground) {
 }
 
 TEST(ImageColorTest, GameHudFindsOutlinedTextWithMultipleForegroundColors) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 10;
     const int dict_height = 10;
@@ -1224,7 +1225,7 @@ TEST(ImageColorTest, GameHudFindsOutlinedTextWithMultipleForegroundColors) {
 }
 
 TEST(ImageColorTest, GameHudIgnoresGlowAroundText) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 8;
     const int dict_height = 8;
@@ -1252,7 +1253,7 @@ TEST(ImageColorTest, GameHudIgnoresGlowAroundText) {
 }
 
 TEST(ImageColorTest, GameHudFindsGradientDamageTextWithinTolerance) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 8;
     const int dict_height = 8;
@@ -1288,7 +1289,7 @@ TEST(ImageColorTest, GameHudFindsGradientDamageTextWithinTolerance) {
 }
 
 TEST(ImageColorTest, GameHudFindsScaledUiTextWhenDictionaryMatchesScale) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 14;
     const int dict_height = 14;
@@ -1316,7 +1317,7 @@ TEST(ImageColorTest, GameHudFindsScaledUiTextWhenDictionaryMatchesScale) {
 }
 
 TEST(ImageColorTest, GameHudScaleMismatchDoesNotMatchUnscaledDictionary) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 8;
     const int dict_height = 8;
@@ -1344,7 +1345,7 @@ TEST(ImageColorTest, GameHudScaleMismatchDoesNotMatchUnscaledDictionary) {
 }
 
 TEST(ImageColorTest, GameHudBackgroundModeSupportsTwoTonePanels) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int dict_width = 12;
     const int dict_height = 10;
@@ -1381,7 +1382,7 @@ TEST(ImageColorTest, GameHudBackgroundModeSupportsTwoTonePanels) {
 }
 
 TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 32;
     const int height = 32;
@@ -1407,7 +1408,7 @@ TEST(ImageColorTest, SetDisplayInputMemBmpPointer) {
 }
 
 TEST(ImageColorTest, SetDisplayInputMemRawBgr) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 32;
     const int height = 32;
@@ -1431,7 +1432,7 @@ TEST(ImageColorTest, SetDisplayInputMemRawBgr) {
 }
 
 TEST(ImageColorTest, SetDisplayInputMemRawHexPointer) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 32;
     const int height = 32;
@@ -1455,7 +1456,7 @@ TEST(ImageColorTest, SetDisplayInputMemRawHexPointer) {
     EXPECT_EQ(color, L"332211");
 }
 TEST(ImageColorTest, SetDisplayInputMemBareRawPointerFailsWithoutChangingCurrentInput) {
-    libop op;
+    op::Client op;
     long ret = 0;
     const int width = 8;
     const int height = 8;

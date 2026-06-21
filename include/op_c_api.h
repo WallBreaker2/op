@@ -110,7 +110,6 @@ OP_C_API int OP_CALL OpBindWindow(op_handle handle, intptr_t hwnd, const wchar_t
 OP_C_API int OP_CALL OpBindWindowEx(op_handle handle, intptr_t display_hwnd, intptr_t input_hwnd,
                                     const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, int mode);
 OP_C_API int OP_CALL OpUnBindWindow(op_handle handle);
-OP_C_API int OP_CALL OpUnbindWindow(op_handle handle);
 OP_C_API intptr_t OP_CALL OpGetBindWindow(op_handle handle);
 OP_C_API int OP_CALL OpIsBind(op_handle handle);
 
@@ -246,6 +245,12 @@ OP_C_API const wchar_t *OP_CALL OpCvShapeMatchTemplate(op_handle handle, int x, 
 // OCR
 OP_C_API int OP_CALL OpSetOcrEngine(op_handle handle, const wchar_t *path_of_engine, const wchar_t *dll_name,
                                     const wchar_t *argv);
+OP_C_API int OP_CALL OpSetYoloEngine(op_handle handle, const wchar_t *path_of_engine, const wchar_t *dll_name,
+                                     const wchar_t *argv);
+OP_C_API const wchar_t *OP_CALL OpYoloDetect(op_handle handle, int x1, int y1, int x2, int y2, double conf,
+                                             double iou);
+OP_C_API const wchar_t *OP_CALL OpYoloDetectFromFile(op_handle handle, const wchar_t *file_name, double conf,
+                                                     double iou);
 OP_C_API int OP_CALL OpSetDict(op_handle handle, int idx, const wchar_t *file_name);
 OP_C_API const wchar_t *OP_CALL OpGetDict(op_handle handle, int idx, int font_index);
 OP_C_API int OP_CALL OpSetMemDict(op_handle handle, int idx, const wchar_t *data, int size);

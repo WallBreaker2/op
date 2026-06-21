@@ -1,0 +1,45 @@
+# .clang-tidy — 收窄范围的静态检查,配合已有的 clang-format(v16)+ pre-commit。
+# 目标:守住重构成果(命名空间统一、现代 C++ 用法),又不对存量代码刷海量告警。
+#
+# 怎么用:
+#   - 编辑器(clangd):自动读取本文件,打开源码即生效,无需额外步骤(推荐)。
+#   - 命令行:需要 compile_commands.json。VS 生成器不产出它,改用 Ninja 生成一次:
+#       python build.py -g ninja            # 在 build/ninja-* 下产出 compile_commands.json
+#       clang-tidy -p build/<builddir> libop/<file>.cpp
+#   - 一次性把存量 NULL 改成 nullptr(安全、可自动修复,清掉 modernize-use-nullptr 告警):
+#       clang-tidy -p build/<builddir> --fix --checks='-*,modernize-use-nullptr' libop/**/*.cpp
+#
+# 全部为 warning,不阻断构建/提交。命名规范暂以注释记录,等做完一次命名归一再开启增量守护。
+
+Checks: >
+  -*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+  modernize-use-using,
+  misc-unused-using-decls,
+  misc-unused-alias-decls,
+  misc-definitions-in-headers,
+  bugprone-use-after-move,
+  bugprone-macro-parentheses,
+  bugprone-suspicious-string-compare,
+  bugprone-branch-clone,
+  performance-unnecessary-value-param,
+  performance-for-range-copy
+
+WarningsAsErrors: ''
+
+# 只诊断项目自己的头文件,排除系统头与第三方(vendor / 3rd_party / build 下的依赖不在本树内)。
+HeaderFilterRegex: '.*[/\\](libop|include)[/\\].*'
+
+# 执行 --fix 时按项目 .clang-format 排版。
+FormatStyle: file
+
+# —— 命名规范(暂不启用)——
+# 存量 m_ / _ 前缀混用,直接开会刷海量告警。约定:类型/类/结构体 CamelCase,
+# 私有成员统一前缀。等做完一次命名归一后,取消下面注释,启用"增量守护":
+# CheckOptions:
+#   - { key: readability-identifier-naming.ClassCase,           value: CamelCase }
+#   - { key: readability-identifier-naming.StructCase,          value: CamelCase }
+#   - { key: readability-identifier-naming.PrivateMemberPrefix, value: '_' }

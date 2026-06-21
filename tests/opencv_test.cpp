@@ -1,6 +1,6 @@
 #include "test_support.h"
 
-#include "../libop/opencv/OpenCvModule.h"
+#include "../libop/opencv/TemplateMatcher.h"
 
 #include <algorithm>
 #include <array>
@@ -2467,7 +2467,7 @@ TEST(OpenCvTest, FilePreprocessApisWork) {
     const std::wstring pipeline_path = test_support::GetTempBmpPath(L"opencv_preprocess_pipeline.png");
     ASSERT_TRUE(WritePngFile(src_path, writable));
 
-    libop op;
+    op::Client op;
     long ret = 0;
     op.CvToBinary(src_path.c_str(), binary_path.c_str(), &ret);
     EXPECT_EQ(ret, 1);

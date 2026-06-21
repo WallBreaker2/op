@@ -1,0 +1,387 @@
+#include "test_support.h"
+
+#include <chrono>
+#include <cstdlib>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
+#include <windows.h>
+
+using namespace std;
+using test_support::SendStringWindow;
+
+namespace {
+
+vector<pair<int, int>> ParsePath(const wstring &path) {
+    vector<pair<int, int>> points;
+    wstringstream stream(path);
+    wstring token;
+    while (getline(stream, token, L'|')) {
+        int x = 0;
+        int y = 0;
+        if (swscanf_s(token.c_str(), L"%d,%d", &x, &y) == 2) {
+            points.emplace_back(x, y);
+        }
+    }
+    return points;
+}
+
+struct ScopedHandle {
+    HANDLE handle = INVALID_HANDLE_VALUE;
+
+    ~ScopedHandle() {
+        if (handle != INVALID_HANDLE_VALUE) {
+            ::CloseHandle(handle);
+        }
+    }
+};
+
+struct TempCommandFile {
+    wstring dir;
+    wstring script;
+
+    ~TempCommandFile() {
+        if (!script.empty()) {
+            ::DeleteFileW(script.c_str());
+        }
+        if (!dir.empty()) {
+            ::RemoveDirectoryW(dir.c_str());
+        }
+    }
+};
+
+} // namespace
+
+TEST(CoreTest, VersionIsNotEmpty) {
+    op::Client op;
+    wstring ver = op.Ver();
+    EXPECT_FALSE(ver.empty()) << "Version string should not be empty";
+    wcout << L"Version: " << ver << endl;
+}
+
+TEST(CoreTest, GetBasePath) {
+    op::Client op;
+    wstring path;
+    op.GetBasePath(path);
+    wcout << L"Base Path: " << path << endl;
+    // Just verify it doesn't crash; path may be empty in test env
+}
+
+TEST(CoreTest, GetID) {
+    op::Client op;
+    long id = 0;
+    op.GetID(&id);
+    cout << "Object ID: " << id << endl;
+}
+
+// ============================================================
+// 2. Algorithm Module
+// ============================================================
+TEST(AlgorithmTest, AStarFindPath) {
+    op::Client op;
+    wstring path;
+    op.AStarFindPath(100, 100, L"50,50", 0, 0, 99, 99, path);
+
+    const auto points = ParsePath(path);
+    ASSERT_FALSE(points.empty());
+    EXPECT_EQ(points.front(), make_pair(0, 0));
+    EXPECT_EQ(points.back(), make_pair(99, 99));
+
+    for (size_t i = 1; i < points.size(); ++i) {
+        const int dx = std::abs(points[i].first - points[i - 1].first);
+        const int dy = std::abs(points[i].second - points[i - 1].second);
+        EXPECT_LE(dx, 1);
+        EXPECT_LE(dy, 1);
+        EXPECT_GT(dx + dy, 0);
+    }
+
+    EXPECT_EQ(find(points.begin(), points.end(), make_pair(50, 50)), points.end());
+}
+
+TEST(AlgorithmTest, AStarRejectsOutOfBoundsTarget) {
+    op::Client op;
+    wstring path;
+    op.AStarFindPath(3, 3, L"", 0, 0, 3, 2, path);
+    EXPECT_TRUE(path.empty());
+}
+
+TEST(AlgorithmTest, FindNearestPos) {
+    op::Client op;
+    wstring pos;
+    op.FindNearestPos(L"10,10|20,20|30,30", 1, 15, 15, pos);
+    wcout << L"Nearest Pos to (15,15): " << pos << endl;
+    EXPECT_TRUE(pos == L"10,10" || pos == L"20,20") << "Unexpected nearest position";
+}
+
+// ============================================================
+// 3. WindowService Module
+// ============================================================
+TEST(WindowServiceTest, GetForegroundWindow) {
+    op::Client op;
+    LONG_PTR hwnd = 0;
+    op.GetForegroundWindow(&hwnd);
+    cout << "Foreground Window: " << hex << hwnd << dec << endl;
+}
+
+TEST(WindowServiceTest, ClientToScreenDesktopOriginIsStable) {
+    op::Client op;
+    const LONG_PTR hwnd = reinterpret_cast<LONG_PTR>(::GetDesktopWindow());
+    long x = 10;
+    long y = 20;
+    long ret = 0;
+
+    op.ClientToScreen(hwnd, &x, &y, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 10);
+    EXPECT_EQ(y, 20);
+}
+
+TEST(WindowServiceTest, GetWindowTitleAndRect) {
+    op::Client op;
+    LONG_PTR hwnd = 0;
+    op.GetForegroundWindow(&hwnd);
+    if (hwnd) {
+        wstring title;
+        op.GetWindowTitle(hwnd, title);
+        wcout << L"Title: " << title << endl;
+
+        long x1, y1, x2, y2, ret;
+        op.GetWindowRect(hwnd, &x1, &y1, &x2, &y2, &ret);
+        cout << "Rect: (" << x1 << "," << y1 << ") - (" << x2 << "," << y2 << ")" << endl;
+    }
+}
+
+TEST(WindowServiceTest, EnumWindow) {
+    op::Client op;
+    wstring list;
+    op.EnumWindow(0, L"", L"", 1 + 2, list);
+    wcout << L"EnumWindow (top 50 chars): " << list.substr(0, 50) << L"..." << endl;
+}
+
+TEST(WindowServiceTest, GetCmdStrEcho) {
+    op::Client op;
+    wstring out;
+    op.GetCmdStr(L"cmd /c echo op_test_ok", 2000, out);
+    EXPECT_NE(out.find(L"op_test_ok"), wstring::npos) << "GetCmdStr should return command output";
+}
+
+TEST(WindowServiceTest, GetCmdStrLongCommandLine) {
+    op::Client op;
+    wstring payload(400, L'a');
+    wstring cmd = L"cmd /c echo " + payload;
+    wstring out;
+    op.GetCmdStr(cmd.c_str(), 2000, out);
+    EXPECT_NE(out.find(payload.substr(0, 64)), wstring::npos) << "Long command line should not truncate or hang";
+}
+
+TEST(WindowServiceTest, GetCmdStrStartsUnicodeCommandLine) {
+    wchar_t temp_path[MAX_PATH] = {};
+    ASSERT_GT(::GetTempPathW(MAX_PATH, temp_path), 0u);
+
+    TempCommandFile temp;
+    temp.dir = wstring(temp_path) + L"op_cmd_unicode_\u0100_" + to_wstring(::GetCurrentProcessId());
+    temp.script = temp.dir + L"\\run.cmd";
+
+    ASSERT_NE(::CreateDirectoryW(temp.dir.c_str(), nullptr), 0) << ::GetLastError();
+
+    {
+        ScopedHandle file{::CreateFileW(temp.script.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                        FILE_ATTRIBUTE_NORMAL, nullptr)};
+        ASSERT_NE(file.handle, INVALID_HANDLE_VALUE) << ::GetLastError();
+
+        const char body[] = "@echo off\r\necho unicode_cmd_ok\r\n";
+        DWORD written = 0;
+        ASSERT_NE(::WriteFile(file.handle, body, static_cast<DWORD>(sizeof(body) - 1), &written, nullptr), 0)
+            << ::GetLastError();
+        EXPECT_EQ(written, sizeof(body) - 1);
+    }
+
+    op::Client op;
+    wstring out;
+    const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
+    op.GetCmdStr(cmd.c_str(), 3000, out);
+    EXPECT_NE(out.find(L"unicode_cmd_ok"), wstring::npos) << out;
+}
+
+TEST(WindowServiceTest, GetCmdStrReturnsPartialOutputOnTimeout) {
+    if (!test_support::GetEnvString(L"GITHUB_ACTIONS").empty()) {
+        GTEST_SKIP() << "Skip flaky timeout command test on GitHub Actions";
+    }
+
+    wchar_t temp_path[MAX_PATH] = {};
+    ASSERT_GT(::GetTempPathW(MAX_PATH, temp_path), 0u);
+
+    TempCommandFile temp;
+    temp.dir = wstring(temp_path) + L"op_cmd_timeout_" + to_wstring(::GetCurrentProcessId());
+    temp.script = temp.dir + L"\\run.cmd";
+
+    ASSERT_NE(::CreateDirectoryW(temp.dir.c_str(), nullptr), 0) << ::GetLastError();
+
+    {
+        ScopedHandle file{::CreateFileW(temp.script.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                        FILE_ATTRIBUTE_NORMAL, nullptr)};
+        ASSERT_NE(file.handle, INVALID_HANDLE_VALUE) << ::GetLastError();
+
+        const char body[] =
+            "@echo off\r\n"
+            "echo before\r\n"
+            "%SystemRoot%\\System32\\ping.exe -n 6 127.0.0.1 > nul\r\n"
+            "echo after\r\n";
+        DWORD written = 0;
+        ASSERT_NE(::WriteFile(file.handle, body, static_cast<DWORD>(sizeof(body) - 1), &written, nullptr), 0)
+            << ::GetLastError();
+        EXPECT_EQ(written, sizeof(body) - 1);
+    }
+
+    op::Client op;
+    wstring out;
+    const auto start = std::chrono::steady_clock::now();
+    const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
+    op.GetCmdStr(cmd.c_str(), 1500, out);
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+
+    EXPECT_NE(out.find(L"before"), wstring::npos) << "Expected early output before timeout";
+    EXPECT_EQ(out.find(L"after"), wstring::npos) << "Timed out command should not wait for trailing output";
+    EXPECT_LT(elapsed.count(), 4000) << "GetCmdStr should return promptly after timeout";
+}
+
+TEST(WindowServiceTest, RunAppReturnsPid) {
+    op::Client op;
+    unsigned long pid = 0;
+    long ret = 0;
+
+    op.RunApp(L"notepad.exe", 0, &pid, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_NE(pid, 0u);
+
+    // 测试结束后主动关闭进程，避免残留。
+    HANDLE process = ::OpenProcess(PROCESS_TERMINATE, FALSE, pid);
+    ASSERT_TRUE(process != nullptr);
+    EXPECT_NE(::TerminateProcess(process, 0), 0);
+    ::CloseHandle(process);
+}
+
+TEST(WindowServiceTest, GetCmdStrHandlesLargeOutputWithoutHanging) {
+    op::Client op;
+    wstring out;
+    op.GetCmdStr(L"cmd /c for /L %i in (1,1,256) do @echo 0123456789abcdefghijklmnopqrstuvwxyz", 2000, out);
+    EXPECT_NE(out.find(L"0123456789abcdefghijklmnopqrstuvwxyz"), wstring::npos);
+    EXPECT_GT(out.size(), 1024u) << "Expected a sizable chunk of output from the loop command";
+}
+
+TEST(WindowServiceTest, SendStringToFocusedChildEdit) {
+    op::Client op;
+    SendStringWindow wnd;
+    ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
+
+    long ret = 0;
+    op.SendString((long)(intptr_t)wnd.parent, L"abc123", &ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_EQ(wnd.GetEditText(), L"abc123");
+}
+
+TEST(WindowServiceTest, SendStringImeToFocusedChildEdit) {
+    op::Client op;
+    SendStringWindow wnd;
+    ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
+
+    long ret = 0;
+    op.SendStringIme((long)(intptr_t)wnd.parent, L"中文A", &ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_EQ(wnd.GetEditText(), L"中文A");
+}
+
+TEST(IntegrationTest, BindUnbindFurMarkIfPresent) {
+    op::Client op;
+    const wchar_t *capture_file = L"D:\\code\\op\\build\\furmark_bound_capture.bmp";
+
+    auto parse_hwnds = [&](const wstring &list) -> vector<long> {
+        vector<long> hwnds;
+        wstringstream ss(list);
+        wstring token;
+        while (getline(ss, token, L',')) {
+            if (token.empty())
+                continue;
+            try {
+                hwnds.push_back(stol(token));
+            } catch (...) {
+            }
+        }
+        return hwnds;
+    };
+
+    auto pick_best_furmark_hwnd = [&]() -> long {
+        wstring list;
+        op.EnumWindowByProcess(L"FurMark_GUI.exe", L"", L"", 8 + 16 + 32, list);
+        auto hwnds = parse_hwnds(list);
+        long best_hwnd = 0;
+        long best_area = -1;
+        for (long h : hwnds) {
+            long w = 0, hgt = 0, ok = 0;
+            op.GetClientSize(h, &w, &hgt, &ok);
+            if (ok != 1 || w <= 0 || hgt <= 0)
+                continue;
+
+            wstring title;
+            wstring cls;
+            op.GetWindowTitle(h, title);
+            op.GetWindowClass(h, cls);
+
+            bool looks_like_launcher = (cls.find(L"WindowsForms10") != wstring::npos);
+            if (looks_like_launcher)
+                continue;
+
+            long area = w * hgt;
+            if (area > best_area) {
+                best_area = area;
+                best_hwnd = h;
+            }
+        }
+        return best_hwnd;
+    };
+
+    long hwnd = pick_best_furmark_hwnd();
+    if (hwnd == 0) {
+        GTEST_SKIP() << "FurMark render window not found";
+    }
+
+    const vector<wstring> displays = {L"opengl", L"normal", L"dx"};
+    bool any_bind_ok = false;
+    bool captured = false;
+    for (const auto &display : displays) {
+        for (int i = 0; i < 3; ++i) {
+            long ret = 0;
+            op.BindWindow(hwnd, display.c_str(), L"windows", L"windows", 0, &ret);
+            if (ret == 1) {
+                any_bind_ok = true;
+                wstring color;
+                op.GetColor(10, 10, color);
+                EXPECT_EQ(color.length(), 6u) << "GetColor should return 6 hex chars when bound";
+
+                if (!captured) {
+                    long width = 0, height = 0, size_ret = 0;
+                    op.GetClientSize(hwnd, &width, &height, &size_ret);
+                    ASSERT_EQ(size_ret, 1);
+                    ASSERT_GT(width, 0);
+                    ASSERT_GT(height, 0);
+                    long cap_ret = 0;
+                    op.Capture(0, 0, width, height, capture_file, &cap_ret);
+                    EXPECT_EQ(cap_ret, 1) << "Capture should succeed after FurMark bind";
+                    captured = (cap_ret == 1);
+                }
+            }
+            long unbind_ret = 0;
+            op.UnBindWindow(&unbind_ret);
+            EXPECT_EQ(unbind_ret, 1);
+        }
+    }
+
+    EXPECT_TRUE(any_bind_ok) << "No bind mode succeeded for the detected FurMark window";
+    EXPECT_TRUE(captured) << "No screenshot captured from bound FurMark window";
+}

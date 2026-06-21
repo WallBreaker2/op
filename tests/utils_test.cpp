@@ -1,6 +1,6 @@
 #include "test_support.h"
 
-#include "../libop/imageProc/compute/ThreadPool.h"
+#include "../libop/runtime/ThreadPool.h"
 
 #include <vector>
 
@@ -13,8 +13,8 @@ TEST(UtilsTest, ThreadPool) {
 }
 
 TEST(UtilsTest, RectDivideBlock) {
-    rect_t rc(0, 0, 100, 100);
-    vector<rect_t> blocks;
+    op::rect_t rc(0, 0, 100, 100);
+    vector<op::rect_t> blocks;
     rc.divideBlock(2, false, blocks);
     EXPECT_EQ(blocks.size(), 2u);
 }

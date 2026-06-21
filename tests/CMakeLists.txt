@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
 
-ADD_DEFINITIONS(-D _UNICODE)
-ADD_DEFINITIONS(-D UNICODE)
-ADD_DEFINITIONS(-D _CMAKE_BUILD)
-
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(OP_GTEST_STATIC_TRIPLET "x64-windows-static")
 else()
@@ -70,8 +66,8 @@ function(_op_find_static_lib _op_out_var _op_lib_dir _op_lib_name)
   set(${_op_out_var} "" PARENT_SCOPE)
 endfunction()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/OpenCvModule.h"
-   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/OpenCvModule.cpp")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/TemplateMatcher.h"
+   AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/TemplateMatcher.cpp")
   set(_op_opencv_root "")
   if(DEFINED OPENCV_ROOT)
     set(_op_opencv_root "${OPENCV_ROOT}")
@@ -127,87 +123,109 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../libop/opencv/OpenCvModule.h"
   endif()
 endif()
 
-set(SRC_FILES
+set(OP_TEST_SOURCES
   "main.cpp"
   "test_support.cpp"
   "handle_compat_test.cpp"
-  "core_algorithm_winapi_test.cpp"
+  "core_algorithm_windows_test.cpp"
   "mouse_keyboard_test.cpp"
   "image_color_test.cpp"
   "wgc_test.cpp"
   "ocr_test.cpp"
   "yolo_test.cpp"
   "utils_test.cpp"
-  "../libop/core/window_layout.cpp"
-  "../libop/background/mouse/CursorShape.cpp"
-  "../libop/com/op_i.c"
+  "../libop/window/WindowLayout.cpp"
+  "../libop/input/mouse/CursorShape.cpp"
+  "${OP_COM_I_C}"
 )
+set_source_files_properties("${OP_COM_I_C}" PROPERTIES GENERATED TRUE)
 
 if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv_test.cpp")
-  list(APPEND SRC_FILES
+  list(APPEND OP_TEST_SOURCES
     "opencv_test.cpp"
     "../libop/opencv/OpenCvHelpers.cpp"
-    "../libop/opencv/OpenCvModule.cpp"
+    "../libop/opencv/TemplateMatcher.cpp"
   )
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/keypad/edit_control_keypad_test.cpp")
-  list(APPEND SRC_FILES "keypad/edit_control_keypad_test.cpp")
+  list(APPEND OP_TEST_SOURCES "keypad/edit_control_keypad_test.cpp")
 endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/keypad/keypad_message_test.cpp")
-  list(APPEND SRC_FILES "keypad/keypad_message_test.cpp")
+  list(APPEND OP_TEST_SOURCES "keypad/keypad_message_test.cpp")
 endif()
 
-include_directories( 
-  ./
-  ../libop/3rd_party/include/3rd_party
-) 
+add_executable(op_test)
+target_sources(op_test PRIVATE ${OP_TEST_SOURCES})
+target_compile_definitions(op_test PRIVATE _UNICODE UNICODE _CMAKE_BUILD)
+if(DEFINED OP_ARCH_DEFINITION AND NOT OP_ARCH_DEFINITION STREQUAL "")
+  target_compile_definitions(op_test PRIVATE "${OP_ARCH_DEFINITION}")
+endif()
+if(enable_wgc)
+  target_compile_definitions(op_test PRIVATE OP_ENABLE_WGC)
+endif()
 
-add_executable(op_test ${SRC_FILES})
-
+target_include_directories(op_test PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+  "${PROJECT_SOURCE_DIR}/include"
+  "${PROJECT_SOURCE_DIR}/libop"
+  "${PROJECT_SOURCE_DIR}/libop/runtime"
+  "${PROJECT_SOURCE_DIR}/libop/window"
+  "${PROJECT_SOURCE_DIR}/libop/image"
+  "${PROJECT_SOURCE_DIR}/libop/ocr"
+  "${PROJECT_SOURCE_DIR}/libop/opencv"
+  "${OP_COM_GENERATED_DIR}"
+  "${BLACKBONE_INCLUDE_DIR}"
+  "${BLACKBONE_INCLUDE_DIR}/3rd_party"
+)
 if(OP_GTEST_INCLUDE_DIR)
   target_include_directories(op_test PRIVATE "${OP_GTEST_INCLUDE_DIR}")
 endif()
 
-# 测试程序自带 main，只链接 gtest 本体。
-target_link_libraries(op_test ${op_com} ${OP_GTEST_LINK_LIBS})
-target_link_libraries(op_test dinput8.lib dxguid.lib)
+target_link_libraries(op_test PRIVATE ${op_com} ${OP_GTEST_LINK_LIBS} dinput8.lib dxguid.lib dwmapi.lib)
 
 if(OP_HAS_OPENCV_SOURCES)
   target_include_directories(op_test PRIVATE ${OP_OPENCV_INCLUDE_DIR})
-  target_link_libraries(op_test ${OP_OPENCV_LIBS})
+  target_link_libraries(op_test PRIVATE ${OP_OPENCV_LIBS})
 endif()
 
-# 作为单个 CTest 入口注册，避免配置阶段运行测试程序。
 add_test(NAME op_test COMMAND op_test)
 set_tests_properties(op_test
-    PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:${op_com}>;$ENV{PATH}")
+  PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:${op_com}>;$ENV{PATH}")
 
-# Install rules
-IF(CMAKE_CL_64)
+if(CMAKE_CL_64)
   install(TARGETS op_test DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-ELSE()
+else()
   install(TARGETS op_test DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-ENDIF()
+endif()
 
 set(OP_DEBUG_SOURCES
   "debug_runner/main_test.cpp"
 )
 if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/debug_runner/main_test.cpp")
-  add_executable(op_debug ${OP_DEBUG_SOURCES})
-  target_link_libraries(op_debug ${op_com})
+  add_executable(op_debug)
+  target_sources(op_debug PRIVATE ${OP_DEBUG_SOURCES})
+  target_compile_definitions(op_debug PRIVATE _UNICODE UNICODE _CMAKE_BUILD)
+  target_include_directories(op_debug PRIVATE
+    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/libop"
+    "${PROJECT_SOURCE_DIR}/libop/runtime"
+    "${PROJECT_SOURCE_DIR}/libop/window"
+    "${PROJECT_SOURCE_DIR}/libop/image"
+    "${PROJECT_SOURCE_DIR}/libop/ocr"
+    "${PROJECT_SOURCE_DIR}/libop/opencv"
+  )
+  target_link_libraries(op_debug PRIVATE ${op_com})
 
   set_target_properties(op_debug PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:op_debug>"
     VS_DEBUGGER_COMMAND_ARGUMENTS "smoke"
   )
 
-  IF(CMAKE_CL_64)
+  if(CMAKE_CL_64)
     install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-  ELSE()
+  else()
     install(TARGETS op_debug DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-  ENDIF()
+  endif()
 endif()
-
-

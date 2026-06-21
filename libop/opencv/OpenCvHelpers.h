@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenCvModule.h"
+#include "TemplateMatcher.h"
 
 #include <opencv2/core.hpp>
 
