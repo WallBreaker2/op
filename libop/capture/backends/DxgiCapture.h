@@ -20,8 +20,10 @@ class DxgiCapture : public ICaptureBackend {
     long UnBindEx() override;
 
     virtual bool requestCapture(int x1, int y1, int w, int h, Image &img) override;
+    void waitForBindReady() override;
+    void refreshMetrics() override;
 
-    bool InitD3D11Device();
+    bool InitD3D11Device(IDXGIAdapter *adapter);
 
     bool InitDuplication();
 
@@ -32,10 +34,15 @@ class DxgiCapture : public ICaptureBackend {
     ATL::CComPtr<ID3D11DeviceContext> deviceContext_;
     ATL::CComPtr<IDXGIOutputDuplication> duplication_;
     ATL::CComPtr<ID3D11Texture2D> lastTexture_;
+    HMONITOR target_monitor_{nullptr};
+    RECT output_rect_{};
+    POINT client_screen_origin_{};
+    bool duplication_lost_{false};
     bool m_first{true};
     FrameInfo m_frameInfo{};
-    long dx_{0}, dy_{0};
     D3D11_TEXTURE2D_DESC m_desc{};
+    bool refreshWindowMetrics();
+    bool RebuildDuplication();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };
 

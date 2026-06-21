@@ -20,6 +20,62 @@ void PumpMessagesFor(int milliseconds) {
     }
 }
 
+struct NamedClassColorWindow {
+    HWND hwnd = nullptr;
+    const wchar_t *class_name = nullptr;
+    COLORREF color = RGB(255, 0, 0);
+
+    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+        auto *self = reinterpret_cast<NamedClassColorWindow *>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+        if (msg == WM_NCCREATE) {
+            auto *cs = reinterpret_cast<CREATESTRUCTW *>(lparam);
+            self = reinterpret_cast<NamedClassColorWindow *>(cs->lpCreateParams);
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+        }
+
+        if (self && msg == WM_PAINT) {
+            PAINTSTRUCT ps = {};
+            HDC dc = BeginPaint(hwnd, &ps);
+            RECT rect = {};
+            GetClientRect(hwnd, &rect);
+            HBRUSH brush = CreateSolidBrush(self->color);
+            FillRect(dc, &rect, brush);
+            DeleteObject(brush);
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+        if (msg == WM_ERASEBKGND)
+            return 1;
+
+        return DefWindowProcW(hwnd, msg, wparam, lparam);
+    }
+
+    bool Create(const wchar_t *window_class) {
+        class_name = window_class;
+        HINSTANCE hinst = GetModuleHandleW(nullptr);
+
+        WNDCLASSW wc = {};
+        wc.lpfnWndProc = NamedClassColorWindow::WndProc;
+        wc.hInstance = hinst;
+        wc.lpszClassName = class_name;
+        if (!RegisterClassW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS)
+            return false;
+
+        hwnd = CreateWindowExW(0, class_name, L"op-normal-auto-test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+                               CW_USEDEFAULT, 220, 180, nullptr, nullptr, hinst, this);
+        if (!hwnd)
+            return false;
+        ShowWindow(hwnd, SW_SHOW);
+        UpdateWindow(hwnd);
+        return IsWindow(hwnd);
+    }
+
+    ~NamedClassColorWindow() {
+        if (hwnd)
+            DestroyWindow(hwnd);
+    }
+};
+
 } // namespace
 
 TEST(WgcTest, CapturesStaticWindowFromStart) {
@@ -51,6 +107,56 @@ TEST(WgcTest, CapturesStaticWindowFromStart) {
     DestroyWindow(window.hwnd);
     window.hwnd = nullptr;
     PumpMessagesFor(400);
+}
+
+TEST(WgcTest, NormalAutoCapturesPlainWindows) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.auto", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    // normal.auto 的普通窗口会优先 DXGI；DXGI 捕获的是桌面合成画面，需要窗口已可见且完成合成。
+    SetForegroundWindow(window.hwnd);
+    BringWindowToTop(window.hwnd);
+    PumpMessagesFor(400);
+
+    std::wstring color;
+    op.GetColor(60, 60, color);
+    EXPECT_EQ(color, L"FF0000");
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
+    PumpMessagesFor(200);
+}
+
+TEST(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
+    NamedClassColorWindow window;
+    ASSERT_TRUE(window.Create(L"Chrome_WidgetWin_1"));
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.auto", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::wstring color;
+    op.GetColor(60, 60, color);
+    EXPECT_EQ(color, L"FF0000");
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
 }
 
 // 回归：覆盖本轮对修复的几个运行时场景（单会话内串联，规避多会话连开的偶发不稳定）。
@@ -144,6 +250,43 @@ TEST(WgcTest, MinimizeRestoreStillCaptures) {
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
     EXPECT_EQ(unbind_ret, 1);
+    PumpMessagesFor(200);
+}
+
+TEST(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.wgc", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    ShowWindow(window.hwnd, SW_MAXIMIZE);
+    PumpMessagesFor(1000);
+
+    RECT client = {};
+    ASSERT_TRUE(GetClientRect(window.hwnd, &client));
+    ASSERT_GT(client.right, 20);
+    ASSERT_GT(client.bottom, 20);
+
+    std::wstring color;
+    op.GetColor(client.right - 12, client.bottom - 12, color);
+    EXPECT_EQ(color, L"FF0000") << "最大化后客户区右下角截图不完整";
+
+    long cap_ret = 0;
+    const std::wstring capture_path = test_support::GetTempBmpPath(L"op_wgc_maximized_capture.bmp");
+    op.Capture(0, 0, client.right, client.bottom, capture_path.c_str(), &cap_ret);
+    EXPECT_EQ(cap_ret, 1) << "最大化后整块客户区截取失败";
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
     PumpMessagesFor(200);
 }
 

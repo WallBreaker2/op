@@ -5,6 +5,7 @@
 #include "../../runtime/AutomationModes.h"
 #include "../../runtime/RuntimeUtils.h"
 #include <atlbase.h>
+#include <cstring>
 #include <string>
 
 namespace op::capture {
@@ -96,9 +97,11 @@ DxgiCapture::~DxgiCapture() {
     UnBindEx();
 }
 
-long DxgiCapture::BindEx(HWND _hwnd, long render_type) {
-    if (!InitD3D11Device()) {
-        setlog("Init d3d11 device failed");
+long DxgiCapture::BindEx(HWND hwnd, long render_type) {
+    (void)hwnd;
+    (void)render_type;
+    if (!refreshWindowMetrics()) {
+        setlog("Refresh DXGI window metrics failed");
         return 0;
     }
 
@@ -106,16 +109,6 @@ long DxgiCapture::BindEx(HWND _hwnd, long render_type) {
         setlog("Init duplication failed");
         return 0;
     }
-    RECT rc, rc2;
-    ::GetWindowRect(_hwnd, &rc);
-    ::GetClientRect(_hwnd, &rc2);
-
-    _width = rc2.right - rc2.left;
-    _height = rc2.bottom - rc2.top;
-    POINT pt = {0};
-    ::ClientToScreen(_hwnd, &pt);
-    dx_ = pt.x - rc.left;
-    dy_ = pt.y - rc.top;
     return 1;
 }
 
@@ -124,15 +117,49 @@ long DxgiCapture::UnBindEx() {
     lastTexture_.Release();
     device_.Release();
     deviceContext_.Release();
+    target_monitor_ = nullptr;
+    output_rect_ = {};
+    client_screen_origin_ = {};
+    duplication_lost_ = false;
     return 0;
 }
 
+void DxgiCapture::waitForBindReady() {
+    const unsigned long long deadline = ::GetTickCount64() + 1000;
+    do {
+        ID3D11Texture2D *texture_raw = nullptr;
+        // DXGI 首帧也是异步到达的，绑定后预热一帧，避免 normal.auto 立即截图拿到黑图。
+        if (GetDesktopFrame(&texture_raw)) {
+            if (texture_raw) {
+                texture_raw->Release();
+            }
+            return;
+        }
+
+        if (duplication_lost_ && !RebuildDuplication()) {
+            return;
+        }
+        ::Sleep(8);
+    } while (::GetTickCount64() < deadline);
+}
+
 bool DxgiCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
+    if (!refreshWindowMetrics()) {
+        if (!duplication_lost_ || !RebuildDuplication()) {
+            setlog("Refresh DXGI window metrics failed");
+            return false;
+        }
+    }
+
     img.create(w, h);
     ID3D11Texture2D *texture_raw = nullptr;
     if (!GetDesktopFrame(&texture_raw)) {
-        setlog("Acquire frame failed");
-        return false;
+        if (duplication_lost_ && RebuildDuplication() && GetDesktopFrame(&texture_raw)) {
+            duplication_lost_ = false;
+        } else {
+            setlog("Acquire DXGI frame failed");
+            return false;
+        }
     }
 
     CComPtr<ID3D11Texture2D> texture2D;
@@ -143,10 +170,9 @@ bool DxgiCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
 
     texture2D->GetDesc(&m_desc);
 
-    RECT rc;
-    ::GetWindowRect(_hwnd, &rc);
-    int src_x = x1 + rc.left + dx_;
-    int src_y = y1 + rc.top + dy_;
+    // DXGI 输出纹理使用当前显示器坐标系，窗口客户区需要先转成输出内坐标。
+    int src_x = x1 + client_screen_origin_.x - output_rect_.left;
+    int src_y = y1 + client_screen_origin_.y - output_rect_.top;
     if (src_x < 0 || src_y < 0 || src_x + w > static_cast<int>(m_desc.Width) ||
         src_y + h > static_cast<int>(m_desc.Height)) {
         setlog("error w and h src_x=%d,w=%d,desc.Width=%d,src_y=%d,h=%d,desc.Height=%d", src_x, w, m_desc.Width, src_y,
@@ -175,31 +201,72 @@ bool DxgiCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
     return true;
 }
 
-bool DxgiCapture::InitD3D11Device() {
+void DxgiCapture::refreshMetrics() {
+    refreshWindowMetrics();
+}
+
+bool DxgiCapture::refreshWindowMetrics() {
+    if (!::IsWindow(_hwnd)) {
+        return false;
+    }
+
+    RECT client_rect = {};
+    if (!::GetClientRect(_hwnd, &client_rect)) {
+        return false;
+    }
+
+    POINT client_origin = {};
+    if (!::ClientToScreen(_hwnd, &client_origin)) {
+        return false;
+    }
+
+    _width = client_rect.right - client_rect.left;
+    _height = client_rect.bottom - client_rect.top;
+    client_screen_origin_ = client_origin;
+
+    HMONITOR current_monitor = ::MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+    if (!current_monitor) {
+        return false;
+    }
+
+    // 窗口拖到另一块显示器后，重建到对应输出，避免继续读取旧输出纹理。
+    if (target_monitor_ && current_monitor != target_monitor_) {
+        target_monitor_ = current_monitor;
+        return RebuildDuplication();
+    }
+
+    target_monitor_ = current_monitor;
+    return true;
+}
+
+bool DxgiCapture::RebuildDuplication() {
+    duplication_.Release();
+    lastTexture_.Release();
+    duplication_lost_ = false;
+    if (InitDuplication()) {
+        return true;
+    }
+    duplication_lost_ = true;
+    return false;
+}
+
+bool DxgiCapture::InitD3D11Device(IDXGIAdapter *adapter) {
+    if (!adapter) {
+        return false;
+    }
+
     device_.Release();
     deviceContext_.Release();
-
-    D3D_DRIVER_TYPE DriverTypes[] = {
-        D3D_DRIVER_TYPE_HARDWARE,
-        D3D_DRIVER_TYPE_WARP,
-        D3D_DRIVER_TYPE_REFERENCE,
-    };
-    UINT NumDriverTypes = ARRAYSIZE(DriverTypes);
 
     D3D_FEATURE_LEVEL FeatureLevels[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0,
                                          D3D_FEATURE_LEVEL_9_1};
     UINT NumFeatureLevels = ARRAYSIZE(FeatureLevels);
     D3D_FEATURE_LEVEL FeatureLevel;
-
-    for (UINT DriverTypeIndex = 0; DriverTypeIndex < NumDriverTypes; ++DriverTypeIndex) {
-        HRESULT hr = D3D11CreateDevice(nullptr, DriverTypes[DriverTypeIndex], nullptr, 0, FeatureLevels,
-                                       NumFeatureLevels, D3D11_SDK_VERSION, &device_, &FeatureLevel, &deviceContext_);
-        if (SUCCEEDED(hr)) {
-            break;
-        }
-    }
+    HRESULT hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, FeatureLevels, NumFeatureLevels,
+                                   D3D11_SDK_VERSION, &device_, &FeatureLevel, &deviceContext_);
 
     if (device_ == nullptr || deviceContext_ == nullptr) {
+        setlog("Create DXGI D3D11 device failed hr=0x%08X", hr);
         return false;
     }
 
@@ -209,47 +276,73 @@ bool DxgiCapture::InitD3D11Device() {
 bool DxgiCapture::InitDuplication() {
     HRESULT hr = S_OK;
     duplication_.Release();
+    lastTexture_.Release();
+    duplication_lost_ = false;
 
-    CComPtr<IDXGIDevice> dxgiDevice;
-    hr = device_->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
-    if (FAILED(hr)) {
+    // 按窗口所在 HMONITOR 找到真正的 DXGI 输出，多显示器时不能默认取第一个输出。
+    if (!target_monitor_) {
+        target_monitor_ = ::MonitorFromWindow(_hwnd, MONITOR_DEFAULTTONEAREST);
+    }
+    if (!target_monitor_) {
         return false;
     }
 
-    CComPtr<IDXGIAdapter> dxgiAdapter;
-    hr = dxgiDevice->GetAdapter(&dxgiAdapter);
+    CComPtr<IDXGIFactory1> factory;
+    hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(&factory));
     if (FAILED(hr)) {
+        setlog("CreateDXGIFactory1 failed hr=0x%08X", hr);
         return false;
     }
 
-    UINT output = 0;
-    CComPtr<IDXGIOutput> dxgiOutput;
-    while (true) {
-        dxgiOutput.Release();
-        hr = dxgiAdapter->EnumOutputs(output++, &dxgiOutput);
+    for (UINT adapter_index = 0;; ++adapter_index) {
+        CComPtr<IDXGIAdapter1> adapter;
+        hr = factory->EnumAdapters1(adapter_index, &adapter);
         if (hr == DXGI_ERROR_NOT_FOUND) {
-            return false;
+            break;
         }
         if (FAILED(hr)) {
-            return false;
+            continue;
         }
-        DXGI_OUTPUT_DESC desc;
-        dxgiOutput->GetDesc(&desc);
-        break;
+
+        for (UINT output_index = 0;; ++output_index) {
+            CComPtr<IDXGIOutput> output;
+            hr = adapter->EnumOutputs(output_index, &output);
+            if (hr == DXGI_ERROR_NOT_FOUND) {
+                break;
+            }
+            if (FAILED(hr)) {
+                continue;
+            }
+
+            DXGI_OUTPUT_DESC desc = {};
+            hr = output->GetDesc(&desc);
+            if (FAILED(hr) || desc.Monitor != target_monitor_) {
+                continue;
+            }
+
+            if (!InitD3D11Device(adapter)) {
+                return false;
+            }
+
+            CComPtr<IDXGIOutput1> output1;
+            hr = output->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void **>(&output1));
+            if (FAILED(hr)) {
+                return false;
+            }
+
+            hr = output1->DuplicateOutput(device_, &duplication_);
+            if (FAILED(hr)) {
+                setlog("DuplicateOutput failed hr=0x%08X", hr);
+                return false;
+            }
+
+            output_rect_ = desc.DesktopCoordinates;
+            return true;
+        }
     }
 
-    CComPtr<IDXGIOutput1> dxgiOutput1;
-    hr = dxgiOutput->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void **>(&dxgiOutput1));
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    hr = dxgiOutput1->DuplicateOutput(device_, &duplication_);
-    if (FAILED(hr)) {
-        return false;
-    }
-
-    return true;
+    setlog("DXGI output not found for monitor=%p", target_monitor_);
+    return false;
 }
 
 bool DxgiCapture::GetDesktopFrame(ID3D11Texture2D **texture) {
@@ -264,10 +357,16 @@ bool DxgiCapture::GetDesktopFrame(ID3D11Texture2D **texture) {
     hr = frameLease.acquire(&frameInfo, &resource);
     if (FAILED(hr)) {
         if (hr == DXGI_ERROR_WAIT_TIMEOUT) {
-            return true;
-        } else {
-            return false;
+            // 没有新桌面帧时复用上一帧，避免静态画面被当作捕获失败。
+            if (!lastTexture_) {
+                return false;
+            }
+            return SUCCEEDED(lastTexture_.CopyTo(texture));
         }
+        if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+            duplication_lost_ = true;
+        }
+        return false;
     }
 
     hr = resource->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&acquireFrame));
@@ -293,11 +392,12 @@ bool DxgiCapture::GetDesktopFrame(ID3D11Texture2D **texture) {
 
     hr = frameLease.release();
     if (FAILED(hr)) {
+        duplication_lost_ = hr == DXGI_ERROR_ACCESS_LOST;
         return false;
     }
 
-    set_out(texture, copyTexture.Detach());
-    return true;
+    lastTexture_ = copyTexture;
+    return SUCCEEDED(lastTexture_.CopyTo(texture));
 }
 
 void DxgiCapture::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
