@@ -7,7 +7,9 @@
 #include "../../runtime/RuntimeUtils.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
+#include <cstddef>
 #include <exception>
+#include <span>
 
 #include "../../image/Image.h"
 
@@ -20,12 +22,32 @@ namespace {
 constexpr DWORD kHookFrameReadyTimeoutMs = 200;
 constexpr DWORD kHookFramePollIntervalMs = 10;
 
+struct HookFrameView {
+    FrameInfo *info = nullptr;
+    std::span<std::byte> pixels;
+};
+
 bool isHookFrameReady(const FrameInfo &info, HWND hwnd) {
     FrameInfo expected = info;
     const auto chk = expected.chk;
     expected.fmtChk();
     return chk == expected.chk && info.hwnd == reinterpret_cast<unsigned __int64>(hwnd) && info.width > 0 &&
            info.height > 0;
+}
+
+HookFrameView makeHookFrameView(op::SharedMemory &sharedMemory, int width, int height) {
+    auto *base = sharedMemory.data<std::byte>();
+    auto *info = reinterpret_cast<FrameInfo *>(base);
+    const auto pixelBytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+
+    // 使用 span 表达像素区，后续行拷贝不再直接散落裸指针偏移。
+    return {info, {base + sizeof(FrameInfo), pixelBytes}};
+}
+
+std::span<const std::byte> hookFrameRow(std::span<const std::byte> pixels, int srcWidth, int row, int x, int width) {
+    const auto offset = (static_cast<size_t>(row) * static_cast<size_t>(srcWidth) + static_cast<size_t>(x)) * 4;
+    const auto bytes = static_cast<size_t>(width) * 4;
+    return pixels.subspan(offset, bytes);
 }
 
 } // namespace
@@ -280,8 +302,7 @@ long HookCapture::UnBindNox() {
 bool HookCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
     img.create(w, h);
     _pmutex->lock();
-    uchar *const ppixels = _shmem->data<byte>() + sizeof(FrameInfo);
-    FrameInfo *pInfo = (FrameInfo *)_shmem->data<byte>();
+    FrameInfo *pInfo = reinterpret_cast<FrameInfo *>(_shmem->data<std::byte>());
 
     const int src_width = pInfo->width > 0 ? (int)pInfo->width : (int)_width;
     const int src_height = pInfo->height > 0 ? (int)pInfo->height : (int)_height;
@@ -298,15 +319,19 @@ bool HookCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         return false;
     }
 
+    auto frame = makeHookFrameView(*_shmem, src_width, src_height);
+
     if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) { // NORMAL
 
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), ppixels + (i + y1) * 4 * src_width + x1 * 4, 4 * w);
+            const auto row = hookFrameRow(frame.pixels, src_width, i + y1, x1, w);
+            memcpy(img.ptr<uchar>(i), row.data(), row.size());
         }
     } else {
 
         for (int i = 0; i < h; i++) {
-            memcpy(img.ptr<uchar>(i), ppixels + (src_height - 1 - i - y1) * src_width * 4 + x1 * 4, 4 * w);
+            const auto row = hookFrameRow(frame.pixels, src_width, src_height - 1 - i - y1, x1, w);
+            memcpy(img.ptr<uchar>(i), row.data(), row.size());
         }
     }
 

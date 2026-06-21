@@ -8,7 +8,9 @@
 #include "../runtime/AutomationModes.h"
 #include "../runtime/RuntimeUtils.h"
 #include <atlbase.h>
+#include <cstddef>
 #include <d3d11.h>
+#include <span>
 
 #define DEBUG_HOOK 0
 
@@ -16,6 +18,26 @@ namespace op::hook {
 
 using ATL::CComPtr;
 using op::capture::FrameInfo;
+
+namespace {
+
+std::span<std::byte> make_shared_frame_span(SharedMemory &mem, UINT width, UINT height) {
+    const auto pixelBytes = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
+    return {mem.data<std::byte>(), sizeof(FrameInfo) + pixelBytes};
+}
+
+void write_shared_frame(std::span<std::byte> sharedFrame, HWND hwnd, UINT width, UINT height, const void *source,
+                        int sourceRows, int sourceCols, int rowPitch, int format) {
+    // 使用 span 明确区分帧头和像素区，避免共享内存裸指针偏移散落在捕获逻辑里。
+    auto frameInfoBytes = sharedFrame.first(sizeof(FrameInfo));
+    auto pixelBytes = sharedFrame.subspan(sizeof(FrameInfo));
+
+    reinterpret_cast<FrameInfo *>(frameInfoBytes.data())->format(hwnd, width, height);
+    CopyImageData(reinterpret_cast<char *>(pixelBytes.data()), static_cast<const char *>(source), sourceRows,
+                  sourceCols, rowPitch, format);
+}
+
+} // namespace
 
 class D3D11TextureMap {
   public:
@@ -143,12 +165,10 @@ void dx11_capture(IDXGISwapChain *swapchain) {
     static int cnt = 10;
     if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
         mutex.lock();
-        uchar *pshare = mem.data<byte>();
-        reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
+        auto sharedFrame = make_shared_frame_span(mem, textDesc.Width, textDesc.Height);
+        write_shared_frame(sharedFrame, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height, mapSubres.pData,
+                           textDesc.Height, textDesc.Width, mapSubres.RowPitch, fmt);
         static_assert(sizeof(FrameInfo) == 28);
-
-        CopyImageData((char *)pshare + sizeof(FrameInfo), (char *)mapSubres.pData, textDesc.Height, textDesc.Width,
-                      mapSubres.RowPitch, fmt);
         mutex.unlock();
     } else {
         DisplayHook::set_capture_enabled(false);
