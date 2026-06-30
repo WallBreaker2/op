@@ -364,6 +364,9 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
         switch (msg) {
         case WM_MOUSEMOVE:
             self->move_count++;
+            self->last_move_wparam = wparam;
+            if (wparam & MK_LBUTTON)
+                self->move_with_left_count++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
             return 0;
@@ -500,6 +503,7 @@ void MouseEventWindow::ResetCounts() {
     wheel_count = 0;
     wheel_delta_sum = 0;
     move_count = 0;
+    move_with_left_count = 0;
     raw_mouse_count = 0;
     raw_keyboard_count = 0;
     raw_left_down = 0;
@@ -518,6 +522,7 @@ void MouseEventWindow::ResetCounts() {
     op_move_count = 0;
     last_x = 0;
     last_y = 0;
+    last_move_wparam = 0;
 }
 
 MouseEventWindow::~MouseEventWindow() {

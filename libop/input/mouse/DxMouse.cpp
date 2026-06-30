@@ -36,6 +36,7 @@ long DxMouse::Bind(HWND h, int mode) {
     _hwnd = h;
     _mode = mode;
     _x = _y = 0;
+    _button_state = 0;
     return ret;
 }
 
@@ -44,6 +45,7 @@ long DxMouse::UnBind() {
     _hwnd = 0;
     _mode = 0;
     _x = _y = 0;
+    _button_state = 0;
     return ret;
 }
 
@@ -77,7 +79,7 @@ long DxMouse::MoveR(int rx, int ry) {
 
 long DxMouse::MoveTo(int x, int y) {
     const POINT pt{x, y};
-    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y));
+    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, button_state(), MAKELPARAM(pt.x, pt.y));
 
     _x = pt.x, _y = pt.y;
     return ret;
@@ -97,13 +99,21 @@ long DxMouse::MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) {
     return MoveTo(dst_x, dst_y);
 }
 
+long DxMouse::send_button(UINT message, WPARAM button, bool down) {
+    const POINT pt = current_client_point();
+    const WPARAM state = button_state_with(button, down);
+    const long ret = send_op_message(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    if (ret)
+        set_button_state(button, down);
+    return ret;
+}
+
 long DxMouse::LeftClick() {
     long ret = 0, ret2 = 0;
-    const POINT pt = current_client_point();
 
-    ret = send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
+    ret = send_button(OP_WM_LBUTTONDOWN, MK_LBUTTON, true);
     ::Delay(MOUSE_DX_DELAY);
-    ret2 = send_op_message(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    ret2 = send_button(OP_WM_LBUTTONUP, MK_LBUTTON, false);
 
     return ret && ret2 ? 1 : 0;
 }
@@ -117,13 +127,11 @@ long DxMouse::LeftDoubleClick() {
 }
 
 long DxMouse::LeftDown() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_LBUTTONDOWN, MK_LBUTTON, true);
 }
 
 long DxMouse::LeftUp() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_LBUTTONUP, MK_LBUTTON, false);
 }
 
 long DxMouse::MiddleClick() {
@@ -135,46 +143,43 @@ long DxMouse::MiddleClick() {
 }
 
 long DxMouse::MiddleDown() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_MBUTTONDOWN, MK_MBUTTON, true);
 }
 
 long DxMouse::MiddleUp() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_MBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_MBUTTONUP, MK_MBUTTON, false);
 }
 
 long DxMouse::RightClick() {
     long ret = 0;
     long r1, r2;
-    const POINT pt = current_client_point();
 
-    r1 = send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
+    r1 = send_button(OP_WM_RBUTTONDOWN, MK_RBUTTON, true);
     ::Delay(MOUSE_DX_DELAY);
-    r2 = send_op_message(_hwnd, OP_WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    r2 = send_button(OP_WM_RBUTTONUP, MK_RBUTTON, false);
     ret = r1 && r2 ? 1 : 0;
 
     return ret;
 }
 
 long DxMouse::RightDown() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_RBUTTONDOWN, MK_RBUTTON, true);
 }
 
 long DxMouse::RightUp() {
-    const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    return send_button(OP_WM_RBUTTONUP, MK_RBUTTON, false);
 }
 
 long DxMouse::WheelDown() {
     const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(static_cast<WORD>(button_state()), -WHEEL_DELTA),
+                           MAKELPARAM(pt.x, pt.y));
 }
 
 long DxMouse::WheelUp() {
     const POINT pt = current_client_point();
-    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
+    return send_op_message(_hwnd, OP_WM_MOUSEWHEEL, MAKEWPARAM(static_cast<WORD>(button_state()), WHEEL_DELTA),
+                           MAKELPARAM(pt.x, pt.y));
 }
 
 } // namespace op::input

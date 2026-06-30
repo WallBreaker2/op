@@ -47,6 +47,8 @@ class DxMouse : public WinMouse {
 
     long WheelUp() override;
 
+  private:
+    long send_button(UINT message, WPARAM button, bool down);
 };
 
 } // namespace op::input

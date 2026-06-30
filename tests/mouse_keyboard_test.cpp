@@ -433,6 +433,41 @@ TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
     EXPECT_EQ(unbind_ret, 1);
 }
 
+TEST(MouseKeyTest, WindowsModeMouseMoveCarriesLeftButtonWhileHeld) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1) << "BindWindow windows mode should succeed";
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+
+    op.LeftDown(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveTo(48, 64, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_GE(window.move_with_left_count, 1);
+    EXPECT_NE(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 48);
+    EXPECT_EQ(window.last_y, 64);
+
+    op.LeftUp(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveR(3, 4, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 51);
+    EXPECT_EQ(window.last_y, 68);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
 TEST(MouseKeyTest, WindowsModeMoveToKeepsClientCoordinatesAfterResize) {
     op::Client op;
     MouseEventWindow window;
@@ -553,6 +588,46 @@ TEST(MouseKeyTest, DxModeDeliversWindowAndRawInput) {
     EXPECT_EQ(window.raw_wheel_delta_sum, 0);
     EXPECT_GE(window.raw_device_info_count, 1);
     EXPECT_GE(window.raw_device_name_count, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeMouseMoveCarriesLeftButtonWhileHeld) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"dx", L"windows", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX mouse bind unavailable on current environment";
+    }
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    PumpMessagesFor(80);
+    window.ResetCounts();
+
+    op.LeftDown(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveTo(48, 64, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_GE(window.move_with_left_count, 1);
+    EXPECT_NE(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 48);
+    EXPECT_EQ(window.last_y, 64);
+
+    op.LeftUp(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveR(3, 4, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_EQ(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 51);
+    EXPECT_EQ(window.last_y, 68);
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
