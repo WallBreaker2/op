@@ -2,6 +2,7 @@
 #include "../runtime/AutomationModes.h"
 #include "../runtime/RuntimeUtils.h"
 #include "../runtime/RuntimeEnvironment.h"
+#include "HookModule.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
 #include <mutex>
@@ -13,12 +14,8 @@ std::mutex g_mutex;
 std::unordered_map<HWND, long> g_bind_refs;
 
 std::wstring resolve_hook_dll(blackbone::Process &proc) {
-    std::wstring dll_name = RuntimeEnvironment::getOpName();
     const BOOL target_is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-    if (target_is64 != OP64) {
-        dll_name = target_is64 ? L"op_x64.dll" : L"op_x86.dll";
-    }
-    return dll_name;
+    return op::hook::ResolveHookModuleName(target_is64 != FALSE);
 }
 
 long call_set_input_hook(HWND hwnd, int mode) {
@@ -58,7 +55,7 @@ long call_set_input_hook(HWND hwnd, int mode) {
             auto call_ret = remote(hwnd, mode);
             ret = call_ret.result();
         } else {
-            setlog(L"remote function 'SetInputHook' not found.");
+            setlog(L"remote function 'SetInputHook' not found in %s.", dll_name.c_str());
         }
     }
 
@@ -87,7 +84,7 @@ long call_release_input_hook(HWND hwnd) {
         auto call_ret = remote();
         ret = call_ret.result();
     } else {
-        setlog(L"remote function 'ReleaseInputHook' not found.");
+        setlog(L"remote function 'ReleaseInputHook' not found in %s.", dll_name.c_str());
     }
 
     proc.Detach();

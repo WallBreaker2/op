@@ -2,6 +2,7 @@
 
 #include "../../include/libop.h"
 #include "../memory/ProcessMemory.h"
+#include "../runtime/RuntimeEnvironment.h"
 
 #include <Windows.h>
 #include <cstdint>
@@ -11,6 +12,13 @@
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
+
+extern "C" BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD reason, LPVOID) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        RuntimeEnvironment::setInstance(hInstance);
+    }
+    return TRUE;
+}
 
 #define OP_WIDEN_TEXT2(text) L##text
 #define OP_WIDEN_TEXT(text) OP_WIDEN_TEXT2(text)
