@@ -58,6 +58,7 @@ struct MouseEventWindow {
     int wheel_count = 0;
     int wheel_delta_sum = 0;
     int move_count = 0;
+    int move_with_left_count = 0;
     int raw_mouse_count = 0;
     int raw_keyboard_count = 0;
     int raw_left_down = 0;
@@ -79,6 +80,7 @@ struct MouseEventWindow {
 
     long last_x = 0;
     long last_y = 0;
+    WPARAM last_move_wparam = 0;
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
     bool Create();

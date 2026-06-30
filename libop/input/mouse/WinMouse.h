@@ -50,10 +50,15 @@ class WinMouse {
   protected:
     POINT current_client_point() const;
     long sync_system_cursor();
+    WPARAM button_state() const;
+    WPARAM button_state_with(WPARAM button, bool down) const;
+    void set_button_state(WPARAM button, bool down);
+    long send_windows_button(UINT message, WPARAM button, bool down);
 
     HWND _hwnd;
     int _mode;
     int _x, _y;
+    WPARAM _button_state;
 };
 
 } // namespace op::input

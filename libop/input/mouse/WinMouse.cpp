@@ -12,7 +12,7 @@ long send_message_result(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) 
 
 namespace op::input {
 
-WinMouse::WinMouse() : _hwnd(NULL), _mode(0), _x(0), _y(0) {
+WinMouse::WinMouse() : _hwnd(NULL), _mode(0), _x(0), _y(0), _button_state(0) {
 }
 
 WinMouse::~WinMouse() {
@@ -23,6 +23,7 @@ long WinMouse::Bind(HWND h, int mode) {
     _hwnd = h;
     _mode = mode;
     _x = _y = 0;
+    _button_state = 0;
     return 1;
 }
 
@@ -30,6 +31,7 @@ long WinMouse::UnBind() {
     _hwnd = 0;
     _mode = 0;
     _x = _y = 0;
+    _button_state = 0;
     return 1;
 }
 
@@ -101,7 +103,7 @@ long WinMouse::MoveTo(int x, int y) {
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_message_result(_hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(client_pt.x, client_pt.y));
+        ret = send_message_result(_hwnd, WM_MOUSEMOVE, button_state(), MAKELPARAM(client_pt.x, client_pt.y));
         break;
     }
     }
@@ -118,6 +120,27 @@ long WinMouse::sync_system_cursor() {
     if (_hwnd)
         ::ClientToScreen(_hwnd, &pt);
     return ::SetCursorPos(pt.x, pt.y) ? 1 : 0;
+}
+
+WPARAM WinMouse::button_state() const {
+    return _button_state;
+}
+
+WPARAM WinMouse::button_state_with(WPARAM button, bool down) const {
+    return down ? (_button_state | button) : (_button_state & ~button);
+}
+
+void WinMouse::set_button_state(WPARAM button, bool down) {
+    _button_state = button_state_with(button, down);
+}
+
+long WinMouse::send_windows_button(UINT message, WPARAM button, bool down) {
+    const POINT pt = current_client_point();
+    const WPARAM state = button_state_with(button, down);
+    const long ret = send_message_result(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    if (ret)
+        set_button_state(button, down);
+    return ret;
 }
 
 long WinMouse::MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y) {
@@ -153,10 +176,9 @@ long WinMouse::LeftClick() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_LBUTTONDOWN, MK_LBUTTON, true);
         ::Delay(MOUSE_WINDOWS_DELAY);
-        ret2 = send_message_result(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+        ret2 = send_windows_button(WM_LBUTTONUP, MK_LBUTTON, false);
         break;
     }
     }
@@ -194,8 +216,7 @@ long WinMouse::LeftDown() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_LBUTTONDOWN, MK_LBUTTON, true);
         break;
     }
     }
@@ -217,8 +238,7 @@ long WinMouse::LeftUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_LBUTTONUP, MK_LBUTTON, false);
         break;
     }
     }
@@ -256,8 +276,7 @@ long WinMouse::MiddleDown() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_MBUTTONDOWN, MK_MBUTTON, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_MBUTTONDOWN, MK_MBUTTON, true);
         break;
     }
     }
@@ -279,8 +298,7 @@ long WinMouse::MiddleUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_MBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_MBUTTONUP, MK_MBUTTON, false);
         break;
     }
     }
@@ -308,10 +326,9 @@ long WinMouse::RightClick() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        r1 = send_message_result(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
+        r1 = send_windows_button(WM_RBUTTONDOWN, MK_RBUTTON, true);
         ::Delay(MOUSE_WINDOWS_DELAY);
-        r2 = send_message_result(_hwnd, WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+        r2 = send_windows_button(WM_RBUTTONUP, MK_RBUTTON, false);
         ret = r1 && r2 ? 1 : 0;
         break;
     }
@@ -332,8 +349,7 @@ long WinMouse::RightDown() {
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_RBUTTONDOWN, MK_RBUTTON, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_RBUTTONDOWN, MK_RBUTTON, true);
         break;
     }
     }
@@ -355,8 +371,7 @@ long WinMouse::RightUp() {
     }
 
     case INPUT_TYPE::IN_WINDOWS: {
-        const POINT pt = current_client_point();
-        ret = send_message_result(_hwnd, WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+        ret = send_windows_button(WM_RBUTTONUP, MK_RBUTTON, false);
         break;
     }
     }
@@ -381,7 +396,8 @@ long WinMouse::WheelDown() {
         // WM_MOUSEWHEEL 的 lParam 使用屏幕坐标。
         POINT pt = current_client_point();
         ::ClientToScreen(_hwnd, &pt);
-        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
+        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(static_cast<WORD>(button_state()), -WHEEL_DELTA),
+                                  MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
@@ -407,7 +423,8 @@ long WinMouse::WheelUp() {
         // WM_MOUSEWHEEL 的 lParam 使用屏幕坐标。
         POINT pt = current_client_point();
         ::ClientToScreen(_hwnd, &pt);
-        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(0, WHEEL_DELTA), MAKELPARAM(pt.x, pt.y));
+        ret = send_message_result(_hwnd, WM_MOUSEWHEEL, MAKEWPARAM(static_cast<WORD>(button_state()), WHEEL_DELTA),
+                                  MAKELPARAM(pt.x, pt.y));
         break;
     }
     }
