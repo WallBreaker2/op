@@ -273,6 +273,7 @@ set(OP_COM_SOURCES
 
 set(OP_C_API_SOURCES
   "c_api/op_c_api.cpp"
+  "hook/HookExport.cpp"
 )
 
 set(OP_COMMON_DEFINITIONS
