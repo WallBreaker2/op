@@ -12,6 +12,7 @@
 #include <inspectable.h>
 #include <mutex>
 #include <atomic>
+#include <thread>
 #pragma comment(lib, "d3d11.lib")
 #ifdef OP_ENABLE_WGC
 // this code ref https://www.jianshu.com/p/e775b0f45376
@@ -33,7 +34,7 @@ class WgcCapture : public ICaptureBackend {
     void refreshMetrics() override;
     void waitForBindReady() override;
 
-    bool Init(HWND _hwnd);
+    bool Init(HWND _hwnd, bool use_frame_arrived_event = true);
 
   private:
     ATL::CComPtr<ID3D11Device> d3dDevice_;
@@ -51,6 +52,8 @@ class WgcCapture : public ICaptureBackend {
     FrameInfo m_frameInfo{};
     long captureWidth_{0};
     long captureHeight_{0};
+    long framePoolWidth_{0};
+    long framePoolHeight_{0};
     bool hasFrame_{false};
     int sharedWidth_{0};
     int sharedHeight_{0};
@@ -62,19 +65,35 @@ class WgcCapture : public ICaptureBackend {
     bool pendingRestored_{false};
     long lastClientWidth_{0};
     long lastClientHeight_{0};
+    std::atomic<bool> captureStopping_{false};
+    std::thread win10Worker_;
+    std::atomic<bool> win10WorkerStop_{false};
+    std::atomic<bool> win10WorkerRunning_{false};
+    std::atomic<bool> win10WorkerInitReady_{false};
+    std::atomic<bool> win10WorkerInitSucceeded_{false};
+    std::atomic<bool> win10WorkerCleaned_{true};
     std::mutex frameMutex_;
+    std::mutex sharedResourceMutex_;
 
     bool ensureStagingTexture(int width, int height);
     bool ensureSharedResources(int width, int height);
     bool refreshWindowMetrics(bool *iconic_changed = nullptr, bool *is_iconic = nullptr);
     bool getClientBox(int surface_width, int surface_height, D3D11_BOX &client_box, int &client_width,
                       int &client_height);
+    bool DeferBindReleaseAfterUnBind() const override;
+    long BindExOnWindows10(HWND hwnd);
+    long UnBindExInternal();
+    long UnBindExOnWindows10();
+    void runWin10Worker(HWND hwnd);
+    bool waitForWin10WorkerInit(unsigned long timeout_ms);
+    void closeWin10WorkerObjects();
     void closeCaptureSession();
     bool restartCaptureSession();
     bool copyFrameToStaging(const Direct3D11CaptureFrame &frame);
     Direct3D11CaptureFrame tryGetLatestFrame(const Direct3D11CaptureFramePool &frame_pool);
     bool updateLatestFrame();
-    bool waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms);
+    bool waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms,
+                            bool poll_latest = true);
     unsigned long long currentFrameSerial();
     bool hasCapturedFrame();
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);

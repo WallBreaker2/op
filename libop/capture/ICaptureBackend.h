@@ -4,6 +4,7 @@
 #include "../ipc/SharedMemory.h"
 #include "FrameInfo.h"
 #include <exception>
+#include <memory>
 #include <string>
 
 namespace op {
@@ -12,7 +13,7 @@ struct Image;
 
 namespace op::capture {
 
-class ICaptureBackend {
+class ICaptureBackend : public std::enable_shared_from_this<ICaptureBackend> {
   public:
     ICaptureBackend();
     virtual ~ICaptureBackend();
@@ -62,6 +63,9 @@ class ICaptureBackend {
   protected:
     virtual long BindEx(HWND hwnd, long flag) = 0;
     virtual long UnBindEx() = 0;
+    virtual bool DeferBindReleaseAfterUnBind() const {
+        return false;
+    }
 
     HWND _hwnd;
 

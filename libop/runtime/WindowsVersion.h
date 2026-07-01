@@ -13,6 +13,7 @@ struct WindowsVersion {
 constexpr DWORD kWindows10Build1903 = 18362;
 constexpr DWORD kWindows10Build2004 = 19041;
 constexpr DWORD kWindowsServer2022Build = 20348;
+constexpr DWORD kWindows11Build22000 = 22000;
 
 // 从 ntdll 读取真实系统版本。
 // 只有查询失败时才返回 false。
