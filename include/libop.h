@@ -245,16 +245,40 @@ class OP_API Client {
     void LeftUp(long *ret);
     // 按下鼠标中键
     void MiddleClick(long *ret);
+    // 双击鼠标中键
+    void MiddleDoubleClick(long *ret);
     // 按住鼠标中键
     void MiddleDown(long *ret);
     // 弹起鼠标中键
     void MiddleUp(long *ret);
     // 按下鼠标右键
     void RightClick(long *ret);
+    // 双击鼠标右键
+    void RightDoubleClick(long *ret);
     // 按住鼠标右键
     void RightDown(long *ret);
     // 弹起鼠标右键
     void RightUp(long *ret);
+    // 按下鼠标侧键1
+    void XButton1Click(long *ret);
+    // 双击鼠标侧键1
+    void XButton1DoubleClick(long *ret);
+    // 按住鼠标侧键1
+    void XButton1Down(long *ret);
+    // 弹起鼠标侧键1
+    void XButton1Up(long *ret);
+    // 按下鼠标侧键2
+    void XButton2Click(long *ret);
+    // 双击鼠标侧键2
+    void XButton2DoubleClick(long *ret);
+    // 按住鼠标侧键2
+    void XButton2Down(long *ret);
+    // 弹起鼠标侧键2
+    void XButton2Up(long *ret);
+    // 垂直滚轮滚动指定 delta
+    void Wheel(long delta, long *ret);
+    // 水平滚轮滚动指定 delta
+    void HWheel(long delta, long *ret);
     // 滚轮向下滚
     void WheelDown(long *ret);
     // 滚轮向上滚

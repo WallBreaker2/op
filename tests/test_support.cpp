@@ -375,8 +375,28 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
             return 0;
+        case WM_LBUTTONDBLCLK:
+            self->left_double++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
         case WM_LBUTTONUP:
             self->left_up++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_MBUTTONDOWN:
+            self->middle_down++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_MBUTTONDBLCLK:
+            self->middle_double++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_MBUTTONUP:
+            self->middle_up++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
             return 0;
@@ -385,14 +405,47 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
             return 0;
+        case WM_RBUTTONDBLCLK:
+            self->right_double++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
         case WM_RBUTTONUP:
             self->right_up++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_XBUTTONDOWN:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->xbutton1_down++;
+            else if (HIWORD(wparam) == XBUTTON2)
+                self->xbutton2_down++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_XBUTTONDBLCLK:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->xbutton1_double++;
+            else if (HIWORD(wparam) == XBUTTON2)
+                self->xbutton2_double++;
+            self->last_x = GET_X_LPARAM(lparam);
+            self->last_y = GET_Y_LPARAM(lparam);
+            return 0;
+        case WM_XBUTTONUP:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->xbutton1_up++;
+            else if (HIWORD(wparam) == XBUTTON2)
+                self->xbutton2_up++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
             return 0;
         case WM_MOUSEWHEEL:
             self->wheel_count++;
             self->wheel_delta_sum += GET_WHEEL_DELTA_WPARAM(wparam);
+            return 0;
+        case WM_MOUSEHWHEEL:
+            self->hwheel_count++;
+            self->hwheel_delta_sum += GET_WHEEL_DELTA_WPARAM(wparam);
             return 0;
         case WM_SETCURSOR:
             if (self->test_cursor) {
@@ -428,6 +481,12 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
                         self->raw_left_up++;
                     if (raw.data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
                         self->raw_wheel_delta_sum += static_cast<SHORT>(raw.data.mouse.usButtonData);
+                    if (raw.data.mouse.usButtonFlags & RI_MOUSE_HWHEEL)
+                        self->raw_hwheel_delta_sum += static_cast<SHORT>(raw.data.mouse.usButtonData);
+                    if (raw.data.mouse.usButtonFlags & RI_MOUSE_BUTTON_4_DOWN)
+                        self->raw_xbutton1_down++;
+                    if (raw.data.mouse.usButtonFlags & RI_MOUSE_BUTTON_4_UP)
+                        self->raw_xbutton1_up++;
                 } else if (raw.header.dwType == RIM_TYPEKEYBOARD) {
                     self->raw_keyboard_count++;
                     if (raw.data.keyboard.Flags & RI_KEY_BREAK)
@@ -441,18 +500,40 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
         case OP_WM_LBUTTONDOWN:
             self->op_left_down++;
             return 0;
+        case OP_WM_LBUTTONDBLCLK:
+            self->op_left_double++;
+            return 0;
         case OP_WM_LBUTTONUP:
             self->op_left_up++;
             return 0;
         case OP_WM_RBUTTONDOWN:
             self->op_right_down++;
             return 0;
+        case OP_WM_RBUTTONDBLCLK:
+            self->op_right_double++;
+            return 0;
         case OP_WM_RBUTTONUP:
             self->op_right_up++;
+            return 0;
+        case OP_WM_XBUTTONDOWN:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->op_xbutton1_down++;
+            return 0;
+        case OP_WM_XBUTTONDBLCLK:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->op_xbutton1_double++;
+            return 0;
+        case OP_WM_XBUTTONUP:
+            if (HIWORD(wparam) == XBUTTON1)
+                self->op_xbutton1_up++;
             return 0;
         case OP_WM_MOUSEWHEEL:
             self->op_wheel_count++;
             self->op_wheel_delta_sum += static_cast<short>(HIWORD(wparam));
+            return 0;
+        case OP_WM_MOUSEHWHEEL:
+            self->op_hwheel_count++;
+            self->op_hwheel_delta_sum += static_cast<short>(HIWORD(wparam));
             return 0;
         case OP_WM_MOUSEMOVE:
             self->op_move_count++;
@@ -498,27 +579,50 @@ void MouseEventWindow::SetTestCursor(HCURSOR cursor) {
 void MouseEventWindow::ResetCounts() {
     left_down = 0;
     left_up = 0;
+    left_double = 0;
+    middle_down = 0;
+    middle_up = 0;
+    middle_double = 0;
     right_down = 0;
     right_up = 0;
+    right_double = 0;
+    xbutton1_down = 0;
+    xbutton1_up = 0;
+    xbutton1_double = 0;
+    xbutton2_down = 0;
+    xbutton2_up = 0;
+    xbutton2_double = 0;
     wheel_count = 0;
     wheel_delta_sum = 0;
+    hwheel_count = 0;
+    hwheel_delta_sum = 0;
     move_count = 0;
     move_with_left_count = 0;
     raw_mouse_count = 0;
     raw_keyboard_count = 0;
     raw_left_down = 0;
     raw_left_up = 0;
+    raw_xbutton1_down = 0;
+    raw_xbutton1_up = 0;
     raw_wheel_delta_sum = 0;
+    raw_hwheel_delta_sum = 0;
     raw_key_down = 0;
     raw_key_up = 0;
     raw_device_info_count = 0;
     raw_device_name_count = 0;
     op_left_down = 0;
     op_left_up = 0;
+    op_left_double = 0;
     op_right_down = 0;
     op_right_up = 0;
+    op_right_double = 0;
+    op_xbutton1_down = 0;
+    op_xbutton1_up = 0;
+    op_xbutton1_double = 0;
     op_wheel_count = 0;
     op_wheel_delta_sum = 0;
+    op_hwheel_count = 0;
+    op_hwheel_delta_sum = 0;
     op_move_count = 0;
     last_x = 0;
     last_y = 0;

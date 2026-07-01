@@ -523,15 +523,33 @@ OP_MOUSE_RET(OpLeftDoubleClick, LeftDoubleClick)
 OP_MOUSE_RET(OpLeftDown, LeftDown)
 OP_MOUSE_RET(OpLeftUp, LeftUp)
 OP_MOUSE_RET(OpMiddleClick, MiddleClick)
+OP_MOUSE_RET(OpMiddleDoubleClick, MiddleDoubleClick)
 OP_MOUSE_RET(OpMiddleDown, MiddleDown)
 OP_MOUSE_RET(OpMiddleUp, MiddleUp)
 OP_MOUSE_RET(OpRightClick, RightClick)
+OP_MOUSE_RET(OpRightDoubleClick, RightDoubleClick)
 OP_MOUSE_RET(OpRightDown, RightDown)
 OP_MOUSE_RET(OpRightUp, RightUp)
+OP_MOUSE_RET(OpXButton1Click, XButton1Click)
+OP_MOUSE_RET(OpXButton1DoubleClick, XButton1DoubleClick)
+OP_MOUSE_RET(OpXButton1Down, XButton1Down)
+OP_MOUSE_RET(OpXButton1Up, XButton1Up)
+OP_MOUSE_RET(OpXButton2Click, XButton2Click)
+OP_MOUSE_RET(OpXButton2DoubleClick, XButton2DoubleClick)
+OP_MOUSE_RET(OpXButton2Down, XButton2Down)
+OP_MOUSE_RET(OpXButton2Up, XButton2Up)
 OP_MOUSE_RET(OpWheelDown, WheelDown)
 OP_MOUSE_RET(OpWheelUp, WheelUp)
 
 #undef OP_MOUSE_RET
+
+int OP_CALL OpWheel(op_handle handle, int delta) {
+    return call_ret(handle, [&](op::Client &op, long *ret) { op.Wheel(delta, ret); });
+}
+
+int OP_CALL OpHWheel(op_handle handle, int delta) {
+    return call_ret(handle, [&](op::Client &op, long *ret) { op.HWheel(delta, ret); });
+}
 
 int OP_CALL OpSetMouseDelay(op_handle handle, const wchar_t *type, int delay) {
     return call_ret(handle, [&](op::Client &op, long *ret) { op.SetMouseDelay(safe_text(type), delay, ret); });

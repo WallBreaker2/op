@@ -313,4 +313,23 @@ long WinKeyboard::KeyPress(long vk_code) {
     return KeyUp(vk_code);
 }
 
+long WinKeyboard::InputChar(wchar_t ch) {
+    switch (_mode) {
+    case INPUT_TYPE::IN_NORMAL:
+    case INPUT_TYPE::IN_NORMAL2: {
+        INPUT inputs[2] = {};
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = 0;
+        inputs[0].ki.wScan = static_cast<WORD>(ch);
+        inputs[0].ki.dwFlags = KEYEVENTF_UNICODE;
+        inputs[1] = inputs[0];
+        inputs[1].ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
+        return ::SendInput(2, inputs, sizeof(INPUT)) == 2 ? 1 : 0;
+    }
+    case INPUT_TYPE::IN_WINDOWS:
+        return send_message_result(_hwnd, WM_CHAR, static_cast<WPARAM>(ch), 1);
+    }
+    return 0;
+}
+
 } // namespace op::input
