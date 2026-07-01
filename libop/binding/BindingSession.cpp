@@ -543,21 +543,21 @@ bool BindingSession::requestCapture(int x1, int y1, int w, int h, Image &img) {
     return false;
 }
 
-std::unique_ptr<ICaptureBackend> BindingSession::createDisplay(int mode) {
+std::shared_ptr<ICaptureBackend> BindingSession::createDisplay(int mode) {
     if (mode == RDT_NORMAL || GET_RENDER_TYPE(mode) == RENDER_TYPE::GDI) {
-        return std::make_unique<GdiCapture>();
+        return std::make_shared<GdiCapture>();
     } else if (mode == RDT_NORMAL_DXGI) {
-        return std::make_unique<DxgiCapture>();
+        return std::make_shared<DxgiCapture>();
     }
 #ifdef OP_ENABLE_WGC
     else if (mode == RDT_NORMAL_WGC) {
-        return std::make_unique<WgcCapture>();
+        return std::make_shared<WgcCapture>();
     }
 #endif
     else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::DX) {
-        return std::make_unique<HookCapture>();
+        return std::make_shared<HookCapture>();
     } else if (GET_RENDER_TYPE(mode) == RENDER_TYPE::OPENGL)
-        return std::make_unique<HookCapture>();
+        return std::make_shared<HookCapture>();
     return nullptr;
 }
 
