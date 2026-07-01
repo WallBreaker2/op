@@ -104,15 +104,28 @@ interface IOpAutomation : IDispatch
 	[id(127)] HRESULT LeftUp([out, retval] LONG* ret);
 
 	[id(128)] HRESULT MiddleClick([out, retval] LONG* ret);
+	[id(336)] HRESULT MiddleDoubleClick([out, retval] LONG* ret);
 	[id(129)] HRESULT MiddleDown([out, retval] LONG* ret);
 	[id(130)] HRESULT MiddleUp([out, retval] LONG* ret);
 
 	[id(131)] HRESULT RightClick([out, retval] LONG* ret);
+	[id(337)] HRESULT RightDoubleClick([out, retval] LONG* ret);
 	[id(132)] HRESULT RightDown([out, retval] LONG* ret);
 	[id(133)] HRESULT RightUp([out, retval] LONG* ret);
 
+	[id(338)] HRESULT XButton1Click([out, retval] LONG* ret);
+	[id(339)] HRESULT XButton1DoubleClick([out, retval] LONG* ret);
+	[id(340)] HRESULT XButton1Down([out, retval] LONG* ret);
+	[id(341)] HRESULT XButton1Up([out, retval] LONG* ret);
+	[id(342)] HRESULT XButton2Click([out, retval] LONG* ret);
+	[id(343)] HRESULT XButton2DoubleClick([out, retval] LONG* ret);
+	[id(344)] HRESULT XButton2Down([out, retval] LONG* ret);
+	[id(345)] HRESULT XButton2Up([out, retval] LONG* ret);
+
 	[id(134)] HRESULT WheelDown([out, retval] LONG* ret);
 	[id(135)] HRESULT WheelUp([out, retval] LONG* ret);
+	[id(346)] HRESULT Wheel([in] LONG delta, [out, retval] LONG* ret);
+	[id(347)] HRESULT HWheel([in] LONG delta, [out, retval] LONG* ret);
 
 	[id(136)] HRESULT GetKeyState([in] LONG vk_code, [out, retval] LONG* ret);
 

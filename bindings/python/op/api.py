@@ -433,6 +433,9 @@ class Op:
     def middle_click(self) -> bool:
         return self._call_ok("OpMiddleClick")
 
+    def middle_double_click(self) -> bool:
+        return self._call_ok("OpMiddleDoubleClick")
+
     def middle_down(self) -> bool:
         return self._call_ok("OpMiddleDown")
 
@@ -442,11 +445,44 @@ class Op:
     def right_click(self) -> bool:
         return self._call_ok("OpRightClick")
 
+    def right_double_click(self) -> bool:
+        return self._call_ok("OpRightDoubleClick")
+
     def right_down(self) -> bool:
         return self._call_ok("OpRightDown")
 
     def right_up(self) -> bool:
         return self._call_ok("OpRightUp")
+
+    def xbutton1_click(self) -> bool:
+        return self._call_ok("OpXButton1Click")
+
+    def xbutton1_double_click(self) -> bool:
+        return self._call_ok("OpXButton1DoubleClick")
+
+    def xbutton1_down(self) -> bool:
+        return self._call_ok("OpXButton1Down")
+
+    def xbutton1_up(self) -> bool:
+        return self._call_ok("OpXButton1Up")
+
+    def xbutton2_click(self) -> bool:
+        return self._call_ok("OpXButton2Click")
+
+    def xbutton2_double_click(self) -> bool:
+        return self._call_ok("OpXButton2DoubleClick")
+
+    def xbutton2_down(self) -> bool:
+        return self._call_ok("OpXButton2Down")
+
+    def xbutton2_up(self) -> bool:
+        return self._call_ok("OpXButton2Up")
+
+    def wheel(self, delta: int) -> bool:
+        return self._call_ok("OpWheel", int(delta))
+
+    def hwheel(self, delta: int) -> bool:
+        return self._call_ok("OpHWheel", int(delta))
 
     def wheel_down(self) -> bool:
         return self._call_ok("OpWheelDown")

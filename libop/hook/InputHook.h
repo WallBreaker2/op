@@ -8,8 +8,8 @@ namespace op::hook {
 struct MouseState {
     LONG lAxisX;
     LONG lAxisY;
-    BYTE abButtons[3];
-    BYTE bPadding; // 保持结构体 4 字节对齐。
+    BYTE abButtons[5];
+    BYTE bPadding[3]; // 保持结构体 4 字节对齐。
 };
 
 class InputHook {
@@ -22,7 +22,7 @@ class InputHook {
     static int release();
     static void moveTo(LPARAM lp);
     static void button(LPARAM lp, int key, bool down);
-    static void updateWheel(WPARAM, LPARAM);
+    static void updateWheel(WPARAM, LPARAM, bool horizontal);
     static LONG consumeWheelDelta();
     static void updateKey(WPARAM vk, bool down);
     static bool isKeyDown(int vk);

@@ -173,6 +173,10 @@ void op::Client::MiddleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleClick());
 }
 
+void op::Client::MiddleDoubleClick(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->MiddleDoubleClick());
+}
+
 void op::Client::MiddleDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleDown());
 }
@@ -185,12 +189,56 @@ void op::Client::RightClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightClick());
 }
 
+void op::Client::RightDoubleClick(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->RightDoubleClick());
+}
+
 void op::Client::RightDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightDown());
 }
 
 void op::Client::RightUp(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightUp());
+}
+
+void op::Client::XButton1Click(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton1Click());
+}
+
+void op::Client::XButton1DoubleClick(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton1DoubleClick());
+}
+
+void op::Client::XButton1Down(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton1Down());
+}
+
+void op::Client::XButton1Up(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton1Up());
+}
+
+void op::Client::XButton2Click(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton2Click());
+}
+
+void op::Client::XButton2DoubleClick(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton2DoubleClick());
+}
+
+void op::Client::XButton2Down(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton2Down());
+}
+
+void op::Client::XButton2Up(long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->XButton2Up());
+}
+
+void op::Client::Wheel(long delta, long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->Wheel(delta));
+}
+
+void op::Client::HWheel(long delta, long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->HWheel(delta));
 }
 
 void op::Client::WheelDown(long *ret) {
@@ -281,11 +329,7 @@ void op::Client::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
         return;
     auto nlen = wcslen(key_str);
     for (size_t i = 0; i < nlen; ++i) {
-        key_combo_t combo;
-        if (!resolve_char_key_combo(key_str[i], combo))
-            return;
-
-        const long key_ret = key_combo_press(m_context->bkproc._keyboard.get(), combo);
+        const long key_ret = m_context->bkproc._keyboard->InputChar(key_str[i]);
         internal::set_result(ret, key_ret);
         if (key_ret == 0)
             return;

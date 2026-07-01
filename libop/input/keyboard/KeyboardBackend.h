@@ -25,6 +25,8 @@ class KeyboardBackend {
 
     virtual long KeyPress(long vk_code) = 0;
 
+    virtual long InputChar(wchar_t ch) = 0;
+
   protected:
     HWND _hwnd;
     int _mode;

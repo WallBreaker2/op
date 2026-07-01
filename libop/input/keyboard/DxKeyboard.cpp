@@ -132,4 +132,8 @@ long DxKeyboard::KeyPress(long vk_code) {
     return KeyUp(vk_code);
 }
 
+long DxKeyboard::InputChar(wchar_t ch) {
+    return send_input_message(_hwnd, OP_WM_CHAR, static_cast<WPARAM>(ch), 1);
+}
+
 } // namespace op::input

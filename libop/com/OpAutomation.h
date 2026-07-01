@@ -205,20 +205,34 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(LeftUp)(LONG *ret);
     // 按下鼠标中键
     STDMETHOD(MiddleClick)(LONG *ret);
+    // 双击鼠标中键
+    STDMETHOD(MiddleDoubleClick)(LONG *ret);
     // 按住鼠标中键
     STDMETHOD(MiddleDown)(LONG *ret);
     // 弹起鼠标中键
     STDMETHOD(MiddleUp)(LONG *ret);
     // 按下鼠标右键
     STDMETHOD(RightClick)(LONG *ret);
+    // 双击鼠标右键
+    STDMETHOD(RightDoubleClick)(LONG *ret);
     // 按住鼠标右键
     STDMETHOD(RightDown)(LONG *ret);
     // 弹起鼠标右键
     STDMETHOD(RightUp)(LONG *ret);
+    STDMETHOD(XButton1Click)(LONG *ret);
+    STDMETHOD(XButton1DoubleClick)(LONG *ret);
+    STDMETHOD(XButton1Down)(LONG *ret);
+    STDMETHOD(XButton1Up)(LONG *ret);
+    STDMETHOD(XButton2Click)(LONG *ret);
+    STDMETHOD(XButton2DoubleClick)(LONG *ret);
+    STDMETHOD(XButton2Down)(LONG *ret);
+    STDMETHOD(XButton2Up)(LONG *ret);
     // 滚轮向下滚
     STDMETHOD(WheelDown)(LONG *ret);
     // 滚轮向上滚
     STDMETHOD(WheelUp)(LONG *ret);
+    STDMETHOD(Wheel)(LONG delta, LONG *ret);
+    STDMETHOD(HWheel)(LONG delta, LONG *ret);
     // 设置鼠标单击或者双击时,鼠标按下和弹起的时间间隔
     STDMETHOD(SetMouseDelay)(BSTR type, LONG delay, LONG *ret);
     // 获取指定的按键状态.(前台信息,不是后台)
