@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "opencv/OpenCvBridge.h"
 #include "opencv/TemplateMatcher.h"
@@ -326,11 +326,11 @@ bool cv_pipeline_apply_step(const std::wstring &name, const std::vector<std::wst
 
 } // namespace
 
-void op::Client::CvLoadTemplate(const wchar_t *name, const wchar_t *file_path, long *ret) {
+void op::Op::CvLoadTemplate(const wchar_t *name, const wchar_t *file_path, long *ret) {
     internal::set_result(ret, (name != nullptr && file_path != nullptr && opcv::LoadTemplate(name, file_path)) ? 1L : 0L);
 }
 
-void op::Client::CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *template_path, const wchar_t *mask_path,
+void op::Op::CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *template_path, const wchar_t *mask_path,
                                  long *ret) {
     internal::set_result(ret,
                          (name != nullptr && template_path != nullptr && mask_path != nullptr &&
@@ -339,24 +339,24 @@ void op::Client::CvLoadMaskedTemplate(const wchar_t *name, const wchar_t *templa
                              : 0L);
 }
 
-void op::Client::CvRemoveTemplate(const wchar_t *name, long *ret) {
+void op::Op::CvRemoveTemplate(const wchar_t *name, long *ret) {
     internal::set_result(ret, (name != nullptr && opcv::RemoveTemplate(name)) ? 1L : 0L);
 }
 
-void op::Client::CvRemoveAllTemplates(long *ret) {
+void op::Op::CvRemoveAllTemplates(long *ret) {
     opcv::RemoveAllTemplates();
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvHasTemplate(const wchar_t *name, long *ret) {
+void op::Op::CvHasTemplate(const wchar_t *name, long *ret) {
     internal::set_result(ret, (name != nullptr && opcv::HasTemplate(name)) ? 1L : 0L);
 }
 
-void op::Client::CvGetTemplateCount(long *ret) {
+void op::Op::CvGetTemplateCount(long *ret) {
     internal::set_result(ret, opcv::GetTemplateCount());
 }
 
-void op::Client::CvGetAllTemplateNames(std::wstring &retstr) {
+void op::Op::CvGetAllTemplateNames(std::wstring &retstr) {
     retstr.clear();
     const auto names = opcv::GetAllTemplateNames();
     for (size_t i = 0; i < names.size(); ++i) {
@@ -367,11 +367,11 @@ void op::Client::CvGetAllTemplateNames(std::wstring &retstr) {
     }
 }
 
-void op::Client::CvGetOpenCvVersion(std::wstring &retstr) {
+void op::Op::CvGetOpenCvVersion(std::wstring &retstr) {
     retstr = opcv::GetOpenCvVersion();
 }
 
-void op::Client::CvLoadTemplateList(const wchar_t *template_list, long *ret) {
+void op::Op::CvLoadTemplateList(const wchar_t *template_list, long *ret) {
     internal::set_result(ret, 0L);
     if (template_list == nullptr || template_list[0] == L'\0') {
         return;
@@ -407,50 +407,50 @@ void op::Client::CvLoadTemplateList(const wchar_t *template_list, long *ret) {
     internal::set_result(ret, opcv::LoadTemplateList(templates) ? 1L : 0L);
 }
 
-void op::Client::CvToGray(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvToGray(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::ToGray(source, output);
     });
 }
 
-void op::Client::CvToBinary(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvToBinary(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::ToBinary(source, output);
     });
 }
 
-void op::Client::CvToEdge(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvToEdge(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::ToEdge(source, output);
     });
 }
 
-void op::Client::CvToOutline(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvToOutline(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::ToOutline(source, output);
     });
 }
 
-void op::Client::CvDenoise(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvDenoise(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::Denoise(source, output);
     });
 }
 
-void op::Client::CvEqualize(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvEqualize(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::Equalize(source, output);
     });
 }
 
-void op::Client::CvCLAHE(const wchar_t *src_file, const wchar_t *dst_file, double clip_limit, long tile_grid_size,
+void op::Op::CvCLAHE(const wchar_t *src_file, const wchar_t *dst_file, double clip_limit, long tile_grid_size,
                     long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [&](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::CLAHE(source, output, clip_limit, static_cast<int>(tile_grid_size));
     });
 }
 
-void op::Client::CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size, long *ret) {
+void op::Op::CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size, long *ret) {
     opcv::BlurMode blur_mode;
     if (!parse_cv_blur_mode(mode, blur_mode)) {
         internal::set_result(ret, 0L);
@@ -462,19 +462,19 @@ void op::Client::CvBlur(const wchar_t *src_file, const wchar_t *dst_file, const 
     });
 }
 
-void op::Client::CvSharpen(const wchar_t *src_file, const wchar_t *dst_file, double strength, long *ret) {
+void op::Op::CvSharpen(const wchar_t *src_file, const wchar_t *dst_file, double strength, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [&](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::Sharpen(source, output, strength);
     });
 }
 
-void op::Client::CvCropValid(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
+void op::Op::CvCropValid(const wchar_t *src_file, const wchar_t *dst_file, long *ret) {
     run_cv_file_preprocess(src_file, dst_file, ret, [](const opcv::ImageHandle &source, opcv::ImageHandle &output) {
         return opcv::CropValid(source, output);
     });
 }
 
-void op::Client::CvConnectedComponents(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
+void op::Op::CvConnectedComponents(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
     internal::set_result(ret, 0L);
     retjson = build_cv_components_json({}, false);
     if (src_file == nullptr) {
@@ -488,7 +488,7 @@ void op::Client::CvConnectedComponents(const wchar_t *src_file, double min_area,
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvFindContours(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
+void op::Op::CvFindContours(const wchar_t *src_file, double min_area, std::wstring &retjson, long *ret) {
     internal::set_result(ret, 0L);
     retjson = build_cv_contours_json({}, false);
     if (src_file == nullptr) {
@@ -502,7 +502,7 @@ void op::Client::CvFindContours(const wchar_t *src_file, double min_area, std::w
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *pipeline, long *ret) {
+void op::Op::CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *pipeline, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr || pipeline == nullptr || pipeline[0] == L'\0') {
         return;
@@ -543,7 +543,7 @@ void op::Client::CvPreprocessPipeline(const wchar_t *src_file, const wchar_t *ds
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvCrop(const wchar_t *src_file, long x, long y, long width, long height, const wchar_t *dst_file,
+void op::Op::CvCrop(const wchar_t *src_file, long x, long y, long width, long height, const wchar_t *dst_file,
                    long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
@@ -565,7 +565,7 @@ void op::Client::CvCrop(const wchar_t *src_file, long x, long y, long width, lon
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvResize(const wchar_t *src_file, long width, long height, const wchar_t *dst_file, long *ret) {
+void op::Op::CvResize(const wchar_t *src_file, long width, long height, const wchar_t *dst_file, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
         return;
@@ -582,7 +582,7 @@ void op::Client::CvResize(const wchar_t *src_file, long width, long height, cons
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, double threshold, double max_value,
+void op::Op::CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, double threshold, double max_value,
                         const wchar_t *mode, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
@@ -605,7 +605,7 @@ void op::Client::CvThreshold(const wchar_t *src_file, const wchar_t *dst_file, d
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvInRange(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *color_space,
+void op::Op::CvInRange(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *color_space,
                       const wchar_t *lower, const wchar_t *upper, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
@@ -631,7 +631,7 @@ void op::Client::CvInRange(const wchar_t *src_file, const wchar_t *dst_file, con
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size,
+void op::Op::CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long kernel_size,
                          long iterations, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
@@ -655,7 +655,7 @@ void op::Client::CvMorphology(const wchar_t *src_file, const wchar_t *dst_file, 
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvThin(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long *ret) {
+void op::Op::CvThin(const wchar_t *src_file, const wchar_t *dst_file, const wchar_t *mode, long *ret) {
     internal::set_result(ret, 0L);
     if (src_file == nullptr || dst_file == nullptr) {
         return;
@@ -676,7 +676,7 @@ void op::Client::CvThin(const wchar_t *src_file, const wchar_t *dst_file, const 
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CvMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+void op::Op::CvMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
                             long dir, long strip_mode, long method, long color_mode, std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0}";
     internal::set_result(ret, 0L);
@@ -705,7 +705,7 @@ void op::Client::CvMatchTemplate(long x, long y, long width, long height, const 
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvMatchTemplateScale(long x, long y, long width, long height, const wchar_t *template_name,
+void op::Op::CvMatchTemplateScale(long x, long y, long width, long height, const wchar_t *template_name,
                                  const wchar_t *scales, double threshold, long method, long color_mode,
                                  std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0}";
@@ -739,7 +739,7 @@ void op::Client::CvMatchTemplateScale(long x, long y, long width, long height, c
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvMatchAnyTemplate(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
+void op::Op::CvMatchAnyTemplate(long x, long y, long width, long height, const wchar_t *template_names, double threshold,
                                long dir, long strip_mode, long method, long color_mode, std::wstring &retjson,
                                long *ret) {
     retjson = L"{\"ok\":0}";
@@ -771,7 +771,7 @@ void op::Client::CvMatchAnyTemplate(long x, long y, long width, long height, con
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvMatchAllTemplates(long x, long y, long width, long height, const wchar_t *template_names,
+void op::Op::CvMatchAllTemplates(long x, long y, long width, long height, const wchar_t *template_names,
                                 double threshold, long dir, long strip_mode, long method, long color_mode,
                                 std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0,\"results\":[]}";
@@ -805,7 +805,7 @@ void op::Client::CvMatchAllTemplates(long x, long y, long width, long height, co
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvFeatureMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+void op::Op::CvFeatureMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
                                    double threshold, std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0}";
     internal::set_result(ret, 0L);
@@ -832,7 +832,7 @@ void op::Client::CvFeatureMatchTemplate(long x, long y, long width, long height,
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvEdgeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
+void op::Op::CvEdgeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name, double threshold,
                                 std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0}";
     internal::set_result(ret, 0L);
@@ -859,7 +859,7 @@ void op::Client::CvEdgeMatchTemplate(long x, long y, long width, long height, co
     internal::set_result(ret, ok ? 1L : 0L);
 }
 
-void op::Client::CvShapeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
+void op::Op::CvShapeMatchTemplate(long x, long y, long width, long height, const wchar_t *template_name,
                                  double threshold, std::wstring &retjson, long *ret) {
     retjson = L"{\"ok\":0}";
     internal::set_result(ret, 0L);

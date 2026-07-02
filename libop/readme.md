@@ -1,5 +1,5 @@
 # 文件目录
-* core: op插件各个模块依赖的公共数据结构，函数，宏和全局变量等
+* op：C++ 主接口 op::Op 的分文件实现
 * binding：窗口绑定与后台模式调度
 * capture：前台截图、后台(gdi,opengl,dx,wgc）截图和采集后端
 * input：鼠标键盘操作

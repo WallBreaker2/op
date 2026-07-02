@@ -127,7 +127,7 @@ set(OP_TEST_SOURCES
   "main.cpp"
   "test_support.cpp"
   "handle_compat_test.cpp"
-  "core_algorithm_windows_test.cpp"
+  "op_algorithm_windows_test.cpp"
   "mouse_keyboard_test.cpp"
   "image_color_test.cpp"
   "wgc_test.cpp"

@@ -1,4 +1,4 @@
-﻿// OpAutomation.h: OpAutomation 的声明
+// OpAutomation.h: OpAutomation 的声明
 
 #pragma once
 #include "resource.h" // 主符号
@@ -49,7 +49,7 @@ class ATL_NO_VTABLE OpAutomation
     }
 
   private:
-    op::Client obj;
+    op::Op obj;
 
   public:
     //---------------基本设置/属性-------------------

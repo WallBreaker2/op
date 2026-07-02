@@ -130,7 +130,7 @@ struct ColorPulseWindow {
 
 class OcrTest : public ::testing::Test {
   protected:
-    op::Client op;
+    op::Op op;
     long ret = 0;
 
     void SetUp() override;

@@ -1,4 +1,4 @@
-// op::Client的声明
+// op::Op的声明
 /*
 所有op的开放接口都从此cpp类衍生而出
 */
@@ -21,7 +21,7 @@
 #endif
 #endif
 #endif
-// op::Client
+// op::Op
 #undef FindWindow
 #undef FindWindowEx
 #undef SetWindowText
@@ -34,27 +34,27 @@
 namespace op {
 
 namespace internal {
-struct ClientContext;
+struct OpContext;
 }
 
-class OP_API Client {
+class OP_API Op {
 
   public:
-    Client();
-    ~Client();
+    Op();
+    ~Op();
     // 复制构造
-    Client(Client const &) = delete;
-    Client &operator=(Client const rhs) = delete;
+    Op(Op const &) = delete;
+    Op &operator=(Op const &) = delete;
 
-    using RuntimeService = Client;
-    using WindowService = Client;
-    using BindingService = Client;
-    using InputService = Client;
-    using ImageService = Client;
-    using OcrService = Client;
-    using OpenCvService = Client;
-    using YoloService = Client;
-    using MemoryService = Client;
+    using RuntimeService = Op;
+    using WindowService = Op;
+    using BindingService = Op;
+    using InputService = Op;
+    using ImageService = Op;
+    using OcrService = Op;
+    using OpenCvService = Op;
+    using YoloService = Op;
+    using MemoryService = Op;
 
     RuntimeService &runtime() noexcept {
         return *this;
@@ -85,7 +85,7 @@ class OP_API Client {
     }
 
   private:
-    std::unique_ptr<internal::ClientContext> m_context;
+    std::unique_ptr<internal::OpContext> m_context;
     static std::atomic<int> s_id;
 
   public:

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_CLIENT_CLIENT_RESULT_H_
-#define OP_CLIENT_CLIENT_RESULT_H_
+#ifndef OP_OP_RESULT_H_
+#define OP_OP_RESULT_H_
 
 namespace op::internal {
 
@@ -12,4 +12,4 @@ void set_result(Result *result, Value value) noexcept {
 
 } // namespace op::internal
 
-#endif // OP_CLIENT_CLIENT_RESULT_H_
+#endif // OP_OP_RESULT_H_
