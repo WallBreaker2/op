@@ -68,6 +68,10 @@ func (o *Op) MiddleClick() int {
 	return o.callNoArgs(procMiddleClick)
 }
 
+func (o *Op) MiddleDoubleClick() int {
+	return o.callNoArgs(procMiddleDoubleClick)
+}
+
 func (o *Op) MiddleDown() int {
 	return o.callNoArgs(procMiddleDown)
 }
@@ -80,12 +84,66 @@ func (o *Op) RightClick() int {
 	return o.callNoArgs(procRightClick)
 }
 
+func (o *Op) RightDoubleClick() int {
+	return o.callNoArgs(procRightDoubleClick)
+}
+
 func (o *Op) RightDown() int {
 	return o.callNoArgs(procRightDown)
 }
 
 func (o *Op) RightUp() int {
 	return o.callNoArgs(procRightUp)
+}
+
+func (o *Op) XButton1Click() int {
+	return o.callNoArgs(procXButton1Click)
+}
+
+func (o *Op) XButton1DoubleClick() int {
+	return o.callNoArgs(procXButton1DoubleClick)
+}
+
+func (o *Op) XButton1Down() int {
+	return o.callNoArgs(procXButton1Down)
+}
+
+func (o *Op) XButton1Up() int {
+	return o.callNoArgs(procXButton1Up)
+}
+
+func (o *Op) XButton2Click() int {
+	return o.callNoArgs(procXButton2Click)
+}
+
+func (o *Op) XButton2DoubleClick() int {
+	return o.callNoArgs(procXButton2DoubleClick)
+}
+
+func (o *Op) XButton2Down() int {
+	return o.callNoArgs(procXButton2Down)
+}
+
+func (o *Op) XButton2Up() int {
+	return o.callNoArgs(procXButton2Up)
+}
+
+func (o *Op) Wheel(delta int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procWheel.Call(o.handle, uintptr(delta))
+	return int(ret)
+}
+
+func (o *Op) HWheel(delta int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procHWheel.Call(o.handle, uintptr(delta))
+	return int(ret)
 }
 
 func (o *Op) WheelDown() int {

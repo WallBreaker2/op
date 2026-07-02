@@ -45,6 +45,9 @@ long ICaptureBackend::UnBind() {
     if (_bind_state) {
         UnBindEx();
     }
+    if (DeferBindReleaseAfterUnBind()) {
+        return 1;
+    }
     bind_release();
     _bind_state = 0;
     return 1;

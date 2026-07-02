@@ -57,12 +57,12 @@ class BindingSession {
     Image _pic;
 
     long reset_bind_state(bool restore_default_input);
-    std::unique_ptr<op::capture::ICaptureBackend> createDisplay(int mode);
+    std::shared_ptr<op::capture::ICaptureBackend> createDisplay(int mode);
     std::unique_ptr<op::input::WinMouse> createMouse(int mode);
     std::unique_ptr<op::input::KeyboardBackend> createKeypad(int mode);
 
   public:
-    std::unique_ptr<op::capture::ICaptureBackend> _capture;
+    std::shared_ptr<op::capture::ICaptureBackend> _capture;
     std::unique_ptr<op::input::WinMouse> _mouse;
     std::unique_ptr<op::input::KeyboardBackend> _keyboard;
     wstring _curr_path;

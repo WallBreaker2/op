@@ -27,6 +27,8 @@ class WinKeyboard : public KeyboardBackend {
 
     virtual long KeyPress(long vk_code);
 
+    virtual long InputChar(wchar_t ch);
+
   private:
     bool _shift_down = false;
     bool _ctrl_down = false;

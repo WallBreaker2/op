@@ -15,6 +15,7 @@
 using namespace std;
 using test_support::ColorPulseWindow;
 using test_support::MouseEventWindow;
+using test_support::SendStringWindow;
 
 namespace {
 
@@ -401,6 +402,24 @@ TEST(MouseKeyTest, WaitKeySpecificKeyZeroTimeout) {
     EXPECT_TRUE(ret == 0 || ret == 'A');
 }
 
+TEST(MouseKeyTest, WindowsModeKeyPressStrSupportsUnicodeFallback) {
+    SendStringWindow window;
+    ASSERT_TRUE(window.Create());
+
+    op::Client op;
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.edit, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.KeyPressStr(L"测A", 1, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(window.GetEditText(), L"测A");
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
 TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
     op::Client op;
     MouseEventWindow window;
@@ -427,6 +446,83 @@ TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
     EXPECT_GE(window.right_up, 1);
     EXPECT_GE(window.wheel_count, 2);
     EXPECT_EQ(window.wheel_delta_sum, 0);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, WindowsModeAdvancedMouseButtonsAndWheel) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.MoveTo(32, 48, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+
+    op.LeftDoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.MiddleDoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.RightDoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.XButton1Click(&ret);
+    EXPECT_EQ(ret, 1);
+    op.XButton1DoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.Wheel(2 * WHEEL_DELTA, &ret);
+    EXPECT_EQ(ret, 1);
+    op.HWheel(-WHEEL_DELTA, &ret);
+    EXPECT_EQ(ret, 1);
+
+    EXPECT_GE(window.left_double, 1);
+    EXPECT_GE(window.middle_double, 1);
+    EXPECT_GE(window.right_double, 1);
+    EXPECT_GE(window.xbutton1_down, 2);
+    EXPECT_GE(window.xbutton1_up, 2);
+    EXPECT_GE(window.xbutton1_double, 1);
+    EXPECT_EQ(window.wheel_delta_sum, 2 * WHEEL_DELTA);
+    EXPECT_EQ(window.hwheel_delta_sum, -WHEEL_DELTA);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, WindowsModeMouseMoveCarriesLeftButtonWhileHeld) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1) << "BindWindow windows mode should succeed";
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+
+    op.LeftDown(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveTo(48, 64, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_GE(window.move_with_left_count, 1);
+    EXPECT_NE(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 48);
+    EXPECT_EQ(window.last_y, 64);
+
+    op.LeftUp(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveR(3, 4, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 51);
+    EXPECT_EQ(window.last_y, 68);
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
@@ -553,6 +649,100 @@ TEST(MouseKeyTest, DxModeDeliversWindowAndRawInput) {
     EXPECT_EQ(window.raw_wheel_delta_sum, 0);
     EXPECT_GE(window.raw_device_info_count, 1);
     EXPECT_GE(window.raw_device_name_count, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeDeliversAdvancedMouseButtonsAndWheel) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"dx", L"windows", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX mouse bind unavailable on current environment";
+    }
+
+    RAWINPUTDEVICE device = {};
+    device.usUsagePage = 0x01;
+    device.usUsage = 0x02;
+    device.hwndTarget = window.hwnd;
+    ASSERT_TRUE(::RegisterRawInputDevices(&device, 1, sizeof(RAWINPUTDEVICE)));
+    PumpMessagesFor(50);
+
+    op.MoveTo(24, 36, &ret);
+    ASSERT_EQ(ret, 1);
+    PumpMessagesFor(80);
+    window.ResetCounts();
+
+    op.LeftDoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.RightDoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.XButton1Click(&ret);
+    EXPECT_EQ(ret, 1);
+    op.XButton1DoubleClick(&ret);
+    EXPECT_EQ(ret, 1);
+    op.Wheel(2 * WHEEL_DELTA, &ret);
+    EXPECT_EQ(ret, 1);
+    op.HWheel(WHEEL_DELTA, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(180);
+
+    EXPECT_GE(window.left_double, 1);
+    EXPECT_GE(window.right_double, 1);
+    EXPECT_GE(window.xbutton1_down, 2);
+    EXPECT_GE(window.xbutton1_up, 2);
+    EXPECT_GE(window.xbutton1_double, 1);
+    EXPECT_EQ(window.wheel_delta_sum, 2 * WHEEL_DELTA);
+    EXPECT_EQ(window.hwheel_delta_sum, WHEEL_DELTA);
+    EXPECT_GE(window.raw_xbutton1_down, 1);
+    EXPECT_GE(window.raw_xbutton1_up, 1);
+    EXPECT_EQ(window.raw_wheel_delta_sum, 2 * WHEEL_DELTA);
+    EXPECT_EQ(window.raw_hwheel_delta_sum, WHEEL_DELTA);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeMouseMoveCarriesLeftButtonWhileHeld) {
+    op::Client op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"dx", L"windows", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX mouse bind unavailable on current environment";
+    }
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    PumpMessagesFor(80);
+    window.ResetCounts();
+
+    op.LeftDown(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveTo(48, 64, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_GE(window.move_with_left_count, 1);
+    EXPECT_NE(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 48);
+    EXPECT_EQ(window.last_y, 64);
+
+    op.LeftUp(&ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveR(3, 4, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_EQ(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
+    EXPECT_EQ(window.last_x, 51);
+    EXPECT_EQ(window.last_y, 68);
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
@@ -716,6 +906,27 @@ TEST(MouseKeyTest, DxModeFeedsDirectInputBufferedData) {
     EXPECT_GE(window.raw_keyboard_count, 2);
     EXPECT_GE(window.raw_key_down, 1);
     EXPECT_GE(window.raw_key_up, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeKeyPressStrSupportsUnicodeFallback) {
+    SendStringWindow window;
+    ASSERT_TRUE(window.Create());
+
+    op::Client op;
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.edit, L"normal", L"windows", L"dx", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX keyboard bind unavailable on current environment";
+    }
+
+    op.KeyPressStr(L"测A", 1, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_EQ(window.GetEditText(), L"测A");
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);

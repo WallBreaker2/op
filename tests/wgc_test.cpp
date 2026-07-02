@@ -148,6 +148,75 @@ TEST_F(WgcTest, NormalAutoCapturesPlainWindows) {
     PumpMessagesFor(200);
 }
 
+TEST_F(WgcTest, NormalDxgiFirstCaptureAfterBindUsesFreshFrame) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    SetForegroundWindow(window.hwnd);
+    BringWindowToTop(window.hwnd);
+    PumpMessagesFor(400);
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.dxgi", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::wstring color;
+    op.GetColor(60, 60, color);
+    EXPECT_EQ(color, L"FF0000") << "DXGI bind 后第一次截图应使用 AcquireNextFrame 成功返回的预热帧";
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
+    PumpMessagesFor(200);
+}
+
+TEST_F(WgcTest, NormalDxgiMaximizeAfterBindCapturesClippedClientArea) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    SetForegroundWindow(window.hwnd);
+    BringWindowToTop(window.hwnd);
+    PumpMessagesFor(400);
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.dxgi", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    ShowWindow(window.hwnd, SW_MAXIMIZE);
+    PumpMessagesFor(1000);
+
+    RECT client = {};
+    ASSERT_TRUE(GetClientRect(window.hwnd, &client));
+    ASSERT_GT(client.right, 20);
+    ASSERT_GT(client.bottom, 20);
+
+    std::wstring color;
+    op.GetColor(client.right - 12, client.bottom - 12, color);
+    EXPECT_EQ(color, L"FF0000") << "DXGI 最大化后客户区右下角截图不应因 DWM 边界越界失败";
+
+    long cap_ret = 0;
+    const std::wstring capture_path = test_support::GetTempBmpPath(L"op_dxgi_maximized_capture.bmp");
+    op.Capture(0, 0, client.right, client.bottom, capture_path.c_str(), &cap_ret);
+    EXPECT_EQ(cap_ret, 1) << "DXGI 最大化后整块客户区截取不应因 1px 边界越界失败";
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
+    PumpMessagesFor(200);
+}
+
 TEST_F(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
     NamedClassColorWindow window;
     ASSERT_TRUE(window.Create(L"Chrome_WidgetWin_1"));
@@ -298,6 +367,99 @@ TEST_F(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
     DestroyWindow(window.hwnd);
     window.hwnd = nullptr;
     PumpMessagesFor(200);
+}
+
+TEST_F(WgcTest, MaximizedWindowBindCapturesFullClientArea) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    ShowWindow(window.hwnd, SW_MAXIMIZE);
+    PumpMessagesFor(1000);
+
+    RECT client = {};
+    ASSERT_TRUE(GetClientRect(window.hwnd, &client));
+    ASSERT_GT(client.right, 20);
+    ASSERT_GT(client.bottom, 20);
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.wgc", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::wstring color;
+    op.GetColor(client.right - 12, client.bottom - 12, color);
+    EXPECT_EQ(color, L"FF0000") << "最大化窗口绑定后客户区右下角截图不完整";
+
+    long cap_ret = 0;
+    const std::wstring capture_path = test_support::GetTempBmpPath(L"op_wgc_bind_maximized_capture.bmp");
+    op.Capture(0, 0, client.right, client.bottom, capture_path.c_str(), &cap_ret);
+    EXPECT_EQ(cap_ret, 1) << "最大化窗口绑定后整块客户区截取失败";
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
+    PumpMessagesFor(200);
+}
+
+TEST_F(WgcTest, RepeatedBindUnbindAndMaximizedRepeatedCapture) {
+    ColorPulseWindow window;
+    ASSERT_TRUE(window.Create(false));
+
+    for (int i = 0; i < 3; ++i) {
+        op::Client op;
+        long ret = 0;
+        op.SetShowErrorMsg(3, &ret);
+
+        ret = 0;
+        op.BindWindow((long)(intptr_t)window.hwnd, L"normal.wgc", L"windows", L"windows", 0, &ret);
+        ASSERT_EQ(ret, 1);
+
+        PumpMessagesFor(300);
+
+        std::wstring color;
+        op.GetColor(60, 60, color);
+        EXPECT_EQ(color, L"FF0000");
+
+        long unbind_ret = 0;
+        op.UnBindWindow(&unbind_ret);
+        EXPECT_EQ(unbind_ret, 1);
+        PumpMessagesFor(250);
+    }
+
+    ShowWindow(window.hwnd, SW_MAXIMIZE);
+    PumpMessagesFor(1000);
+
+    RECT client = {};
+    ASSERT_TRUE(GetClientRect(window.hwnd, &client));
+
+    op::Client op;
+    long ret = 0;
+    op.SetShowErrorMsg(3, &ret);
+
+    ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal.wgc", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+    PumpMessagesFor(500);
+
+    std::wstring first_color;
+    op.GetColor(client.right - 12, client.bottom - 12, first_color);
+    EXPECT_EQ(first_color, L"FF0000");
+
+    std::wstring second_color;
+    op.GetColor(client.right - 12, client.bottom - 12, second_color);
+    EXPECT_EQ(second_color, L"FF0000");
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+    DestroyWindow(window.hwnd);
+    window.hwnd = nullptr;
+    PumpMessagesFor(300);
 }
 
 // This scenario is useful for local WGC stress validation, but it is still

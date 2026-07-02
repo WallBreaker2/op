@@ -11,7 +11,8 @@ namespace op::ocr {
 
 namespace {
 constexpr const char *kTesseractDefaultEndpoint = "http://127.0.0.1:8080/api/v1/ocr";
-constexpr const char *kPaddleDefaultEndpoint = "http://127.0.0.1:8081/api/v1/ocr";
+constexpr const char *kPaddleOcrDefaultEndpoint = "http://127.0.0.1:8081/api/v1/ocr";
+constexpr const char *kPaddleNcnnOcrDefaultEndpoint = "http://127.0.0.1:8082/api/v1/ocr";
 constexpr const char *kOcrDefaultPathSuffix = "api/v1/ocr";
 
 bool try_resolve_ocr_backend(const std::string &candidate, std::string &endpoint) {
@@ -19,12 +20,16 @@ bool try_resolve_ocr_backend(const std::string &candidate, std::string &endpoint
     if (key.empty()) {
         return false;
     }
-    if (key == "tesseract" || key == "tess" || key == "ocr_server") {
+    if (key == "tesseract" || key == "tess") {
         endpoint = kTesseractDefaultEndpoint;
         return true;
     }
+    if (key == "paddle_ncnn") {
+        endpoint = kPaddleNcnnOcrDefaultEndpoint;
+        return true;
+    }
     if (key == "paddle" || key == "paddleocr" || key == "paddle_ocr") {
-        endpoint = kPaddleDefaultEndpoint;
+        endpoint = kPaddleOcrDefaultEndpoint;
         return true;
     }
     return false;
@@ -38,7 +43,7 @@ std::string resolve_default_endpoint() {
     if (resolve_endpoint_candidate(getenv_trimmed("OP_OCR_BACKEND"), endpoint, try_resolve_ocr_backend)) {
         return endpoint;
     }
-    return kTesseractDefaultEndpoint;
+    return kPaddleNcnnOcrDefaultEndpoint;
 }
 
 int resolve_default_timeout_ms() {
@@ -48,7 +53,8 @@ int resolve_default_timeout_ms() {
 
 HttpOcrService::HttpOcrService() : m_endpoint(resolve_default_endpoint()), m_timeout_ms(resolve_default_timeout_ms()) {
     if (!normalize_endpoint(m_endpoint, kOcrDefaultPathSuffix)) {
-        m_endpoint = kTesseractDefaultEndpoint;
+        // 配置写错时退回主 OCR 服务，避免静默切到旧 Tesseract 后端。
+        m_endpoint = kPaddleNcnnOcrDefaultEndpoint;
     }
     cout << "HttpOcrService::HttpOcrService(), endpoint=" << m_endpoint << endl;
 }

@@ -9,7 +9,9 @@
 #include <cstdlib>
 #include <dwmapi.h>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.Metadata.h>
 #include <winrt/Windows.Gaming.Input.h>
@@ -72,25 +74,78 @@ bool wgcSessionPropertyPresent(const wchar_t *property_name) {
     }
 }
 
-// 用 WinRT API 特性探测替代 Windows build 号判断，可靠地关闭黄框与光标，
-// 避免它们污染找色/找图/OCR 的像素。Init 与 restartCaptureSession 共用。
+template <typename Func, typename Result> Result runInMtaApartment(Func func, Result fallback) {
+    Result result = fallback;
+    bool apartment_initialized = false;
+    try {
+        winrt::init_apartment(winrt::apartment_type::multi_threaded);
+        apartment_initialized = true;
+        result = func();
+    } catch (winrt::hresult_error &err) {
+        setlog("WGC worker thread (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+    } catch (...) {
+        setlog("WGC worker thread (0x%08X)", winrt::to_hresult().value);
+    }
+
+    if (apartment_initialized) {
+        try {
+            winrt::uninit_apartment();
+        } catch (...) {
+        }
+    }
+    return result;
+}
+
+bool shouldUseWgcWorkerThread() {
+    return !IsWindows10BuildOrGreater(kWindows11Build22000);
+}
+
+constexpr unsigned long kWin10RequestInitWaitMs = 300;
+constexpr unsigned long kWin10InitialFrameWaitMs = 500;
+constexpr unsigned long kWin10MetricsFrameWaitMs = 800;
+constexpr unsigned long kWin10FreshFrameWaitMs = 100;
+constexpr unsigned long kWin10CloseWaitMs = 1500;
+constexpr unsigned long kWin10CleanupBindWaitMs = 200;
+std::atomic<int> g_win10WgcCleanupInFlight{0};
+
+bool waitForWin10WgcCleanup(unsigned long timeout_ms) {
+    const unsigned long long deadline = ::GetTickCount64() + timeout_ms;
+    while (g_win10WgcCleanupInFlight.load() > 0) {
+        if (::GetTickCount64() >= deadline) {
+            return false;
+        }
+        ::Sleep(10);
+    }
+    return true;
+}
+
+void debugWgcCloseMessage(const char *message) {
+    ::OutputDebugStringA(message);
+    ::OutputDebugStringA("\n");
+}
+
+void debugWgcCloseHresult(const char *operation, winrt::hresult_error &err) {
+    char buffer[512] = {};
+    std::snprintf(buffer, sizeof(buffer), "%s (0x%08X): %s", operation, err.code().value,
+                  winrt::to_string(err.message()).c_str());
+    debugWgcCloseMessage(buffer);
+}
+
+// Windows 10 this runs in the WGC worker thread, so a slow Borderless access
+// request does not block the caller's BindWindow thread.
 void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptureSession &session) {
     try {
         if (wgcSessionPropertyPresent(L"IsBorderRequired")) {
-            // 关黄框前先申请 Borderless 访问，确保部分 Windows 版本上 IsBorderRequired(false) 真正生效。
-            // 这里不要同步 .get()。在部分宿主线程/窗口模型下，这个异步请求可能一直不返回，
-            // 从而把 BindWindow("normal.wgc", ...) 整个卡死。这里退化成纯 best-effort：
-            // 发起请求即可，真正能否隐藏黄框不影响 WGC 捕获主流程。
-            try {
-                const auto access_request =
-                    winrt::Windows::Graphics::Capture::GraphicsCaptureAccess::RequestAccessAsync(
-                        winrt::Windows::Graphics::Capture::GraphicsCaptureAccessKind::Borderless);
-                (void)access_request;
-            } catch (...) {
-            }
+            winrt::Windows::Graphics::Capture::GraphicsCaptureAccess::RequestAccessAsync(
+                winrt::Windows::Graphics::Capture::GraphicsCaptureAccessKind::Borderless)
+                .get();
             session.IsBorderRequired(false);
         }
+    } catch (winrt::hresult_error &err) {
+        setlog("Request WGC borderless access failed (0x%08X): %s", err.code().value,
+               winrt::to_string(err.message()).c_str());
     } catch (...) {
+        setlog("Request WGC borderless access failed (0x%08X)", winrt::to_hresult().value);
     }
     try {
         if (wgcSessionPropertyPresent(L"IsCursorCaptureEnabled")) {
@@ -105,10 +160,16 @@ void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptur
 WgcCapture::WgcCapture() = default;
 
 WgcCapture::~WgcCapture() {
+    captureStopping_.store(true);
     UnBindEx();
 }
 
 long WgcCapture::BindEx(HWND _hwnd, long render_type) {
+    (void)render_type;
+    if (shouldUseWgcWorkerThread()) {
+        return BindExOnWindows10(_hwnd);
+    }
+
     if (!Init(_hwnd)) {
         setlog("Init wgc failed");
         return 0;
@@ -117,6 +178,47 @@ long WgcCapture::BindEx(HWND _hwnd, long render_type) {
 }
 
 long WgcCapture::UnBindEx() {
+    if (shouldUseWgcWorkerThread()) {
+        return UnBindExOnWindows10();
+    }
+    return UnBindExInternal();
+}
+
+bool WgcCapture::DeferBindReleaseAfterUnBind() const {
+    return shouldUseWgcWorkerThread() && win10WorkerRunning_.load();
+}
+
+long WgcCapture::BindExOnWindows10(HWND hwnd) {
+    if (!waitForWin10WgcCleanup(kWin10CleanupBindWaitMs)) {
+        setlog("BindEx: previous WGC cleanup is still pending on Windows 10");
+        return 0;
+    }
+
+    if (win10Worker_.joinable()) {
+        win10Worker_.join();
+    }
+
+    win10WorkerStop_.store(false);
+    win10WorkerRunning_.store(true);
+    win10WorkerInitReady_.store(false);
+    win10WorkerInitSucceeded_.store(false);
+    win10WorkerCleaned_.store(false);
+    captureStopping_.store(false);
+
+    auto self = std::static_pointer_cast<WgcCapture>(shared_from_this());
+    try {
+        win10Worker_ = std::thread([self, hwnd]() { self->runWin10Worker(hwnd); });
+    } catch (...) {
+        win10WorkerRunning_.store(false);
+        win10WorkerInitReady_.store(true);
+        win10WorkerInitSucceeded_.store(false);
+        return 0;
+    }
+    return 1;
+}
+
+long WgcCapture::UnBindExInternal() {
+    captureStopping_.store(true);
     closeCaptureSession();
     revokeItemClosed();
 
@@ -146,6 +248,8 @@ long WgcCapture::UnBindEx() {
     sharedHeight_ = 0;
     captureWidth_ = 0;
     captureHeight_ = 0;
+    framePoolWidth_ = 0;
+    framePoolHeight_ = 0;
     frameSerial_ = 0;
     hasWindowState_ = false;
     lastWindowIconic_ = false;
@@ -158,7 +262,142 @@ long WgcCapture::UnBindEx() {
     return 0;
 }
 
-bool WgcCapture::Init(HWND _hwnd) {
+long WgcCapture::UnBindExOnWindows10() {
+    if (!win10WorkerRunning_.load() && win10WorkerCleaned_.load() && !win10Worker_.joinable()) {
+        return 0;
+    }
+
+    captureStopping_.store(true);
+    win10WorkerStop_.store(true);
+
+    const unsigned long long deadline = ::GetTickCount64() + kWin10CloseWaitMs;
+    while (win10WorkerRunning_.load() && ::GetTickCount64() < deadline) {
+        ::Sleep(10);
+    }
+
+    if (win10Worker_.joinable()) {
+        if (win10WorkerRunning_.load()) {
+            debugWgcCloseMessage("WGC worker stop timed out on Windows 10; cleanup continues in background");
+            win10Worker_.detach();
+            return 0;
+        } else {
+            win10Worker_.join();
+        }
+    }
+
+    itemClosed_.store(false);
+    hasFrame_ = false;
+    sharedWidth_ = 0;
+    sharedHeight_ = 0;
+    captureWidth_ = 0;
+    captureHeight_ = 0;
+    framePoolWidth_ = 0;
+    framePoolHeight_ = 0;
+    frameSerial_ = 0;
+    hasWindowState_ = false;
+    lastWindowIconic_ = false;
+    pendingMetricsChanged_ = false;
+    pendingBecameIconic_ = false;
+    pendingRestored_ = false;
+    lastClientWidth_ = 0;
+    lastClientHeight_ = 0;
+
+    return 0;
+}
+
+void WgcCapture::runWin10Worker(HWND hwnd) {
+    g_win10WgcCleanupInFlight.fetch_add(1);
+    (void)runInMtaApartment(
+        [&]() -> long {
+            const bool ok = Init(hwnd, false);
+            win10WorkerInitSucceeded_.store(ok);
+            win10WorkerInitReady_.store(true);
+            if (ok) {
+                while (!win10WorkerStop_.load() && !itemClosed_.load()) {
+                    updateLatestFrame();
+                    ::Sleep(8);
+                }
+            }
+            captureStopping_.store(true);
+            closeWin10WorkerObjects();
+            win10WorkerCleaned_.store(true);
+            return 0;
+        },
+        0L);
+    win10WorkerRunning_.store(false);
+    g_win10WgcCleanupInFlight.fetch_sub(1);
+}
+
+bool WgcCapture::waitForWin10WorkerInit(unsigned long timeout_ms) {
+    const unsigned long long deadline = ::GetTickCount64() + timeout_ms;
+    while (!win10WorkerInitReady_.load()) {
+        if (::GetTickCount64() >= deadline) {
+            return false;
+        }
+        ::Sleep(10);
+    }
+    return win10WorkerInitSucceeded_.load();
+}
+
+void WgcCapture::closeWin10WorkerObjects() {
+    if (item_ && hasClosedToken_) {
+        try {
+            item_.Closed(closedToken_);
+        } catch (...) {
+        }
+    }
+    closedToken_ = {};
+    hasClosedToken_ = false;
+
+    if (framePool_ && hasFrameArrivedToken_) {
+        try {
+            framePool_.FrameArrived(frameArrivedToken_);
+        } catch (...) {
+        }
+    }
+    frameArrivedToken_ = {};
+    hasFrameArrivedToken_ = false;
+
+    if (framePool_) {
+        try {
+            framePool_.Close();
+        } catch (winrt::hresult_error &err) {
+            debugWgcCloseHresult("Direct3D11CaptureFramePool::Close", err);
+        } catch (...) {
+            debugWgcCloseMessage("Direct3D11CaptureFramePool::Close failed");
+        }
+    }
+
+    if (session_) {
+        try {
+            session_.Close();
+        } catch (winrt::hresult_error &err) {
+            debugWgcCloseHresult("GraphicsCaptureSession::Close", err);
+        } catch (...) {
+            debugWgcCloseMessage("GraphicsCaptureSession::Close failed");
+        }
+    }
+
+    if (device_) {
+        try {
+            device_.Close();
+        } catch (winrt::hresult_error &err) {
+            debugWgcCloseHresult("IDirect3DDevice::Close", err);
+        } catch (...) {
+            debugWgcCloseMessage("IDirect3DDevice::Close failed");
+        }
+    }
+
+    session_ = nullptr;
+    framePool_ = nullptr;
+    device_ = nullptr;
+    item_ = nullptr;
+    stagingTexture_.Release();
+    d3dDeviceContext_.Release();
+    d3dDevice_.Release();
+}
+
+bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
     auto activation_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>();
     auto interop_factory = activation_factory.as<IGraphicsCaptureItemInterop>();
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = {nullptr};
@@ -235,6 +474,8 @@ bool WgcCapture::Init(HWND _hwnd) {
     const auto item_size = item.Size();
     captureWidth_ = item_size.Width;
     captureHeight_ = item_size.Height;
+    framePoolWidth_ = item_size.Width;
+    framePoolHeight_ = item_size.Height;
     if (captureWidth_ <= 0 || captureHeight_ <= 0) {
         setlog("Invalid WGC item size width=%d height=%d", captureWidth_, captureHeight_);
         return false;
@@ -257,18 +498,27 @@ bool WgcCapture::Init(HWND _hwnd) {
 
     item_ = item;
     itemClosed_.store(false);
+    captureStopping_.store(false);
     closedToken_ = item_.Closed([this](auto const &, auto const &) { itemClosed_.store(true); });
     hasClosedToken_ = true;
     device_ = device;
     framePool_ = frame_pool;
     session_ = session;
-    frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
-        auto frame = tryGetLatestFrame(sender);
-        if (frame) {
-            copyFrameToStaging(frame);
-        }
-    });
-    hasFrameArrivedToken_ = true;
+    if (use_frame_arrived_event) {
+        frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
+            if (captureStopping_.load()) {
+                return;
+            }
+            auto frame = tryGetLatestFrame(sender);
+            if (frame && !captureStopping_.load()) {
+                copyFrameToStaging(frame);
+            }
+        });
+        hasFrameArrivedToken_ = true;
+    } else {
+        frameArrivedToken_ = {};
+        hasFrameArrivedToken_ = false;
+    }
 
     try {
         session_.StartCapture();
@@ -284,11 +534,20 @@ bool WgcCapture::Init(HWND _hwnd) {
 }
 
 bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
+    const bool win10_worker = shouldUseWgcWorkerThread();
+    if (win10_worker && !waitForWin10WorkerInit(kWin10RequestInitWaitMs)) {
+        setlog("requestCapture: WGC worker init is not ready");
+        return false;
+    }
     if (itemClosed_.load()) {
         setlog("requestCapture: capture item closed (target window gone)");
         return false;
     }
     if (isDeviceLost()) {
+        if (win10_worker) {
+            setlog("requestCapture: D3D device lost on Windows 10");
+            return false;
+        }
         setlog("requestCapture: D3D device lost, rebuilding WGC capture");
         recoverFromDeviceLoss();
         return false;
@@ -324,6 +583,11 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         return false;
     }
 
+    if (!hasCapturedFrame()) {
+        const unsigned long long initial_serial = currentFrameSerial();
+        waitForFramesAfter(initial_serial, 1, win10_worker ? kWin10InitialFrameWaitMs : 500, !win10_worker);
+    }
+
     img.create(w, h);
     if (!_shmem || !_pmutex) {
         setlog("requestCapture: shared memory not initialized");
@@ -331,16 +595,38 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
     }
 
     if (metrics_changed || restored) {
-        // 尺寸变化后队列里可能还有旧帧，先抽干一次，再按状态变化等待后续帧。
-        updateLatestFrame();
-        const unsigned long long drained_serial = currentFrameSerial();
-        // 恢复后只等 1 帧、且只给很短的自恢复窗口(150ms)：WGC 常在恢复后停吐帧，
-        // 与其干等再重启，不如尽快落到下面的重启会话路径(能自恢复的机器仍会在 150ms 内命中)。
-        const unsigned int frame_count = 1;
-        const unsigned long timeout_ms = restored ? 150 : 100;
-        if (!waitForFramesAfter(drained_serial, frame_count, timeout_ms)) {
+        // 尺寸变化后队列里可能已有新尺寸帧。先尝试抽取；只有新帧已经匹配当前客户区
+        // 尺寸才直接使用。Windows 10 最大化时可能先吐旧尺寸/过渡帧，过早放行会导致
+        // 第一次截图仍是旧画面，第二次才更新。
+        const long target_width = _width;
+        const long target_height = _height;
+        auto staging_matches_target = [&]() {
+            std::scoped_lock lock(frameMutex_);
+            if (!hasFrame_ || !stagingTexture_) {
+                return false;
+            }
+            D3D11_TEXTURE2D_DESC staging_desc = {};
+            stagingTexture_->GetDesc(&staging_desc);
+            return static_cast<long>(staging_desc.Width) == target_width &&
+                   static_cast<long>(staging_desc.Height) == target_height;
+        };
+        const unsigned long long before_update_serial = currentFrameSerial();
+        const bool already_has_metric_frame = staging_matches_target();
+        if (!win10_worker) {
+            updateLatestFrame();
+        }
+        const bool got_metric_frame =
+            staging_matches_target() && (already_has_metric_frame || currentFrameSerial() > before_update_serial);
+        // 如果抽取时没拿到匹配新尺寸的帧，再短等 1 帧。
+        const unsigned long timeout_ms = win10_worker ? kWin10MetricsFrameWaitMs : (restored ? 150 : 100);
+        if (!got_metric_frame && !waitForFramesAfter(before_update_serial, 1, timeout_ms, !win10_worker)) {
+            if (win10_worker) {
+                // Windows 10 上同步 Close/Create/StartCapture 可能拖住调用方 GUI 线程。
+                // resize 后 WGC 通常会自行继续吐新帧；本次不重启，避免截图 API 变成长阻塞点。
+                setlog("requestCapture: no fresh WGC frame after metrics change on Windows 10");
+                return false;
+            }
             // 尺寸变化/最大化/恢复后 WGC 偶尔不继续吐帧，重启捕获会话能避免拿旧 staging 截新坐标。
-            setlog("requestCapture: no fresh WGC frame after window metrics change, restarting capture session");
             if (!restartCaptureSession()) {
                 setlog("requestCapture: restart WGC capture session failed after metrics change");
                 return false;
@@ -351,8 +637,21 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
                 return false;
             }
         }
-    } else if (!updateLatestFrame()) {
-        return false;
+        if (win10_worker && !staging_matches_target()) {
+            setlog("requestCapture: WGC frame size not updated after metrics change on Windows 10");
+            return false;
+        }
+    } else {
+        const unsigned long long before_update_serial = currentFrameSerial();
+        if (!win10_worker) {
+            if (!updateLatestFrame()) {
+                return false;
+            }
+        }
+        if (currentFrameSerial() == before_update_serial) {
+            const unsigned long fresh_timeout_ms = win10_worker ? kWin10FreshFrameWaitMs : 50;
+            (void)waitForFramesAfter(before_update_serial, 1, fresh_timeout_ms, !win10_worker);
+        }
     }
 
     if (!hasCapturedFrame()) {
@@ -374,7 +673,12 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
         }
 
         uint8_t *pData = (uint8_t *)mappedResource.pData;
-        if (_pmutex && _shmem) {
+        {
+            std::scoped_lock shared_lock(sharedResourceMutex_);
+            if (!_pmutex || !_shmem) {
+                setlog("requestCapture: shared memory not initialized");
+                return false;
+            }
             _pmutex->lock();
             fmtFrameInfo(_shmem->data<byte>(), _hwnd, _width, _height);
             _pmutex->unlock();
@@ -427,6 +731,13 @@ void WgcCapture::refreshMetrics() {
 }
 
 void WgcCapture::waitForBindReady() {
+    if (shouldUseWgcWorkerThread()) {
+        // Windows 10 WGC can stall while Create/StartCapture waits on the system broker.
+        // BindWindow is commonly called on the GUI thread, so keep it non-blocking and let
+        // requestCapture perform the bounded first-frame wait.
+        return;
+    }
+
     // WGC 绑定后由后台异步推送首帧；等第一帧到达再返回，
     // 避免 bind 后第一次 FindColor/FindPic/OCR 因首帧未就绪而假失败（与 HookCapture 行为一致）。
     if (!framePool_) {
@@ -460,6 +771,7 @@ bool WgcCapture::ensureStagingTexture(int width, int height) {
 }
 
 bool WgcCapture::ensureSharedResources(int width, int height) {
+    std::scoped_lock shared_lock(sharedResourceMutex_);
     if (_shmem && _pmutex && sharedWidth_ == width && sharedHeight_ == height) {
         return true;
     }
@@ -512,8 +824,8 @@ bool WgcCapture::refreshWindowMetrics(bool *iconic_changed, bool *is_iconic) {
     _width = client_rect.right - client_rect.left;
     _height = client_rect.bottom - client_rect.top;
 
-    const bool changed = !hasWindowState_ || lastClientWidth_ != _width || lastClientHeight_ != _height ||
-                         was_iconic != now_iconic;
+    const bool changed =
+        !hasWindowState_ || lastClientWidth_ != _width || lastClientHeight_ != _height || was_iconic != now_iconic;
     set_out(iconic_changed, hasWindowState_ && was_iconic != now_iconic);
     set_out(is_iconic, now_iconic);
     hasWindowState_ = true;
@@ -542,6 +854,28 @@ bool WgcCapture::getClientBox(int surface_width, int surface_height, D3D11_BOX &
 
     const int expected_w = client_rect.right - client_rect.left;
     const int expected_h = client_rect.bottom - client_rect.top;
+    constexpr int kClientSurfaceTolerance = 8;
+    auto make_full_surface_candidate = [&]() {
+        ClientBoxCandidate candidate;
+        const int extra_w = surface_width - expected_w;
+        const int extra_h = surface_height - expected_h;
+        if (extra_w < 0 || extra_h < 0 || extra_w > kClientSurfaceTolerance || extra_h > kClientSurfaceTolerance) {
+            return candidate;
+        }
+
+        candidate.box.left = 0;
+        candidate.box.top = 0;
+        candidate.box.right = static_cast<UINT>(expected_w);
+        candidate.box.bottom = static_cast<UINT>(expected_h);
+        candidate.box.front = 0;
+        candidate.box.back = 1;
+        candidate.width = expected_w;
+        candidate.height = expected_h;
+        candidate.clipped_pixels = 0;
+        candidate.frame_mismatch = extra_w + extra_h;
+        candidate.valid = true;
+        return candidate;
+    };
     auto make_candidate = [&](const RECT &base_rect) {
         ClientBoxCandidate candidate;
         const int raw_left = client_origin.x - base_rect.left;
@@ -575,6 +909,7 @@ bool WgcCapture::getClientBox(int surface_width, int surface_height, D3D11_BOX &
     };
 
     const ClientBoxCandidate candidates[] = {
+        make_full_surface_candidate(),
         make_candidate(visible_rect),
         make_candidate(window_rect),
     };
@@ -593,6 +928,9 @@ bool WgcCapture::getClientBox(int surface_width, int surface_height, D3D11_BOX &
         }
     }
     if (!best.valid) {
+        return false;
+    }
+    if (best.clipped_pixels > 0) {
         return false;
     }
 
@@ -646,6 +984,10 @@ void WgcCapture::closeCaptureSession() {
 }
 
 bool WgcCapture::restartCaptureSession() {
+    if (shouldUseWgcWorkerThread()) {
+        setlog("restartCaptureSession: skipped synchronous WGC restart on Windows 10");
+        return false;
+    }
     if (!device_ || !item_) {
         return false;
     }
@@ -666,6 +1008,8 @@ bool WgcCapture::restartCaptureSession() {
 
     captureWidth_ = item_size.Width;
     captureHeight_ = item_size.Height;
+    framePoolWidth_ = item_size.Width;
+    framePoolHeight_ = item_size.Height;
     if (!ensureStagingTexture(_width, _height)) {
         setlog("restartCaptureSession: create staging texture failed");
         return false;
@@ -776,27 +1120,31 @@ bool WgcCapture::copyFrameToStaging(const Direct3D11CaptureFrame &frame) {
         return hasCapturedFrame();
     }
 
+    const auto frame_content_size = frame.ContentSize();
+    const bool content_size_changed =
+        frame_content_size.Width > 0 && frame_content_size.Height > 0 &&
+        (frame_content_size.Width != framePoolWidth_ || frame_content_size.Height != framePoolHeight_);
+    if (surface_w != captureWidth_ || surface_h != captureHeight_) {
+        captureWidth_ = surface_w;
+        captureHeight_ = surface_h;
+    }
+    if (content_size_changed && framePool_) {
+        try {
+            framePool_.Recreate(device_,
+                                static_cast<winrt::Windows::Graphics::DirectX::DirectXPixelFormat>(surface_desc.Format),
+                                2, frame_content_size);
+            framePoolWidth_ = frame_content_size.Width;
+            framePoolHeight_ = frame_content_size.Height;
+        } catch (...) {
+            // 帧池重建失败不丢弃当前帧；下一帧继续尝试。
+        }
+    }
+
     D3D11_BOX client_box = {};
     int client_w = 0;
     int client_h = 0;
     if (!getClientBox(surface_w, surface_h, client_box, client_w, client_h)) {
         return hasCapturedFrame();
-    }
-
-    if (surface_w != captureWidth_ || surface_h != captureHeight_) {
-        captureWidth_ = surface_w;
-        captureHeight_ = surface_h;
-        // 窗口尺寸增大时让 WGC 帧池跟随内容大小重建（帧池按 content size 约定）。
-        const auto frame_content_size = frame.ContentSize();
-        if (frame_content_size.Width > 0 && frame_content_size.Height > 0) {
-            try {
-                framePool_.Recreate(device_,
-                                    winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2,
-                                    frame_content_size);
-            } catch (...) {
-                // 重建失败下一帧再试，不影响本帧拷贝。
-            }
-        }
     }
     if (!ensureStagingTexture(client_w, client_h)) {
         setlog("copyFrameToStaging: resize client staging texture failed");
@@ -845,6 +1193,9 @@ Direct3D11CaptureFrame WgcCapture::tryGetLatestFrame(const Direct3D11CaptureFram
 }
 
 bool WgcCapture::updateLatestFrame() {
+    if (!framePool_) {
+        return hasCapturedFrame();
+    }
     Direct3D11CaptureFrame frame = tryGetLatestFrame(framePool_);
     if (frame) {
         return copyFrameToStaging(frame);
@@ -853,11 +1204,11 @@ bool WgcCapture::updateLatestFrame() {
     return hasCapturedFrame();
 }
 
-bool WgcCapture::waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count,
-                                    unsigned long timeout_ms) {
+bool WgcCapture::waitForFramesAfter(unsigned long long frame_serial, unsigned int frame_count, unsigned long timeout_ms,
+                                    bool poll_latest) {
     const unsigned long long deadline = ::GetTickCount64() + timeout_ms;
     do {
-        if (updateLatestFrame() && currentFrameSerial() >= frame_serial + frame_count) {
+        if (poll_latest && updateLatestFrame() && currentFrameSerial() >= frame_serial + frame_count) {
             return true;
         }
         if (currentFrameSerial() >= frame_serial + frame_count) {
@@ -866,7 +1217,9 @@ bool WgcCapture::waitForFramesAfter(unsigned long long frame_serial, unsigned in
         ::Sleep(8);
     } while (::GetTickCount64() < deadline);
 
-    updateLatestFrame();
+    if (poll_latest) {
+        updateLatestFrame();
+    }
     return currentFrameSerial() >= frame_serial + frame_count;
 }
 

@@ -27,7 +27,7 @@ class DxgiCapture : public ICaptureBackend {
 
     bool InitDuplication();
 
-    bool GetDesktopFrame(ID3D11Texture2D **texture);
+    bool GetDesktopFrame(ID3D11Texture2D **texture, DWORD timeout_ms = 0, bool *fresh_frame = nullptr);
 
   private:
     ATL::CComPtr<ID3D11Device> device_;
@@ -43,6 +43,7 @@ class DxgiCapture : public ICaptureBackend {
     D3D11_TEXTURE2D_DESC m_desc{};
     bool refreshWindowMetrics();
     bool RebuildDuplication();
+    bool copyTextureToImage(ID3D11Texture2D *texture, int x1, int y1, int w, int h, Image &img);
     void fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc = true);
 };
 

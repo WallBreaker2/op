@@ -17,6 +17,7 @@ class DxKeyboard : public KeyboardBackend {
     long KeyUp(long vk_code) override;
     long WaitKey(long vk_code, unsigned long time_out) override;
     long KeyPress(long vk_code) override;
+    long InputChar(wchar_t ch) override;
 
   private:
     std::array<BYTE, 256> _keys{};
