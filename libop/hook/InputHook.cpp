@@ -420,6 +420,8 @@ void fill_mouse_state(DWORD size, LPVOID ptr) {
         state.rgbButtons[0] = InputHook::m_mouseState.abButtons[0];
         state.rgbButtons[1] = InputHook::m_mouseState.abButtons[1];
         state.rgbButtons[2] = InputHook::m_mouseState.abButtons[2];
+        state.rgbButtons[3] = InputHook::m_mouseState.abButtons[3];
+        state.rgbButtons[4] = InputHook::m_mouseState.abButtons[4];
         memcpy(ptr, &state, sizeof(state));
     }
 }
@@ -853,26 +855,29 @@ void InputHook::moveTo(LPARAM lp) {
 
 void InputHook::button(LPARAM lp, int key, bool down) {
     moveTo(lp);
-    if (0 <= key && key < 3) {
+    if (0 <= key && key < 5) {
         m_mouseState.abButtons[key] = down ? 0x80 : 0;
+        static constexpr int vk_buttons[] = {VK_LBUTTON, VK_MBUTTON, VK_RBUTTON, VK_XBUTTON1, VK_XBUTTON2};
+        m_vkState[vk_buttons[key]] = down ? 0x80 : 0;
         std::lock_guard<std::mutex> lock(g_eventMutex);
         push_dinput_event(g_mouseEvents, mouse_button_offset(key), down ? 0x80 : 0);
 
-        static constexpr USHORT down_flags[] = {RI_MOUSE_LEFT_BUTTON_DOWN, RI_MOUSE_RIGHT_BUTTON_DOWN,
-                                                RI_MOUSE_MIDDLE_BUTTON_DOWN};
-        static constexpr USHORT up_flags[] = {RI_MOUSE_LEFT_BUTTON_UP, RI_MOUSE_RIGHT_BUTTON_UP,
-                                              RI_MOUSE_MIDDLE_BUTTON_UP};
+        static constexpr USHORT down_flags[] = {RI_MOUSE_LEFT_BUTTON_DOWN, RI_MOUSE_MIDDLE_BUTTON_DOWN,
+                                                RI_MOUSE_RIGHT_BUTTON_DOWN, RI_MOUSE_BUTTON_4_DOWN,
+                                                RI_MOUSE_BUTTON_5_DOWN};
+        static constexpr USHORT up_flags[] = {RI_MOUSE_LEFT_BUTTON_UP, RI_MOUSE_MIDDLE_BUTTON_UP,
+                                              RI_MOUSE_RIGHT_BUTTON_UP, RI_MOUSE_BUTTON_4_UP, RI_MOUSE_BUTTON_5_UP};
         push_raw_event(make_raw_mouse(0, 0, down ? down_flags[key] : up_flags[key], 0));
     }
 }
 
-void InputHook::updateWheel(WPARAM wp, LPARAM lp) {
+void InputHook::updateWheel(WPARAM wp, LPARAM lp, bool horizontal) {
     moveTo(lp);
     const SHORT delta = static_cast<SHORT>(HIWORD(wp));
     m_wheelDelta += delta;
     std::lock_guard<std::mutex> lock(g_eventMutex);
     push_dinput_event(g_mouseEvents, DIMOFS_Z, static_cast<DWORD>(static_cast<LONG>(delta)));
-    push_raw_event(make_raw_mouse(0, 0, RI_MOUSE_WHEEL, static_cast<USHORT>(delta)));
+    push_raw_event(make_raw_mouse(0, 0, horizontal ? RI_MOUSE_HWHEEL : RI_MOUSE_WHEEL, static_cast<USHORT>(delta)));
 }
 
 LONG InputHook::consumeWheelDelta() {
@@ -1142,35 +1147,72 @@ LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam
     switch (message) {
     case OP_WM_MOUSEMOVE:
         InputHook::moveTo(lparam);
-        dispatch_window_message(hwnd, WM_MOUSEMOVE, 0, lparam);
+        dispatch_window_message(hwnd, WM_MOUSEMOVE, wparam, lparam);
         return 1;
     case OP_WM_LBUTTONDOWN:
         InputHook::button(lparam, 0, true);
-        dispatch_window_message(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lparam);
+        dispatch_window_message(hwnd, WM_LBUTTONDOWN, wparam ? wparam : MK_LBUTTON, lparam);
+        return 1;
+    case OP_WM_LBUTTONDBLCLK:
+        InputHook::button(lparam, 0, true);
+        dispatch_window_message(hwnd, WM_LBUTTONDBLCLK, wparam ? wparam : MK_LBUTTON, lparam);
         return 1;
     case OP_WM_LBUTTONUP:
         InputHook::button(lparam, 0, false);
-        dispatch_window_message(hwnd, WM_LBUTTONUP, 0, lparam);
+        dispatch_window_message(hwnd, WM_LBUTTONUP, wparam, lparam);
         return 1;
     case OP_WM_MBUTTONDOWN:
         InputHook::button(lparam, 1, true);
-        dispatch_window_message(hwnd, WM_MBUTTONDOWN, MK_MBUTTON, lparam);
+        dispatch_window_message(hwnd, WM_MBUTTONDOWN, wparam ? wparam : MK_MBUTTON, lparam);
+        return 1;
+    case OP_WM_MBUTTONDBLCLK:
+        InputHook::button(lparam, 1, true);
+        dispatch_window_message(hwnd, WM_MBUTTONDBLCLK, wparam ? wparam : MK_MBUTTON, lparam);
         return 1;
     case OP_WM_MBUTTONUP:
         InputHook::button(lparam, 1, false);
-        dispatch_window_message(hwnd, WM_MBUTTONUP, 0, lparam);
+        dispatch_window_message(hwnd, WM_MBUTTONUP, wparam, lparam);
         return 1;
     case OP_WM_RBUTTONDOWN:
         InputHook::button(lparam, 2, true);
-        dispatch_window_message(hwnd, WM_RBUTTONDOWN, MK_RBUTTON, lparam);
+        dispatch_window_message(hwnd, WM_RBUTTONDOWN, wparam ? wparam : MK_RBUTTON, lparam);
+        return 1;
+    case OP_WM_RBUTTONDBLCLK:
+        InputHook::button(lparam, 2, true);
+        dispatch_window_message(hwnd, WM_RBUTTONDBLCLK, wparam ? wparam : MK_RBUTTON, lparam);
         return 1;
     case OP_WM_RBUTTONUP:
         InputHook::button(lparam, 2, false);
-        dispatch_window_message(hwnd, WM_RBUTTONUP, 0, lparam);
+        dispatch_window_message(hwnd, WM_RBUTTONUP, wparam, lparam);
         return 1;
+    case OP_WM_XBUTTONDOWN: {
+        const WORD xbutton = HIWORD(wparam);
+        const int key = xbutton == XBUTTON1 ? 3 : 4;
+        InputHook::button(lparam, key, true);
+        dispatch_window_message(hwnd, WM_XBUTTONDOWN, wparam, lparam);
+        return 1;
+    }
+    case OP_WM_XBUTTONDBLCLK: {
+        const WORD xbutton = HIWORD(wparam);
+        const int key = xbutton == XBUTTON1 ? 3 : 4;
+        InputHook::button(lparam, key, true);
+        dispatch_window_message(hwnd, WM_XBUTTONDBLCLK, wparam, lparam);
+        return 1;
+    }
+    case OP_WM_XBUTTONUP: {
+        const WORD xbutton = HIWORD(wparam);
+        const int key = xbutton == XBUTTON1 ? 3 : 4;
+        InputHook::button(lparam, key, false);
+        dispatch_window_message(hwnd, WM_XBUTTONUP, wparam, lparam);
+        return 1;
+    }
     case OP_WM_MOUSEWHEEL:
-        InputHook::updateWheel(wparam, lparam);
+        InputHook::updateWheel(wparam, lparam, false);
         dispatch_window_message(hwnd, WM_MOUSEWHEEL, wparam, client_to_screen_lparam(hwnd, lparam));
+        return 1;
+    case OP_WM_MOUSEHWHEEL:
+        InputHook::updateWheel(wparam, lparam, true);
+        dispatch_window_message(hwnd, WM_MOUSEHWHEEL, wparam, client_to_screen_lparam(hwnd, lparam));
         return 1;
     case OP_WM_KEYDOWN:
         InputHook::updateKey(wparam, true);
@@ -1179,6 +1221,9 @@ LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam
     case OP_WM_KEYUP:
         InputHook::updateKey(wparam, false);
         dispatch_window_message(hwnd, WM_KEYUP, wparam, lparam ? lparam : make_key_lparam(wparam, true));
+        return 1;
+    case OP_WM_CHAR:
+        dispatch_window_message(hwnd, WM_CHAR, wparam, lparam ? lparam : 1);
         return 1;
     }
 

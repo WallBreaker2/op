@@ -5,6 +5,7 @@
 #include "../../runtime/AutomationModes.h"
 #include "../../runtime/RuntimeEnvironment.h"
 #include "../../runtime/RuntimeUtils.h"
+#include "../../hook/HookModule.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
 #include <cstddef>
@@ -88,12 +89,8 @@ long HookCapture::BindEx(HWND hwnd, long render_type) {
         hr = proc.Attach(id);
 
         if (NT_SUCCESS(hr)) {
-            wstring dllname = RuntimeEnvironment::getOpName();
-            // 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
             BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-            if (is64 != OP64) {
-                dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
-            }
+            wstring dllname = op::hook::ResolveHookModuleName(is64 != FALSE);
 
             bool injected = false;
             // 判断是否已经注入
@@ -125,7 +122,7 @@ long HookCapture::BindEx(HWND hwnd, long render_type) {
                     bind_ret = cret.result();
                     // setlog("after result");
                 } else {
-                    // setlog(L"remote function not found.");
+                    setlog(L"remote function 'SetDisplayHook' not found in %s.", dllname.c_str());
                 }
             } else {
                 setlog(L"Inject false.");
@@ -162,12 +159,8 @@ long HookCapture::UnBindEx() {
     hr = proc.Attach(id);
 
     if (NT_SUCCESS(hr)) {
-        wstring dllname = RuntimeEnvironment::getOpName();
-        // 检查是否与插件相同的32/64位,如果不同，则使用另一种dll
         BOOL is64 = proc.modules().GetMainModule()->type == blackbone::eModType::mt_mod64;
-        if (is64 != OP64) {
-            dllname = is64 ? L"op_x64.dll" : L"op_x86.dll";
-        }
+        wstring dllname = op::hook::ResolveHookModuleName(is64 != FALSE);
         // setlog(L"bkdo::dllname=%s",dllname);
         using my_func_t = long(__stdcall *)(void);
         auto pUnXHook = blackbone::MakeRemoteFunction<my_func_t>(proc, dllname, "ReleaseDisplayHook");

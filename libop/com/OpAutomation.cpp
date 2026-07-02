@@ -551,6 +551,12 @@ STDMETHODIMP OpAutomation::MiddleClick(LONG *ret) {
     return S_OK;
 }
 
+STDMETHODIMP OpAutomation::MiddleDoubleClick(LONG *ret) {
+    obj.MiddleDoubleClick(ret);
+
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::MiddleDown(LONG *ret) {
     obj.MiddleDown(ret);
 
@@ -569,6 +575,12 @@ STDMETHODIMP OpAutomation::RightClick(LONG *ret) {
     return S_OK;
 }
 
+STDMETHODIMP OpAutomation::RightDoubleClick(LONG *ret) {
+    obj.RightDoubleClick(ret);
+
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::RightDown(LONG *ret) {
     obj.RightDown(ret);
 
@@ -581,6 +593,54 @@ STDMETHODIMP OpAutomation::RightUp(LONG *ret) {
     return S_OK;
 }
 
+STDMETHODIMP OpAutomation::XButton1Click(LONG *ret) {
+    obj.XButton1Click(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton1DoubleClick(LONG *ret) {
+    obj.XButton1DoubleClick(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton1Down(LONG *ret) {
+    obj.XButton1Down(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton1Up(LONG *ret) {
+    obj.XButton1Up(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton2Click(LONG *ret) {
+    obj.XButton2Click(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton2DoubleClick(LONG *ret) {
+    obj.XButton2DoubleClick(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton2Down(LONG *ret) {
+    obj.XButton2Down(ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::XButton2Up(LONG *ret) {
+    obj.XButton2Up(ret);
+
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::WheelDown(LONG *ret) {
     obj.WheelDown(ret);
 
@@ -589,6 +649,16 @@ STDMETHODIMP OpAutomation::WheelDown(LONG *ret) {
 
 STDMETHODIMP OpAutomation::WheelUp(LONG *ret) {
     obj.WheelUp(ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::Wheel(LONG delta, LONG *ret) {
+    obj.Wheel(delta, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::HWheel(LONG delta, LONG *ret) {
+    obj.HWheel(delta, ret);
     return S_OK;
 }
 

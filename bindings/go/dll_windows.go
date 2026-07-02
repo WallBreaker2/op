@@ -88,11 +88,23 @@ var (
 	procLeftDown               *windows.LazyProc
 	procLeftUp                 *windows.LazyProc
 	procMiddleClick            *windows.LazyProc
+	procMiddleDoubleClick      *windows.LazyProc
 	procMiddleDown             *windows.LazyProc
 	procMiddleUp               *windows.LazyProc
 	procRightClick             *windows.LazyProc
+	procRightDoubleClick       *windows.LazyProc
 	procRightDown              *windows.LazyProc
 	procRightUp                *windows.LazyProc
+	procXButton1Click          *windows.LazyProc
+	procXButton1DoubleClick    *windows.LazyProc
+	procXButton1Down           *windows.LazyProc
+	procXButton1Up             *windows.LazyProc
+	procXButton2Click          *windows.LazyProc
+	procXButton2DoubleClick    *windows.LazyProc
+	procXButton2Down           *windows.LazyProc
+	procXButton2Up             *windows.LazyProc
+	procWheel                  *windows.LazyProc
+	procHWheel                 *windows.LazyProc
 	procWheelDown              *windows.LazyProc
 	procWheelUp                *windows.LazyProc
 	procSetMouseDelay          *windows.LazyProc
@@ -286,11 +298,23 @@ func bindProcs() {
 	procLeftDown = dll.NewProc("OpLeftDown")
 	procLeftUp = dll.NewProc("OpLeftUp")
 	procMiddleClick = dll.NewProc("OpMiddleClick")
+	procMiddleDoubleClick = dll.NewProc("OpMiddleDoubleClick")
 	procMiddleDown = dll.NewProc("OpMiddleDown")
 	procMiddleUp = dll.NewProc("OpMiddleUp")
 	procRightClick = dll.NewProc("OpRightClick")
+	procRightDoubleClick = dll.NewProc("OpRightDoubleClick")
 	procRightDown = dll.NewProc("OpRightDown")
 	procRightUp = dll.NewProc("OpRightUp")
+	procXButton1Click = dll.NewProc("OpXButton1Click")
+	procXButton1DoubleClick = dll.NewProc("OpXButton1DoubleClick")
+	procXButton1Down = dll.NewProc("OpXButton1Down")
+	procXButton1Up = dll.NewProc("OpXButton1Up")
+	procXButton2Click = dll.NewProc("OpXButton2Click")
+	procXButton2DoubleClick = dll.NewProc("OpXButton2DoubleClick")
+	procXButton2Down = dll.NewProc("OpXButton2Down")
+	procXButton2Up = dll.NewProc("OpXButton2Up")
+	procWheel = dll.NewProc("OpWheel")
+	procHWheel = dll.NewProc("OpHWheel")
 	procWheelDown = dll.NewProc("OpWheelDown")
 	procWheelUp = dll.NewProc("OpWheelUp")
 	procSetMouseDelay = dll.NewProc("OpSetMouseDelay")
