@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "ocr/OcrService.h"
 #include "runtime/RuntimeUtils.h"
@@ -35,7 +35,7 @@ bool parse_word_result_item(const wchar_t *begin, const wchar_t *end, long &x, l
 
 } // namespace
 
-long op::Client::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
+long op::Op::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
     string argvs = argv ? _ws2string(argv) : "";
     vector<string> vstr;
     split(argvs, vstr, " ");
@@ -43,45 +43,45 @@ long op::Client::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_
     const std::wstring dll = dll_name ? dll_name : L"";
     return op::ocr::HttpOcrService::getInstance()->init(engine, dll, vstr) == 0 ? 1 : 0;
 }
-void op::Client::SetDict(long idx, const wchar_t *file_name, long *ret) {
+void op::Op::SetDict(long idx, const wchar_t *file_name, long *ret) {
     internal::set_result(ret, m_context->image_proc.SetDict(idx, file_name));
 }
 
-void op::Client::GetDict(long idx, long font_index, std::wstring &retstr) {
+void op::Op::GetDict(long idx, long font_index, std::wstring &retstr) {
     retstr = m_context->image_proc.GetDict(idx, font_index);
 }
 
 // 设置内存字库文件
-void op::Client::SetMemDict(long idx, const wchar_t *data, long size, long *ret) {
+void op::Op::SetMemDict(long idx, const wchar_t *data, long size, long *ret) {
     internal::set_result(ret, m_context->image_proc.SetMemDict(idx, (void *)data, size));
 }
 
 // 使用哪个字库文件进行识别
-void op::Client::UseDict(long idx, long *ret) {
+void op::Op::UseDict(long idx, long *ret) {
     internal::set_result(ret, m_context->image_proc.UseDict(idx));
 }
 
 // 给指定的字库中添加一条字库信息
-void op::Client::AddDict(long idx, const wchar_t *dict_info, long *ret) {
+void op::Op::AddDict(long idx, const wchar_t *dict_info, long *ret) {
     internal::set_result(ret, m_context->image_proc.AddDict(idx, dict_info));
 }
-void op::Client::SaveDict(long idx, const wchar_t *file_name, long *ret) {
+void op::Op::SaveDict(long idx, const wchar_t *file_name, long *ret) {
     internal::set_result(ret, m_context->image_proc.SaveDict(idx, file_name));
 }
 // 清空指定的字库
-void op::Client::ClearDict(long idx, long *ret) {
+void op::Op::ClearDict(long idx, long *ret) {
     internal::set_result(ret, m_context->image_proc.ClearDict(idx));
 }
 // 获取指定的字库中的字符数量
-void op::Client::GetDictCount(long idx, long *ret) {
+void op::Op::GetDictCount(long idx, long *ret) {
     internal::set_result(ret, m_context->image_proc.GetDictCount(idx));
 }
 // 获取当前使用的字库序号
-void op::Client::GetNowDict(long *ret) {
+void op::Op::GetNowDict(long *ret) {
     internal::set_result(ret, m_context->image_proc.GetNowDict());
 }
 // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
-void op::Client::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, const wchar_t *word,
+void op::Op::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, const wchar_t *word,
                       std::wstring &retstr) {
     wstring str;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -99,7 +99,7 @@ void op::Client::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *co
     retstr = str;
 }
 // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
-void op::Client::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr) {
+void op::Op::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr) {
     wstring str;
     const std::wstring color_text = color ? color : L"";
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -124,7 +124,7 @@ void op::Client::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_
     retstr = str;
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
-void op::Client::GetWordResultCount(const wchar_t *result, long *ret) {
+void op::Op::GetWordResultCount(const wchar_t *result, long *ret) {
     internal::set_result(ret, 0L);
     if (!result || !ret)
         return;
@@ -139,7 +139,7 @@ void op::Client::GetWordResultCount(const wchar_t *result, long *ret) {
     internal::set_result(ret, cnt);
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的坐标
-void op::Client::GetWordResultPos(const wchar_t *result, long index, long *x, long *y, long *ret) {
+void op::Op::GetWordResultPos(const wchar_t *result, long index, long *x, long *y, long *ret) {
     internal::set_result(ret, 0L);
     internal::set_result(x, 0L);
     internal::set_result(y, 0L);
@@ -172,7 +172,7 @@ void op::Client::GetWordResultPos(const wchar_t *result, long index, long *x, lo
     }
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别各个词组的内容
-void op::Client::GetWordResultStr(const wchar_t *result, long index, std::wstring &ret_str) {
+void op::Op::GetWordResultStr(const wchar_t *result, long index, std::wstring &ret_str) {
     ret_str.clear();
     if (!result || index < 0)
         return;
@@ -201,7 +201,7 @@ void op::Client::GetWordResultStr(const wchar_t *result, long index, std::wstrin
     }
 }
 // 识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
-void op::Client::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
+void op::Op::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
     wstring str;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
@@ -214,7 +214,7 @@ void op::Client::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, d
     retstr = str;
 }
 // 回识别到的字符串，以及每个字符的坐标.
-void op::Client::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
+void op::Op::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
     wstring str;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
@@ -227,7 +227,7 @@ void op::Client::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color,
     retstr = str;
 }
 // 在屏幕范围(x1,y1,x2,y2)内,查找string(可以是任意个字符串的组合),并返回符合color_format的坐标位置
-void op::Client::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, double sim,
+void op::Op::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, double sim,
                     long *retx, long *rety, long *ret) {
     wstring str;
     long x = -1;
@@ -247,7 +247,7 @@ void op::Client::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs
     }
 }
 // 返回符合color_format的所有坐标位置
-void op::Client::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, double sim,
+void op::Op::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, double sim,
                       std::wstring &retstr) {
     wstring str;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -261,7 +261,7 @@ void op::Client::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *st
     retstr = str;
 }
 
-void op::Client::OcrAuto(long x1, long y1, long x2, long y2, double sim, std::wstring &retstr) {
+void op::Op::OcrAuto(long x1, long y1, long x2, long y2, double sim, std::wstring &retstr) {
     wstring str;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
@@ -275,19 +275,19 @@ void op::Client::OcrAuto(long x1, long y1, long x2, long y2, double sim, std::ws
 }
 
 // 从文件中识别图片
-void op::Client::OcrFromFile(const wchar_t *file_name, const wchar_t *color_format, double sim, std::wstring &retstr) {
+void op::Op::OcrFromFile(const wchar_t *file_name, const wchar_t *color_format, double sim, std::wstring &retstr) {
     wstring str;
     m_context->image_proc.OcrFromFile(file_name, color_format, sim, str);
     retstr = str;
 }
 // 从文件中识别图片,无需指定颜色
-void op::Client::OcrAutoFromFile(const wchar_t *file_name, double sim, std::wstring &retstr) {
+void op::Op::OcrAutoFromFile(const wchar_t *file_name, double sim, std::wstring &retstr) {
     wstring str;
     m_context->image_proc.OcrAutoFromFile(file_name, sim, str);
     retstr = str;
 }
 
-void op::Client::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, wstring &retstr) {
+void op::Op::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, wstring &retstr) {
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");

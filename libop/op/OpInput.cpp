@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "runtime/AutomationModes.h"
 #include "runtime/RuntimeUtils.h"
@@ -99,31 +99,31 @@ long key_combo_press(KeyboardBackend *keypad, const key_combo_t &combo) {
 
 } // namespace
 
-void op::Client::BindWindow(LONG_PTR hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad,
+void op::Op::BindWindow(LONG_PTR hwnd, const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad,
                             long mode, long *ret) {
     BindWindowEx(hwnd, hwnd, display, mouse, keypad, mode, ret);
 }
 
-void op::Client::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wchar_t *display,
+void op::Op::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wchar_t *display,
                               const wchar_t *mouse, const wchar_t *keypad, long mode, long *ret) {
     if (m_context->bkproc.IsBind())
         m_context->bkproc.UnBindWindow();
     internal::set_result(ret, m_context->bkproc.BindWindowEx(display_hwnd, input_hwnd, display, mouse, keypad, mode));
 }
 
-void op::Client::UnBindWindow(long *ret) {
+void op::Op::UnBindWindow(long *ret) {
     internal::set_result(ret, m_context->bkproc.UnBindWindow());
 }
 
-void op::Client::GetBindWindow(LONG_PTR *ret) {
+void op::Op::GetBindWindow(LONG_PTR *ret) {
     internal::set_result(ret, m_context->bkproc.GetBindWindow());
 }
 
-void op::Client::IsBind(long *ret) {
+void op::Op::IsBind(long *ret) {
     internal::set_result(ret, m_context->bkproc.IsBind());
 }
 
-void op::Client::GetCursorPos(long *x, long *y, long *ret) {
+void op::Op::GetCursorPos(long *x, long *y, long *ret) {
     long cursor_x = 0;
     long cursor_y = 0;
     internal::set_result(ret, m_context->bkproc._mouse->GetCursorPos(cursor_x, cursor_y));
@@ -131,19 +131,19 @@ void op::Client::GetCursorPos(long *x, long *y, long *ret) {
     internal::set_result(y, cursor_y);
 }
 
-void op::Client::GetCursorShape(std::wstring &ret) {
+void op::Op::GetCursorShape(std::wstring &ret) {
     m_context->bkproc._mouse->GetCursorShape(ret);
 }
 
-void op::Client::MoveR(long x, long y, long *ret) {
+void op::Op::MoveR(long x, long y, long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MoveR(x, y));
 }
 
-void op::Client::MoveTo(long x, long y, long *ret) {
+void op::Op::MoveTo(long x, long y, long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MoveTo(x, y));
 }
 
-void op::Client::MoveToEx(long x, long y, long w, long h, std::wstring &ret) {
+void op::Op::MoveToEx(long x, long y, long w, long h, std::wstring &ret) {
     int dst_x = x;
     int dst_y = y;
     if (m_context->bkproc._mouse->MoveToEx(x, y, w, h, dst_x, dst_y)) {
@@ -153,103 +153,103 @@ void op::Client::MoveToEx(long x, long y, long w, long h, std::wstring &ret) {
     }
 }
 
-void op::Client::LeftClick(long *ret) {
+void op::Op::LeftClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->LeftClick());
 }
 
-void op::Client::LeftDoubleClick(long *ret) {
+void op::Op::LeftDoubleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->LeftDoubleClick());
 }
 
-void op::Client::LeftDown(long *ret) {
+void op::Op::LeftDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->LeftDown());
 }
 
-void op::Client::LeftUp(long *ret) {
+void op::Op::LeftUp(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->LeftUp());
 }
 
-void op::Client::MiddleClick(long *ret) {
+void op::Op::MiddleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleClick());
 }
 
-void op::Client::MiddleDoubleClick(long *ret) {
+void op::Op::MiddleDoubleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleDoubleClick());
 }
 
-void op::Client::MiddleDown(long *ret) {
+void op::Op::MiddleDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleDown());
 }
 
-void op::Client::MiddleUp(long *ret) {
+void op::Op::MiddleUp(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->MiddleUp());
 }
 
-void op::Client::RightClick(long *ret) {
+void op::Op::RightClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightClick());
 }
 
-void op::Client::RightDoubleClick(long *ret) {
+void op::Op::RightDoubleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightDoubleClick());
 }
 
-void op::Client::RightDown(long *ret) {
+void op::Op::RightDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightDown());
 }
 
-void op::Client::RightUp(long *ret) {
+void op::Op::RightUp(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->RightUp());
 }
 
-void op::Client::XButton1Click(long *ret) {
+void op::Op::XButton1Click(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton1Click());
 }
 
-void op::Client::XButton1DoubleClick(long *ret) {
+void op::Op::XButton1DoubleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton1DoubleClick());
 }
 
-void op::Client::XButton1Down(long *ret) {
+void op::Op::XButton1Down(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton1Down());
 }
 
-void op::Client::XButton1Up(long *ret) {
+void op::Op::XButton1Up(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton1Up());
 }
 
-void op::Client::XButton2Click(long *ret) {
+void op::Op::XButton2Click(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton2Click());
 }
 
-void op::Client::XButton2DoubleClick(long *ret) {
+void op::Op::XButton2DoubleClick(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton2DoubleClick());
 }
 
-void op::Client::XButton2Down(long *ret) {
+void op::Op::XButton2Down(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton2Down());
 }
 
-void op::Client::XButton2Up(long *ret) {
+void op::Op::XButton2Up(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->XButton2Up());
 }
 
-void op::Client::Wheel(long delta, long *ret) {
+void op::Op::Wheel(long delta, long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->Wheel(delta));
 }
 
-void op::Client::HWheel(long delta, long *ret) {
+void op::Op::HWheel(long delta, long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->HWheel(delta));
 }
 
-void op::Client::WheelDown(long *ret) {
+void op::Op::WheelDown(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->WheelDown());
 }
 
-void op::Client::WheelUp(long *ret) {
+void op::Op::WheelUp(long *ret) {
     internal::set_result(ret, m_context->bkproc._mouse->WheelUp());
 }
 
-void op::Client::SetMouseDelay(const wchar_t *type, long delay, long *ret) {
+void op::Op::SetMouseDelay(const wchar_t *type, long delay, long *ret) {
     internal::set_result(ret, 0L);
     if (!type || delay < 0)
         return;
@@ -264,49 +264,49 @@ void op::Client::SetMouseDelay(const wchar_t *type, long delay, long *ret) {
         internal::set_result(ret, 0L);
 }
 
-void op::Client::GetKeyState(long vk_code, long *ret) {
+void op::Op::GetKeyState(long vk_code, long *ret) {
     internal::set_result(ret, m_context->bkproc._keyboard->GetKeyState(vk_code));
 }
 
-void op::Client::KeyDown(long vk_code, long *ret) {
+void op::Op::KeyDown(long vk_code, long *ret) {
     internal::set_result(ret, m_context->bkproc._keyboard->KeyDown(vk_code));
 }
 
-void op::Client::KeyDownChar(const wchar_t *vk_code, long *ret) {
+void op::Op::KeyDownChar(const wchar_t *vk_code, long *ret) {
     internal::set_result(ret, 0L);
     key_combo_t combo;
     if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
         internal::set_result(ret, key_combo_down(m_context->bkproc._keyboard.get(), combo));
 }
 
-void op::Client::KeyUp(long vk_code, long *ret) {
+void op::Op::KeyUp(long vk_code, long *ret) {
     internal::set_result(ret, m_context->bkproc._keyboard->KeyUp(vk_code));
 }
 
-void op::Client::KeyUpChar(const wchar_t *vk_code, long *ret) {
+void op::Op::KeyUpChar(const wchar_t *vk_code, long *ret) {
     internal::set_result(ret, 0L);
     key_combo_t combo;
     if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
         internal::set_result(ret, key_combo_up(m_context->bkproc._keyboard.get(), combo));
 }
 
-void op::Client::WaitKey(long vk_code, long time_out, long *ret) {
+void op::Op::WaitKey(long vk_code, long time_out, long *ret) {
     unsigned long t = time_out < 0 ? 0xffffffffu : static_cast<unsigned long>(time_out);
     internal::set_result(ret, m_context->bkproc._keyboard->WaitKey(vk_code, t));
 }
 
-void op::Client::KeyPress(long vk_code, long *ret) {
+void op::Op::KeyPress(long vk_code, long *ret) {
     internal::set_result(ret, m_context->bkproc._keyboard->KeyPress(vk_code));
 }
 
-void op::Client::KeyPressChar(const wchar_t *vk_code, long *ret) {
+void op::Op::KeyPressChar(const wchar_t *vk_code, long *ret) {
     internal::set_result(ret, 0L);
     key_combo_t combo;
     if (resolve_text_key_combo(m_context->vkmap, vk_code, combo))
         internal::set_result(ret, key_combo_press(m_context->bkproc._keyboard.get(), combo));
 }
 
-void op::Client::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
+void op::Op::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
     internal::set_result(ret, 0L);
     if (!type || delay < 0)
         return;
@@ -323,7 +323,7 @@ void op::Client::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
         internal::set_result(ret, 0L);
 }
 
-void op::Client::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
+void op::Op::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
     internal::set_result(ret, 0L);
     if (!key_str)
         return;

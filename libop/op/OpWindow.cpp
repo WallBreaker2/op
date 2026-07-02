@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "runtime/RuntimeUtils.h"
 #include "window/WindowLayout.h"
@@ -107,25 +107,25 @@ LONG_PTR hwnd_result(HWND hwnd) {
 
 } // namespace
 
-void op::Client::EnumWindow(LONG_PTR parent, const wchar_t *title, const wchar_t *class_name, long filter,
+void op::Op::EnumWindow(LONG_PTR parent, const wchar_t *title, const wchar_t *class_name, long filter,
                             std::wstring &retstr) {
     m_context->window_service.EnumWindow(reinterpret_cast<HWND>(parent), title, class_name, filter, retstr);
 }
 
-void op::Client::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name,
+void op::Op::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *title, const wchar_t *class_name,
                                      long filter, std::wstring &retstring) {
     m_context->window_service.EnumWindow(nullptr, title, class_name, filter, retstring, process_name);
 }
 
-void op::Client::ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret) {
+void op::Op::ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret) {
     internal::set_result(bret, m_context->window_service.ClientToScreen(reinterpret_cast<HWND>(hwnd), *x, *y));
 }
 
-void op::Client::FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
+void op::Op::FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     internal::set_result(rethwnd, hwnd_result(m_context->window_service.FindWindow(class_name, title)));
 }
 
-void op::Client::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
+void op::Op::FindWindowByProcess(const wchar_t *process_name, const wchar_t *class_name, const wchar_t *title,
                                      LONG_PTR *rethwnd) {
 
     HWND hwnd = nullptr;
@@ -133,19 +133,19 @@ void op::Client::FindWindowByProcess(const wchar_t *process_name, const wchar_t 
     internal::set_result(rethwnd, hwnd_result(hwnd));
 }
 
-void op::Client::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title,
+void op::Op::FindWindowByProcessId(long process_id, const wchar_t *class_name, const wchar_t *title,
                                        LONG_PTR *rethwnd) {
     HWND hwnd = nullptr;
     m_context->window_service.FindWindowByProcess(class_name, title, hwnd, NULL, process_id);
     internal::set_result(rethwnd, hwnd_result(hwnd));
 }
 
-void op::Client::FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
+void op::Op::FindWindowEx(LONG_PTR parent, const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
     internal::set_result(
         rethwnd, hwnd_result(m_context->window_service.FindWindowEx(reinterpret_cast<HWND>(parent), class_name, title)));
 }
 
-void op::Client::GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
+void op::Op::GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
     long left = 0;
     long top = 0;
     long right = 0;
@@ -158,7 +158,7 @@ void op::Client::GetClientRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long
     internal::set_result(y2, bottom);
 }
 
-void op::Client::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *nret) {
+void op::Op::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *nret) {
     long client_width = 0;
     long client_height = 0;
     internal::set_result(
@@ -167,28 +167,28 @@ void op::Client::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *n
     internal::set_result(height, client_height);
 }
 
-void op::Client::GetForegroundFocus(LONG_PTR *rethwnd) {
+void op::Op::GetForegroundFocus(LONG_PTR *rethwnd) {
     internal::set_result(rethwnd, hwnd_result(::GetFocus()));
 }
 
-void op::Client::GetForegroundWindow(LONG_PTR *rethwnd) {
+void op::Op::GetForegroundWindow(LONG_PTR *rethwnd) {
     internal::set_result(rethwnd, hwnd_result(::GetForegroundWindow()));
 }
 
-void op::Client::GetMousePointWindow(LONG_PTR *rethwnd) {
+void op::Op::GetMousePointWindow(LONG_PTR *rethwnd) {
     //::Sleep(2000);
     HWND hwnd = nullptr;
     m_context->window_service.GetMousePointWindow(hwnd);
     internal::set_result(rethwnd, hwnd_result(hwnd));
 }
 
-void op::Client::GetPointWindow(long x, long y, LONG_PTR *rethwnd) {
+void op::Op::GetPointWindow(long x, long y, LONG_PTR *rethwnd) {
     HWND hwnd = nullptr;
     m_context->window_service.GetMousePointWindow(hwnd, x, y);
     internal::set_result(rethwnd, hwnd_result(hwnd));
 }
 
-void op::Client::GetSpecialWindow(long flag, LONG_PTR *rethwnd) {
+void op::Op::GetSpecialWindow(long flag, LONG_PTR *rethwnd) {
     internal::set_result(rethwnd, 0);
     if (flag == 0)
         internal::set_result(rethwnd, hwnd_result(GetDesktopWindow()));
@@ -197,17 +197,17 @@ void op::Client::GetSpecialWindow(long flag, LONG_PTR *rethwnd) {
     }
 }
 
-void op::Client::GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *nret) {
+void op::Op::GetWindow(LONG_PTR hwnd, long flag, LONG_PTR *nret) {
     HWND target = nullptr;
     m_context->window_service.GetWindow(reinterpret_cast<HWND>(hwnd), flag, target);
     internal::set_result(nret, hwnd_result(target));
 }
 
-void op::Client::GetWindowClass(LONG_PTR hwnd, std::wstring &retstring) {
+void op::Op::GetWindowClass(LONG_PTR hwnd, std::wstring &retstring) {
     retstring = get_window_class_name(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)));
 }
 
-void op::Client::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
+void op::Op::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long *y2, long *nret) {
     RECT winrect = {};
     internal::set_result(nret, ::GetWindowRect(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &winrect));
     internal::set_result(x1, winrect.left);
@@ -216,16 +216,16 @@ void op::Client::GetWindowRect(LONG_PTR hwnd, long *x1, long *y1, long *x2, long
     internal::set_result(y2, winrect.bottom);
 }
 
-void op::Client::GetWindowState(LONG_PTR hwnd, long flag, long *rethwnd) {
+void op::Op::GetWindowState(LONG_PTR hwnd, long flag, long *rethwnd) {
     internal::set_result(rethwnd,
                          m_context->window_service.GetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag));
 }
 
-void op::Client::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
+void op::Op::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
     rettitle = get_window_title(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)));
 }
 
-void op::Client::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
+void op::Op::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
     RECT winrect;
     HWND target = reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd));
     ::GetWindowRect(target, &winrect);
@@ -234,7 +234,7 @@ void op::Client::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
     internal::set_result(nret, ::MoveWindow(target, x, y, width, height, false));
 }
 
-void op::Client::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
+void op::Op::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
     POINT point;
     point.x = x ? *x : 0;
     point.y = y ? *y : 0;
@@ -243,22 +243,22 @@ void op::Client::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
     internal::set_result(y, point.y);
 }
 
-void op::Client::SetClientSize(LONG_PTR hwnd, long width, long height, long *nret) {
+void op::Op::SetClientSize(LONG_PTR hwnd, long width, long height, long *nret) {
     internal::set_result(nret, m_context->window_service.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)),
                                                                        width, height));
 }
 
-void op::Client::SetWindowState(LONG_PTR hwnd, long flag, long *nret) {
+void op::Op::SetWindowState(LONG_PTR hwnd, long flag, long *nret) {
     internal::set_result(nret,
                          m_context->window_service.SetWindowState(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), flag));
 }
 
-void op::Client::SetWindowSize(LONG_PTR hwnd, long width, long height, long *nret) {
+void op::Op::SetWindowSize(LONG_PTR hwnd, long width, long height, long *nret) {
     internal::set_result(nret, m_context->window_service.SetWindowSize(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)),
                                                                        width, height, 1));
 }
 
-void op::Client::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y,
+void op::Op::LayoutWindows(const wchar_t *hwnds, long layout_type, long columns, long start_x, long start_y,
                                 long gap_x, long gap_y, long size_mode, long window_width, long window_height,
                                 long anchor_mode, long *ret) {
     internal::set_result(ret, 0L);
@@ -286,21 +286,21 @@ void op::Client::LayoutWindows(const wchar_t *hwnds, long layout_type, long colu
     internal::set_result(ret, op::window_layout::Layout(windows, options));
 }
 
-void op::Client::SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *nret) {
+void op::Op::SetWindowText(LONG_PTR hwnd, const wchar_t *title, long *nret) {
     internal::set_result(nret, ::SetWindowTextW(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), title));
 }
 
-void op::Client::SetWindowTransparent(LONG_PTR hwnd, long trans, long *nret) {
+void op::Op::SetWindowTransparent(LONG_PTR hwnd, long trans, long *nret) {
     internal::set_result(nret,
                          m_context->window_service.SetWindowTransparent(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)),
                                                                         trans));
 }
 
-void op::Client::SendString(LONG_PTR hwnd, const wchar_t *str, long *ret) {
+void op::Op::SendString(LONG_PTR hwnd, const wchar_t *str, long *ret) {
     internal::set_result(ret, m_context->window_service.SendString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str));
 }
 
-void op::Client::SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret) {
+void op::Op::SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret) {
     internal::set_result(ret,
                          m_context->window_service.SendStringIme(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str));
 }

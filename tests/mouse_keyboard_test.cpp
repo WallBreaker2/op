@@ -103,7 +103,7 @@ std::wstring CursorShapeHash(const std::wstring &shape) {
     return shape.substr(first + 1, second - first - 1);
 }
 
-bool WaitForColor(op::Client &op, long x, long y, const std::wstring &expected, std::wstring &actual,
+bool WaitForColor(op::Op &op, long x, long y, const std::wstring &expected, std::wstring &actual,
                   int timeout_ms = 1500) {
     const auto end = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms);
     while (std::chrono::steady_clock::now() < end) {
@@ -144,7 +144,7 @@ class DirectInputDevice {
 };
 
 TEST(MouseKeyTest, MoveToExReturnsRandomTarget) {
-    op::Client op;
+    op::Op op;
     std::wstring pos;
 
     op.MoveToEx(100, 100, 1, 1, pos);
@@ -155,7 +155,7 @@ TEST(MouseKeyTest, MoveToExReturnsRandomTarget) {
 }
 
 TEST(MouseKeyTest, MoveToExSupportsNegativeRangesInWindowsMode) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -189,7 +189,7 @@ TEST(MouseKeyTest, MoveToAndGetCursorPos) {
         GTEST_SKIP() << "Skips global cursor movement under Codex Desktop to avoid disturbing the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret;
     op.MoveTo(100, 100, &ret);
     EXPECT_TRUE(ret) << "MoveTo should succeed";
@@ -200,7 +200,7 @@ TEST(MouseKeyTest, MoveToAndGetCursorPos) {
 }
 
 TEST(MouseKeyTest, GetCursorShapeDistinguishesSystemCursors) {
-    op::Client op;
+    op::Op op;
     std::wstring current;
     op.GetCursorShape(current);
     EXPECT_FALSE(current.empty());
@@ -217,7 +217,7 @@ TEST(MouseKeyTest, ClickAndKeyPress) {
         GTEST_SKIP() << "Skips global click/key injection under Codex Desktop to avoid pausing the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret;
     op.SetMouseDelay(L"click", 10, &ret);
     op.LeftClick(&ret);
@@ -231,7 +231,7 @@ TEST(MouseKeyTest, EscKeyMapsToEscapeNotCancel) {
         GTEST_SKIP() << "Skips global Escape injection under Codex Desktop because Escape can pause the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     InputResetGuard guard;
 
@@ -253,7 +253,7 @@ TEST(MouseKeyTest, NumpadKeyMappings) {
     EXPECT_NE(VK_NUMPAD0, '0');
     EXPECT_NE(VK_NUMPAD1, '1');
 
-    op::Client op;
+    op::Op op;
     InputResetGuard guard;
 
     const std::vector<WORD> keys = {
@@ -289,7 +289,7 @@ TEST(MouseKeyTest, GetKeyStateTracksMouseButtons) {
         GTEST_SKIP() << "Skips global mouse button injection under Codex Desktop to avoid disturbing the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     InputResetGuard guard;
 
@@ -323,7 +323,7 @@ TEST(MouseKeyTest, WaitKeyUsesNormalizedKeyStateForMouseButtons) {
         GTEST_SKIP() << "Skips global mouse button injection under Codex Desktop to avoid disturbing the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     InputResetGuard guard;
 
@@ -344,7 +344,7 @@ TEST(MouseKeyTest, WaitKeyUsesNormalizedKeyStateForMouseButtons) {
 }
 
 TEST(MouseKeyTest, WaitKeyImmediateCheckReturnsQuickly) {
-    op::Client op;
+    op::Op op;
     long ret = -1;
     auto start = std::chrono::steady_clock::now();
     op.WaitKey(VK_LBUTTON, 0, &ret);
@@ -355,7 +355,7 @@ TEST(MouseKeyTest, WaitKeyImmediateCheckReturnsQuickly) {
 }
 
 TEST(MouseKeyTest, WaitKeyScanAllImmediate) {
-    op::Client op;
+    op::Op op;
     long ret = -1;
     auto start = std::chrono::steady_clock::now();
     op.WaitKey(0, 0, &ret);
@@ -370,7 +370,7 @@ TEST(MouseKeyTest, WaitKeyScanAllWithWaitFindsKey) {
         GTEST_SKIP() << "Skips global mouse button injection under Codex Desktop to avoid disturbing the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     InputResetGuard guard;
 
@@ -390,7 +390,7 @@ TEST(MouseKeyTest, WaitKeySpecificKeyZeroTimeout) {
         GTEST_SKIP() << "Skips global keyboard injection under Codex Desktop to avoid typing into the active chat.";
     }
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     InputResetGuard guard;
 
@@ -406,7 +406,7 @@ TEST(MouseKeyTest, WindowsModeKeyPressStrSupportsUnicodeFallback) {
     SendStringWindow window;
     ASSERT_TRUE(window.Create());
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.BindWindow((long)(intptr_t)window.edit, L"normal", L"windows", L"windows", 0, &ret);
     ASSERT_EQ(ret, 1);
@@ -421,7 +421,7 @@ TEST(MouseKeyTest, WindowsModeKeyPressStrSupportsUnicodeFallback) {
 }
 
 TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -453,7 +453,7 @@ TEST(MouseKeyTest, WindowsModeMouseReturnAndWheel) {
 }
 
 TEST(MouseKeyTest, WindowsModeAdvancedMouseButtonsAndWheel) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -495,7 +495,7 @@ TEST(MouseKeyTest, WindowsModeAdvancedMouseButtonsAndWheel) {
 }
 
 TEST(MouseKeyTest, WindowsModeMouseMoveCarriesLeftButtonWhileHeld) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -530,7 +530,7 @@ TEST(MouseKeyTest, WindowsModeMouseMoveCarriesLeftButtonWhileHeld) {
 }
 
 TEST(MouseKeyTest, WindowsModeMoveToKeepsClientCoordinatesAfterResize) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
     ASSERT_TRUE(ResizeClient(window.hwnd, 1280, 720));
@@ -566,7 +566,7 @@ TEST(MouseKeyTest, WindowsModeMoveToKeepsClientCoordinatesAfterResize) {
 }
 
 TEST(MouseKeyTest, BindWindowExSeparatesDisplayAndInputTargets) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow input_window;
     ColorPulseWindow display_window;
     ASSERT_TRUE(input_window.Create());
@@ -604,7 +604,7 @@ TEST(MouseKeyTest, BindWindowExSeparatesDisplayAndInputTargets) {
 }
 
 TEST(MouseKeyTest, DxModeDeliversWindowAndRawInput) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -656,7 +656,7 @@ TEST(MouseKeyTest, DxModeDeliversWindowAndRawInput) {
 }
 
 TEST(MouseKeyTest, DxModeDeliversAdvancedMouseButtonsAndWheel) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -710,7 +710,7 @@ TEST(MouseKeyTest, DxModeDeliversAdvancedMouseButtonsAndWheel) {
 }
 
 TEST(MouseKeyTest, DxModeMouseMoveCarriesLeftButtonWhileHeld) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -750,7 +750,7 @@ TEST(MouseKeyTest, DxModeMouseMoveCarriesLeftButtonWhileHeld) {
 }
 
 TEST(MouseKeyTest, DxModeMoveToKeepsClientCoordinatesAfterResize) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
     ASSERT_TRUE(ResizeClient(window.hwnd, 1280, 720));
@@ -791,7 +791,7 @@ TEST(MouseKeyTest, DxModeMoveToKeepsClientCoordinatesAfterResize) {
 }
 
 TEST(MouseKeyTest, DxModeGetCursorShapeUsesHookedSetCursor) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -822,7 +822,7 @@ TEST(MouseKeyTest, DxModeGetCursorShapeUsesHookedSetCursor) {
 }
 
 TEST(MouseKeyTest, DxModeFeedsDirectInputBufferedData) {
-    op::Client op;
+    op::Op op;
     MouseEventWindow window;
     ASSERT_TRUE(window.Create());
 
@@ -916,7 +916,7 @@ TEST(MouseKeyTest, DxModeKeyPressStrSupportsUnicodeFallback) {
     SendStringWindow window;
     ASSERT_TRUE(window.Create());
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.BindWindow((long)(intptr_t)window.edit, L"normal", L"windows", L"dx", 0, &ret);
     if (ret != 1) {

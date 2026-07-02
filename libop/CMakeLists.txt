@@ -192,19 +192,19 @@ set(OP_IPC_SOURCES
   "ipc/Pipe.cpp"
 )
 
-set(OP_CLIENT_SOURCES
-  "client/ClientContext.cpp"
-  "client/ClientRuntime.cpp"
-  "client/ClientProcess.cpp"
-  "client/ClientClipboard.cpp"
-  "client/ClientWindow.cpp"
-  "client/ClientInput.cpp"
-  "client/ClientAlgorithm.cpp"
-  "client/ClientImage.cpp"
-  "client/ClientOpenCv.cpp"
-  "client/ClientOcr.cpp"
-  "client/ClientYolo.cpp"
-  "client/ClientMemory.cpp"
+set(OP_CLASS_SOURCES
+  "op/OpContext.cpp"
+  "op/OpRuntime.cpp"
+  "op/OpProcess.cpp"
+  "op/OpClipboard.cpp"
+  "op/OpWindow.cpp"
+  "op/OpInput.cpp"
+  "op/OpAlgorithm.cpp"
+  "op/OpImage.cpp"
+  "op/OpOpenCv.cpp"
+  "op/OpOcr.cpp"
+  "op/OpYolo.cpp"
+  "op/OpMemory.cpp"
 )
 
 set(OP_OPENCV_SOURCES "")
@@ -217,7 +217,7 @@ if(OP_HAS_OPENCV AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/opencv/TemplateMatcher.
 endif()
 
 set(OP_LIBOP_SOURCES
-  ${OP_CLIENT_SOURCES}
+  ${OP_CLASS_SOURCES}
   ${OP_CAPTURE_SOURCES}
   ${OP_INPUT_SOURCES}
   ${OP_HOOK_SOURCES}
@@ -409,12 +409,8 @@ install(FILES "${PROJECT_SOURCE_DIR}/include/libop.h" DESTINATION "${PROJECT_SOU
 install(FILES "${PROJECT_SOURCE_DIR}/include/op_c_api.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
 if(CMAKE_CL_64)
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-  install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
   install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-  install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
 else()
   install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-  install(TARGETS ${op_com} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
   install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-  install(TARGETS ${op_c_api} ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
 endif()

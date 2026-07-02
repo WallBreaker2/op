@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_CLIENT_CONTEXT_H_
-#define OP_CLIENT_CONTEXT_H_
+#ifndef OP_OP_CONTEXT_H_
+#define OP_OP_CONTEXT_H_
 
 #include "binding/BindingSession.h"
 #include "image/ImageSearchService.h"
@@ -12,8 +12,8 @@
 
 namespace op::internal {
 
-struct ClientContext {
-    explicit ClientContext(int client_id);
+struct OpContext {
+    explicit OpContext(int client_id);
 
     // Windows API helpers
     WindowService window_service;
@@ -34,4 +34,4 @@ struct ClientContext {
 
 } // namespace op::internal
 
-#endif // OP_CLIENT_CONTEXT_H_
+#endif // OP_OP_CONTEXT_H_

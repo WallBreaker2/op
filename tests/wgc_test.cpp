@@ -92,7 +92,7 @@ TEST_F(WgcTest, CapturesStaticWindowFromStart) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -123,7 +123,7 @@ TEST_F(WgcTest, NormalAutoCapturesPlainWindows) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -156,7 +156,7 @@ TEST_F(WgcTest, NormalDxgiFirstCaptureAfterBindUsesFreshFrame) {
     BringWindowToTop(window.hwnd);
     PumpMessagesFor(400);
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -184,7 +184,7 @@ TEST_F(WgcTest, NormalDxgiMaximizeAfterBindCapturesClippedClientArea) {
     BringWindowToTop(window.hwnd);
     PumpMessagesFor(400);
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -221,7 +221,7 @@ TEST_F(WgcTest, NormalAutoUsesWgcForKnownBrowserClasses) {
     NamedClassColorWindow window;
     ASSERT_TRUE(window.Create(L"Chrome_WidgetWin_1"));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -243,7 +243,7 @@ TEST_F(WgcTest, FirstFrameResizeAndCloseScenarios) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -293,7 +293,7 @@ TEST_F(WgcTest, MinimizeRestoreStillCaptures) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -336,7 +336,7 @@ TEST_F(WgcTest, MaximizeAfterBindCapturesFullClientArea) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(false));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -381,7 +381,7 @@ TEST_F(WgcTest, MaximizedWindowBindCapturesFullClientArea) {
     ASSERT_GT(client.right, 20);
     ASSERT_GT(client.bottom, 20);
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -411,7 +411,7 @@ TEST_F(WgcTest, RepeatedBindUnbindAndMaximizedRepeatedCapture) {
     ASSERT_TRUE(window.Create(false));
 
     for (int i = 0; i < 3; ++i) {
-        op::Client op;
+        op::Op op;
         long ret = 0;
         op.SetShowErrorMsg(3, &ret);
 
@@ -437,7 +437,7 @@ TEST_F(WgcTest, RepeatedBindUnbindAndMaximizedRepeatedCapture) {
     RECT client = {};
     ASSERT_TRUE(GetClientRect(window.hwnd, &client));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 
@@ -468,7 +468,7 @@ TEST_F(WgcTest, DISABLED_CapturesAnimatedWindowLatestFrame) {
     ColorPulseWindow window;
     ASSERT_TRUE(window.Create(true));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.SetShowErrorMsg(3, &ret);
 

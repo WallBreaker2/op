@@ -33,7 +33,7 @@ Package name: `op-plugins`, import name: `pyop`. Supports cp39–cp312 on win32/
 
 ```bash
 # Verify after installing a wheel
-python -c "from pyop import Client; print(Client().Ver())"
+python -c "from pyop import Op; print(Op().Ver())"
 ```
 
 Wheel build uses `OP_PYTHON_WHEEL=ON` (see `pyproject.toml` + `swig/CMakeLists.txt`).
@@ -67,7 +67,7 @@ cd build/vs2022-x64-Release
 ## Architecture
 
 ```
-include/libop.h          — Public API declaration (class op::Client, exported via OP_API)
+include/libop.h          — Public API declaration (class op::Op, exported via OP_API)
 libop/libop.cpp          — Main implementation: coordinates WindowService, BindingSession, capture/input backends, and ImageSearchService
 libop/com/op.idl         — MIDL COM interface definition (IOpAutomation, ~300 dispids)
 libop/com/OpAutomation.*  — COM IDispatch implementation, calls through to libop
@@ -85,7 +85,7 @@ libop/image/             — Image search (ImageSearchAlgorithms), image process
 libop/window/            — Window, process, clipboard, command, injection, and layout services
 libop/algorithm/         — A* pathfinding (AStar.hpp)
 tests/                   — GoogleTest suite with custom test environment (OpEnvironment)
-                           Tests are split by category (core_algorithm_windows, mouse_keyboard,
+                           Tests are split by category (op_algorithm_windows, mouse_keyboard,
                            image_color, ocr). main.cpp defines its own main() and registers
                            OpEnvironment for global setup/teardown.
 tools/                   — EasyCom DLL (COM helper, separate from the main plugin)
@@ -100,7 +100,7 @@ build.py                 — Unified build: bootstraps vcpkg, clones+builds Blac
 
 ### Key architectural patterns
 
-- **Pimpl + COM**: `class op::Client` (in `include/libop.h`) is the public DLL-exported facade. It holds a `unique_ptr<op_context>` which bundles Windows API helpers, window binding/capture state, and `ImageSearchService`. The COM layer (`IOpAutomation` / `OpAutomation`) converts `BSTR`/`VARIANT` arguments and delegates to `libop`.
+- **Pimpl + COM**: `class op::Op` (in `include/libop.h`) is the public DLL-exported facade. It holds a `unique_ptr<op_context>` which bundles Windows API helpers, window binding/capture state, and `ImageSearchService`. The COM layer (`IOpAutomation` / `OpAutomation`) converts `BSTR`/`VARIANT` arguments and delegates to `libop`.
 - **COINIT_APARTMENTTHREADED**: The COM object uses apartment threading. All calls from a single thread share the same `op_context`.
 - **Screen capture modes**: Controlled by `SetDisplayInput()` — supports GDI (`normal`), DXGI, WGC, and `mem:<ptr>` for external pixel buffers.
 - **OCR has two code paths**: Local dict-based (`SetDict`/`UseDict`, fast for fixed fonts) and HTTP service-backed (`OcrEx`/`OcrAuto`, via `HttpOcrService` → `ocr_server.exe` or PaddleOCR).
