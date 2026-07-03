@@ -1,5 +1,8 @@
 #include "test_support.h"
 
+#include "op_c_api.h"
+
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -82,6 +85,13 @@ void SetMemBmp(op::Op &op, int width, int height, const vector<uchar> &pixels, l
     wstring mode = L"mem:" + PtrToWString(bmp.data());
     op.SetDisplayInput(mode.c_str(), &ret);
 }
+
+struct CApiHandle {
+    op_handle handle = OpCreate();
+    ~CApiHandle() {
+        OpDestroy(handle);
+    }
+};
 
 void UseSingleWordDict(op::Op &op, int width, int height, const wchar_t *color, const wchar_t *word, long &ret) {
     wstring dict_entry;
@@ -539,6 +549,385 @@ TEST(ImageColorTest, FetchWordReturnsEmptyForBlankRegion) {
     op.FetchWord(0, 0, width, height, L"000000-000000", L"Blank", word_data);
 
     EXPECT_TRUE(word_data.empty()) << "FetchWord should not emit a dictionary entry for a blank region";
+}
+
+TEST(ImageColorTest, FetchWordExUsesSimilarity) {
+    op::Op op;
+    long ret = 0;
+    const int width = 5;
+    const int height = 6;
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring strict_entry;
+    op.FetchWordEx(0, 0, width, height, L"000000", 1.0, L"A", strict_entry);
+    EXPECT_TRUE(strict_entry.empty()) << "Strict matching should not treat a gray glyph as pure black";
+
+    wstring tolerant_entry;
+    op.FetchWordEx(0, 0, width, height, L"000000", 0.9, L"A", tolerant_entry);
+    EXPECT_EQ(tolerant_entry.rfind(L"A$", 0), 0u);
+}
+
+TEST(ImageColorTest, ExtractWordRectsCutsScaledGlyphs) {
+    op::Op op;
+    long ret = 0;
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x00, 0x00, 0x00);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring rects;
+    op.ExtractWordRects(0, 0, width, height, L"000000-000000", 1.0, 2, rects);
+
+    EXPECT_EQ(rects, L"2,2,8,10|14,2,20,10");
+}
+
+TEST(ImageColorTest, ExtractWordRectsExFiltersNoiseAndAddsPadding) {
+    op::Op op;
+    long ret = 0;
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x00, 0x00, 0x00);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 23, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring rects;
+    op.ExtractWordRectsEx(0, 0, width, height, L"000000-000000", 1.0, 3, 4, 1, rects);
+
+    EXPECT_EQ(rects, L"1,1,9,11|13,1,21,11");
+}
+
+TEST(ImageColorTest, FetchWordsBuildsMultiplePointEntries) {
+    op::Op op;
+    long ret = 0;
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x19, 0x19, 0x19);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_text;
+    op.FetchWords(0, 0, width, height, L"000000", 0.9, L"AB", 2, dict_text);
+
+    EXPECT_EQ(dict_text.find(L"A$"), 0u);
+    EXPECT_NE(dict_text.find(L"\nB$"), wstring::npos);
+    EXPECT_EQ(count(dict_text.begin(), dict_text.end(), L'\n'), 1);
+
+    wstring mismatch;
+    op.FetchWords(0, 0, width, height, L"000000", 0.9, L"A", 2, mismatch);
+    EXPECT_TRUE(mismatch.empty()) << "Word count mismatch should not silently create a partial dictionary";
+}
+
+TEST(ImageColorTest, FetchWordsExFiltersNoiseBeforeBuildingEntries) {
+    op::Op op;
+    long ret = 0;
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x19, 0x19, 0x19);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x19, 0x19, 0x19);
+    PaintPixel(pixels, width, 23, 0, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_text;
+    op.FetchWordsEx(0, 0, width, height, L"000000", 0.9, L"AB", 3, 4, 1, dict_text);
+
+    EXPECT_EQ(dict_text.find(L"A$"), 0u);
+    EXPECT_NE(dict_text.find(L"\nB$"), wstring::npos);
+    EXPECT_EQ(count(dict_text.begin(), dict_text.end(), L'\n'), 1);
+
+    wstring mismatch;
+    op.FetchWordsEx(0, 0, width, height, L"000000", 0.9, L"A", 3, 4, 1, mismatch);
+    EXPECT_TRUE(mismatch.empty()) << "Filtered rect count and word count must still match";
+}
+
+TEST(ImageColorTest, DotMatrixCApiEntrypointsWork) {
+    CApiHandle api;
+    ASSERT_NE(api.handle, nullptr);
+
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x19, 0x19, 0x19);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x19, 0x19, 0x19);
+    PaintPixel(pixels, width, 23, 0, 0x19, 0x19, 0x19);
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    const wstring mode = L"mem:" + PtrToWString(bmp.data());
+    ASSERT_EQ(OpSetDisplayInput(api.handle, mode.c_str()), 1);
+
+    const wstring rects =
+        OpExtractWordRectsEx(api.handle, 0, 0, width, height, L"000000", 0.9, 3, 4, 1);
+    EXPECT_EQ(rects, L"1,1,9,11|13,1,21,11");
+
+    const wstring dict_text = OpFetchWordsEx(api.handle, 0, 0, width, height, L"000000", 0.9, L"AB", 3, 4, 1);
+    EXPECT_EQ(dict_text.find(L"A$"), 0u);
+    EXPECT_NE(dict_text.find(L"\nB$"), wstring::npos);
+    EXPECT_EQ(count(dict_text.begin(), dict_text.end(), L'\n'), 1);
+
+    const wstring dict_by_rects =
+        OpFetchWordsByRects(api.handle, 0, 0, width, height, L"000000", 0.9, L"AB", L"2,2,8,10|14,2,20,10");
+    EXPECT_EQ(dict_by_rects.find(L"A$"), 0u);
+    EXPECT_NE(dict_by_rects.find(L"\nB$"), wstring::npos);
+
+    const wstring word_entry = OpFetchWordEx(api.handle, 0, 0, 10, height, L"000000", 0.9, L"A");
+    EXPECT_EQ(word_entry.rfind(L"A$", 0), 0u);
+
+    int valid_count = 0;
+    const wstring normalized =
+        OpNormalizeWordDict(api.handle, (dict_text + L"\r\nbad-entry\n" + word_entry).c_str(), &valid_count);
+    EXPECT_EQ(valid_count, 3);
+    EXPECT_EQ(normalized, dict_text + L"\n" + word_entry);
+
+    int renamed_count = 0;
+    const wstring renamed = OpRenameWordDict(api.handle, normalized.c_str(), L"XYZ", &renamed_count);
+    EXPECT_EQ(renamed_count, 3);
+    EXPECT_EQ(renamed.find(L"X$"), 0u);
+    EXPECT_NE(renamed.find(L"\nY$"), wstring::npos);
+    EXPECT_NE(renamed.find(L"\nZ$"), wstring::npos);
+
+    EXPECT_EQ(OpSetBinaryPreprocess(api.handle, 3, 0, 2, 0), 1);
+    int preprocess_mode = 0;
+    int isolated_threshold = -1;
+    int min_component_area = 0;
+    int bridge_gap = 0;
+    EXPECT_EQ(
+        OpGetBinaryPreprocess(api.handle, &preprocess_mode, &isolated_threshold, &min_component_area, &bridge_gap), 1);
+    EXPECT_EQ(preprocess_mode, 3);
+    EXPECT_EQ(isolated_threshold, 0);
+    EXPECT_EQ(min_component_area, 2);
+    EXPECT_EQ(bridge_gap, 0);
+}
+
+TEST(ImageColorTest, FetchWordsByRectsUsesGivenRects) {
+    op::Op op;
+    long ret = 0;
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x19, 0x19, 0x19);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_text;
+    op.FetchWordsByRects(0, 0, width, height, L"000000", 0.9, L"AB", L"2,2,8,10|14,2,20,10", dict_text);
+
+    EXPECT_EQ(dict_text.find(L"A$"), 0u);
+    EXPECT_NE(dict_text.find(L"\nB$"), wstring::npos);
+    EXPECT_EQ(count(dict_text.begin(), dict_text.end(), L'\n'), 1);
+
+    wstring mismatch;
+    op.FetchWordsByRects(0, 0, width, height, L"000000", 0.9, L"A", L"2,2,8,10|14,2,20,10", mismatch);
+    EXPECT_TRUE(mismatch.empty()) << "Rect count and word count must match";
+
+    wstring out_of_range;
+    op.FetchWordsByRects(0, 0, width, height, L"000000", 0.9, L"A", L"2,2,99,10", out_of_range);
+    EXPECT_TRUE(out_of_range.empty()) << "Rects outside the capture region should be rejected";
+}
+
+TEST(ImageColorTest, GetBinaryPreviewShowsBinarizedRegion) {
+    op::Op op;
+    long ret = 0;
+    const int width = 5;
+    const int height = 6;
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x19, 0x19, 0x19);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring preview;
+    op.GetBinaryPreview(0, 0, width, height, L"000000", 0.9, preview, &ret);
+
+    EXPECT_EQ(ret, 8);
+    EXPECT_EQ(preview, L"5,6\n.....\n..#..\n.#.#.\n.###.\n.#.#.\n.....");
+}
+
+TEST(ImageColorTest, BinaryPreprocessIsDisabledByDefault) {
+    op::Op op;
+    long ret = 0;
+    const int width = 6;
+    const int height = 4;
+    auto pixels = MakePixels(width, height);
+    PaintPixel(pixels, width, 5, 0, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 1, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 1, 2, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 2, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring preview;
+    op.GetBinaryPreview(0, 0, width, height, L"000000", 1.0, preview, &ret);
+
+    EXPECT_EQ(ret, 5);
+    EXPECT_EQ(preview, L"6,4\n.....#\n.#.#..\n.#.#..\n......");
+}
+
+TEST(ImageColorTest, BinaryPreprocessRemovesNoiseAndBridgesOnePixelGaps) {
+    op::Op op;
+    long ret = 0;
+    op.SetBinaryPreprocess(3, 0, 2, 1, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long mode = 0;
+    long isolated_threshold = -1;
+    long min_component_area = 0;
+    long bridge_gap = 0;
+    op.GetBinaryPreprocess(&mode, &isolated_threshold, &min_component_area, &bridge_gap, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(mode, 3);
+    EXPECT_EQ(isolated_threshold, 0);
+    EXPECT_EQ(min_component_area, 2);
+    EXPECT_EQ(bridge_gap, 1);
+
+    const int width = 6;
+    const int height = 4;
+    auto pixels = MakePixels(width, height);
+    PaintPixel(pixels, width, 5, 0, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 1, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 1, 2, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 2, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring preview;
+    op.GetBinaryPreview(0, 0, width, height, L"000000", 1.0, preview, &ret);
+
+    EXPECT_EQ(ret, 6);
+    EXPECT_EQ(preview, L"6,4\n......\n.###..\n.###..\n......");
+}
+
+TEST(ImageColorTest, BinaryPreprocessBridgeGapZeroDoesNotBridge) {
+    op::Op op;
+    long ret = 0;
+    op.SetBinaryPreprocess(3, 0, 1, 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    const int width = 5;
+    const int height = 4;
+    auto pixels = MakePixels(width, height);
+    PaintPixel(pixels, width, 1, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 1, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 1, 2, 0x00, 0x00, 0x00);
+    PaintPixel(pixels, width, 3, 2, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring preview;
+    op.GetBinaryPreview(0, 0, width, height, L"000000", 1.0, preview, &ret);
+
+    EXPECT_EQ(ret, 4);
+    EXPECT_EQ(preview, L"5,4\n.....\n.#.#.\n.#.#.\n.....");
+}
+
+TEST(ImageColorTest, BinaryPreprocessDoesNotChangeColorBlockSearch) {
+    op::Op op;
+    long ret = 0;
+    op.SetBinaryPreprocess(1, 0, 2, 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    const int width = 6;
+    const int height = 4;
+    auto pixels = MakePixels(width, height);
+    PaintPixel(pixels, width, 5, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindColorBlock(0, 0, width, height, L"000000", 1.0, 1, 1, 1, &x, &y, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 5);
+    EXPECT_EQ(y, 0);
+}
+
+TEST(ImageColorTest, GetWordPreviewValidatesAndShowsPointEntry) {
+    op::Op op;
+    long ret = 0;
+    const int width = 5;
+    const int height = 6;
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_FALSE(dict_entry.empty());
+
+    wstring preview;
+    op.GetWordPreview(dict_entry.c_str(), preview, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(preview, L"A,3,4,8\n.#.\n#.#\n###\n#.#");
+
+    op.GetWordPreview(L"bad-entry", preview, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_TRUE(preview.empty());
+
+    wstring report;
+    op.CheckWordDict((dict_entry + L"\nbad-entry").c_str(), report, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(report, L"0,1,A,3,4,8,67|1,0,invalid");
+}
+
+TEST(ImageColorTest, NormalizeWordDictKeepsOnlyValidEntries) {
+    op::Op op;
+    long ret = 0;
+    const int width = 5;
+    const int height = 6;
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_FALSE(dict_entry.empty());
+
+    wstring normalized;
+    op.NormalizeWordDict((L"\r\n" + dict_entry + L"\r\nbad-entry\n" + dict_entry + L"\n").c_str(), normalized, &ret);
+
+    EXPECT_EQ(ret, 2);
+    EXPECT_EQ(normalized, dict_entry + L"\n" + dict_entry);
+}
+
+TEST(ImageColorTest, RenameWordDictUpdatesValidEntryNames) {
+    op::Op op;
+    long ret = 0;
+    const int width = 5;
+    const int height = 6;
+    auto pixels = MakePixels(width, height);
+    PaintGlyphA(pixels, width, 0, 0, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring dict_entry;
+    op.FetchWord(0, 0, width, height, L"000000-000000", L"A", dict_entry);
+    ASSERT_FALSE(dict_entry.empty());
+
+    wstring renamed;
+    op.RenameWordDict((dict_entry + L"\ninvalid\n" + dict_entry).c_str(), L"BC", renamed, &ret);
+
+    EXPECT_EQ(ret, 2);
+    EXPECT_EQ(renamed, L"B" + dict_entry.substr(1) + L"\nC" + dict_entry.substr(1));
+
+    wstring mismatch;
+    op.RenameWordDict(dict_entry.c_str(), L"BC", mismatch, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_TRUE(mismatch.empty());
 }
 
 TEST(ImageColorTest, AddDictSupportsDmPointTextFormat) {

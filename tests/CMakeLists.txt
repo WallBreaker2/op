@@ -183,7 +183,7 @@ if(OP_GTEST_INCLUDE_DIR)
   target_include_directories(op_test PRIVATE "${OP_GTEST_INCLUDE_DIR}")
 endif()
 
-target_link_libraries(op_test PRIVATE ${op_com} ${OP_GTEST_LINK_LIBS} dinput8.lib dxguid.lib dwmapi.lib)
+target_link_libraries(op_test PRIVATE ${op_com} ${op_c_api} ${OP_GTEST_LINK_LIBS} dinput8.lib dxguid.lib dwmapi.lib)
 
 if(OP_HAS_OPENCV_SOURCES)
   target_include_directories(op_test PRIVATE ${OP_OPENCV_INCLUDE_DIR})
@@ -192,7 +192,7 @@ endif()
 
 add_test(NAME op_test COMMAND op_test)
 set_tests_properties(op_test
-  PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:${op_com}>;$ENV{PATH}")
+  PROPERTIES ENVIRONMENT "PATH=$<TARGET_FILE_DIR:${op_com}>;$<TARGET_FILE_DIR:${op_c_api}>;$ENV{PATH}")
 
 if(CMAKE_CL_64)
   install(TARGETS op_test DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")

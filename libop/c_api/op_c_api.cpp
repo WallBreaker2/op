@@ -1043,10 +1043,116 @@ int OP_CALL OpGetNowDict(op_handle handle) {
     return call_ret(handle, [](op::Op &op, long *ret) { op.GetNowDict(ret); });
 }
 
+int OP_CALL OpSetBinaryPreprocess(op_handle handle, int mode, int isolated_threshold, int min_component_area,
+                                  int bridge_gap) {
+    return call_ret(handle, [&](op::Op &op, long *ret) {
+        op.SetBinaryPreprocess(mode, isolated_threshold, min_component_area, bridge_gap, ret);
+    });
+}
+
+int OP_CALL OpGetBinaryPreprocess(op_handle handle, int *mode, int *isolated_threshold, int *min_component_area,
+                                  int *bridge_gap) {
+    return call_ret(handle, [&](op::Op &op, long *ret) {
+        long local_mode = 0;
+        long local_isolated_threshold = 0;
+        long local_min_component_area = 0;
+        long local_bridge_gap = 0;
+        op.GetBinaryPreprocess(&local_mode, &local_isolated_threshold, &local_min_component_area, &local_bridge_gap,
+                               ret);
+        out_int(mode, local_mode);
+        out_int(isolated_threshold, local_isolated_threshold);
+        out_int(min_component_area, local_min_component_area);
+        out_int(bridge_gap, local_bridge_gap);
+    });
+}
+
 const wchar_t *OP_CALL OpFetchWord(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
                                    const wchar_t *word) {
     return call_string(handle, [&](op::Op &op, std::wstring &ret) {
         op.FetchWord(x1, y1, x2, y2, safe_text(color), safe_text(word), ret);
+    });
+}
+
+const wchar_t *OP_CALL OpFetchWordEx(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                     double sim, const wchar_t *word) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.FetchWordEx(x1, y1, x2, y2, safe_text(color), sim, safe_text(word), ret);
+    });
+}
+
+const wchar_t *OP_CALL OpExtractWordRects(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                          double sim, int min_word_h) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.ExtractWordRects(x1, y1, x2, y2, safe_text(color), sim, min_word_h, ret);
+    });
+}
+
+const wchar_t *OP_CALL OpExtractWordRectsEx(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                            double sim, int min_word_w, int min_word_h, int padding) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.ExtractWordRectsEx(x1, y1, x2, y2, safe_text(color), sim, min_word_w, min_word_h, padding, ret);
+    });
+}
+
+const wchar_t *OP_CALL OpFetchWords(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                    double sim, const wchar_t *words, int min_word_h) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.FetchWords(x1, y1, x2, y2, safe_text(color), sim, safe_text(words), min_word_h, ret);
+    });
+}
+
+const wchar_t *OP_CALL OpFetchWordsEx(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                      double sim, const wchar_t *words, int min_word_w, int min_word_h, int padding) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.FetchWordsEx(x1, y1, x2, y2, safe_text(color), sim, safe_text(words), min_word_w, min_word_h, padding, ret);
+    });
+}
+
+const wchar_t *OP_CALL OpFetchWordsByRects(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                           double sim, const wchar_t *words, const wchar_t *rects) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+        op.FetchWordsByRects(x1, y1, x2, y2, safe_text(color), sim, safe_text(words), safe_text(rects), ret);
+    });
+}
+
+const wchar_t *OP_CALL OpGetBinaryPreview(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color,
+                                          double sim, int *ret) {
+    return call_string(handle, [&](op::Op &op, std::wstring &out) {
+        long point_count = 0;
+        op.GetBinaryPreview(x1, y1, x2, y2, safe_text(color), sim, out, &point_count);
+        out_int(ret, point_count);
+    });
+}
+
+const wchar_t *OP_CALL OpGetWordPreview(op_handle handle, const wchar_t *dict_info, int *ret) {
+    return call_string(handle, [&](op::Op &op, std::wstring &out) {
+        long valid = 0;
+        op.GetWordPreview(safe_text(dict_info), out, &valid);
+        out_int(ret, valid);
+    });
+}
+
+const wchar_t *OP_CALL OpCheckWordDict(op_handle handle, const wchar_t *dict_info, int *ret) {
+    return call_string(handle, [&](op::Op &op, std::wstring &out) {
+        long valid_count = 0;
+        op.CheckWordDict(safe_text(dict_info), out, &valid_count);
+        out_int(ret, valid_count);
+    });
+}
+
+const wchar_t *OP_CALL OpNormalizeWordDict(op_handle handle, const wchar_t *dict_info, int *ret) {
+    return call_string(handle, [&](op::Op &op, std::wstring &out) {
+        long valid_count = 0;
+        op.NormalizeWordDict(safe_text(dict_info), out, &valid_count);
+        out_int(ret, valid_count);
+    });
+}
+
+const wchar_t *OP_CALL OpRenameWordDict(op_handle handle, const wchar_t *dict_info, const wchar_t *words, int *ret) {
+    return call_string(handle, [&](op::Op &op, std::wstring &out) {
+        long renamed_count = 0;
+        op.RenameWordDict(safe_text(dict_info), safe_text(words), out, &renamed_count);
+        out_int(ret, renamed_count);
     });
 }
 

@@ -31,11 +31,52 @@ color_t sim_to_point_color_diff(double sim) {
     color_diff.r = diff;
     return color_diff;
 }
+
+template <typename Fn> void for_each_dict_line(const wstring &dict_info, Fn fn) {
+    long item_index = 0;
+    size_t begin = 0;
+    while (begin <= dict_info.size()) {
+        size_t end = dict_info.find(L'\n', begin);
+        if (end == std::wstring::npos)
+            end = dict_info.size();
+
+        std::wstring item = dict_info.substr(begin, end - begin);
+        if (!item.empty() && item.back() == L'\r')
+            item.pop_back();
+
+        if (!item.empty())
+            fn(item_index++, item);
+
+        if (end == dict_info.size())
+            break;
+        begin = end + 1;
+    }
+}
+
+long clamp_preprocess_mode(long mode) {
+    if (mode < 0)
+        return 0;
+    if (mode > 3)
+        return 3;
+    return mode;
+}
+
+long clamp_long(long value, long low, long high) {
+    if (value < low)
+        return low;
+    if (value > high)
+        return high;
+    return value;
+}
 } // namespace
 
 ImageSearchService::ImageSearchService() {
     _curr_idx = 0;
     _enable_cache = 1;
+    _binary_preprocess_mode = 0;
+    _binary_isolated_threshold = 0;
+    _binary_min_component_area = 2;
+    _binary_bridge_gap = 1;
 }
 
 ImageSearchService::~ImageSearchService() {
@@ -52,7 +93,10 @@ long ImageSearchService::Capture(const std::wstring &file) {
 long ImageSearchService::CmpColor(long x, long y, const std::wstring &scolor, double sim) {
     std::vector<color_df_t> vcolor;
     str2colordfs(scolor, vcolor);
-    return ImageSearchAlgorithms::CmpColor(_src.at<color_t>(0, 0), vcolor, sim);
+    color_t color;
+    if (!ImageSearchAlgorithms::GetPixel(x, y, color))
+        return 0;
+    return ImageSearchAlgorithms::CmpColor(color, vcolor, sim);
 }
 
 long ImageSearchService::FindColor(const wstring &color, double sim, long dir, long &x, long &y) {
@@ -76,12 +120,12 @@ long ImageSearchService::FindMultiColor(const wstring &first_color, const wstrin
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    pt_cr_df_t tp;
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1));
+        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
         if (id2 != wstring::npos) {
+            pt_cr_df_t tp;
             swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
             if (id2 + 1 != it.length())
                 str2colordfs(it.substr(id2 + 1), tp.crdfs);
@@ -100,12 +144,12 @@ long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstr
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    pt_cr_df_t tp;
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1));
+        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
         if (id2 != wstring::npos) {
+            pt_cr_df_t tp;
             swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
             if (id2 + 1 != it.length())
                 str2colordfs(it.substr(id2 + 1), tp.crdfs);
@@ -167,14 +211,14 @@ long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &del
 
 long ImageSearchService::FindColorBlock(const wstring &color, double sim, long count, long height, long width, long &x,
                                long &y) {
-    str2binaryfbk(color);
-    return ImageSearchAlgorithms::FindColorBlock(sim, count, height, width, x, y);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindColorBlock(count, height, width, x, y);
 }
 
 long ImageSearchService::FindColorBlockEx(const wstring &color, double sim, long count, long height, long width,
                                  wstring &retstr) {
-    str2binaryfbk(color);
-    return ImageSearchAlgorithms::FindColorBlockEx(sim, count, height, width, retstr);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindColorBlockEx(count, height, width, retstr);
 }
 
 long ImageSearchService::GetColorNum(const wstring &color, double sim) {
@@ -258,8 +302,34 @@ long ImageSearchService::GetNowDict() {
     return _curr_idx;
 }
 
+long ImageSearchService::SetBinaryPreprocess(long mode, long isolated_threshold, long min_component_area,
+                                             long bridge_gap) {
+    _binary_preprocess_mode = clamp_preprocess_mode(mode);
+    _binary_isolated_threshold = clamp_long(isolated_threshold, 0, 8);
+    _binary_min_component_area = min_component_area <= 0 ? 2 : clamp_long(min_component_area, 1, 4096);
+    _binary_bridge_gap = bridge_gap > 0 ? 1 : 0;
+    return 1;
+}
+
+long ImageSearchService::GetBinaryPreprocess(long &mode, long &isolated_threshold, long &min_component_area,
+                                             long &bridge_gap) const {
+    mode = _binary_preprocess_mode;
+    isolated_threshold = _binary_isolated_threshold;
+    min_component_area = _binary_min_component_area;
+    bridge_gap = _binary_bridge_gap;
+    return 1;
+}
+
 wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, const wstring &word) {
-    str2binaryfbk(color);
+    return FetchWord(rc, color, 1.0, word);
+}
+
+wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, double sim, const wstring &word) {
+    str2pointbinaryfbk(color, sim);
+    return FetchWordFromBinary(rc, word);
+}
+
+wstring ImageSearchService::FetchWordFromBinary(rect_t rc, const wstring &word) {
     auto orc = rc;
     if (!bin_image_cut(2, rc, orc))
         return L"";
@@ -283,6 +353,223 @@ wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, const wst
     return wt.to_string();
 }
 
+long ImageSearchService::FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects,
+                                              std::wstring &out_str) {
+    out_str.clear();
+    if (rects.empty() || rects.size() != words.size())
+        return 0;
+
+    for (size_t i = 0; i < rects.size(); ++i) {
+        if (!rects[i].valid() || rects[i].x2 > _src.width || rects[i].y2 > _src.height) {
+            out_str.clear();
+            return 0;
+        }
+
+        const std::wstring word(1, words[i]);
+        const std::wstring entry = FetchWordFromBinary(rects[i], word);
+        if (entry.empty()) {
+            out_str.clear();
+            return 0;
+        }
+        out_str += entry;
+        out_str += L"\n";
+    }
+    if (!out_str.empty())
+        out_str.pop_back();
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::ExtractWordRects(const wstring &color, double sim, long min_word_h, std::vector<rect_t> &rects) {
+    rects.clear();
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_h), rects);
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::ExtractWordRectsEx(const wstring &color, double sim, long min_word_w, long min_word_h,
+                                            long padding, std::vector<rect_t> &rects) {
+    rects.clear();
+    if (min_word_w <= 0)
+        min_word_w = 1;
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    if (padding < 0)
+        padding = 0;
+
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_w), static_cast<int>(min_word_h), static_cast<int>(padding), rects);
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::FetchWords(const wstring &color, double sim, const wstring &words, long min_word_h,
+                                    std::wstring &out_str) {
+    out_str.clear();
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    str2pointbinaryfbk(color, sim);
+    std::vector<rect_t> rects;
+    get_rois(static_cast<int>(min_word_h), rects);
+    const long rect_count = static_cast<long>(rects.size());
+    if (rect_count == 0 || rects.size() != words.size())
+        return 0;
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::FetchWordsEx(const wstring &color, double sim, const wstring &words, long min_word_w,
+                                      long min_word_h, long padding, std::wstring &out_str) {
+    out_str.clear();
+    if (min_word_w <= 0)
+        min_word_w = 1;
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    if (padding < 0)
+        padding = 0;
+
+    std::vector<rect_t> rects;
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_w), static_cast<int>(min_word_h), static_cast<int>(padding), rects);
+    const long rect_count = static_cast<long>(rects.size());
+    if (rect_count == 0)
+        return 0;
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::FetchWordsByRects(const wstring &color, double sim, const wstring &words,
+                                           const std::vector<rect_t> &rects, std::wstring &out_str) {
+    out_str.clear();
+    if (rects.empty() || rects.size() != words.size())
+        return 0;
+    str2pointbinaryfbk(color, sim);
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::GetBinaryPreview(const wstring &color, double sim, std::wstring &out_str) {
+    out_str.clear();
+    str2pointbinaryfbk(color, sim);
+    if (_binary.empty())
+        return 0;
+
+    long point_count = 0;
+    out_str += std::to_wstring(_binary.width);
+    out_str += L",";
+    out_str += std::to_wstring(_binary.height);
+    out_str += L"\n";
+    for (int y = 0; y < _binary.height; ++y) {
+        for (int x = 0; x < _binary.width; ++x) {
+            if (_binary.at(y, x) == WORD_COLOR) {
+                out_str += L"#";
+                ++point_count;
+            } else {
+                out_str += L".";
+            }
+        }
+        if (y + 1 < _binary.height)
+            out_str += L"\n";
+    }
+    return point_count;
+}
+
+long ImageSearchService::GetWordPreview(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+    word1_t word;
+    if (!dict_entry_importer::parse_text_dict_entry(dict_info, word))
+        return 0;
+
+    out_str += word.info.name;
+    out_str += L",";
+    out_str += std::to_wstring(word.info.w);
+    out_str += L",";
+    out_str += std::to_wstring(word.info.h);
+    out_str += L",";
+    out_str += std::to_wstring(word.info.bit_cnt);
+    out_str += L"\n";
+
+    for (int y = 0; y < word.info.h; ++y) {
+        for (int x = 0; x < word.info.w; ++x) {
+            const int idx = x * word.info.h + y;
+            out_str += GET_BIT(word.data[idx / 8], idx & 7) ? L"#" : L".";
+        }
+        if (y + 1 < word.info.h)
+            out_str += L"\n";
+    }
+    return 1;
+}
+
+long ImageSearchService::CheckWordDict(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+
+    long valid_count = 0;
+    for_each_dict_line(dict_info, [&](long item_index, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word)) {
+            const int area = word.info.w * word.info.h;
+            const int density = area > 0 ? static_cast<int>((word.info.bit_cnt * 100 + area / 2) / area) : 0;
+            out_str += std::to_wstring(item_index);
+            out_str += L",1,";
+            out_str += word.info.name;
+            out_str += L",";
+            out_str += std::to_wstring(word.info.w);
+            out_str += L",";
+            out_str += std::to_wstring(word.info.h);
+            out_str += L",";
+            out_str += std::to_wstring(word.info.bit_cnt);
+            out_str += L",";
+            out_str += std::to_wstring(density);
+            ++valid_count;
+        } else {
+            out_str += std::to_wstring(item_index);
+            out_str += L",0,invalid";
+        }
+        out_str += L"|";
+    });
+
+    if (!out_str.empty())
+        out_str.pop_back();
+    return valid_count;
+}
+
+long ImageSearchService::NormalizeWordDict(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+
+    long valid_count = 0;
+    for_each_dict_line(dict_info, [&](long, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word)) {
+            if (!out_str.empty())
+                out_str += L"\n";
+            out_str += word.to_string();
+            ++valid_count;
+        }
+    });
+
+    return valid_count;
+}
+
+long ImageSearchService::RenameWordDict(const wstring &dict_info, const wstring &words, std::wstring &out_str) {
+    out_str.clear();
+
+    std::vector<word1_t> entries;
+    for_each_dict_line(dict_info, [&](long, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word))
+            entries.push_back(word);
+    });
+
+    if (entries.empty() || entries.size() != words.size())
+        return 0;
+
+    for (size_t i = 0; i < entries.size(); ++i) {
+        entries[i].set_chars(std::wstring(1, words[i]));
+        if (!out_str.empty())
+            out_str += L"\n";
+        out_str += entries[i].to_string();
+    }
+
+    return static_cast<long>(entries.size());
+}
+
 long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out_str) {
     out_str.clear();
     if (sim < 0. || sim > 1.)
@@ -297,7 +584,7 @@ long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out
             }
         }
     } else {
-        str2binaryfbk(color, sim);
+        str2pointbinaryfbk(color, sim);
         s = ImageSearchAlgorithms::Ocr(_dicts[_curr_idx], sim, out_str);
     }
 
@@ -447,6 +734,114 @@ void ImageSearchService::str2binaryfbk(const wstring &color, double sim) {
     }
 }
 
+void ImageSearchService::str2pointbinaryfbk(const wstring &color) {
+    str2binaryfbk(color);
+    ApplyBinaryPreprocess();
+}
+
+void ImageSearchService::str2pointbinaryfbk(const wstring &color, double sim) {
+    str2binaryfbk(color, sim);
+    ApplyBinaryPreprocess();
+}
+
+void ImageSearchService::ApplyBinaryPreprocess() {
+    if (_binary_preprocess_mode <= 0 || _binary.empty())
+        return;
+
+    auto count_neighbors = [](const ImageBin &image, int x, int y) {
+        int count = 0;
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                if (dx == 0 && dy == 0)
+                    continue;
+                const int nx = x + dx;
+                const int ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= image.width || ny >= image.height)
+                    continue;
+                if (image.at(ny, nx) == WORD_COLOR)
+                    ++count;
+            }
+        }
+        return count;
+    };
+
+    if (_binary_preprocess_mode >= 1) {
+        ImageBin source = _binary;
+        for (int y = 0; y < source.height; ++y) {
+            for (int x = 0; x < source.width; ++x) {
+                if (source.at(y, x) == WORD_COLOR &&
+                    count_neighbors(source, x, y) <= _binary_isolated_threshold) {
+                    _binary.at(y, x) = WORD_BKCOLOR;
+                }
+            }
+        }
+    }
+
+    if (_binary_preprocess_mode >= 2 && _binary_min_component_area > 1) {
+        ImageBin visited;
+        visited.create(_binary.width, _binary.height);
+        std::fill(visited.begin(), visited.end(), 0);
+
+        std::vector<point_t> stack;
+        std::vector<point_t> component;
+        for (int y = 0; y < _binary.height; ++y) {
+            for (int x = 0; x < _binary.width; ++x) {
+                if (_binary.at(y, x) != WORD_COLOR || visited.at(y, x))
+                    continue;
+
+                stack.clear();
+                component.clear();
+                stack.push_back(point_t(x, y));
+                visited.at(y, x) = 1;
+
+                while (!stack.empty()) {
+                    const point_t p = stack.back();
+                    stack.pop_back();
+                    component.push_back(p);
+
+                    for (int dy = -1; dy <= 1; ++dy) {
+                        for (int dx = -1; dx <= 1; ++dx) {
+                            if (dx == 0 && dy == 0)
+                                continue;
+                            const int nx = p.x + dx;
+                            const int ny = p.y + dy;
+                            if (nx < 0 || ny < 0 || nx >= _binary.width || ny >= _binary.height)
+                                continue;
+                            if (visited.at(ny, nx) || _binary.at(ny, nx) != WORD_COLOR)
+                                continue;
+
+                            visited.at(ny, nx) = 1;
+                            stack.push_back(point_t(nx, ny));
+                        }
+                    }
+                }
+
+                if (static_cast<long>(component.size()) < _binary_min_component_area) {
+                    for (const auto &p : component)
+                        _binary.at(p.y, p.x) = WORD_BKCOLOR;
+                }
+            }
+        }
+    }
+
+    if (_binary_preprocess_mode >= 3 && _binary_bridge_gap > 0) {
+        ImageBin source = _binary;
+        for (int y = 0; y < source.height; ++y) {
+            for (int x = 0; x < source.width; ++x) {
+                if (source.at(y, x) == WORD_COLOR)
+                    continue;
+
+                const bool bridge_x = x > 0 && x + 1 < source.width && source.at(y, x - 1) == WORD_COLOR &&
+                                      source.at(y, x + 1) == WORD_COLOR;
+                const bool bridge_y = y > 0 && y + 1 < source.height && source.at(y - 1, x) == WORD_COLOR &&
+                                      source.at(y + 1, x) == WORD_COLOR;
+                if (bridge_x || bridge_y)
+                    _binary.at(y, x) = WORD_COLOR;
+            }
+        }
+    }
+}
+
 void ImageSearchService::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr) {
     // std::vector<wstring>vstr, vstr2;
     Image *pm;
@@ -498,7 +893,7 @@ long ImageSearchService::OcrEx(const wstring &color, double sim, std::wstring &r
             retstr.pop_back();
         return find_ct;
     } else {
-        str2binaryfbk(color, sim);
+        str2pointbinaryfbk(color, sim);
         return ImageSearchAlgorithms::OcrEx(_dicts[_curr_idx], sim, retstr);
     }
 }
@@ -518,10 +913,10 @@ long ImageSearchService::FindStr(const wstring &str, const wstring &color, doubl
             }
         }
     } else {
-        str2binaryfbk(color, sim);
+        str2pointbinaryfbk(color, sim);
         ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
     }
-    return ImageSearchAlgorithms::FindStr(ocr_res, vstr, sim, retx, rety);
+    return ImageSearchAlgorithms::FindStr(ocr_res, vstr, retx, rety);
 }
 
 long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, double sim, std::wstring &out_str) {
@@ -540,10 +935,10 @@ long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, dou
             }
         }
     } else {
-        str2binaryfbk(color, sim);
+        str2pointbinaryfbk(color, sim);
         ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
     }
-    return ImageSearchAlgorithms::FindStrEx(ocr_res, vstr, sim, out_str);
+    return ImageSearchAlgorithms::FindStrEx(ocr_res, vstr, out_str);
 }
 
 long ImageSearchService::OcrAuto(double sim, std::wstring &retstr) {
@@ -577,10 +972,10 @@ long ImageSearchService::OcrAutoFromFile(const wstring &files, double sim, std::
 
 long ImageSearchService::FindLine(const wstring &color, double sim, wstring &retStr) {
     retStr.clear();
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
-    return ImageSearchAlgorithms::FindLine(sim, retStr);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindLine(retStr);
 }
 
 } // namespace op::image

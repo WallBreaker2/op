@@ -39,17 +39,17 @@ struct color_t {
         int r = 0, g = 0, b = 0;
         std::wstring ss = s;
         std::transform(ss.begin(), ss.end(), ss.begin(), ::towupper);
-        int cnt = swscanf(ss.c_str(), L"%02X%02X%02X", &r, &g, &b);
+        swscanf(ss.c_str(), L"%02X%02X%02X", &r, &g, &b);
         this->b = b;
         this->r = r;
         this->g = g;
         return *this;
     }
     color_t &str2color(const std::string &s) {
-        int r, g, b;
+        int r = 0, g = 0, b = 0;
         std::string ss = s;
         std::transform(ss.begin(), ss.end(), ss.begin(), ::toupper);
-        int cnt = sscanf(ss.c_str(), "%02X%02X%02X", &r, &g, &b);
+        sscanf(ss.c_str(), "%02X%02X%02X", &r, &g, &b);
         this->b = b;
         this->r = r;
         this->g = g;

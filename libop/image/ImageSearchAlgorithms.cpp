@@ -5,11 +5,11 @@
 #include <time.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <numeric>
 
 #include "../runtime/RuntimeUtils.h"
-#include "ImageView.h"
 
 using std::to_wstring;
 
@@ -36,6 +36,39 @@ bool has_color_diff(const color_t &df) {
 bool color_matches(const color_t &color, const color_df_t &expected, double sim) {
     const color_t df = has_color_diff(expected.df) ? expected.df : sim_to_color_diff(sim);
     return IN_RANGE(color, expected.color, df);
+}
+
+void apply_implicit_color_diff(std::vector<color_df_t> &colors, double sim) {
+    const color_t implicit_df = sim_to_color_diff(sim);
+    for (auto &it : colors) {
+        if (!has_color_diff(it.df))
+            it.df = implicit_df;
+    }
+}
+
+std::vector<color_df_t> prepared_color_dfs(const std::vector<color_df_t> &colors, double sim) {
+    std::vector<color_df_t> prepared = colors;
+    apply_implicit_color_diff(prepared, sim);
+    return prepared;
+}
+
+std::vector<pt_cr_df_t> prepared_point_color_dfs(const std::vector<pt_cr_df_t> &points, double sim) {
+    std::vector<pt_cr_df_t> prepared = points;
+    for (auto &it : prepared)
+        apply_implicit_color_diff(it.crdfs, sim);
+    return prepared;
+}
+
+bool color_matches_prepared(const color_t &color, const color_df_t &expected) {
+    return IN_RANGE(color, expected.color, expected.df);
+}
+
+bool any_color_matches_prepared(const color_t &color, const std::vector<color_df_t> &colors) {
+    for (const auto &it : colors) {
+        if (color_matches_prepared(color, it))
+            return true;
+    }
+    return false;
 }
 
 struct ocr_text_span_t {
@@ -71,9 +104,21 @@ const ocr_text_span_t *find_ocr_text_span(const std::vector<ocr_text_span_t> &sp
     return nullptr;
 }
 
+size_t default_thread_count() {
+    const size_t count = std::thread::hardware_concurrency();
+    return count == 0 ? 1 : count;
+}
+
+size_t scan_block_count(const rect_t &range, bool split_by_y, size_t thread_count) {
+    const int span = split_by_y ? range.height() : range.width();
+    if (span <= 1 || thread_count <= 1)
+        return 1;
+    return thread_count < static_cast<size_t>(span) ? thread_count : static_cast<size_t>(span);
+}
+
 } // namespace
 
-// 检查是否为透明图，返回透明像素个数, 四角颜色相同且透明颜色数量在50%-99%范围内
+// 这里的透明图沿用旧规则：四角同色时，把角点色当背景，只匹配剩下的前景点。
 int check_transparent(Image *img) {
     if (img->width < 2 || img->height < 2)
         return 0;
@@ -91,8 +136,11 @@ int check_transparent(Image *img) {
     return total * 0.5 <= ct && ct < total ? ct : 0;
 }
 
-void get_match_points(const Image &img, vector<uint> &points) {
+void get_match_points(const Image &img, vector<uint> &points, int transparent_count) {
     points.clear();
+    const int foreground_count = img.width * img.height - transparent_count;
+    if (foreground_count > 0)
+        points.reserve(static_cast<size_t>(foreground_count));
     uint cbk = *img.begin();
     for (int i = 0; i < img.height; ++i) {
         for (int j = 0; j < img.width; ++j)
@@ -119,84 +167,108 @@ void gen_next(const Image &img, vector<int> &next) {
     }
 }
 
+template <typename VisitFn>
+static void flood_connectivity(const ImageBin &bin, ImageBin &visited, int start_x, int start_y, VisitFn visit) {
+    // 用栈做连通域遍历，避免大图上递归太深。
+    vpoint_t stack;
+    stack.push_back(point_t(start_x, start_y));
+    visited.at(start_y, start_x) = 1;
+
+    while (!stack.empty()) {
+        const point_t p = stack.back();
+        stack.pop_back();
+        visit(p.x, p.y);
+
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                if (dx == 0 && dy == 0)
+                    continue;
+
+                const int nx = p.x + dx;
+                const int ny = p.y + dy;
+                if (nx < 0 || ny < 0 || nx >= bin.width || ny >= bin.height)
+                    continue;
+                if (visited.at(ny, nx) || bin.at(ny, nx) == 0)
+                    continue;
+
+                visited.at(ny, nx) = 1;
+                stack.push_back(point_t(nx, ny));
+            }
+        }
+    }
+}
+
 void Connectivity(const ImageBin &bin, ImageBin &rec) {
+    rec.create(bin.width, bin.height);
+    std::fill(rec.begin(), rec.end(), 0);
+    if (bin.empty())
+        return;
+
+    ImageBin visited;
+    visited.create(bin.width, bin.height);
+    std::fill(visited.begin(), visited.end(), 0);
+
+    int label = 1;
+    for (int y = 0; y < bin.height; ++y) {
+        for (int x = 0; x < bin.width; ++x) {
+            if (bin.at(y, x) == 0 || visited.at(y, x))
+                continue;
+
+            const uchar current_label = static_cast<uchar>(label < 255 ? label : 255);
+            flood_connectivity(bin, visited, x, y, [&](int px, int py) {
+                rec.at(py, px) = current_label;
+            });
+            if (label < 255)
+                ++label;
+        }
+    }
 }
 
 void extractConnectivity(const ImageBin &src, int threshold, std::vector<ImageBin> &out) {
+    out.clear();
+    if (src.empty())
+        return;
+
+    // 先按阈值转成二值图，输出仍保持 0/0xff，方便后续继续按二值图处理。
     ImageBin bin = src;
-    for (auto &it : bin) {
+    for (auto &it : bin)
         it = it > threshold ? 0xffu : 0;
-    }
-    ImageBin rec;
-    rec.create(bin.width, bin.height);
-    for (auto &it : rec) {
-        it = 0;
+
+    ImageBin visited;
+    visited.create(bin.width, bin.height);
+    std::fill(visited.begin(), visited.end(), 0);
+
+    vpoint_t component;
+    for (int y = 0; y < bin.height; ++y) {
+        for (int x = 0; x < bin.width; ++x) {
+            if (bin.at(y, x) == 0 || visited.at(y, x))
+                continue;
+
+            component.clear();
+            rect_t bounds(x, y, x + 1, y + 1);
+            flood_connectivity(bin, visited, x, y, [&](int px, int py) {
+                component.push_back(point_t(px, py));
+                if (px < bounds.x1)
+                    bounds.x1 = px;
+                if (py < bounds.y1)
+                    bounds.y1 = py;
+                if (px + 1 > bounds.x2)
+                    bounds.x2 = px + 1;
+                if (py + 1 > bounds.y2)
+                    bounds.y2 = py + 1;
+            });
+
+            ImageBin item;
+            item.create(bounds.width(), bounds.height());
+            std::fill(item.begin(), item.end(), 0);
+            for (const auto &p : component)
+                item.at(p.y - bounds.y1, p.x - bounds.x1) = 0xffu;
+            out.push_back(item);
+        }
     }
 }
-struct MatchContext {
-    ImageView view;
-    Image *pic;
-    ImageBin *gray;
-    color_t dfcolor;
-    int tnorm;
-    vector<uint> &points;
-    int use_ts_match;
-};
 
-enum PicMatchType {
-    PicMatchRGB = 0,
-    PicMatchGray = 1,
-    PicMatchTrans = 2
-};
-
-// template <int picMatchType>
-// point_t PicViewMatch(MatchContext context, double sim, bool *stop) {
-//   return point_t();
-// }
-// template <>
-// point_t PicViewMatch<PicMatchGray>(MatchContext context, double sim,
-//                                    bool *stop) {
-//   // 计算最大误差
-//   int max_err_ct =
-//       (context.pic->height * context.pic->width - context.use_ts_match) *
-//       (1.0 - sim);
-//   rect_t &block = context.view._block;
-//   for (int i = block.y1; i < block.y2; ++i) {
-//     for (int j = block.x1; j < block.x2; ++j) {
-//       if (*stop) return point_t(-1, -1);
-//       // 开始匹配
-//       // quick check
-//       if ((double)abs(context.tnorm -
-//                       region_sum(x, y, x + timg->width, y + timg->height)) /
-//               (double)context.tnorm >
-//           1.0 - sim)
-//         return 0;
-//       int err = 0;
-//       int maxErr = (1.0 - sim) * tnorm;
-//       for (int i = 0; i < context.gray->height; i++) {
-//         auto ptr = context.view._src.ptr(y + i) + x;
-//         auto ptr2 = timg->ptr(i);
-//         for (int j = 0; j < timg->width; j++) {
-//           err += abs(*ptr - *ptr2);
-//           ptr++;
-//           ptr2++;
-//         }
-//         if (err > maxErr) return 0;
-//       }
-
-//       return 1;
-//       // simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
-//       if (match_ret) {
-//         *stop = true;
-//         return point_t(j + _x1 + _dx, i + _y1 + _dy);
-//       }
-
-//     }  // end for j
-//   }    // end for i
-//   return point_t(-1, -1);
-//}
-
-ImageSearchAlgorithms::ImageSearchAlgorithms() : m_threadPool(std::thread::hardware_concurrency()) {
+ImageSearchAlgorithms::ImageSearchAlgorithms() : m_threadPool(default_thread_count()) {
     _x1 = _y1 = 0;
     _dx = _dy = 0;
 }
@@ -210,10 +282,12 @@ void ImageSearchAlgorithms::set_offset(int x1, int y1) {
 }
 
 long ImageSearchAlgorithms::GetPixel(long x, long y, color_t &cr) {
-    auto p = _src.ptr<color_t>(0);
-    // setlog("%d", _src.width);
-    // static_assert(sizeof(color_t) == 4);
-    cr = *p;
+    const int local_x = static_cast<int>(x) - _x1 - _dx;
+    const int local_y = static_cast<int>(y) - _y1 - _dy;
+    if (!is_valid(local_x, local_y))
+        return 0;
+
+    cr = _src.at<color_t>(local_y, local_x);
     return 1;
 }
 
@@ -350,10 +424,11 @@ static long sort_and_limit_point_desc(vpoint_desc_t &vpd, long dir, size_t max_c
 }
 
 long ImageSearchAlgorithms::FindColor(vector<color_df_t> &colors, double sim, int dir, long &x, long &y) {
+    const auto prepared_colors = prepared_color_dfs(colors, sim);
     rect_t range(0, 0, _src.width, _src.height);
-    for (auto &it : colors) { // 对每个颜色描述
+    for (const auto &it : prepared_colors) { // 对每个颜色描述
         if (for_each_scan_point(range, dir, [&](int j, int i) {
-                if (color_matches(_src.at<color_t>(i, j), it, sim)) {
+                if (color_matches_prepared(_src.at<color_t>(i, j), it)) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
                     return true;
@@ -370,12 +445,14 @@ long ImageSearchAlgorithms::FindColor(vector<color_df_t> &colors, double sim, in
 
 long ImageSearchAlgorithms::FindColorEx(vector<color_df_t> &colors, double sim, int dir, std::wstring &retstr) {
     retstr.clear();
+    retstr.reserve(static_cast<size_t>(_max_return_obj_ct + 1) * 16);
+    const auto prepared_colors = prepared_color_dfs(colors, sim);
     int find_ct = 0;
     rect_t range(0, 0, _src.width, _src.height);
 
     for_each_scan_point(range, dir, [&](int j, int i) {
-        for (auto &it : colors) { // 对每个颜色描述
-            if (color_matches(_src.at<color_t>(i, j), it, sim)) {
+        for (const auto &it : prepared_colors) { // 对每个颜色描述
+            if (color_matches_prepared(_src.at<color_t>(i, j), it)) {
                 retstr += std::to_wstring(j + _x1 + _dx) + L"," + std::to_wstring(i + _y1 + _dy);
                 retstr += L"|";
                 ++find_ct;
@@ -390,12 +467,13 @@ long ImageSearchAlgorithms::FindColorEx(vector<color_df_t> &colors, double sim, 
 }
 
 long ImageSearchAlgorithms::FindColorNum(vector<color_df_t> &colors, double sim) {
+    const auto prepared_colors = prepared_color_dfs(colors, sim);
     int find_ct = 0;
     for (int i = 0; i < _src.height; ++i) {
         auto p = _src.ptr<color_t>(i);
         for (int j = 0; j < _src.width; ++j) {
-            for (auto &it : colors) { // 对每个颜色描述
-                if (color_matches(*p, it, sim)) {
+            for (const auto &it : prepared_colors) { // 对每个颜色描述
+                if (color_matches_prepared(*p, it)) {
                     ++find_ct;
                     if (find_ct >= INT_MAX)
                         goto _quick_break;
@@ -411,22 +489,24 @@ _quick_break:
 
 long ImageSearchAlgorithms::FindMultiColor(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color, double sim,
                                long dir, long &x, long &y) {
+    const auto prepared_first_color = prepared_color_dfs(first_color, sim);
+    const auto prepared_offset_color = prepared_point_color_dfs(offset_color, sim);
     int max_err_ct = static_cast<int>(offset_color.size() * (1. - sim));
     rect_t range(0, 0, _src.width, _src.height);
     if (for_each_scan_point(range, dir, [&](int j, int i) {
             // step 1. find first color
-            for (auto &it : first_color) { // 对每个颜色描述
-                if (!color_matches(_src.at<color_t>(i, j), it, sim))
+            for (const auto &it : prepared_first_color) { // 对每个颜色描述
+                if (!color_matches_prepared(_src.at<color_t>(i, j), it))
                     continue;
 
                 // 匹配其他坐标
                 int err_ct = 0;
-                for (auto &off_cr : offset_color) {
+                for (const auto &off_cr : prepared_offset_color) {
                     int ptX = j + off_cr.x;
                     int ptY = i + off_cr.y;
                     if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
                         color_t currentColor = _src.at<color_t>(ptY, ptX);
-                        if (!CmpColor(currentColor, off_cr.crdfs, sim))
+                        if (!any_color_matches_prepared(currentColor, off_cr.crdfs))
                             ++err_ct;
                     } else {
                         ++err_ct;
@@ -451,24 +531,28 @@ long ImageSearchAlgorithms::FindMultiColor(std::vector<color_df_t> &first_color,
 
 long ImageSearchAlgorithms::FindMultiColorEx(std::vector<color_df_t> &first_color, std::vector<pt_cr_df_t> &offset_color,
                                  double sim, long dir, std::wstring &retstr) {
+    retstr.clear();
+    retstr.reserve(static_cast<size_t>(_max_return_obj_ct + 1) * 16);
+    const auto prepared_first_color = prepared_color_dfs(first_color, sim);
+    const auto prepared_offset_color = prepared_point_color_dfs(offset_color, sim);
     int max_err_ct = static_cast<int>(offset_color.size() * (1. - sim));
     int find_ct = 0;
     rect_t range(0, 0, _src.width, _src.height);
 
     for_each_scan_point(range, dir, [&](int j, int i) {
         // step 1. find first color
-        for (auto &it : first_color) { // 对每个颜色描述
-            if (!color_matches(_src.at<color_t>(i, j), it, sim))
+        for (const auto &it : prepared_first_color) { // 对每个颜色描述
+            if (!color_matches_prepared(_src.at<color_t>(i, j), it))
                 continue;
 
             // 匹配其他坐标
             int err_ct = 0;
-            for (auto &off_cr : offset_color) {
+            for (const auto &off_cr : prepared_offset_color) {
                 int ptX = j + off_cr.x;
                 int ptY = i + off_cr.y;
                 if (ptX >= 0 && ptX < _src.width && ptY >= 0 && ptY < _src.height) {
                     color_t currentColor = _src.at<color_t>(ptY, ptX);
-                    if (!CmpColor(currentColor, off_cr.crdfs, sim))
+                    if (!any_color_matches_prepared(currentColor, off_cr.crdfs))
                         ++err_ct;
                 } else {
                     ++err_ct;
@@ -503,7 +587,7 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
         auto pic = pics[pic_id];
         int use_ts_match = check_transparent(pic);
         if (use_ts_match)
-            get_match_points(*pic, points);
+            get_match_points(*pic, points, use_ts_match);
         else {
             gimg.fromImage4(*pic);
             tnorm = sum(gimg.begin(), gimg.end());
@@ -513,8 +597,8 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
         matchRect.shrinkRect(pic->width, pic->height);
         if (!matchRect.valid())
             continue;
+        const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
         if (for_each_scan_point(matchRect, dir, [&](int j, int i) {
-                int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
                 int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
                                               : real_match(j, i, &gimg, tnorm, sim));
                 if (match_ret) {
@@ -533,7 +617,6 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
 long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
     x = y = -1;
     vector<uint> points;
-    int match_ret = 0;
     ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
@@ -544,7 +627,7 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolo
         auto pic = pics[pic_id];
         int use_ts_match = check_transparent(pic);
         if (use_ts_match)
-            get_match_points(*pic, points);
+            get_match_points(*pic, points, use_ts_match);
         else {
             gimg.fromImage4(*pic);
             tnorm = sum(gimg.begin(), gimg.end());
@@ -554,14 +637,16 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolo
         matchRect.shrinkRect(pic->width, pic->height);
         if (!matchRect.valid())
             continue;
-        matchRect.divideBlock(static_cast<int>(m_threadPool.getThreadNum()), matchRect.width() > matchRect.height(), blocks);
+        const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
+        const bool split_by_y = matchRect.width() > matchRect.height();
+        const size_t block_count = scan_block_count(matchRect, split_by_y, m_threadPool.getThreadNum());
+        matchRect.divideBlock(static_cast<int>(block_count), split_by_y, blocks);
         std::vector<std::future<point_t>> results;
-        for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
+        results.reserve(blocks.size());
+        for (size_t i = 0; i < blocks.size(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, dir, &points, pgimg, tnorm, matchRect](rect_t block, Image *pic, int use_ts_match,
+                [this, dfcolor, dir, &points, pgimg, tnorm, matchRect, max_err_ct](rect_t block, Image *pic, int use_ts_match,
                                                                       double sim) {
-                    // 计算最大误差
-                    int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
                     point_t found(-1, -1);
                     for_each_scan_point(block, dir, matchRect, [&](int j, int i) {
                         int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
@@ -611,20 +696,19 @@ long ImageSearchAlgorithms::FindPicEx(std::vector<Image *> &pics, color_t dfcolo
         int use_ts_match = check_transparent(pic);
 
         if (use_ts_match)
-            get_match_points(*pic, points);
+            get_match_points(*pic, points, use_ts_match);
         else {
             gimg.fromImage4(*pic);
             tnorm = sum(gimg.begin(), gimg.end());
         }
-        for (int i = 0; i < _src.height; ++i) {
-            for (int j = 0; j < _src.width; ++j) {
-                // step 1. 边界检查
-                if (i + pic->height > _src.height || j + pic->width > _src.width)
-                    continue;
-                // step 2. 计算最大误差
-                int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
-                // step 3. 开始匹配
 
+        rect_t matchRect(0, 0, _src.width, _src.height);
+        matchRect.shrinkRect(pic->width, pic->height);
+        if (!matchRect.valid())
+            continue;
+        const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
+        for (int i = matchRect.y1; i < matchRect.y2; ++i) {
+            for (int j = matchRect.x1; j < matchRect.x2; ++j) {
                 match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
                                           : real_match(j, i, &gimg, tnorm, sim));
                 if (match_ret) {
@@ -654,7 +738,7 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfco
         auto pic = pics[pic_id];
         int use_ts_match = check_transparent(pic);
         if (use_ts_match)
-            get_match_points(*pic, points);
+            get_match_points(*pic, points, use_ts_match);
         else {
             gimg.fromImage4(*pic);
             tnorm = sum(gimg.begin(), gimg.end());
@@ -664,21 +748,21 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfco
         matchRect.shrinkRect(pic->width, pic->height);
         if (!matchRect.valid())
             continue;
-        matchRect.divideBlock(static_cast<int>(m_threadPool.getThreadNum()), matchRect.width() > matchRect.height(), blocks);
+        const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
+        const bool split_by_y = matchRect.width() > matchRect.height();
+        const size_t block_count = scan_block_count(matchRect, split_by_y, m_threadPool.getThreadNum());
+        matchRect.divideBlock(static_cast<int>(block_count), split_by_y, blocks);
         std::vector<std::future<vpoint_t>> results;
-        for (size_t i = 0; i < m_threadPool.getThreadNum(); ++i) {
+        results.reserve(blocks.size());
+        for (size_t i = 0; i < blocks.size(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, &points, pgimg, tnorm](rect_t &block, Image *pic, int use_ts_match,
+                [this, dfcolor, &points, pgimg, tnorm, max_err_ct](rect_t block, Image *pic, int use_ts_match,
                                                       double sim) -> vpoint_t {
                     vpoint_t vp;
-                    // 计算最大误差
-                    int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
                     for (int i = block.y1; i < block.y2; ++i) {
                         for (int j = block.x1; j < block.x2; ++j) {
-                            // 开始匹配
                             int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
                                                           : real_match(j, i, pgimg, tnorm, sim));
-                            // simple_match<false>(j, i, pic, dfcolor,tnorm, sim));
                             if (match_ret) {
                                 vp.push_back(point_t(j + _x1 + _dx, i + _y1 + _dy));
                             }
@@ -708,7 +792,7 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfco
     return sort_and_limit_point_desc(vpd, dir, _max_return_obj_ct, resultRange);
 }
 
-long ImageSearchAlgorithms::FindColorBlock(double sim, long count, long height, long width, long &x, long &y) {
+long ImageSearchAlgorithms::FindColorBlock(long count, long height, long width, long &x, long &y) {
     x = y = -1;
     record_sum(_binary);
     for (int i = 0; i <= _binary.height - height; ++i) {
@@ -723,7 +807,7 @@ long ImageSearchAlgorithms::FindColorBlock(double sim, long count, long height, 
     return 0;
 }
 
-long ImageSearchAlgorithms::FindColorBlockEx(double sim, long count, long height, long width, std::wstring &retstr) {
+long ImageSearchAlgorithms::FindColorBlockEx(long count, long height, long width, std::wstring &retstr) {
     record_sum(_binary);
     int cnt = 0;
     for (int i = 0; i <= _binary.height - height; ++i) {
@@ -775,10 +859,9 @@ long ImageSearchAlgorithms::OcrEx(Dictionary &dict, double sim, std::wstring &re
     return find_ct;
 }
 
-long ImageSearchAlgorithms::FindStr(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, double sim, long &retx,
+long ImageSearchAlgorithms::FindStr(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, long &retx,
                         long &rety) {
     retx = rety = -1;
-    (void)sim;
 
     std::vector<ocr_text_span_t> spans;
     const std::wstring str = build_ocr_text_spans(ps, spans);
@@ -803,7 +886,7 @@ long ImageSearchAlgorithms::FindStr(std::map<point_t, ocr_rec_t> &ps, const vect
     return -1;
 }
 
-long ImageSearchAlgorithms::FindStrEx(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, double sim,
+long ImageSearchAlgorithms::FindStrEx(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr,
                           std::wstring &retstr) {
     // 描述：查找屏幕指定位置的字符（或者字符串）位置，返回所有出现的坐标（注意与FindStr接口的区别）！！！
     //----------------------步骤-----------------
@@ -814,7 +897,6 @@ long ImageSearchAlgorithms::FindStrEx(std::map<point_t, ocr_rec_t> &ps, const ve
     //  step 5. 回到第3步
 
     retstr.clear();
-    (void)sim;
 
     std::vector<ocr_text_span_t> spans;
     const std::wstring str = build_ocr_text_spans(ps, spans);
@@ -852,17 +934,24 @@ _quick_return:
     return find_ct;
 }
 
-long ImageSearchAlgorithms::FindLine(double sim, std::wstring &outStr) {
+long ImageSearchAlgorithms::FindLine(std::wstring &outStr) {
     outStr.clear();
     int h = static_cast<int>(sqrt(_binary.width * _binary.width + _binary.height * _binary.height)) + 2;
     _sum.create(360, h);
     // 行：距离，列：角度
     _sum.fill(0);
+    std::array<double, 360> cos_table;
+    std::array<double, 360> sin_table;
+    for (int t = 0; t < 360; ++t) {
+        const double radians = t * 0.0174532925;
+        cos_table[t] = cos(radians);
+        sin_table[t] = sin(radians);
+    }
     for (int i = 0; i < _binary.height; i++) {
         for (int j = 0; j < _binary.width; j++) {
             if (_binary.at(i, j) == WORD_COLOR) {
                 for (int t = 0; t < 360; t++) {
-                    int d = static_cast<int>(j * cos(t * 0.0174532925) + i * sin(t * 0.0174532925)); // 可以优化
+                    int d = static_cast<int>(j * cos_table[t] + i * sin_table[t]);
                     assert(d <= h);
                     if (d >= 0)
                         _sum.at<int>(d, t)++;
@@ -886,53 +975,6 @@ long ImageSearchAlgorithms::FindLine(double sim, std::wstring &outStr) {
     return maxval;
 }
 
-template <bool nodfcolor>
-long ImageSearchAlgorithms::simple_match(long x, long y, Image *timg, color_t dfcolor, int tnorm, double sim) {
-    int err_ct = 0;
-    // quick check
-    if ((double)abs(tnorm - region_sum(x, y, x + timg->width, y + timg->height)) > (double)tnorm * (1.0 - sim))
-        return 0;
-    int max_error = (1.0 - sim) * timg->size();
-    uint *pscreen_top, *pscreen_bottom, *pimg_top, *pimg_bottom;
-    pscreen_top = _src.ptr<uint>(y) + x;
-    pscreen_bottom = _src.ptr<uint>(y + timg->height - 1) + x;
-    pimg_top = timg->ptr<uint>(0);
-    pimg_bottom = timg->ptr<uint>(timg->height - 1);
-    while (pscreen_top <= pscreen_bottom) {
-        auto ps1 = pscreen_top, ps2 = pscreen_top + timg->width - 1;
-        auto ps3 = pscreen_bottom, ps4 = pscreen_bottom + timg->width - 1;
-        auto pt1 = pimg_top, pt2 = pimg_top + timg->width - 1;
-        auto pt3 = pimg_bottom, pt4 = pimg_bottom + timg->width - 1;
-        while (ps1 <= ps2) {
-            if (nodfcolor) {
-                if (*ps1++ != *pt1++)
-                    ++err_ct; // top left
-                if (*ps2-- != *pt2--)
-                    ++err_ct; // top right
-                if (*ps3++ != *pt3++)
-                    ++err_ct; // bottom left
-                if (*ps4-- != *pt4--)
-                    ++err_ct; // bottom right
-            } else {
-                if (!IN_RANGE(*(color_t *)ps1++, *(color_t *)pt1++, dfcolor))
-                    ++err_ct;
-                if (!IN_RANGE(*(color_t *)ps2--, *(color_t *)pt2--, dfcolor))
-                    ++err_ct;
-                if (!IN_RANGE(*(color_t *)ps3++, *(color_t *)pt3++, dfcolor))
-                    ++err_ct;
-                if (!IN_RANGE(*(color_t *)ps4--, *(color_t *)pt4--, dfcolor))
-                    ++err_ct;
-            }
-
-            if (err_ct > max_error)
-                return 0;
-        }
-        pscreen_top += _src.width;
-        pscreen_bottom -= _src.width;
-    }
-
-    return 1;
-}
 template <bool nodfcolor>
 long ImageSearchAlgorithms::trans_match(long x, long y, Image *timg, color_t dfcolor, const vector<uint> &pts, int max_error) {
     int err_ct = 0;
@@ -971,7 +1013,7 @@ long ImageSearchAlgorithms::trans_match(long x, long y, Image *timg, color_t dfc
 
 long ImageSearchAlgorithms::real_match(long x, long y, ImageBin *timg, int tnorm, double sim) {
     // quick check
-    if ((double)abs(tnorm - region_sum(x, y, x + timg->width, y + timg->height)) / (double)tnorm > 1.0 - sim)
+    if ((double)abs(tnorm - region_sum(x, y, x + timg->width, y + timg->height)) > (double)tnorm * (1.0 - sim))
         return 0;
     int err = 0;
     int maxErr = static_cast<int>((1.0 - sim) * tnorm);
@@ -1038,7 +1080,7 @@ void ImageSearchAlgorithms::bgr2binary(vector<color_df_t> &colors) {
     if (_src.empty())
         return;
     int ncols = _src.width, nrows = _src.height;
-    _binary.fromImage4(_src);
+    _binary.create(_src.width, _src.height);
     for (int i = 0; i < nrows; ++i) {
         auto psrc = _src.ptr<color_t>(i);
 
@@ -1262,6 +1304,9 @@ bool ImageSearchAlgorithms::bin_image_cut(int min_word_h, const rect_t &inrc, re
 
 void ImageSearchAlgorithms::get_rois(int min_word_h, std::vector<rect_t> &vroi) {
     vroi.clear();
+    if (_binary.empty())
+        return;
+
     std::vector<rect_t> vrcx, vrcy;
     rect_t rc;
     rc.x1 = rc.y1 = 0;
@@ -1274,6 +1319,36 @@ void ImageSearchAlgorithms::get_rois(int min_word_h, std::vector<rect_t> &vroi) 
             if (vrcx[j].width() >= min_word_h && !bin_image_cut(min_word_h, vrcx[j], vrcx[j]))
                 continue;
             vroi.push_back(vrcx[j]);
+        }
+    }
+}
+
+void ImageSearchAlgorithms::get_rois(int min_word_w, int min_word_h, int padding, std::vector<rect_t> &vroi) {
+    vroi.clear();
+    if (_binary.empty())
+        return;
+
+    min_word_w = max(1, min_word_w);
+    min_word_h = max(1, min_word_h);
+    padding = max(0, padding);
+
+    std::vector<rect_t> vrcx, vrcy;
+    rect_t rc(0, 0, _binary.width, _binary.height);
+    binshadowy(rc, vrcy);
+    for (const auto &line_rc : vrcy) {
+        binshadowx(line_rc, vrcx);
+        for (auto word_rc : vrcx) {
+            rect_t cut_rc;
+            if (!bin_image_cut(min_word_h, word_rc, cut_rc))
+                continue;
+            if (cut_rc.width() < min_word_w || cut_rc.height() < min_word_h)
+                continue;
+
+            cut_rc.x1 = max(0, cut_rc.x1 - padding);
+            cut_rc.y1 = max(0, cut_rc.y1 - padding);
+            cut_rc.x2 = min(_binary.width, cut_rc.x2 + padding);
+            cut_rc.y2 = min(_binary.height, cut_rc.y2 + padding);
+            vroi.push_back(cut_rc);
         }
     }
 }
