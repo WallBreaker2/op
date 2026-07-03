@@ -253,6 +253,27 @@ TEST(ImageColorTest, FindColorUsesSimilarity) {
     EXPECT_EQ(y, 8);
 }
 
+TEST(ImageColorTest, FindColorReturnsFirstPointBeforeColorPriority) {
+    op::Op op;
+    long ret = 0;
+    const int width = 8;
+    const int height = 8;
+    auto pixels = MakePixels(width, height);
+
+    PaintPixel(pixels, width, 1, 1, 0x30, 0x20, 0x10);
+    PaintPixel(pixels, width, 6, 6, 0x03, 0x02, 0x01);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    op.FindColor(0, 0, width, height, L"010203|102030", 1.0, 0, &x, &y, &ret);
+
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+}
+
 TEST(ImageColorTest, FindColorHonorsAllDirections) {
     op::Op op;
     long ret = 0;
@@ -443,6 +464,87 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
         op.FindPicExS(0, 0, width, height, L"findpic_dir_marker", L"000000", 1.0, dir, results);
         EXPECT_EQ(results, named_results(expected[dir])) << "dir=" << dir;
     }
+}
+
+TEST(ImageColorTest, SharedPicCacheIsGlobalAcrossObjects) {
+    op::Op loader;
+    op::Op matcher;
+    long ret = 0;
+    const int width = 12;
+    const int height = 10;
+    vector<uchar> pixels(static_cast<size_t>(width) * height * 4, 0xff);
+
+    PaintPixel(pixels, width, 5, 4, 0x21, 0x43, 0x65);
+    PaintPixel(pixels, width, 6, 4, 0x32, 0x54, 0x76);
+    PaintPixel(pixels, width, 5, 5, 0x43, 0x65, 0x87);
+    PaintPixel(pixels, width, 6, 5, 0x54, 0x76, 0x98);
+
+    auto screen_bmp = BuildBmp32TopDown(width, height, pixels);
+    wstring mode = L"mem:" + PtrToWString(screen_bmp.data());
+    matcher.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    vector<uchar> tpl(static_cast<size_t>(2) * 2 * 4, 0xff);
+    PaintPixel(tpl, 2, 0, 0, 0x21, 0x43, 0x65);
+    PaintPixel(tpl, 2, 1, 0, 0x32, 0x54, 0x76);
+    PaintPixel(tpl, 2, 0, 1, 0x43, 0x65, 0x87);
+    PaintPixel(tpl, 2, 1, 1, 0x54, 0x76, 0x98);
+    auto tpl_bmp = BuildBmp32TopDown(2, 2, tpl);
+
+    const std::wstring mem_name = L"shared_pic_cache_mem_template";
+    loader.LoadMemPic(mem_name.c_str(), tpl_bmp.data(), static_cast<long>(tpl_bmp.size()), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    matcher.FindPic(0, 0, width, height, mem_name.c_str(), L"000000", 1.0, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 5);
+    EXPECT_EQ(y, 4);
+
+    auto replaced_tpl = tpl;
+    PaintPixel(replaced_tpl, 2, 0, 0, 0xff, 0x00, 0x00);
+    auto replaced_tpl_bmp = BuildBmp32TopDown(2, 2, replaced_tpl);
+    loader.LoadMemPic(mem_name.c_str(), replaced_tpl_bmp.data(), static_cast<long>(replaced_tpl_bmp.size()), &ret);
+    ASSERT_EQ(ret, 1);
+
+    x = -1;
+    y = -1;
+    matcher.FindPic(0, 0, width, height, mem_name.c_str(), L"000000", 1.0, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    const std::wstring file_path = test_support::GetTempBmpPath(L"op_shared_loadpic_template.bmp");
+    {
+        std::ofstream out(std::filesystem::path(file_path), std::ios::binary);
+        ASSERT_TRUE(out);
+        out.write(reinterpret_cast<const char *>(tpl_bmp.data()), static_cast<std::streamsize>(tpl_bmp.size()));
+        ASSERT_TRUE(out);
+    }
+
+    loader.LoadPic(file_path.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long pic_w = 0;
+    long pic_h = 0;
+    matcher.GetPicSize(file_path.c_str(), &pic_w, &pic_h, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(pic_w, 2);
+    EXPECT_EQ(pic_h, 2);
+
+    x = -1;
+    y = -1;
+    matcher.FindPic(0, 0, width, height, file_path.c_str(), L"000000", 1.0, 0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 5);
+    EXPECT_EQ(y, 4);
+
+    matcher.FreePic(mem_name.c_str(), &ret);
+    EXPECT_EQ(ret, 1);
+    matcher.FreePic(file_path.c_str(), &ret);
+    EXPECT_EQ(ret, 1);
+    std::filesystem::remove(std::filesystem::path(file_path));
 }
 
 TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
@@ -852,6 +954,24 @@ TEST(ImageColorTest, BinaryPreprocessDoesNotChangeColorBlockSearch) {
     EXPECT_EQ(ret, 1);
     EXPECT_EQ(x, 5);
     EXPECT_EQ(y, 0);
+}
+
+TEST(ImageColorTest, FindColorBlockExClearsResultAndRejectsInvalidSize) {
+    op::Op op;
+    long ret = 0;
+    const int width = 6;
+    const int height = 4;
+    auto pixels = MakePixels(width, height);
+    PaintPixel(pixels, width, 2, 1, 0x00, 0x00, 0x00);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring results = L"old";
+    op.FindColorBlockEx(0, 0, width, height, L"000000", 1.0, 1, 1, 1, results);
+    EXPECT_EQ(results, L"2,1");
+
+    op.FindColorBlockEx(0, 0, width, height, L"000000", 1.0, 1, 0, 1, results);
+    EXPECT_TRUE(results.empty());
 }
 
 TEST(ImageColorTest, GetWordPreviewValidatesAndShowsPointEntry) {

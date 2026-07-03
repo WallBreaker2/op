@@ -5,7 +5,12 @@
 #include <algorithm>
 #include <bitset>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <sstream>
 
 namespace op::image {
@@ -13,6 +18,11 @@ namespace op::image {
 using op::ocr::HttpOcrService;
 
 namespace {
+// 普通找图模板缓存。放在进程级别，多个 Op 实例共享同一份已解码图片。
+// 匹配时会复制 shared_ptr 快照；FreePic 只移除缓存入口，不会提前释放正在匹配的图片。
+std::map<wstring, std::shared_ptr<Image>> g_pic_cache;
+std::shared_mutex g_pic_cache_mutex;
+
 template <typename Target, typename Value> bool set_out(Target *target, Value value) {
     if (!target)
         return false;
@@ -68,6 +78,43 @@ long clamp_long(long value, long low, long high) {
         return high;
     return value;
 }
+
+std::shared_ptr<Image> find_cached_pic(const wstring &key) {
+    std::shared_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    auto it = g_pic_cache.find(key);
+    return it == g_pic_cache.end() ? nullptr : it->second;
+}
+
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image) {
+    if (key.empty() || !image || image->empty())
+        return false;
+
+    std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    g_pic_cache[key] = std::move(image);
+    return true;
+}
+
+bool erase_cached_pic(const wstring &key) {
+    std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    return g_pic_cache.erase(key) > 0;
+}
+
+std::shared_ptr<Image> read_pic_file(const wstring &path) {
+    auto image = std::make_shared<Image>();
+    if (!image->read(path.data()) || image->empty())
+        return nullptr;
+    return image;
+}
+
+std::shared_ptr<Image> read_mem_pic(void *data, long size) {
+    if (!data || size <= 0)
+        return nullptr;
+
+    auto image = std::make_shared<Image>();
+    if (!image->read(data, size) || image->empty())
+        return nullptr;
+    return image;
+}
 } // namespace
 
 ImageSearchService::ImageSearchService() {
@@ -83,11 +130,11 @@ ImageSearchService::~ImageSearchService() {
 }
 
 long ImageSearchService::Capture(const std::wstring &file) {
-    wstring fpath = file;
-    if (fpath.find(L'\\') == -1)
-        fpath = _curr_path + L"\\" + fpath;
+    std::filesystem::path fpath(file);
+    if (!fpath.is_absolute())
+        fpath = std::filesystem::path(_curr_path) / fpath;
 
-    return _src.write(fpath.data());
+    return _src.write(fpath.c_str());
 }
 
 long ImageSearchService::CmpColor(long x, long y, const std::wstring &scolor, double sim) {
@@ -164,29 +211,26 @@ long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstr
 long ImageSearchService::FindPic(const std::wstring &files, const wstring &delta_colors, double sim, long dir, long &x,
                         long &y) {
     vector<Image *> vpic;
-    // vector<color_t> vcolor;
+    // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
+    vector<std::shared_ptr<Image>> holders;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name);
+    files2mats(files, vpic, vpic_name, holders);
     dfcolor.str2color(delta_colors);
-    // str2colors(delta_colors, vcolor);
     sim = 0.5 + sim / 2;
-    // long ret = ImageSearchAlgorithms::FindPic(vpic, dfcolor, sim, x, y);
     long ret = ImageSearchAlgorithms::FindPicTh(vpic, dfcolor, sim, dir, x, y);
-    // 清理缓存
-    if (!_enable_cache)
-        _pic_cache.clear();
     return ret;
 }
 //
 long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &delta_colors, double sim, long dir, wstring &retstr,
                           bool returnID) {
     vector<Image *> vpic;
+    // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
+    vector<std::shared_ptr<Image>> holders;
     vpoint_desc_t vpd;
-    // vector<color_t> vcolor;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name);
+    files2mats(files, vpic, vpic_name, holders);
     dfcolor.str2color(delta_colors);
     sim = 0.5 + sim / 2;
     long ret = ImageSearchAlgorithms::FindPicExTh(vpic, dfcolor, sim, dir, vpd);
@@ -200,9 +244,6 @@ long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &del
             ss << vpic_name[it.id] << L"," << it.pos << L"|";
         }
     }
-    // 清理缓存
-    if (!_enable_cache)
-        _pic_cache.clear();
     retstr = ss.str();
     if (vpd.size())
         retstr.pop_back();
@@ -642,20 +683,20 @@ void ImageSearchService::str2colors(const wstring &color, std::vector<color_t> &
 }
 
 long ImageSearchService::LoadPic(const wstring &files) {
-    // std::vector<wstring>vstr, vstr2;
     std::vector<wstring> vstr;
     int loaded = 0;
     split(files, vstr, L"|");
     wstring tp;
     for (auto &it : vstr) {
-        // 路径转化
+        // 显式加载会按当前文件内容刷新全局缓存，EnablePicCache 只影响 FindPic 的自动缓存。
         if (!Path2GlobalPath(it, _curr_path, tp))
             continue;
-        // 先在缓存中查找
-        if (!_pic_cache.count(tp)) {
-            _pic_cache[tp].read(tp.data());
-        }
-        // 已存在于缓存中的文件也算加载成功
+
+        auto image = read_pic_file(tp);
+        if (!image)
+            continue;
+
+        store_cached_pic(tp, std::move(image));
         loaded++;
     }
     return loaded;
@@ -667,16 +708,14 @@ long ImageSearchService::FreePic(const wstring &files) {
     split(files, vstr, L"|");
     wstring tp;
     for (auto &it : vstr) {
-        // 看当前目录
-        auto cache_it = _pic_cache.find(it);
-        // 没查到再看一下资源目录
-        if (cache_it == _pic_cache.end()) {
-            cache_it = _pic_cache.find(_curr_path + L"\\" + it);
+        // 先按内存图片名或完整 key 删除。
+        if (erase_cached_pic(it)) {
+            loaded++;
+            continue;
         }
-        // 查到了就释放
-        if (cache_it != _pic_cache.end()) {
-            cache_it->second.release();
-            _pic_cache.erase(cache_it);
+
+        // 没查到再按资源目录解析后的文件路径删除。
+        if (Path2GlobalPath(it, _curr_path, tp) && tp != it && erase_cached_pic(tp)) {
             loaded++;
         }
     }
@@ -685,25 +724,30 @@ long ImageSearchService::FreePic(const wstring &files) {
 
 long ImageSearchService::LoadMemPic(const wstring &file_name, void *data, long size) {
     try {
-        if (!_pic_cache.count(file_name)) {
-            _pic_cache[file_name].read(data, size);
-        }
+        if (file_name.empty())
+            return 0;
+
+        auto image = read_mem_pic(data, size);
+        if (!image)
+            return 0;
+
+        // 同名内存图按新内容覆盖，避免全局缓存复用到旧模板。
+        return store_cached_pic(file_name, std::move(image)) ? 1 : 0;
     } catch (...) {
         return 0;
     }
-    return 1;
 }
 
 long ImageSearchService::GetPicSize(const wstring &file_name, long *width, long *height) {
-    // 看当前目录
-    auto cache_it = _pic_cache.find(file_name);
-    // 没查到再看一下资源目录
-    if (cache_it == _pic_cache.end()) {
-        cache_it = _pic_cache.find(_curr_path + L"\\" + file_name);
+    auto image = find_cached_pic(file_name);
+    if (!image) {
+        wstring tp;
+        if (Path2GlobalPath(file_name, _curr_path, tp))
+            image = find_cached_pic(tp);
     }
-    // 查到了就释放
-    if (cache_it != _pic_cache.end()) {
-        if (!set_out(width, cache_it->second.width) || !set_out(height, cache_it->second.height))
+
+    if (image) {
+        if (!set_out(width, image->width) || !set_out(height, image->height))
             return 0;
         return 1;
     }
@@ -842,29 +886,35 @@ void ImageSearchService::ApplyBinaryPreprocess() {
     }
 }
 
-void ImageSearchService::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr) {
+void ImageSearchService::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr,
+                                    std::vector<std::shared_ptr<Image>> &holders) {
     // std::vector<wstring>vstr, vstr2;
-    Image *pm;
     vpic.clear();
-    split(files, vstr, L"|");
+    vstr.clear();
+    holders.clear();
+    std::vector<wstring> names;
+    split(files, names, L"|");
     wstring tp;
-    for (auto &it : vstr) {
-        // 先在缓存中查找是否已加载，包括从内存中加载的文件
-        if (_pic_cache.count(it)) {
-            pm = &_pic_cache[it];
-        } else {
-            // 路径转化
+    for (auto &it : names) {
+        // 先按原始名字查找，覆盖 LoadMemPic 名称和完整路径两种情况。
+        auto image = find_cached_pic(it);
+        if (!image) {
             if (!Path2GlobalPath(it, _curr_path, tp))
                 continue;
-            // 再检测一次，包括绝对路径的文件
-            if (_pic_cache.count(tp)) {
-                pm = &_pic_cache[tp];
-            } else {
-                _pic_cache[tp].read(tp.data());
-                pm = &_pic_cache[tp];
+            image = find_cached_pic(tp);
+            if (!image) {
+                image = read_pic_file(tp);
+                if (!image)
+                    continue;
+                // 自动读取本地文件时，只有开启缓存才写入全局缓存。
+                if (_enable_cache)
+                    store_cached_pic(tp, image);
             }
         }
-        vpic.push_back(pm);
+
+        holders.push_back(image);
+        vpic.push_back(image.get());
+        vstr.push_back(it);
     }
 }
 

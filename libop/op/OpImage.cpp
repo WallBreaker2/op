@@ -173,7 +173,7 @@ void op::Op::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, c
 void op::Op::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
                       long dir, std::wstring &retstr) {
 
-    // wstring str;
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -182,12 +182,11 @@ void op::Op::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files,
             m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr);
         }
     }
-    // retstr = str;
 }
 
 void op::Op::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
                        long dir, std::wstring &retstr) {
-    // wstring str;
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -196,7 +195,6 @@ void op::Op::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files
             m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr, false);
         }
     }
-    // retstr = str;
 }
 
 void op::Op::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
@@ -220,6 +218,7 @@ void op::Op::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *c
 void op::Op::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
                              long height, long width, std::wstring &retstr) {
 
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
