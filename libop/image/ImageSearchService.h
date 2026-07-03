@@ -1,6 +1,6 @@
 #pragma once
 #include "ImageSearchAlgorithms.h"
-#include <map>
+#include <memory>
 #include <string>
 // #include "TesseractOcr.h"
 
@@ -13,6 +13,9 @@ namespace op::image {
 3.图像定位
 4.简单OCR
 5....
+
+同一个 ImageSearchService 实例会复用截图和算法工作区，不支持并发调用；
+多线程场景应保持每个线程使用独立 Op 对象。
 */
 class ImageSearchService : public ImageSearchAlgorithms {
   public:
@@ -136,9 +139,7 @@ class ImageSearchService : public ImageSearchAlgorithms {
   public:
     // 当前目录
     wstring _curr_path;
-    // 图片缓存
-    std::map<wstring, Image> _pic_cache;
-    // 是否使用图片缓存，默认开启
+    // 是否允许 FindPic 自动缓存本地文件；LoadPic/LoadMemPic 属于显式加载，不受此开关影响。
     int _enable_cache;
 
   private:
@@ -152,7 +153,9 @@ class ImageSearchService : public ImageSearchAlgorithms {
     std::wstring FetchWordFromBinary(rect_t rc, const wstring &word);
     long FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects, std::wstring &out_str);
     void str2colors(const wstring &color, std::vector<color_t> &vcolor);
-    void files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr);
+    // vpic 是算法层使用的裸指针视图，holders 负责延长共享缓存图片的生命周期。
+    void files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr,
+                    std::vector<std::shared_ptr<Image>> &holders);
 };
 
 } // namespace op::image

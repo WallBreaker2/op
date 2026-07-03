@@ -17,10 +17,10 @@ class ImageView {
     rect_t _block;
 };
 
-ImageView::ImageView(ImageBin const &src, rect_t const &block) : _src(src), _block(block) {
+inline ImageView::ImageView(ImageBin const &src, rect_t const &block) : _src(src), _block(block) {
 }
 
-ImageView::~ImageView() {
+inline ImageView::~ImageView() {
 }
 
 } // namespace op

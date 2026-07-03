@@ -426,17 +426,18 @@ static long sort_and_limit_point_desc(vpoint_desc_t &vpd, long dir, size_t max_c
 long ImageSearchAlgorithms::FindColor(vector<color_df_t> &colors, double sim, int dir, long &x, long &y) {
     const auto prepared_colors = prepared_color_dfs(colors, sim);
     rect_t range(0, 0, _src.width, _src.height);
-    for (const auto &it : prepared_colors) { // 对每个颜色描述
-        if (for_each_scan_point(range, dir, [&](int j, int i) {
+    // 按扫描方向优先返回最靠前的坐标；同一点再按颜色列表顺序匹配。
+    if (for_each_scan_point(range, dir, [&](int j, int i) {
+            for (const auto &it : prepared_colors) {
                 if (color_matches_prepared(_src.at<color_t>(i, j), it)) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
                     return true;
                 }
-                return false;
-            })) {
-            return 1;
-        }
+            }
+            return false;
+        })) {
+        return 1;
     }
 
     x = y = -1;
@@ -794,6 +795,9 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfco
 
 long ImageSearchAlgorithms::FindColorBlock(long count, long height, long width, long &x, long &y) {
     x = y = -1;
+    if (_binary.empty() || count <= 0 || height <= 0 || width <= 0 || height > _binary.height || width > _binary.width)
+        return 0;
+
     record_sum(_binary);
     for (int i = 0; i <= _binary.height - height; ++i) {
         for (int j = 0; j <= _binary.width - width; ++j) {
@@ -808,6 +812,10 @@ long ImageSearchAlgorithms::FindColorBlock(long count, long height, long width, 
 }
 
 long ImageSearchAlgorithms::FindColorBlockEx(long count, long height, long width, std::wstring &retstr) {
+    retstr.clear();
+    if (_binary.empty() || count <= 0 || height <= 0 || width <= 0 || height > _binary.height || width > _binary.width)
+        return 0;
+
     record_sum(_binary);
     int cnt = 0;
     for (int i = 0; i <= _binary.height - height; ++i) {
@@ -1077,6 +1085,7 @@ int ImageSearchAlgorithms::get_bk_color(inputbin bin) {
 }
 
 void ImageSearchAlgorithms::bgr2binary(vector<color_df_t> &colors) {
+    _binary.clear();
     if (_src.empty())
         return;
     int ncols = _src.width, nrows = _src.height;
@@ -1104,6 +1113,10 @@ void ImageSearchAlgorithms::bgr2binary(vector<color_df_t> &colors) {
 
 // 二值化
 void ImageSearchAlgorithms::bgr2binarybk(const vector<color_df_t> &bk_colors) {
+    _binary.clear();
+    if (_src.empty())
+        return;
+
     // 创建二值图
     _binary.create(_src.width, _src.height);
     memset(_binary.pixels.data(), WORD_BKCOLOR, _binary.size());
