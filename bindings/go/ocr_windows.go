@@ -114,6 +114,25 @@ func (o *Op) GetNowDict() int {
 	return o.callNoArgs(procGetNowDict)
 }
 
+func (o *Op) SetBinaryPreprocess(mode, isolatedThreshold, minComponentArea, bridgeGap int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procSetBinaryPreprocess.Call(o.handle, uintptr(mode), uintptr(isolatedThreshold), uintptr(minComponentArea), uintptr(bridgeGap))
+	return int(ret)
+}
+
+func (o *Op) GetBinaryPreprocess() (int, int, int, int, int) {
+	if !o.valid() {
+		return 0, 0, 0, 0, 0
+	}
+
+	var mode, isolatedThreshold, minComponentArea, bridgeGap int32
+	ret, _, _ := procGetBinaryPreprocess.Call(o.handle, int32Ptr(&mode), int32Ptr(&isolatedThreshold), int32Ptr(&minComponentArea), int32Ptr(&bridgeGap))
+	return int(ret), int(mode), int(isolatedThreshold), int(minComponentArea), int(bridgeGap)
+}
+
 func (o *Op) FetchWord(x1, y1, x2, y2 int, color, word string) string {
 	if !o.valid() {
 		return ""
@@ -121,6 +140,110 @@ func (o *Op) FetchWord(x1, y1, x2, y2 int, color, word string) string {
 
 	ret, _, _ := procFetchWord.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), strArg(word))
 	return wcharString(ret)
+}
+
+func (o *Op) FetchWordEx(x1, y1, x2, y2 int, color string, sim float64, word string) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procFetchWordEx.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), strArg(word))
+	return wcharString(ret)
+}
+
+func (o *Op) ExtractWordRects(x1, y1, x2, y2 int, color string, sim float64, minWordH int) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procExtractWordRects.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), uintptr(minWordH))
+	return wcharString(ret)
+}
+
+func (o *Op) ExtractWordRectsEx(x1, y1, x2, y2 int, color string, sim float64, minWordW, minWordH, padding int) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procExtractWordRectsEx.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), uintptr(minWordW), uintptr(minWordH), uintptr(padding))
+	return wcharString(ret)
+}
+
+func (o *Op) FetchWords(x1, y1, x2, y2 int, color string, sim float64, words string, minWordH int) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procFetchWords.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), strArg(words), uintptr(minWordH))
+	return wcharString(ret)
+}
+
+func (o *Op) FetchWordsEx(x1, y1, x2, y2 int, color string, sim float64, words string, minWordW, minWordH, padding int) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procFetchWordsEx.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), strArg(words), uintptr(minWordW), uintptr(minWordH), uintptr(padding))
+	return wcharString(ret)
+}
+
+func (o *Op) FetchWordsByRects(x1, y1, x2, y2 int, color string, sim float64, words, rects string) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procFetchWordsByRects.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), strArg(words), strArg(rects))
+	return wcharString(ret)
+}
+
+func (o *Op) GetBinaryPreview(x1, y1, x2, y2 int, color string, sim float64) (string, int) {
+	if !o.valid() {
+		return "", 0
+	}
+
+	var count int32
+	ret, _, _ := procGetBinaryPreview.Call(o.handle, uintptr(x1), uintptr(y1), uintptr(x2), uintptr(y2), strArg(color), f64Arg(sim), int32Ptr(&count))
+	return wcharString(ret), int(count)
+}
+
+func (o *Op) GetWordPreview(dictInfo string) (string, int) {
+	if !o.valid() {
+		return "", 0
+	}
+
+	var valid int32
+	ret, _, _ := procGetWordPreview.Call(o.handle, strArg(dictInfo), int32Ptr(&valid))
+	return wcharString(ret), int(valid)
+}
+
+func (o *Op) CheckWordDict(dictInfo string) (string, int) {
+	if !o.valid() {
+		return "", 0
+	}
+
+	var validCount int32
+	ret, _, _ := procCheckWordDict.Call(o.handle, strArg(dictInfo), int32Ptr(&validCount))
+	return wcharString(ret), int(validCount)
+}
+
+func (o *Op) NormalizeWordDict(dictInfo string) (string, int) {
+	if !o.valid() {
+		return "", 0
+	}
+
+	var validCount int32
+	ret, _, _ := procNormalizeWordDict.Call(o.handle, strArg(dictInfo), int32Ptr(&validCount))
+	return wcharString(ret), int(validCount)
+}
+
+func (o *Op) RenameWordDict(dictInfo, words string) (string, int) {
+	if !o.valid() {
+		return "", 0
+	}
+
+	var renamedCount int32
+	ret, _, _ := procRenameWordDict.Call(o.handle, strArg(dictInfo), strArg(words), int32Ptr(&renamedCount))
+	return wcharString(ret), int(renamedCount)
 }
 
 func (o *Op) GetWordsNoDict(x1, y1, x2, y2 int, color string) string {
