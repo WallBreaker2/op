@@ -1,6 +1,6 @@
 #pragma once
 #include "ImageSearchAlgorithms.h"
-#include <map>
+#include <memory>
 #include <string>
 // #include "TesseractOcr.h"
 
@@ -13,6 +13,9 @@ namespace op::image {
 3.图像定位
 4.简单OCR
 5....
+
+同一个 ImageSearchService 实例会复用截图和算法工作区，不支持并发调用；
+多线程场景应保持每个线程使用独立 Op 对象。
 */
 class ImageSearchService : public ImageSearchAlgorithms {
   public:
@@ -66,7 +69,36 @@ class ImageSearchService : public ImageSearchAlgorithms {
 
     long GetNowDict();
 
+    long SetBinaryPreprocess(long mode, long isolated_threshold, long min_component_area, long bridge_gap);
+
+    long GetBinaryPreprocess(long &mode, long &isolated_threshold, long &min_component_area, long &bridge_gap) const;
+
     std::wstring FetchWord(rect_t rc, const wstring &color, const wstring &word);
+
+    std::wstring FetchWord(rect_t rc, const wstring &color, double sim, const wstring &word);
+
+    long ExtractWordRects(const wstring &color, double sim, long min_word_h, std::vector<rect_t> &rects);
+
+    long ExtractWordRectsEx(const wstring &color, double sim, long min_word_w, long min_word_h, long padding,
+                            std::vector<rect_t> &rects);
+
+    long FetchWords(const wstring &color, double sim, const wstring &words, long min_word_h, std::wstring &out_str);
+
+    long FetchWordsEx(const wstring &color, double sim, const wstring &words, long min_word_w, long min_word_h,
+                      long padding, std::wstring &out_str);
+
+    long FetchWordsByRects(const wstring &color, double sim, const wstring &words, const std::vector<rect_t> &rects,
+                           std::wstring &out_str);
+
+    long GetBinaryPreview(const wstring &color, double sim, std::wstring &out_str);
+
+    long GetWordPreview(const wstring &dict_info, std::wstring &out_str);
+
+    long CheckWordDict(const wstring &dict_info, std::wstring &out_str);
+
+    long NormalizeWordDict(const wstring &dict_info, std::wstring &out_str);
+
+    long RenameWordDict(const wstring &dict_info, const wstring &words, std::wstring &out_str);
 
     long OCR(const wstring &color, double sim, std::wstring &out_str);
 
@@ -95,17 +127,20 @@ class ImageSearchService : public ImageSearchAlgorithms {
     void str2binaryfbk(const wstring &color);
 
   private:
-    // 字库
-    Dictionary _dicts[_max_dict];
+    // SetMemDict/AddDict 写入对象私有槽；SetDict 写入全局文件字库槽。
+    Dictionary _private_dicts[_max_dict];
+    bool _private_dict_overrides[_max_dict];
     // 当前字库索引
     int _curr_idx;
+    long _binary_preprocess_mode;
+    long _binary_isolated_threshold;
+    long _binary_min_component_area;
+    long _binary_bridge_gap;
 
   public:
     // 当前目录
     wstring _curr_path;
-    // 图片缓存
-    std::map<wstring, Image> _pic_cache;
-    // 是否使用图片缓存，默认开启
+    // 是否允许 FindPic 自动缓存本地文件；LoadPic/LoadMemPic 属于显式加载，不受此开关影响。
     int _enable_cache;
 
   private:
@@ -113,8 +148,18 @@ class ImageSearchService : public ImageSearchAlgorithms {
     int str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors);
     int str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors, std::vector<bool> *explicit_dfs);
     void str2binaryfbk(const wstring &color, double sim);
+    void str2pointbinaryfbk(const wstring &color);
+    void str2pointbinaryfbk(const wstring &color, double sim);
+    void ApplyBinaryPreprocess();
+    std::wstring FetchWordFromBinary(rect_t rc, const wstring &word);
+    long FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects, std::wstring &out_str);
+    std::shared_ptr<Dictionary> ActiveDict(int idx);
+    Dictionary &MutablePrivateDict(int idx);
     void str2colors(const wstring &color, std::vector<color_t> &vcolor);
-    void files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr);
+    // vmatches 是算法层使用的裸指针视图，holders 负责延长共享缓存对象的生命周期。
+    void files2mats(const wstring &files, std::vector<PicMatchTemplate *> &vmatches, std::vector<wstring> &vstr,
+                    std::vector<std::shared_ptr<Image>> &holders,
+                    std::vector<std::shared_ptr<PicMatchTemplate>> &match_holders);
 };
 
 } // namespace op::image

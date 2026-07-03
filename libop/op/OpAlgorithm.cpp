@@ -1,4 +1,4 @@
-#include "ClientContext.h"
+#include "OpContext.h"
 
 #include "algorithm/AStar.h"
 #include "runtime/RuntimeUtils.h"
@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-void op::Client::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_points, long beginX, long beginY,
+void op::Op::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable_points, long beginX, long beginY,
                           long endX, long endY, std::wstring &path) {
     AStar as;
     using Vec2i = AStar::Vec2i;
@@ -41,7 +41,7 @@ void op::Client::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *dis
         path.pop_back();
 }
 
-void op::Client::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, std::wstring &ret) {
+void op::Op::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, std::wstring &ret) {
     double old = 1e9;
     long rx = -1, ry = -1;
     std::wstring best_name;

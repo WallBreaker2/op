@@ -58,524 +58,620 @@ class _SwigNonDynamicMeta(type):
     __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)
 
 
-class libop(object):
+class Op(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
     def __init__(self):
-        _pyop.libop_swiginit(self, _pyop.new_libop())
-    __swig_destroy__ = _pyop.delete_libop
+        _pyop.Op_swiginit(self, _pyop.new_Op())
+    __swig_destroy__ = _pyop.delete_Op
+
+    def runtime(self):
+        return _pyop.Op_runtime(self)
+
+    def window(self):
+        return _pyop.Op_window(self)
+
+    def binding(self):
+        return _pyop.Op_binding(self)
+
+    def input(self):
+        return _pyop.Op_input(self)
+
+    def image(self):
+        return _pyop.Op_image(self)
+
+    def ocr(self):
+        return _pyop.Op_ocr(self)
+
+    def opencv(self):
+        return _pyop.Op_opencv(self)
+
+    def yolo(self):
+        return _pyop.Op_yolo(self)
+
+    def memory(self):
+        return _pyop.Op_memory(self)
 
     def Ver(self):
-        return _pyop.libop_Ver(self)
+        return _pyop.Op_Ver(self)
 
     def SetPath(self, path):
-        return _pyop.libop_SetPath(self, path)
+        return _pyop.Op_SetPath(self, path)
 
     def GetPath(self):
-        return _pyop.libop_GetPath(self)
+        return _pyop.Op_GetPath(self)
 
     def GetBasePath(self):
-        return _pyop.libop_GetBasePath(self)
+        return _pyop.Op_GetBasePath(self)
 
     def GetID(self):
-        return _pyop.libop_GetID(self)
+        return _pyop.Op_GetID(self)
 
     def GetLastError(self):
-        return _pyop.libop_GetLastError(self)
+        return _pyop.Op_GetLastError(self)
 
     def SetShowErrorMsg(self, show_type):
-        return _pyop.libop_SetShowErrorMsg(self, show_type)
+        return _pyop.Op_SetShowErrorMsg(self, show_type)
 
     def Sleep(self, millseconds):
-        return _pyop.libop_Sleep(self, millseconds)
+        return _pyop.Op_Sleep(self, millseconds)
 
     def InjectDll(self, process_name, dll_name):
-        return _pyop.libop_InjectDll(self, process_name, dll_name)
+        return _pyop.Op_InjectDll(self, process_name, dll_name)
 
     def EnablePicCache(self, enable):
-        return _pyop.libop_EnablePicCache(self, enable)
+        return _pyop.Op_EnablePicCache(self, enable)
 
     def CapturePre(self, file_name):
-        return _pyop.libop_CapturePre(self, file_name)
+        return _pyop.Op_CapturePre(self, file_name)
 
     def SetScreenDataMode(self, mode):
-        return _pyop.libop_SetScreenDataMode(self, mode)
+        return _pyop.Op_SetScreenDataMode(self, mode)
 
     def AStarFindPath(self, mapWidth, mapHeight, disable_points, beginX, beginY, endX, endY):
-        return _pyop.libop_AStarFindPath(self, mapWidth, mapHeight, disable_points, beginX, beginY, endX, endY)
+        return _pyop.Op_AStarFindPath(self, mapWidth, mapHeight, disable_points, beginX, beginY, endX, endY)
 
     def FindNearestPos(self, all_pos, type, x, y):
-        return _pyop.libop_FindNearestPos(self, all_pos, type, x, y)
+        return _pyop.Op_FindNearestPos(self, all_pos, type, x, y)
 
     def EnumWindow(self, parent, title, class_name, filter):
-        return _pyop.libop_EnumWindow(self, parent, title, class_name, filter)
+        return _pyop.Op_EnumWindow(self, parent, title, class_name, filter)
 
     def EnumWindowByProcess(self, process_name, title, class_name, filter):
-        return _pyop.libop_EnumWindowByProcess(self, process_name, title, class_name, filter)
+        return _pyop.Op_EnumWindowByProcess(self, process_name, title, class_name, filter)
 
     def EnumProcess(self, name):
-        return _pyop.libop_EnumProcess(self, name)
+        return _pyop.Op_EnumProcess(self, name)
 
     def ClientToScreen(self, hwnd):
-        return _pyop.libop_ClientToScreen(self, hwnd)
+        return _pyop.Op_ClientToScreen(self, hwnd)
 
     def FindWindow(self, class_name, title):
-        return _pyop.libop_FindWindow(self, class_name, title)
+        return _pyop.Op_FindWindow(self, class_name, title)
 
     def FindWindowByProcess(self, process_name, class_name, title):
-        return _pyop.libop_FindWindowByProcess(self, process_name, class_name, title)
+        return _pyop.Op_FindWindowByProcess(self, process_name, class_name, title)
 
     def FindWindowByProcessId(self, process_id, class_name, title):
-        return _pyop.libop_FindWindowByProcessId(self, process_id, class_name, title)
+        return _pyop.Op_FindWindowByProcessId(self, process_id, class_name, title)
 
     def FindWindowEx(self, parent, class_name, title):
-        return _pyop.libop_FindWindowEx(self, parent, class_name, title)
+        return _pyop.Op_FindWindowEx(self, parent, class_name, title)
 
     def GetClientRect(self, hwnd):
-        return _pyop.libop_GetClientRect(self, hwnd)
+        return _pyop.Op_GetClientRect(self, hwnd)
 
     def GetClientSize(self, hwnd):
-        return _pyop.libop_GetClientSize(self, hwnd)
+        return _pyop.Op_GetClientSize(self, hwnd)
 
     def GetForegroundFocus(self):
-        return _pyop.libop_GetForegroundFocus(self)
+        return _pyop.Op_GetForegroundFocus(self)
 
     def GetForegroundWindow(self):
-        return _pyop.libop_GetForegroundWindow(self)
+        return _pyop.Op_GetForegroundWindow(self)
 
     def GetMousePointWindow(self):
-        return _pyop.libop_GetMousePointWindow(self)
+        return _pyop.Op_GetMousePointWindow(self)
 
     def GetPointWindow(self, x, y):
-        return _pyop.libop_GetPointWindow(self, x, y)
+        return _pyop.Op_GetPointWindow(self, x, y)
 
     def GetProcessInfo(self, pid):
-        return _pyop.libop_GetProcessInfo(self, pid)
+        return _pyop.Op_GetProcessInfo(self, pid)
 
     def GetSpecialWindow(self, flag):
-        return _pyop.libop_GetSpecialWindow(self, flag)
+        return _pyop.Op_GetSpecialWindow(self, flag)
 
     def GetWindow(self, hwnd, flag):
-        return _pyop.libop_GetWindow(self, hwnd, flag)
+        return _pyop.Op_GetWindow(self, hwnd, flag)
 
     def GetWindowClass(self, hwnd):
-        return _pyop.libop_GetWindowClass(self, hwnd)
+        return _pyop.Op_GetWindowClass(self, hwnd)
 
     def GetWindowProcessId(self, hwnd):
-        return _pyop.libop_GetWindowProcessId(self, hwnd)
+        return _pyop.Op_GetWindowProcessId(self, hwnd)
 
     def GetWindowProcessPath(self, hwnd):
-        return _pyop.libop_GetWindowProcessPath(self, hwnd)
+        return _pyop.Op_GetWindowProcessPath(self, hwnd)
 
     def GetWindowRect(self, hwnd):
-        return _pyop.libop_GetWindowRect(self, hwnd)
+        return _pyop.Op_GetWindowRect(self, hwnd)
 
     def GetWindowState(self, hwnd, flag):
-        return _pyop.libop_GetWindowState(self, hwnd, flag)
+        return _pyop.Op_GetWindowState(self, hwnd, flag)
 
     def GetWindowTitle(self, hwnd):
-        return _pyop.libop_GetWindowTitle(self, hwnd)
+        return _pyop.Op_GetWindowTitle(self, hwnd)
 
     def MoveWindow(self, hwnd, x, y):
-        return _pyop.libop_MoveWindow(self, hwnd, x, y)
+        return _pyop.Op_MoveWindow(self, hwnd, x, y)
 
     def ScreenToClient(self, hwnd):
-        return _pyop.libop_ScreenToClient(self, hwnd)
+        return _pyop.Op_ScreenToClient(self, hwnd)
 
     def SendPaste(self, hwnd):
-        return _pyop.libop_SendPaste(self, hwnd)
+        return _pyop.Op_SendPaste(self, hwnd)
 
     def SetClientSize(self, hwnd, width, hight):
-        return _pyop.libop_SetClientSize(self, hwnd, width, hight)
+        return _pyop.Op_SetClientSize(self, hwnd, width, hight)
 
     def SetWindowState(self, hwnd, flag):
-        return _pyop.libop_SetWindowState(self, hwnd, flag)
+        return _pyop.Op_SetWindowState(self, hwnd, flag)
 
     def SetWindowSize(self, hwnd, width, height):
-        return _pyop.libop_SetWindowSize(self, hwnd, width, height)
+        return _pyop.Op_SetWindowSize(self, hwnd, width, height)
 
     def LayoutWindows(self, hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width, window_height, anchor_mode):
-        return _pyop.libop_LayoutWindows(self, hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width, window_height, anchor_mode)
+        return _pyop.Op_LayoutWindows(self, hwnds, layout_type, columns, start_x, start_y, gap_x, gap_y, size_mode, window_width, window_height, anchor_mode)
 
     def SetWindowText(self, hwnd, title):
-        return _pyop.libop_SetWindowText(self, hwnd, title)
+        return _pyop.Op_SetWindowText(self, hwnd, title)
 
     def SetWindowTransparent(self, hwnd, trans):
-        return _pyop.libop_SetWindowTransparent(self, hwnd, trans)
+        return _pyop.Op_SetWindowTransparent(self, hwnd, trans)
 
     def SendString(self, hwnd, str):
-        return _pyop.libop_SendString(self, hwnd, str)
+        return _pyop.Op_SendString(self, hwnd, str)
 
     def SendStringIme(self, hwnd, str):
-        return _pyop.libop_SendStringIme(self, hwnd, str)
+        return _pyop.Op_SendStringIme(self, hwnd, str)
 
     def WinExec(self, cmdline, cmdshow):
-        return _pyop.libop_WinExec(self, cmdline, cmdshow)
+        return _pyop.Op_WinExec(self, cmdline, cmdshow)
 
     def GetCmdStr(self, cmd, millseconds):
-        return _pyop.libop_GetCmdStr(self, cmd, millseconds)
+        return _pyop.Op_GetCmdStr(self, cmd, millseconds)
 
     def SetClipboard(self, str):
-        return _pyop.libop_SetClipboard(self, str)
+        return _pyop.Op_SetClipboard(self, str)
 
     def GetClipboard(self):
-        return _pyop.libop_GetClipboard(self)
+        return _pyop.Op_GetClipboard(self)
 
     def Delay(self, mis):
-        return _pyop.libop_Delay(self, mis)
+        return _pyop.Op_Delay(self, mis)
 
     def Delays(self, mis_min, mis_max):
-        return _pyop.libop_Delays(self, mis_min, mis_max)
+        return _pyop.Op_Delays(self, mis_min, mis_max)
 
     def BindWindow(self, hwnd, display, mouse, keypad, mode):
-        return _pyop.libop_BindWindow(self, hwnd, display, mouse, keypad, mode)
+        return _pyop.Op_BindWindow(self, hwnd, display, mouse, keypad, mode)
 
     def BindWindowEx(self, display_hwnd, input_hwnd, display, mouse, keypad, mode):
-        return _pyop.libop_BindWindowEx(self, display_hwnd, input_hwnd, display, mouse, keypad, mode)
+        return _pyop.Op_BindWindowEx(self, display_hwnd, input_hwnd, display, mouse, keypad, mode)
 
     def UnBindWindow(self):
-        return _pyop.libop_UnBindWindow(self)
+        return _pyop.Op_UnBindWindow(self)
 
     def GetBindWindow(self):
-        return _pyop.libop_GetBindWindow(self)
+        return _pyop.Op_GetBindWindow(self)
 
     def IsBind(self):
-        return _pyop.libop_IsBind(self)
+        return _pyop.Op_IsBind(self)
 
     def GetCursorPos(self):
-        return _pyop.libop_GetCursorPos(self)
+        return _pyop.Op_GetCursorPos(self)
 
     def GetCursorShape(self):
-        return _pyop.libop_GetCursorShape(self)
+        return _pyop.Op_GetCursorShape(self)
 
     def MoveR(self, x, y):
-        return _pyop.libop_MoveR(self, x, y)
+        return _pyop.Op_MoveR(self, x, y)
 
     def MoveTo(self, x, y):
-        return _pyop.libop_MoveTo(self, x, y)
+        return _pyop.Op_MoveTo(self, x, y)
 
     def MoveToEx(self, x, y, w, h):
-        return _pyop.libop_MoveToEx(self, x, y, w, h)
+        return _pyop.Op_MoveToEx(self, x, y, w, h)
 
     def LeftClick(self):
-        return _pyop.libop_LeftClick(self)
+        return _pyop.Op_LeftClick(self)
 
     def LeftDoubleClick(self):
-        return _pyop.libop_LeftDoubleClick(self)
+        return _pyop.Op_LeftDoubleClick(self)
 
     def LeftDown(self):
-        return _pyop.libop_LeftDown(self)
+        return _pyop.Op_LeftDown(self)
 
     def LeftUp(self):
-        return _pyop.libop_LeftUp(self)
+        return _pyop.Op_LeftUp(self)
 
     def MiddleClick(self):
-        return _pyop.libop_MiddleClick(self)
+        return _pyop.Op_MiddleClick(self)
+
+    def MiddleDoubleClick(self):
+        return _pyop.Op_MiddleDoubleClick(self)
 
     def MiddleDown(self):
-        return _pyop.libop_MiddleDown(self)
+        return _pyop.Op_MiddleDown(self)
 
     def MiddleUp(self):
-        return _pyop.libop_MiddleUp(self)
+        return _pyop.Op_MiddleUp(self)
 
     def RightClick(self):
-        return _pyop.libop_RightClick(self)
+        return _pyop.Op_RightClick(self)
+
+    def RightDoubleClick(self):
+        return _pyop.Op_RightDoubleClick(self)
 
     def RightDown(self):
-        return _pyop.libop_RightDown(self)
+        return _pyop.Op_RightDown(self)
 
     def RightUp(self):
-        return _pyop.libop_RightUp(self)
+        return _pyop.Op_RightUp(self)
+
+    def XButton1Click(self):
+        return _pyop.Op_XButton1Click(self)
+
+    def XButton1DoubleClick(self):
+        return _pyop.Op_XButton1DoubleClick(self)
+
+    def XButton1Down(self):
+        return _pyop.Op_XButton1Down(self)
+
+    def XButton1Up(self):
+        return _pyop.Op_XButton1Up(self)
+
+    def XButton2Click(self):
+        return _pyop.Op_XButton2Click(self)
+
+    def XButton2DoubleClick(self):
+        return _pyop.Op_XButton2DoubleClick(self)
+
+    def XButton2Down(self):
+        return _pyop.Op_XButton2Down(self)
+
+    def XButton2Up(self):
+        return _pyop.Op_XButton2Up(self)
+
+    def Wheel(self, delta):
+        return _pyop.Op_Wheel(self, delta)
+
+    def HWheel(self, delta):
+        return _pyop.Op_HWheel(self, delta)
 
     def WheelDown(self):
-        return _pyop.libop_WheelDown(self)
+        return _pyop.Op_WheelDown(self)
 
     def WheelUp(self):
-        return _pyop.libop_WheelUp(self)
+        return _pyop.Op_WheelUp(self)
 
     def SetMouseDelay(self, type, delay):
-        return _pyop.libop_SetMouseDelay(self, type, delay)
+        return _pyop.Op_SetMouseDelay(self, type, delay)
 
     def GetKeyState(self, vk_code):
-        return _pyop.libop_GetKeyState(self, vk_code)
+        return _pyop.Op_GetKeyState(self, vk_code)
 
     def KeyDown(self, vk_code):
-        return _pyop.libop_KeyDown(self, vk_code)
+        return _pyop.Op_KeyDown(self, vk_code)
 
     def KeyDownChar(self, vk_code):
-        return _pyop.libop_KeyDownChar(self, vk_code)
+        return _pyop.Op_KeyDownChar(self, vk_code)
 
     def KeyUp(self, vk_code):
-        return _pyop.libop_KeyUp(self, vk_code)
+        return _pyop.Op_KeyUp(self, vk_code)
 
     def KeyUpChar(self, vk_code):
-        return _pyop.libop_KeyUpChar(self, vk_code)
+        return _pyop.Op_KeyUpChar(self, vk_code)
 
     def WaitKey(self, vk_code, time_out):
-        return _pyop.libop_WaitKey(self, vk_code, time_out)
+        return _pyop.Op_WaitKey(self, vk_code, time_out)
 
     def KeyPress(self, vk_code):
-        return _pyop.libop_KeyPress(self, vk_code)
+        return _pyop.Op_KeyPress(self, vk_code)
 
     def KeyPressChar(self, vk_code):
-        return _pyop.libop_KeyPressChar(self, vk_code)
+        return _pyop.Op_KeyPressChar(self, vk_code)
 
     def SetKeypadDelay(self, type, delay):
-        return _pyop.libop_SetKeypadDelay(self, type, delay)
+        return _pyop.Op_SetKeypadDelay(self, type, delay)
 
     def KeyPressStr(self, key_str, delay):
-        return _pyop.libop_KeyPressStr(self, key_str, delay)
+        return _pyop.Op_KeyPressStr(self, key_str, delay)
 
     def Capture(self, x1, y1, x2, y2, file_name):
-        return _pyop.libop_Capture(self, x1, y1, x2, y2, file_name)
+        return _pyop.Op_Capture(self, x1, y1, x2, y2, file_name)
 
     def CmpColor(self, x, y, color, sim):
-        return _pyop.libop_CmpColor(self, x, y, color, sim)
+        return _pyop.Op_CmpColor(self, x, y, color, sim)
 
     def FindColor(self, x1, y1, x2, y2, color, sim, dir):
-        return _pyop.libop_FindColor(self, x1, y1, x2, y2, color, sim, dir)
+        return _pyop.Op_FindColor(self, x1, y1, x2, y2, color, sim, dir)
 
     def FindColorEx(self, x1, y1, x2, y2, color, sim, dir):
-        return _pyop.libop_FindColorEx(self, x1, y1, x2, y2, color, sim, dir)
+        return _pyop.Op_FindColorEx(self, x1, y1, x2, y2, color, sim, dir)
 
     def GetColorNum(self, x1, y1, x2, y2, color, sim):
-        return _pyop.libop_GetColorNum(self, x1, y1, x2, y2, color, sim)
+        return _pyop.Op_GetColorNum(self, x1, y1, x2, y2, color, sim)
 
     def FindMultiColor(self, x1, y1, x2, y2, first_color, offset_color, sim, dir):
-        return _pyop.libop_FindMultiColor(self, x1, y1, x2, y2, first_color, offset_color, sim, dir)
+        return _pyop.Op_FindMultiColor(self, x1, y1, x2, y2, first_color, offset_color, sim, dir)
 
     def FindMultiColorEx(self, x1, y1, x2, y2, first_color, offset_color, sim, dir):
-        return _pyop.libop_FindMultiColorEx(self, x1, y1, x2, y2, first_color, offset_color, sim, dir)
+        return _pyop.Op_FindMultiColorEx(self, x1, y1, x2, y2, first_color, offset_color, sim, dir)
 
     def FindPic(self, x1, y1, x2, y2, files, delta_color, sim, dir):
-        return _pyop.libop_FindPic(self, x1, y1, x2, y2, files, delta_color, sim, dir)
+        return _pyop.Op_FindPic(self, x1, y1, x2, y2, files, delta_color, sim, dir)
 
     def FindPicEx(self, x1, y1, x2, y2, files, delta_color, sim, dir):
-        return _pyop.libop_FindPicEx(self, x1, y1, x2, y2, files, delta_color, sim, dir)
+        return _pyop.Op_FindPicEx(self, x1, y1, x2, y2, files, delta_color, sim, dir)
 
     def FindPicExS(self, x1, y1, x2, y2, files, delta_color, sim, dir):
-        return _pyop.libop_FindPicExS(self, x1, y1, x2, y2, files, delta_color, sim, dir)
+        return _pyop.Op_FindPicExS(self, x1, y1, x2, y2, files, delta_color, sim, dir)
 
     def FindColorBlock(self, x1, y1, x2, y2, color, sim, count, height, width):
-        return _pyop.libop_FindColorBlock(self, x1, y1, x2, y2, color, sim, count, height, width)
+        return _pyop.Op_FindColorBlock(self, x1, y1, x2, y2, color, sim, count, height, width)
 
     def FindColorBlockEx(self, x1, y1, x2, y2, color, sim, count, height, width):
-        return _pyop.libop_FindColorBlockEx(self, x1, y1, x2, y2, color, sim, count, height, width)
+        return _pyop.Op_FindColorBlockEx(self, x1, y1, x2, y2, color, sim, count, height, width)
 
     def GetColor(self, x, y):
-        return _pyop.libop_GetColor(self, x, y)
+        return _pyop.Op_GetColor(self, x, y)
 
     def SetDisplayInput(self, mode):
-        return _pyop.libop_SetDisplayInput(self, mode)
+        return _pyop.Op_SetDisplayInput(self, mode)
 
     def LoadPic(self, file_name):
-        return _pyop.libop_LoadPic(self, file_name)
+        return _pyop.Op_LoadPic(self, file_name)
 
     def FreePic(self, file_name):
-        return _pyop.libop_FreePic(self, file_name)
+        return _pyop.Op_FreePic(self, file_name)
 
     def LoadMemPic(self, file_name, data, size):
-        return _pyop.libop_LoadMemPic(self, file_name, data, size)
+        return _pyop.Op_LoadMemPic(self, file_name, data, size)
 
     def GetPicSize(self, pic_name):
-        return _pyop.libop_GetPicSize(self, pic_name)
+        return _pyop.Op_GetPicSize(self, pic_name)
 
     def GetScreenData(self, x1, y1, x2, y2):
-        return _pyop.libop_GetScreenData(self, x1, y1, x2, y2)
+        return _pyop.Op_GetScreenData(self, x1, y1, x2, y2)
 
     def GetScreenDataBmp(self, x1, y1, x2, y2):
-        return _pyop.libop_GetScreenDataBmp(self, x1, y1, x2, y2)
+        return _pyop.Op_GetScreenDataBmp(self, x1, y1, x2, y2)
 
     def GetScreenFrameInfo(self):
-        return _pyop.libop_GetScreenFrameInfo(self)
+        return _pyop.Op_GetScreenFrameInfo(self)
 
     def MatchPicName(self, pic_name):
-        return _pyop.libop_MatchPicName(self, pic_name)
+        return _pyop.Op_MatchPicName(self, pic_name)
 
     def CvLoadTemplate(self, name, file_path):
-        return _pyop.libop_CvLoadTemplate(self, name, file_path)
+        return _pyop.Op_CvLoadTemplate(self, name, file_path)
 
     def CvLoadMaskedTemplate(self, name, template_path, mask_path):
-        return _pyop.libop_CvLoadMaskedTemplate(self, name, template_path, mask_path)
+        return _pyop.Op_CvLoadMaskedTemplate(self, name, template_path, mask_path)
 
     def CvRemoveTemplate(self, name):
-        return _pyop.libop_CvRemoveTemplate(self, name)
+        return _pyop.Op_CvRemoveTemplate(self, name)
 
     def CvRemoveAllTemplates(self):
-        return _pyop.libop_CvRemoveAllTemplates(self)
+        return _pyop.Op_CvRemoveAllTemplates(self)
 
     def CvHasTemplate(self, name):
-        return _pyop.libop_CvHasTemplate(self, name)
+        return _pyop.Op_CvHasTemplate(self, name)
 
     def CvGetTemplateCount(self):
-        return _pyop.libop_CvGetTemplateCount(self)
+        return _pyop.Op_CvGetTemplateCount(self)
 
     def CvGetAllTemplateNames(self):
-        return _pyop.libop_CvGetAllTemplateNames(self)
+        return _pyop.Op_CvGetAllTemplateNames(self)
 
     def CvGetOpenCvVersion(self):
-        return _pyop.libop_CvGetOpenCvVersion(self)
+        return _pyop.Op_CvGetOpenCvVersion(self)
 
     def CvLoadTemplateList(self, template_list):
-        return _pyop.libop_CvLoadTemplateList(self, template_list)
+        return _pyop.Op_CvLoadTemplateList(self, template_list)
 
     def CvToGray(self, src_file, dst_file):
-        return _pyop.libop_CvToGray(self, src_file, dst_file)
+        return _pyop.Op_CvToGray(self, src_file, dst_file)
 
     def CvToBinary(self, src_file, dst_file):
-        return _pyop.libop_CvToBinary(self, src_file, dst_file)
+        return _pyop.Op_CvToBinary(self, src_file, dst_file)
 
     def CvToEdge(self, src_file, dst_file):
-        return _pyop.libop_CvToEdge(self, src_file, dst_file)
+        return _pyop.Op_CvToEdge(self, src_file, dst_file)
 
     def CvToOutline(self, src_file, dst_file):
-        return _pyop.libop_CvToOutline(self, src_file, dst_file)
+        return _pyop.Op_CvToOutline(self, src_file, dst_file)
 
     def CvDenoise(self, src_file, dst_file):
-        return _pyop.libop_CvDenoise(self, src_file, dst_file)
+        return _pyop.Op_CvDenoise(self, src_file, dst_file)
 
     def CvEqualize(self, src_file, dst_file):
-        return _pyop.libop_CvEqualize(self, src_file, dst_file)
+        return _pyop.Op_CvEqualize(self, src_file, dst_file)
 
     def CvCLAHE(self, src_file, dst_file, clip_limit, tile_grid_size):
-        return _pyop.libop_CvCLAHE(self, src_file, dst_file, clip_limit, tile_grid_size)
+        return _pyop.Op_CvCLAHE(self, src_file, dst_file, clip_limit, tile_grid_size)
 
     def CvBlur(self, src_file, dst_file, mode, kernel_size):
-        return _pyop.libop_CvBlur(self, src_file, dst_file, mode, kernel_size)
+        return _pyop.Op_CvBlur(self, src_file, dst_file, mode, kernel_size)
 
     def CvSharpen(self, src_file, dst_file, strength):
-        return _pyop.libop_CvSharpen(self, src_file, dst_file, strength)
+        return _pyop.Op_CvSharpen(self, src_file, dst_file, strength)
 
     def CvCropValid(self, src_file, dst_file):
-        return _pyop.libop_CvCropValid(self, src_file, dst_file)
+        return _pyop.Op_CvCropValid(self, src_file, dst_file)
 
     def CvConnectedComponents(self, src_file, min_area):
-        return _pyop.libop_CvConnectedComponents(self, src_file, min_area)
+        return _pyop.Op_CvConnectedComponents(self, src_file, min_area)
 
     def CvFindContours(self, src_file, min_area):
-        return _pyop.libop_CvFindContours(self, src_file, min_area)
+        return _pyop.Op_CvFindContours(self, src_file, min_area)
 
     def CvPreprocessPipeline(self, src_file, dst_file, pipeline):
-        return _pyop.libop_CvPreprocessPipeline(self, src_file, dst_file, pipeline)
+        return _pyop.Op_CvPreprocessPipeline(self, src_file, dst_file, pipeline)
 
     def CvCrop(self, src_file, x, y, width, height, dst_file):
-        return _pyop.libop_CvCrop(self, src_file, x, y, width, height, dst_file)
+        return _pyop.Op_CvCrop(self, src_file, x, y, width, height, dst_file)
 
     def CvResize(self, src_file, width, height, dst_file):
-        return _pyop.libop_CvResize(self, src_file, width, height, dst_file)
+        return _pyop.Op_CvResize(self, src_file, width, height, dst_file)
 
     def CvThreshold(self, src_file, dst_file, threshold, max_value, mode):
-        return _pyop.libop_CvThreshold(self, src_file, dst_file, threshold, max_value, mode)
+        return _pyop.Op_CvThreshold(self, src_file, dst_file, threshold, max_value, mode)
 
     def CvInRange(self, src_file, dst_file, color_space, lower, upper):
-        return _pyop.libop_CvInRange(self, src_file, dst_file, color_space, lower, upper)
+        return _pyop.Op_CvInRange(self, src_file, dst_file, color_space, lower, upper)
 
     def CvMorphology(self, src_file, dst_file, mode, kernel_size, iterations):
-        return _pyop.libop_CvMorphology(self, src_file, dst_file, mode, kernel_size, iterations)
+        return _pyop.Op_CvMorphology(self, src_file, dst_file, mode, kernel_size, iterations)
 
     def CvThin(self, src_file, dst_file, mode):
-        return _pyop.libop_CvThin(self, src_file, dst_file, mode)
+        return _pyop.Op_CvThin(self, src_file, dst_file, mode)
 
     def CvMatchTemplate(self, x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode):
-        return _pyop.libop_CvMatchTemplate(self, x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode)
+        return _pyop.Op_CvMatchTemplate(self, x, y, width, height, template_name, threshold, dir, strip_mode, method, color_mode)
 
     def CvMatchTemplateScale(self, x, y, width, height, template_name, scales, threshold, method, color_mode):
-        return _pyop.libop_CvMatchTemplateScale(self, x, y, width, height, template_name, scales, threshold, method, color_mode)
+        return _pyop.Op_CvMatchTemplateScale(self, x, y, width, height, template_name, scales, threshold, method, color_mode)
 
     def CvMatchAnyTemplate(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode):
-        return _pyop.libop_CvMatchAnyTemplate(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
+        return _pyop.Op_CvMatchAnyTemplate(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
 
     def CvMatchAllTemplates(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode):
-        return _pyop.libop_CvMatchAllTemplates(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
+        return _pyop.Op_CvMatchAllTemplates(self, x, y, width, height, template_names, threshold, dir, strip_mode, method, color_mode)
 
     def CvFeatureMatchTemplate(self, x, y, width, height, template_name, threshold):
-        return _pyop.libop_CvFeatureMatchTemplate(self, x, y, width, height, template_name, threshold)
+        return _pyop.Op_CvFeatureMatchTemplate(self, x, y, width, height, template_name, threshold)
 
     def CvEdgeMatchTemplate(self, x, y, width, height, template_name, threshold):
-        return _pyop.libop_CvEdgeMatchTemplate(self, x, y, width, height, template_name, threshold)
+        return _pyop.Op_CvEdgeMatchTemplate(self, x, y, width, height, template_name, threshold)
 
     def CvShapeMatchTemplate(self, x, y, width, height, template_name, threshold):
-        return _pyop.libop_CvShapeMatchTemplate(self, x, y, width, height, template_name, threshold)
+        return _pyop.Op_CvShapeMatchTemplate(self, x, y, width, height, template_name, threshold)
 
     def SetOcrEngine(self, path_of_engine, dll_name, argv):
-        return _pyop.libop_SetOcrEngine(self, path_of_engine, dll_name, argv)
+        return _pyop.Op_SetOcrEngine(self, path_of_engine, dll_name, argv)
+
+    def SetYoloEngine(self, path_of_engine, dll_name, argv):
+        return _pyop.Op_SetYoloEngine(self, path_of_engine, dll_name, argv)
+
+    def YoloDetect(self, x1, y1, x2, y2, conf, iou):
+        return _pyop.Op_YoloDetect(self, x1, y1, x2, y2, conf, iou)
+
+    def YoloDetectFromFile(self, file_name, conf, iou):
+        return _pyop.Op_YoloDetectFromFile(self, file_name, conf, iou)
 
     def SetDict(self, idx, file_name):
-        return _pyop.libop_SetDict(self, idx, file_name)
+        return _pyop.Op_SetDict(self, idx, file_name)
 
     def GetDict(self, idx, font_index):
-        return _pyop.libop_GetDict(self, idx, font_index)
+        return _pyop.Op_GetDict(self, idx, font_index)
 
     def SetMemDict(self, idx, data, size):
-        return _pyop.libop_SetMemDict(self, idx, data, size)
+        return _pyop.Op_SetMemDict(self, idx, data, size)
 
     def UseDict(self, idx):
-        return _pyop.libop_UseDict(self, idx)
+        return _pyop.Op_UseDict(self, idx)
 
     def AddDict(self, idx, dict_info):
-        return _pyop.libop_AddDict(self, idx, dict_info)
+        return _pyop.Op_AddDict(self, idx, dict_info)
 
     def SaveDict(self, idx, file_name):
-        return _pyop.libop_SaveDict(self, idx, file_name)
+        return _pyop.Op_SaveDict(self, idx, file_name)
 
     def ClearDict(self, idx):
-        return _pyop.libop_ClearDict(self, idx)
+        return _pyop.Op_ClearDict(self, idx)
 
     def GetDictCount(self, idx):
-        return _pyop.libop_GetDictCount(self, idx)
+        return _pyop.Op_GetDictCount(self, idx)
 
     def GetNowDict(self):
-        return _pyop.libop_GetNowDict(self)
+        return _pyop.Op_GetNowDict(self)
 
     def FetchWord(self, x1, y1, x2, y2, color, word):
-        return _pyop.libop_FetchWord(self, x1, y1, x2, y2, color, word)
+        return _pyop.Op_FetchWord(self, x1, y1, x2, y2, color, word)
 
     def GetWordsNoDict(self, x1, y1, x2, y2, color):
-        return _pyop.libop_GetWordsNoDict(self, x1, y1, x2, y2, color)
+        return _pyop.Op_GetWordsNoDict(self, x1, y1, x2, y2, color)
 
     def GetWordResultCount(self, result):
-        return _pyop.libop_GetWordResultCount(self, result)
+        return _pyop.Op_GetWordResultCount(self, result)
 
     def GetWordResultPos(self, result, index):
-        return _pyop.libop_GetWordResultPos(self, result, index)
+        return _pyop.Op_GetWordResultPos(self, result, index)
 
     def GetWordResultStr(self, result, index):
-        return _pyop.libop_GetWordResultStr(self, result, index)
+        return _pyop.Op_GetWordResultStr(self, result, index)
 
     def Ocr(self, x1, y1, x2, y2, color, sim):
-        return _pyop.libop_Ocr(self, x1, y1, x2, y2, color, sim)
+        return _pyop.Op_Ocr(self, x1, y1, x2, y2, color, sim)
 
     def OcrEx(self, x1, y1, x2, y2, color, sim):
-        return _pyop.libop_OcrEx(self, x1, y1, x2, y2, color, sim)
+        return _pyop.Op_OcrEx(self, x1, y1, x2, y2, color, sim)
 
     def FindStr(self, x1, y1, x2, y2, strs, color, sim):
-        return _pyop.libop_FindStr(self, x1, y1, x2, y2, strs, color, sim)
+        return _pyop.Op_FindStr(self, x1, y1, x2, y2, strs, color, sim)
 
     def FindStrEx(self, x1, y1, x2, y2, strs, color, sim):
-        return _pyop.libop_FindStrEx(self, x1, y1, x2, y2, strs, color, sim)
+        return _pyop.Op_FindStrEx(self, x1, y1, x2, y2, strs, color, sim)
 
     def OcrAuto(self, x1, y1, x2, y2, sim):
-        return _pyop.libop_OcrAuto(self, x1, y1, x2, y2, sim)
+        return _pyop.Op_OcrAuto(self, x1, y1, x2, y2, sim)
 
     def OcrFromFile(self, file_name, color_format, sim):
-        return _pyop.libop_OcrFromFile(self, file_name, color_format, sim)
+        return _pyop.Op_OcrFromFile(self, file_name, color_format, sim)
 
     def OcrAutoFromFile(self, file_name, sim):
-        return _pyop.libop_OcrAutoFromFile(self, file_name, sim)
+        return _pyop.Op_OcrAutoFromFile(self, file_name, sim)
 
     def FindLine(self, x1, y1, x2, y2, color, sim):
-        return _pyop.libop_FindLine(self, x1, y1, x2, y2, color, sim)
+        return _pyop.Op_FindLine(self, x1, y1, x2, y2, color, sim)
 
     def WriteData(self, hwnd, address, data, size):
-        return _pyop.libop_WriteData(self, hwnd, address, data, size)
+        return _pyop.Op_WriteData(self, hwnd, address, data, size)
 
     def ReadData(self, hwnd, address, size):
-        return _pyop.libop_ReadData(self, hwnd, address, size)
+        return _pyop.Op_ReadData(self, hwnd, address, size)
+
+    def ReadInt(self, hwnd, address, type, ret):
+        return _pyop.Op_ReadInt(self, hwnd, address, type, ret)
+
+    def WriteInt(self, hwnd, address, type, value):
+        return _pyop.Op_WriteInt(self, hwnd, address, type, value)
+
+    def ReadFloat(self, hwnd, address, ret):
+        return _pyop.Op_ReadFloat(self, hwnd, address, ret)
+
+    def WriteFloat(self, hwnd, address, value):
+        return _pyop.Op_WriteFloat(self, hwnd, address, value)
+
+    def ReadDouble(self, hwnd, address, ret):
+        return _pyop.Op_ReadDouble(self, hwnd, address, ret)
+
+    def WriteDouble(self, hwnd, address, value):
+        return _pyop.Op_WriteDouble(self, hwnd, address, value)
+
+    def ReadString(self, hwnd, address, type, len):
+        return _pyop.Op_ReadString(self, hwnd, address, type, len)
+
+    def WriteString(self, hwnd, address, type, value):
+        return _pyop.Op_WriteString(self, hwnd, address, type, value)
 
     def RunApp(self, *args):
-        return _pyop.libop_RunApp(self, *args)
+        return _pyop.Op_RunApp(self, *args)
 
-# Register libop in _pyop:
-_pyop.libop_swigregister(libop)
+# Register Op in _pyop:
+_pyop.Op_swigregister(Op)
 

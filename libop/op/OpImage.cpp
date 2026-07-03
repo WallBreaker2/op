@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "capture/FrameInfo.h"
 #include "runtime/RuntimeUtils.h"
@@ -23,20 +23,20 @@ constexpr int SC_DATA_BOTTOM = 1;
 
 } // namespace
 
-void op::Client::EnablePicCache(long enable, long *ret) {
+void op::Op::EnablePicCache(long enable, long *ret) {
     m_context->image_proc._enable_cache = enable;
     internal::set_result(ret, 1L);
 }
 
-void op::Client::CapturePre(const wchar_t *file, LONG *ret) {
+void op::Op::CapturePre(const wchar_t *file, LONG *ret) {
     internal::set_result(ret, m_context->image_proc.Capture(file));
 }
 
-void op::Client::SetScreenDataMode(long mode, long *ret) {
+void op::Op::SetScreenDataMode(long mode, long *ret) {
     m_context->screen_data_mode = mode;
     internal::set_result(ret, 1L);
 }
-void op::Client::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_name, long *ret) {
+void op::Op::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_name, long *ret) {
 
     internal::set_result(ret, 0L);
 
@@ -51,7 +51,7 @@ void op::Client::Capture(long x1, long y1, long x2, long y2, const wchar_t *file
     }
 }
 // 比较指定坐标点(x,y)的颜色
-void op::Client::CmpColor(long x, long y, const wchar_t *color, double sim, long *ret) {
+void op::Op::CmpColor(long x, long y, const wchar_t *color, double sim, long *ret) {
     // LONG rx = -1, ry = -1;
     long tx = x + small_block_size, ty = y + small_block_size;
     internal::set_result(ret, 0L);
@@ -65,7 +65,7 @@ void op::Client::CmpColor(long x, long y, const wchar_t *color, double sim, long
     }
 }
 // 查找指定区域内的颜色
-void op::Client::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long dir, long *x, long *y,
+void op::Op::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long dir, long *x, long *y,
                            long *ret) {
 
     long found_x = -1;
@@ -86,7 +86,7 @@ void op::Client::FindColor(long x1, long y1, long x2, long y2, const wchar_t *co
     }
 }
 // 查找指定区域内的所有颜色
-void op::Client::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long dir,
+void op::Op::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long dir,
                         std::wstring &retstr) {
     // wstring str;
     retstr.clear();
@@ -100,7 +100,7 @@ void op::Client::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *
     }
 }
 // 根据指定的多点查找颜色坐标
-void op::Client::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color,
+void op::Op::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *first_color, const wchar_t *offset_color,
                            double sim, long dir, long *x, long *y, long *ret) {
 
     long found_x = -1;
@@ -129,7 +129,7 @@ void op::Client::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_
     }
 }
 // 根据指定的多点查找所有颜色坐标
-void op::Client::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *first_color,
+void op::Op::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t *first_color,
                              const wchar_t *offset_color, double sim, long dir, std::wstring &retstr) {
     retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -143,7 +143,7 @@ void op::Client::FindMultiColorEx(long x1, long y1, long x2, long y2, const wcha
     // retstr = str;
 }
 // 查找指定区域内的图片
-void op::Client::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
+void op::Op::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
                     long dir, long *x, long *y, long *ret) {
 
     long found_x = -1;
@@ -170,10 +170,10 @@ void op::Client::FindPic(long x1, long y1, long x2, long y2, const wchar_t *file
     }
 }
 // 查找多个图片
-void op::Client::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
+void op::Op::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
                       long dir, std::wstring &retstr) {
 
-    // wstring str;
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -182,12 +182,11 @@ void op::Client::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *fi
             m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr);
         }
     }
-    // retstr = str;
 }
 
-void op::Client::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
+void op::Op::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files, const wchar_t *delta_color, double sim,
                        long dir, std::wstring &retstr) {
-    // wstring str;
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -196,10 +195,9 @@ void op::Client::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *f
             m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr, false);
         }
     }
-    // retstr = str;
 }
 
-void op::Client::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
+void op::Op::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
                            long height, long width, long *x, long *y, long *ret) {
     long found_x = 0;
     long found_y = 0;
@@ -217,9 +215,10 @@ void op::Client::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_
     }
 }
 
-void op::Client::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
+void op::Op::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
                              long height, long width, std::wstring &retstr) {
 
+    retstr.clear();
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -231,7 +230,7 @@ void op::Client::FindColorBlockEx(long x1, long y1, long x2, long y2, const wcha
 }
 
 // 获取(x,y)的颜色
-void op::Client::GetColor(long x, long y, std::wstring &ret) {
+void op::Op::GetColor(long x, long y, std::wstring &ret) {
     color_t cr;
     auto tx = x + small_block_size, ty = y + small_block_size;
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x, y, tx, ty)) {
@@ -248,7 +247,7 @@ void op::Client::GetColor(long x, long y, std::wstring &ret) {
     ret = cr.towstr();
 }
 
-void op::Client::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long *ret) {
+void op::Op::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long *ret) {
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
         if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
             setlog("error requestCapture");
@@ -259,27 +258,27 @@ void op::Client::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *
     }
 }
 
-void op::Client::SetDisplayInput(const wchar_t *mode, long *ret) {
+void op::Op::SetDisplayInput(const wchar_t *mode, long *ret) {
     internal::set_result(ret, m_context->bkproc.set_display_method(mode));
 }
 
-void op::Client::LoadPic(const wchar_t *file_name, long *ret) {
+void op::Op::LoadPic(const wchar_t *file_name, long *ret) {
     internal::set_result(ret, m_context->image_proc.LoadPic(file_name));
 }
 
-void op::Client::FreePic(const wchar_t *file_name, long *ret) {
+void op::Op::FreePic(const wchar_t *file_name, long *ret) {
     internal::set_result(ret, m_context->image_proc.FreePic(file_name));
 }
 
-void op::Client::LoadMemPic(const wchar_t *file_name, void *data, long size, long *ret) {
+void op::Op::LoadMemPic(const wchar_t *file_name, void *data, long size, long *ret) {
     internal::set_result(ret, m_context->image_proc.LoadMemPic(file_name, data, size));
 }
 
-void op::Client::GetPicSize(const wchar_t *pic_name, long *width, long *height, long *ret) {
+void op::Op::GetPicSize(const wchar_t *pic_name, long *width, long *height, long *ret) {
     internal::set_result(ret, m_context->image_proc.GetPicSize(pic_name, width, height));
 }
 
-void op::Client::GetScreenData(long x1, long y1, long x2, long y2, size_t *data, long *ret) {
+void op::Op::GetScreenData(long x1, long y1, long x2, long y2, size_t *data, long *ret) {
     internal::set_result(data, 0);
     internal::set_result(ret, 0L);
     auto &img = m_context->image_proc._src;
@@ -304,7 +303,7 @@ void op::Client::GetScreenData(long x1, long y1, long x2, long y2, size_t *data,
     }
 }
 
-void op::Client::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t *data, long *size, long *ret) {
+void op::Op::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t *data, long *size, long *ret) {
     internal::set_result(data, 0);
     internal::set_result(size, 0L);
     internal::set_result(ret, 0L);
@@ -363,7 +362,7 @@ void op::Client::GetScreenDataBmp(long x1, long y1, long x2, long y2, size_t *da
     }
 }
 
-void op::Client::GetScreenFrameInfo(long *frame_id, long *time) {
+void op::Op::GetScreenFrameInfo(long *frame_id, long *time) {
     FrameInfo info = {};
     if (m_context->bkproc.IsBind()) {
         m_context->bkproc._capture->getFrameInfo(info);
@@ -372,7 +371,7 @@ void op::Client::GetScreenFrameInfo(long *frame_id, long *time) {
     internal::set_result(time, info.time);
 }
 
-void op::Client::MatchPicName(const wchar_t *pic_name, std::wstring &retstr) {
+void op::Op::MatchPicName(const wchar_t *pic_name, std::wstring &retstr) {
     retstr.clear();
     std::wstring s(pic_name);
     if (s.find(L'/') != s.npos || s.find(L'\\') != s.npos) {

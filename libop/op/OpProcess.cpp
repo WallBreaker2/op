@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "ipc/CommandRunner.h"
 #include "runtime/RuntimeUtils.h"
@@ -30,7 +30,7 @@ std::wstring decode_command_output(const std::string &text) {
 
 } // namespace
 
-void op::Client::InjectDll(const wchar_t *process_name, const wchar_t *dll_name, long *ret) {
+void op::Op::InjectDll(const wchar_t *process_name, const wchar_t *dll_name, long *ret) {
     LONG_PTR hwnd = 0;
     FindWindowByProcess(process_name, L"", L"", &hwnd);
     long pid = 0;
@@ -44,37 +44,37 @@ void op::Client::InjectDll(const wchar_t *process_name, const wchar_t *dll_name,
     }
 }
 
-void op::Client::EnumProcess(const wchar_t *name, std::wstring &retstring) {
+void op::Op::EnumProcess(const wchar_t *name, std::wstring &retstring) {
     m_context->window_service.EnumProcess(name, retstring);
 }
 
-void op::Client::GetProcessInfo(long pid, std::wstring &retstring) {
+void op::Op::GetProcessInfo(long pid, std::wstring &retstring) {
     m_context->window_service.GetProcessInfo(pid, retstring);
 }
 
-void op::Client::GetWindowProcessId(LONG_PTR hwnd, long *nretpid) {
+void op::Op::GetWindowProcessId(LONG_PTR hwnd, long *nretpid) {
     DWORD pid = 0;
     ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     internal::set_result(nretpid, pid);
 }
 
-void op::Client::GetWindowProcessPath(LONG_PTR hwnd, std::wstring &retstring) {
+void op::Op::GetWindowProcessPath(LONG_PTR hwnd, std::wstring &retstring) {
     DWORD pid = 0;
     ::GetWindowThreadProcessId(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), &pid);
     m_context->window_service.GetProcesspath(pid, retstring);
 }
 
-void op::Client::RunApp(const wchar_t *cmdline, long mode, unsigned long *pid, long *ret) {
+void op::Op::RunApp(const wchar_t *cmdline, long mode, unsigned long *pid, long *ret) {
     // 成功时返回新进程 pid，失败时返回 0。
     internal::set_result(ret, m_context->window_service.RunApp(cmdline, mode, pid));
 }
 
-void op::Client::WinExec(const wchar_t *cmdline, long cmdshow, long *ret) {
+void op::Op::WinExec(const wchar_t *cmdline, long cmdshow, long *ret) {
     auto str = _ws2string(cmdline);
     internal::set_result(ret, ::WinExec(str.c_str(), cmdshow) > 31 ? 1 : 0);
 }
 
-void op::Client::GetCmdStr(const wchar_t *cmd, long millseconds, std::wstring &retstr) {
+void op::Op::GetCmdStr(const wchar_t *cmd, long millseconds, std::wstring &retstr) {
     CommandRunner command_runner;
     auto str = command_runner.GetCmdStr(cmd ? std::wstring(cmd) : std::wstring(),
                                         millseconds <= 0 ? 5 : static_cast<DWORD>(millseconds));

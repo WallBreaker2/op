@@ -3,6 +3,7 @@
 #define OP_IMAGE_IMAGE_H_
 #include "../runtime/Types.h"
 #include <atlimage.h>
+#include <limits>
 #include <vector>
 
 namespace image_detail {
@@ -88,6 +89,26 @@ class StreamPtr {
     IStream *stream_ = nullptr;
 };
 
+inline size_t CheckedImageBytes(int w, int h, int bytes_per_pixel) {
+    // 图像尺寸来自截图和外部文件，先统一校验，避免乘法溢出后分配到错误大小。
+    if (w <= 0 || h <= 0 || bytes_per_pixel <= 0)
+        throw("invalid image size");
+
+    const auto width = static_cast<size_t>(w);
+    const auto height = static_cast<size_t>(h);
+    const auto bpp = static_cast<size_t>(bytes_per_pixel);
+    const size_t max_size = (std::numeric_limits<size_t>::max)();
+    if (width > max_size / height || width * height > max_size / bpp) {
+        throw("image size overflow");
+    }
+    return width * height * bpp;
+}
+
+inline bool IsSupportedImageFormat(const ATL::CImage &img) {
+    const int pix_size = img.GetBPP() / 8;
+    return img.GetWidth() > 0 && img.GetHeight() > 0 && (pix_size == 1 || pix_size == 3 || pix_size == 4);
+}
+
 } // namespace image_detail
 
 namespace op {
@@ -115,14 +136,13 @@ struct Image {
     }
 
     void create(int w, int h) {
-        width = w, height = h;
-        if (!pdata) {
-            pdata = (unsigned char *)malloc(w * h * 4);
-        } else {
-            pdata = (unsigned char *)realloc(pdata, w * h * 4);
-        }
-        if (pdata == nullptr)
+        const size_t bytes = image_detail::CheckedImageBytes(w, h, 4);
+        void *new_data = pdata ? realloc(pdata, bytes) : malloc(bytes);
+        if (new_data == nullptr)
             throw("memory not enough");
+        pdata = static_cast<unsigned char *>(new_data);
+        width = w;
+        height = h;
     }
     void release() {
         width = height = 0;
@@ -131,7 +151,7 @@ struct Image {
         pdata = nullptr;
     }
 
-    int size() {
+    int size() const {
         return width * height;
     }
     void clear() {
@@ -156,6 +176,8 @@ struct Image {
         ATL::CImage img;
         HRESULT hr = img.Load(file);
         if (hr == S_OK) {
+            if (!image_detail::IsSupportedImageFormat(img))
+                return false;
             create(img.GetWidth(), img.GetHeight());
             translate((unsigned char *)img.GetBits(), img.GetBPP() / 8, img.GetPitch());
             return true;
@@ -199,6 +221,11 @@ struct Image {
     }
 
     bool read(ATL::CImage *img) {
+        if (!img)
+            return false;
+        if (!image_detail::IsSupportedImageFormat(*img))
+            return false;
+        create(img->GetWidth(), img->GetHeight());
         translate((unsigned char *)img->GetBits(), img->GetBPP() / 8, img->GetPitch());
         return true;
     }
@@ -308,8 +335,10 @@ struct ImageBin {
         this->pixels = rhs.pixels;
     }
     void create(int w, int h) {
-        width = w, height = h;
-        pixels.resize(w * h);
+        image_detail::CheckedImageBytes(w, h, 1);
+        width = w;
+        height = h;
+        pixels.resize(static_cast<size_t>(w) * static_cast<size_t>(h));
     }
     void clear() {
         width = height = 0;

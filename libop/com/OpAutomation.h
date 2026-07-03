@@ -1,4 +1,4 @@
-﻿// OpAutomation.h: OpAutomation 的声明
+// OpAutomation.h: OpAutomation 的声明
 
 #pragma once
 #include "resource.h" // 主符号
@@ -49,7 +49,7 @@ class ATL_NO_VTABLE OpAutomation
     }
 
   private:
-    op::Client obj;
+    op::Op obj;
 
   public:
     //---------------基本设置/属性-------------------
@@ -326,6 +326,27 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(GetNowDict)(LONG *ret);
     // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
     STDMETHOD(FetchWord)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR word, BSTR *ret_str);
+    STDMETHOD(FetchWordEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR word, BSTR *ret_str);
+    STDMETHOD(ExtractWordRects)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG min_word_h,
+                                BSTR *ret_str);
+    STDMETHOD(ExtractWordRectsEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, LONG min_word_w,
+                                  LONG min_word_h, LONG padding, BSTR *ret_str);
+    STDMETHOD(FetchWords)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words, LONG min_word_h,
+                          BSTR *ret_str);
+    STDMETHOD(FetchWordsEx)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words, LONG min_word_w,
+                            LONG min_word_h, LONG padding, BSTR *ret_str);
+    STDMETHOD(FetchWordsByRects)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words, BSTR rects,
+                                 BSTR *ret_str);
+    STDMETHOD(GetBinaryPreview)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR *ret_str,
+                                LONG *ret);
+    STDMETHOD(GetWordPreview)(BSTR dict_info, BSTR *ret_str, LONG *ret);
+    STDMETHOD(CheckWordDict)(BSTR dict_info, BSTR *ret_str, LONG *ret);
+    STDMETHOD(NormalizeWordDict)(BSTR dict_info, BSTR *ret_str, LONG *ret);
+    STDMETHOD(RenameWordDict)(BSTR dict_info, BSTR words, BSTR *ret_str, LONG *ret);
+    STDMETHOD(SetBinaryPreprocess)(LONG mode, LONG isolated_threshold, LONG min_component_area, LONG bridge_gap,
+                                   LONG *ret);
+    STDMETHOD(GetBinaryPreprocess)(LONG *mode, LONG *isolated_threshold, LONG *min_component_area, LONG *bridge_gap,
+                                   LONG *ret);
     // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
     STDMETHOD(GetWordsNoDict)(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR *ret_str);
     // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算

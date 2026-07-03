@@ -1,4 +1,4 @@
-#include "ClientContext.h"
+#include "OpContext.h"
 
 #include "runtime/RuntimeEnvironment.h"
 
@@ -29,7 +29,7 @@ std::wstring current_directory() {
 
 } // namespace
 
-op::internal::ClientContext::ClientContext(int client_id) : id(client_id) {
+op::internal::OpContext::OpContext(int client_id) : id(client_id) {
     // 将进程默认 DPI 感知设置为系统 DPI 感知
     ::SetProcessDPIAware();
 

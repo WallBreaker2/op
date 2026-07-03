@@ -2467,7 +2467,7 @@ TEST(OpenCvTest, FilePreprocessApisWork) {
     const std::wstring pipeline_path = test_support::GetTempBmpPath(L"opencv_preprocess_pipeline.png");
     ASSERT_TRUE(WritePngFile(src_path, writable));
 
-    op::Client op;
+    op::Op op;
     long ret = 0;
     op.CvToBinary(src_path.c_str(), binary_path.c_str(), &ret);
     EXPECT_EQ(ret, 1);
