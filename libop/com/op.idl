@@ -1,8 +1,8 @@
-// op.idl: op 的 IDL 源
+// op.idl: IDL source for op.
 //
 
-// 此文件将由 MIDL 工具处理以
-// 生成类型库(op.tlb)和封送处理代码。
+// This file is processed by MIDL to generate the type library
+// (op.tlb) and proxy/stub marshaling code.
 
 import "oaidl.idl";
 import "ocidl.idl";
