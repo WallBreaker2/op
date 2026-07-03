@@ -312,7 +312,7 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG *ret);
     STDMETHOD(GetDict)(LONG idx, LONG font_index, BSTR *ret_str);
     // 设置内存字库文件
-    STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG *ret);
+    STDMETHOD(SetMemDict)(LONG idx, SAFEARRAY *data, LONG *ret);
     // 使用哪个字库文件进行识别
     STDMETHOD(UseDict)(LONG idx, LONG *ret);
     // 给指定的字库中添加一条字库信息

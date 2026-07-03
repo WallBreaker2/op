@@ -155,8 +155,8 @@ void op::Op::GetDict(long idx, long font_index, std::wstring &retstr) {
 }
 
 // 设置内存字库文件
-void op::Op::SetMemDict(long idx, const wchar_t *data, long size, long *ret) {
-    internal::set_result(ret, m_context->image_proc.SetMemDict(idx, (void *)data, size));
+void op::Op::SetMemDict(long idx, const void *data, long size, long *ret) {
+    internal::set_result(ret, m_context->image_proc.SetMemDict(idx, data, size));
 }
 
 // 使用哪个字库文件进行识别

@@ -13389,16 +13389,14 @@ SWIGINTERN PyObject *_wrap_Op_SetMemDict(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   op::Op *arg1 = 0 ;
   long arg2 ;
-  wchar_t *arg3 = 0 ;
+  void *arg3 = 0 ;
   long arg4 ;
   long *arg5 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   long val2 ;
   int ecode2 = 0 ;
-  int res3 ;
-  wchar_t *buf3 = 0 ;
-  int alloc3 = 0 ;
+  Py_buffer view3 ;
   long val4 ;
   int ecode4 = 0 ;
   long temp5 ;
@@ -13418,17 +13416,18 @@ SWIGINTERN PyObject *_wrap_Op_SetMemDict(PyObject *self, PyObject *args) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_SetMemDict" "', argument " "2"" of type '" "long""'");
   }
   arg2 = static_cast< long >(val2);
-  res3 = SWIG_AsWCharPtrAndSize(swig_obj[2], &buf3, NULL, &alloc3);
-  if (!SWIG_IsOK(res3)) {
-    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Op_SetMemDict" "', argument " "3"" of type '" "wchar_t const *""'");
+  {
+    if (PyObject_GetBuffer(swig_obj[2], &view3, PyBUF_SIMPLE) != 0) {
+      SWIG_exception_fail(SWIG_TypeError, "expected a bytes-like object");
+    }
+    arg3 = view3.buf;
   }
-  arg3 = reinterpret_cast< wchar_t * >(buf3);
   ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_SetMemDict" "', argument " "4"" of type '" "long""'");
   }
   arg4 = static_cast< long >(val4);
-  (arg1)->SetMemDict(arg2,(wchar_t const *)arg3,arg4,arg5);
+  (arg1)->SetMemDict(arg2,(void const *)arg3,arg4,arg5);
   resultobj = SWIG_Py_Void();
   if (SWIG_IsTmpObj(res5)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)), 1);
@@ -13436,10 +13435,14 @@ SWIGINTERN PyObject *_wrap_Op_SetMemDict(PyObject *self, PyObject *args) {
     int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags), 1);
   }
-  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  {
+    PyBuffer_Release(&view3);
+  }
   return resultobj;
 fail:
-  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  {
+    PyBuffer_Release(&view3);
+  }
   return NULL;
 }
 
@@ -13699,6 +13702,143 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Op_SetBinaryPreprocess(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  long *arg6 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[5] ;
+
+  arg6 = &temp6;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_SetBinaryPreprocess", 5, 5, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_SetBinaryPreprocess" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_SetBinaryPreprocess" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_SetBinaryPreprocess" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_SetBinaryPreprocess" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_SetBinaryPreprocess" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  (arg1)->SetBinaryPreprocess(arg2,arg3,arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_GetBinaryPreprocess(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long *arg2 = 0 ;
+  long *arg3 = 0 ;
+  long *arg4 = 0 ;
+  long *arg5 = 0 ;
+  long *arg6 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long temp2 ;
+  int res2 = SWIG_TMPOBJ ;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  long temp6 ;
+  int res6 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[1] ;
+
+  arg2 = &temp2;
+  arg3 = &temp3;
+  arg4 = &temp4;
+  arg5 = &temp5;
+  arg6 = &temp6;
+  (void)self;
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_GetBinaryPreprocess" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  (arg1)->GetBinaryPreprocess(arg2,arg3,arg4,arg5,arg6);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res2)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg2)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res2) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg2), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res6)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg6)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_long, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Op_FetchWord(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   op::Op *arg1 = 0 ;
@@ -13781,6 +13921,939 @@ SWIGINTERN PyObject *_wrap_Op_FetchWord(PyObject *self, PyObject *args) {
 fail:
   if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
   if (alloc7 == SWIG_NEWOBJ) delete[] buf7;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_FetchWordEx(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  wchar_t *arg8 = 0 ;
+  std::wstring *arg9 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  wchar_t *buf8 = 0 ;
+  int alloc8 = 0 ;
+  std::wstring temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
+
+  arg9 = &temp9;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_FetchWordEx", 8, 8, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_FetchWordEx" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_FetchWordEx" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_FetchWordEx" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_FetchWordEx" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_FetchWordEx" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_FetchWordEx" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_FetchWordEx" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  res8 = SWIG_AsWCharPtrAndSize(swig_obj[7], &buf8, NULL, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "Op_FetchWordEx" "', argument " "8"" of type '" "wchar_t const *""'");
+  }
+  arg8 = reinterpret_cast< wchar_t * >(buf8);
+  (arg1)->FetchWordEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,(wchar_t const *)arg8,*arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg9)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_ExtractWordRects(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  long arg8 ;
+  std::wstring *arg9 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  std::wstring temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[8] ;
+
+  arg9 = &temp9;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_ExtractWordRects", 8, 8, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_ExtractWordRects" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_ExtractWordRects" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_ExtractWordRects" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_ExtractWordRects" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_ExtractWordRects" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_ExtractWordRects" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_ExtractWordRects" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  ecode8 = SWIG_AsVal_long(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Op_ExtractWordRects" "', argument " "8"" of type '" "long""'");
+  }
+  arg8 = static_cast< long >(val8);
+  (arg1)->ExtractWordRects(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,*arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg9)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_ExtractWordRectsEx(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  long arg8 ;
+  long arg9 ;
+  long arg10 ;
+  std::wstring *arg11 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  long val8 ;
+  int ecode8 = 0 ;
+  long val9 ;
+  int ecode9 = 0 ;
+  long val10 ;
+  int ecode10 = 0 ;
+  std::wstring temp11 ;
+  int res11 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[10] ;
+
+  arg11 = &temp11;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_ExtractWordRectsEx", 10, 10, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_ExtractWordRectsEx" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_ExtractWordRectsEx" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_ExtractWordRectsEx" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_ExtractWordRectsEx" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_ExtractWordRectsEx" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_ExtractWordRectsEx" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_ExtractWordRectsEx" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  ecode8 = SWIG_AsVal_long(swig_obj[7], &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Op_ExtractWordRectsEx" "', argument " "8"" of type '" "long""'");
+  }
+  arg8 = static_cast< long >(val8);
+  ecode9 = SWIG_AsVal_long(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Op_ExtractWordRectsEx" "', argument " "9"" of type '" "long""'");
+  }
+  arg9 = static_cast< long >(val9);
+  ecode10 = SWIG_AsVal_long(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Op_ExtractWordRectsEx" "', argument " "10"" of type '" "long""'");
+  }
+  arg10 = static_cast< long >(val10);
+  (arg1)->ExtractWordRectsEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,arg8,arg9,arg10,*arg11);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res11)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg11)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res11) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg11), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_FetchWords(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  wchar_t *arg8 = 0 ;
+  long arg9 ;
+  std::wstring *arg10 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  wchar_t *buf8 = 0 ;
+  int alloc8 = 0 ;
+  long val9 ;
+  int ecode9 = 0 ;
+  std::wstring temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
+
+  arg10 = &temp10;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_FetchWords", 9, 9, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_FetchWords" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_FetchWords" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_FetchWords" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_FetchWords" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_FetchWords" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_FetchWords" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_FetchWords" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  res8 = SWIG_AsWCharPtrAndSize(swig_obj[7], &buf8, NULL, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "Op_FetchWords" "', argument " "8"" of type '" "wchar_t const *""'");
+  }
+  arg8 = reinterpret_cast< wchar_t * >(buf8);
+  ecode9 = SWIG_AsVal_long(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Op_FetchWords" "', argument " "9"" of type '" "long""'");
+  }
+  arg9 = static_cast< long >(val9);
+  (arg1)->FetchWords(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,(wchar_t const *)arg8,arg9,*arg10);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg10)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_FetchWordsEx(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  wchar_t *arg8 = 0 ;
+  long arg9 ;
+  long arg10 ;
+  long arg11 ;
+  std::wstring *arg12 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  wchar_t *buf8 = 0 ;
+  int alloc8 = 0 ;
+  long val9 ;
+  int ecode9 = 0 ;
+  long val10 ;
+  int ecode10 = 0 ;
+  long val11 ;
+  int ecode11 = 0 ;
+  std::wstring temp12 ;
+  int res12 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[11] ;
+
+  arg12 = &temp12;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_FetchWordsEx", 11, 11, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_FetchWordsEx" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_FetchWordsEx" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_FetchWordsEx" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_FetchWordsEx" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_FetchWordsEx" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_FetchWordsEx" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_FetchWordsEx" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  res8 = SWIG_AsWCharPtrAndSize(swig_obj[7], &buf8, NULL, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "Op_FetchWordsEx" "', argument " "8"" of type '" "wchar_t const *""'");
+  }
+  arg8 = reinterpret_cast< wchar_t * >(buf8);
+  ecode9 = SWIG_AsVal_long(swig_obj[8], &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Op_FetchWordsEx" "', argument " "9"" of type '" "long""'");
+  }
+  arg9 = static_cast< long >(val9);
+  ecode10 = SWIG_AsVal_long(swig_obj[9], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Op_FetchWordsEx" "', argument " "10"" of type '" "long""'");
+  }
+  arg10 = static_cast< long >(val10);
+  ecode11 = SWIG_AsVal_long(swig_obj[10], &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Op_FetchWordsEx" "', argument " "11"" of type '" "long""'");
+  }
+  arg11 = static_cast< long >(val11);
+  (arg1)->FetchWordsEx(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,(wchar_t const *)arg8,arg9,arg10,arg11,*arg12);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res12)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg12)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res12) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg12), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_FetchWordsByRects(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  wchar_t *arg8 = 0 ;
+  wchar_t *arg9 = 0 ;
+  std::wstring *arg10 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  int res8 ;
+  wchar_t *buf8 = 0 ;
+  int alloc8 = 0 ;
+  int res9 ;
+  wchar_t *buf9 = 0 ;
+  int alloc9 = 0 ;
+  std::wstring temp10 ;
+  int res10 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[9] ;
+
+  arg10 = &temp10;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_FetchWordsByRects", 9, 9, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_FetchWordsByRects" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_FetchWordsByRects" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_FetchWordsByRects" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_FetchWordsByRects" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_FetchWordsByRects" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_FetchWordsByRects" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_FetchWordsByRects" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  res8 = SWIG_AsWCharPtrAndSize(swig_obj[7], &buf8, NULL, &alloc8);
+  if (!SWIG_IsOK(res8)) {
+    SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "Op_FetchWordsByRects" "', argument " "8"" of type '" "wchar_t const *""'");
+  }
+  arg8 = reinterpret_cast< wchar_t * >(buf8);
+  res9 = SWIG_AsWCharPtrAndSize(swig_obj[8], &buf9, NULL, &alloc9);
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "Op_FetchWordsByRects" "', argument " "9"" of type '" "wchar_t const *""'");
+  }
+  arg9 = reinterpret_cast< wchar_t * >(buf9);
+  (arg1)->FetchWordsByRects(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,(wchar_t const *)arg8,(wchar_t const *)arg9,*arg10);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res10)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg10)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res10) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg10), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  if (alloc9 == SWIG_NEWOBJ) delete[] buf9;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  if (alloc8 == SWIG_NEWOBJ) delete[] buf8;
+  if (alloc9 == SWIG_NEWOBJ) delete[] buf9;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_GetBinaryPreview(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  wchar_t *arg6 = 0 ;
+  double arg7 ;
+  std::wstring *arg8 = 0 ;
+  long *arg9 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  int res6 ;
+  wchar_t *buf6 = 0 ;
+  int alloc6 = 0 ;
+  double val7 ;
+  int ecode7 = 0 ;
+  std::wstring temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  long temp9 ;
+  int res9 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[7] ;
+
+  arg8 = &temp8;
+  arg9 = &temp9;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_GetBinaryPreview", 7, 7, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_GetBinaryPreview" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_GetBinaryPreview" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_GetBinaryPreview" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_GetBinaryPreview" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_GetBinaryPreview" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  res6 = SWIG_AsWCharPtrAndSize(swig_obj[5], &buf6, NULL, &alloc6);
+  if (!SWIG_IsOK(res6)) {
+    SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "Op_GetBinaryPreview" "', argument " "6"" of type '" "wchar_t const *""'");
+  }
+  arg6 = reinterpret_cast< wchar_t * >(buf6);
+  ecode7 = SWIG_AsVal_double(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_GetBinaryPreview" "', argument " "7"" of type '" "double""'");
+  }
+  arg7 = static_cast< double >(val7);
+  (arg1)->GetBinaryPreview(arg2,arg3,arg4,arg5,(wchar_t const *)arg6,arg7,*arg8,arg9);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg8)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res9)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg9)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return resultobj;
+fail:
+  if (alloc6 == SWIG_NEWOBJ) delete[] buf6;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_GetWordPreview(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  std::wstring *arg3 = 0 ;
+  long *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
+
+  arg3 = &temp3;
+  arg4 = &temp4;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_GetWordPreview", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_GetWordPreview" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_GetWordPreview" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  (arg1)->GetWordPreview((wchar_t const *)arg2,*arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_CheckWordDict(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  std::wstring *arg3 = 0 ;
+  long *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
+
+  arg3 = &temp3;
+  arg4 = &temp4;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_CheckWordDict", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_CheckWordDict" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_CheckWordDict" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  (arg1)->CheckWordDict((wchar_t const *)arg2,*arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_NormalizeWordDict(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  std::wstring *arg3 = 0 ;
+  long *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  std::wstring temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
+
+  arg3 = &temp3;
+  arg4 = &temp4;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_NormalizeWordDict", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_NormalizeWordDict" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_NormalizeWordDict" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  (arg1)->NormalizeWordDict((wchar_t const *)arg2,*arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg3)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_RenameWordDict(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  wchar_t *arg3 = 0 ;
+  std::wstring *arg4 = 0 ;
+  long *arg5 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  wchar_t *buf3 = 0 ;
+  int alloc3 = 0 ;
+  std::wstring temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
+
+  arg4 = &temp4;
+  arg5 = &temp5;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_RenameWordDict", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_RenameWordDict" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_RenameWordDict" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  res3 = SWIG_AsWCharPtrAndSize(swig_obj[2], &buf3, NULL, &alloc3);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Op_RenameWordDict" "', argument " "3"" of type '" "wchar_t const *""'");
+  }
+  arg3 = reinterpret_cast< wchar_t * >(buf3);
+  (arg1)->RenameWordDict((wchar_t const *)arg2,(wchar_t const *)arg3,*arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return NULL;
 }
 
@@ -15584,7 +16657,20 @@ static PyMethodDef SwigMethods[] = {
 	 { "Op_ClearDict", _wrap_Op_ClearDict, METH_VARARGS, NULL},
 	 { "Op_GetDictCount", _wrap_Op_GetDictCount, METH_VARARGS, NULL},
 	 { "Op_GetNowDict", _wrap_Op_GetNowDict, METH_O, NULL},
+	 { "Op_SetBinaryPreprocess", _wrap_Op_SetBinaryPreprocess, METH_VARARGS, NULL},
+	 { "Op_GetBinaryPreprocess", _wrap_Op_GetBinaryPreprocess, METH_O, NULL},
 	 { "Op_FetchWord", _wrap_Op_FetchWord, METH_VARARGS, NULL},
+	 { "Op_FetchWordEx", _wrap_Op_FetchWordEx, METH_VARARGS, NULL},
+	 { "Op_ExtractWordRects", _wrap_Op_ExtractWordRects, METH_VARARGS, NULL},
+	 { "Op_ExtractWordRectsEx", _wrap_Op_ExtractWordRectsEx, METH_VARARGS, NULL},
+	 { "Op_FetchWords", _wrap_Op_FetchWords, METH_VARARGS, NULL},
+	 { "Op_FetchWordsEx", _wrap_Op_FetchWordsEx, METH_VARARGS, NULL},
+	 { "Op_FetchWordsByRects", _wrap_Op_FetchWordsByRects, METH_VARARGS, NULL},
+	 { "Op_GetBinaryPreview", _wrap_Op_GetBinaryPreview, METH_VARARGS, NULL},
+	 { "Op_GetWordPreview", _wrap_Op_GetWordPreview, METH_VARARGS, NULL},
+	 { "Op_CheckWordDict", _wrap_Op_CheckWordDict, METH_VARARGS, NULL},
+	 { "Op_NormalizeWordDict", _wrap_Op_NormalizeWordDict, METH_VARARGS, NULL},
+	 { "Op_RenameWordDict", _wrap_Op_RenameWordDict, METH_VARARGS, NULL},
 	 { "Op_GetWordsNoDict", _wrap_Op_GetWordsNoDict, METH_VARARGS, NULL},
 	 { "Op_GetWordResultCount", _wrap_Op_GetWordResultCount, METH_VARARGS, NULL},
 	 { "Op_GetWordResultPos", _wrap_Op_GetWordResultPos, METH_VARARGS, NULL},

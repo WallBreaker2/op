@@ -360,14 +360,20 @@ std::wstring ImageSearchService::GetDict(long idx, long font_index) {
     return dict->words[font_index].to_string();
 }
 
-long ImageSearchService::SetMemDict(int idx, void *data, long size) {
-    if (idx < 0 || idx >= _max_dict)
+long ImageSearchService::SetMemDict(int idx, const void *data, long size) {
+    if (idx < 0 || idx >= _max_dict || !data || size <= 0)
         return 0;
-    auto &dict = _private_dicts[idx];
-    dict.clear();
-    dict.read_memory_dict_dm((const char *)data, size);
-    _private_dict_overrides[idx] = true;
-    return dict.empty() ? 0 : 1;
+
+    auto dict = std::make_shared<Dictionary>();
+    if (!dict->read_memory_dict(data, static_cast<size_t>(size)) || dict->empty())
+        return 0;
+
+    if (!store_global_file_dict(idx, dict))
+        return 0;
+
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = false;
+    return 1;
 }
 
 long ImageSearchService::UseDict(int idx) {

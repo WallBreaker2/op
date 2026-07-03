@@ -1015,8 +1015,8 @@ const wchar_t *OP_CALL OpGetDict(op_handle handle, int idx, int font_index) {
     return call_string(handle, [&](op::Op &op, std::wstring &ret) { op.GetDict(idx, font_index, ret); });
 }
 
-int OP_CALL OpSetMemDict(op_handle handle, int idx, const wchar_t *data, int size) {
-    return call_ret(handle, [&](op::Op &op, long *ret) { op.SetMemDict(idx, safe_text(data), size, ret); });
+int OP_CALL OpSetMemDict(op_handle handle, int idx, const void *data, int size) {
+    return call_ret(handle, [&](op::Op &op, long *ret) { op.SetMemDict(idx, data, size, ret); });
 }
 
 int OP_CALL OpUseDict(op_handle handle, int idx) {

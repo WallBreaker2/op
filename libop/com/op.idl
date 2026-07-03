@@ -185,7 +185,7 @@ interface IOpAutomation : IDispatch
 	[id(211)] HRESULT SetYoloEngine([in] BSTR path_of_engine, [in] BSTR dll_name, [in] BSTR argv, [out, retval] LONG* ret);
 	[id(212)] HRESULT YoloDetect([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] DOUBLE conf, [in] DOUBLE iou, [out] BSTR* retjson, [out, retval] LONG* ret);
 	[id(213)] HRESULT YoloDetectFromFile([in] BSTR file_name, [in] DOUBLE conf, [in] DOUBLE iou, [out] BSTR* retjson, [out, retval] LONG* ret);
-	[id(220)] HRESULT SetMemDict([in] LONG idx, [in]BSTR data, [in]LONG size, [out, retval] LONG* ret);
+	[id(220)] HRESULT SetMemDict([in] LONG idx, [in] SAFEARRAY(BYTE) data, [out, retval] LONG* ret);
 	[id(221)] HRESULT GetDict([in] LONG idx, [in] LONG font_index, [out, retval] BSTR* retstr);
 	[id(222)] HRESULT AddDict([in] LONG idx, [in] BSTR dict_info, [out, retval] LONG* ret);
 	[id(223)] HRESULT SaveDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);

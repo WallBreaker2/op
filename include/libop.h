@@ -442,7 +442,7 @@ class OP_API Op {
     // 获取指定字库中指定条目的字库信息
     void GetDict(_In_ long idx, _In_ long font_index, _Out_ std::wstring &retstr);
     // 设置内存字库文件
-    void SetMemDict(_In_ long idx, _In_ const wchar_t *data, _In_ long size, _Out_ long *ret);
+    void SetMemDict(_In_ long idx, _In_reads_bytes_(size) const void *data, _In_ long size, _Out_ long *ret);
     // 使用哪个字库文件进行识别
     void UseDict(_In_ long idx, _Out_ long *ret);
     // 给指定的字库中添加一条字库信息

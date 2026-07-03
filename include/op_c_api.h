@@ -265,7 +265,7 @@ OP_C_API const wchar_t *OP_CALL OpYoloDetectFromFile(op_handle handle, const wch
                                                      double iou);
 OP_C_API int OP_CALL OpSetDict(op_handle handle, int idx, const wchar_t *file_name);
 OP_C_API const wchar_t *OP_CALL OpGetDict(op_handle handle, int idx, int font_index);
-OP_C_API int OP_CALL OpSetMemDict(op_handle handle, int idx, const wchar_t *data, int size);
+OP_C_API int OP_CALL OpSetMemDict(op_handle handle, int idx, const void *data, int size);
 OP_C_API int OP_CALL OpUseDict(op_handle handle, int idx);
 OP_C_API int OP_CALL OpAddDict(op_handle handle, int idx, const wchar_t *dict_info);
 OP_C_API int OP_CALL OpSaveDict(op_handle handle, int idx, const wchar_t *file_name);

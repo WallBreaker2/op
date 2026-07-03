@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import locale
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -1090,9 +1091,20 @@ class Op:
     def get_dict(self, idx: int, font_index: int) -> str:
         return self._call_string("OpGetDict", int(idx), int(font_index))
 
-    def set_mem_dict(self, idx: int, data: str, size: int | None = None) -> bool:
-        data_size = len(data) if size is None else int(size)
-        return self._call_ok("OpSetMemDict", int(idx), data, data_size)
+    def set_mem_dict(self, idx: int, data: str | bytes | bytearray | memoryview | int, size: int | None = None) -> bool:
+        self._check_open()
+        if isinstance(data, int):
+            if size is None:
+                raise ValueError("size is required when data is a pointer")
+            ptr = ctypes.c_void_p(data)
+            data_size = int(size)
+        else:
+            raw = data.encode(locale.getpreferredencoding(False)) if isinstance(data, str) else bytes(data)
+            buffer = ctypes.create_string_buffer(raw)
+            ptr = ctypes.cast(buffer, ctypes.c_void_p)
+            data_size = len(raw) if size is None else int(size)
+        ok = self._dll.OpSetMemDict(self._handle, int(idx), ptr, data_size)
+        return self._ok(ok, "OpSetMemDict")
 
     def use_dict(self, idx: int) -> bool:
         return self._call_ok("OpUseDict", int(idx))
