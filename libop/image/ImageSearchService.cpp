@@ -3,6 +3,7 @@
 #include "../runtime/RuntimeUtils.h"
 #include "../ocr/OcrService.h"
 #include <algorithm>
+#include <array>
 #include <bitset>
 #include <cmath>
 #include <filesystem>
@@ -23,6 +24,10 @@ namespace {
 std::map<wstring, std::shared_ptr<Image>> g_pic_cache;
 std::map<wstring, std::shared_ptr<PicMatchTemplate>> g_pic_match_cache;
 std::shared_mutex g_pic_cache_mutex;
+
+// SetDict 加载的是文件字库，放在进程级槽位中，多个 Op 对象可以直接复用。
+std::array<std::shared_ptr<Dictionary>, ImageSearchService::_max_dict> g_file_dicts;
+std::shared_mutex g_file_dict_mutex;
 
 template <typename Target, typename Value> bool set_out(Target *target, Value value) {
     if (!target)
@@ -141,10 +146,37 @@ std::shared_ptr<Image> read_mem_pic(void *data, long size) {
         return nullptr;
     return image;
 }
+
+std::shared_ptr<Dictionary> find_global_file_dict(int idx) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict)
+        return nullptr;
+
+    std::shared_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    return g_file_dicts[static_cast<size_t>(idx)];
+}
+
+bool store_global_file_dict(int idx, std::shared_ptr<Dictionary> dict) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict || !dict || dict->empty())
+        return false;
+
+    std::unique_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    g_file_dicts[static_cast<size_t>(idx)] = std::move(dict);
+    return true;
+}
+
+void clear_global_file_dict(int idx) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict)
+        return;
+
+    std::unique_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    g_file_dicts[static_cast<size_t>(idx)].reset();
+}
 } // namespace
 
 ImageSearchService::ImageSearchService() {
     _curr_idx = 0;
+    for (bool &it : _private_dict_overrides)
+        it = false;
     _enable_cache = 1;
     _binary_preprocess_mode = 0;
     _binary_isolated_threshold = 0;
@@ -299,33 +331,43 @@ long ImageSearchService::GetColorNum(const wstring &color, double sim) {
 long ImageSearchService::SetDict(int idx, const wstring &file_name) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    _dicts[idx].clear();
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = false;
     wstring fullpath;
     if (Path2GlobalPath(file_name, _curr_path, fullpath)) {
+        auto dict = std::make_shared<Dictionary>();
         // SetDict 按文件内容识别：OP 二进制 .dict 优先，失败后兼容大漠 txt。
-        _dicts[idx].read_dict(fullpath);
+        dict->read_dict(fullpath);
+        if (store_global_file_dict(idx, dict))
+            return 1;
+        clear_global_file_dict(idx);
+        return 0;
     } else {
+        clear_global_file_dict(idx);
         setlog(L"file '%s' does not exist", file_name.c_str());
     }
 
-    return _dicts[idx].empty() ? 0 : 1;
+    return 0;
 }
 
 std::wstring ImageSearchService::GetDict(long idx, long font_index) {
     wstring tp;
     if (idx < 0 || idx >= _max_dict)
         return tp;
-    if (font_index < 0 || static_cast<size_t>(font_index) >= _dicts[idx].words.size())
+    auto dict = ActiveDict(static_cast<int>(idx));
+    if (!dict || font_index < 0 || static_cast<size_t>(font_index) >= dict->words.size())
         return tp;
-    return _dicts[idx].words[font_index].to_string();
+    return dict->words[font_index].to_string();
 }
 
 long ImageSearchService::SetMemDict(int idx, void *data, long size) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    _dicts[idx].clear();
-    _dicts[idx].read_memory_dict_dm((const char *)data, size);
-    return _dicts[idx].empty() ? 0 : 1;
+    auto &dict = _private_dicts[idx];
+    dict.clear();
+    dict.read_memory_dict_dm((const char *)data, size);
+    _private_dict_overrides[idx] = true;
+    return dict.empty() ? 0 : 1;
 }
 
 long ImageSearchService::UseDict(int idx) {
@@ -342,21 +384,26 @@ long ImageSearchService::AddDict(long idx, const wstring &dict_info) {
     word1_t word;
     if (!dict_entry_importer::parse_text_dict_entry(dict_info, word))
         return 0;
-    _dicts[idx].add_word(word);
+    MutablePrivateDict(static_cast<int>(idx)).add_word(word);
     return 1;
 }
 
 long ImageSearchService::SaveDict(long idx, const wstring &file_name) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    return _dicts[idx].write_dict(file_name) ? 1 : 0;
+    auto dict = ActiveDict(static_cast<int>(idx));
+    if (!dict)
+        return 0;
+    Dictionary snapshot = *dict;
+    return snapshot.write_dict(file_name) ? 1 : 0;
 }
 
 long ImageSearchService::ClearDict(long idx) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
 
-    _dicts[idx].clear();
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = true;
     return 1;
 }
 
@@ -364,11 +411,35 @@ long ImageSearchService::GetDictCount(long idx) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
 
-    return _dicts[idx].info._word_count;
+    auto dict = ActiveDict(static_cast<int>(idx));
+    return dict ? dict->info._word_count : 0;
 }
 
 long ImageSearchService::GetNowDict() {
     return _curr_idx;
+}
+
+std::shared_ptr<Dictionary> ImageSearchService::ActiveDict(int idx) {
+    if (idx < 0 || idx >= _max_dict)
+        return nullptr;
+    if (!_private_dicts[idx].empty())
+        return std::shared_ptr<Dictionary>(&_private_dicts[idx], [](Dictionary *) {});
+    if (_private_dict_overrides[idx])
+        return nullptr;
+
+    auto dict = find_global_file_dict(idx);
+    return dict && !dict->empty() ? dict : nullptr;
+}
+
+Dictionary &ImageSearchService::MutablePrivateDict(int idx) {
+    if (_private_dicts[idx].empty() && !_private_dict_overrides[idx]) {
+        if (auto global_dict = find_global_file_dict(idx)) {
+            // 修改字库前先拷贝全局槽，避免 AddDict 影响其它对象正在使用的文件字库。
+            _private_dicts[idx] = *global_dict;
+        }
+    }
+    _private_dict_overrides[idx] = true;
+    return _private_dicts[idx];
 }
 
 long ImageSearchService::SetBinaryPreprocess(long mode, long isolated_threshold, long min_component_area,
@@ -644,7 +715,8 @@ long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out
     if (sim < 0. || sim > 1.)
         sim = 1.;
     long s = 0;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -654,7 +726,7 @@ long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out
         }
     } else {
         str2pointbinaryfbk(color, sim);
-        s = ImageSearchAlgorithms::Ocr(_dicts[_curr_idx], sim, out_str);
+        s = ImageSearchAlgorithms::Ocr(*dict, sim, out_str);
     }
 
     return s;
@@ -960,7 +1032,8 @@ long ImageSearchService::OcrEx(const wstring &color, double sim, std::wstring &r
     retstr.clear();
     if (sim < 0. || sim > 1.)
         sim = 1.;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         int find_ct = 0;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
@@ -982,7 +1055,7 @@ long ImageSearchService::OcrEx(const wstring &color, double sim, std::wstring &r
         return find_ct;
     } else {
         str2pointbinaryfbk(color, sim);
-        return ImageSearchAlgorithms::OcrEx(_dicts[_curr_idx], sim, retstr);
+        return ImageSearchAlgorithms::OcrEx(*dict, sim, retstr);
     }
 }
 
@@ -992,7 +1065,8 @@ long ImageSearchService::FindStr(const wstring &str, const wstring &color, doubl
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -1002,7 +1076,7 @@ long ImageSearchService::FindStr(const wstring &str, const wstring &color, doubl
         }
     } else {
         str2pointbinaryfbk(color, sim);
-        ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
+        ImageSearchAlgorithms::bin_ocr(*dict, sim, ocr_res);
     }
     return ImageSearchAlgorithms::FindStr(ocr_res, vstr, retx, rety);
 }
@@ -1014,7 +1088,8 @@ long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, dou
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -1024,7 +1099,7 @@ long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, dou
         }
     } else {
         str2pointbinaryfbk(color, sim);
-        ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
+        ImageSearchAlgorithms::bin_ocr(*dict, sim, ocr_res);
     }
     return ImageSearchAlgorithms::FindStrEx(ocr_res, vstr, out_str);
 }

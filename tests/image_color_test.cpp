@@ -1126,6 +1126,52 @@ TEST(ImageColorTest, SetDictSupportsDmTextDictFiles) {
     std::filesystem::remove(path, ec);
 }
 
+TEST(ImageColorTest, SetDictIsSharedAcrossObjects) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_global_dm_text_dict.txt";
+    {
+        std::ofstream file(path, std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file << "1E0500780$A$0.0.10$11\n";
+    }
+
+    op::Op loader;
+    op::Op matcher;
+    long ret = 0;
+    loader.SetDict(3, path.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    long count = 0;
+    matcher.GetDictCount(3, &count);
+    EXPECT_EQ(count, 1);
+
+    std::wstring converted;
+    matcher.GetDict(3, 0, converted);
+    EXPECT_EQ(converted, L"A$11,3,10$78A0001E00");
+
+    const int width = 8;
+    const int height = 14;
+    auto pixels = MakePixels(width, height);
+    for (auto [x, y] :
+         {pair{2, 3}, pair{1, 4}, pair{3, 4}, pair{1, 5}, pair{2, 5}, pair{3, 5}, pair{1, 6}, pair{3, 6},
+          pair{1, 7}, pair{3, 7}}) {
+        PaintPixel(pixels, width, x, y, 0x00, 0x00, 0x00);
+    }
+    SetMemBmp(matcher, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+    matcher.UseDict(3, &ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = -1;
+    long y = -1;
+    matcher.FindStr(0, 0, width, height, L"A", L"000000-000000", 1.0, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, 1);
+    EXPECT_EQ(y, 1);
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+}
+
 TEST(ImageColorTest, SetMemDictSupportsDmPointTextFormat) {
     op::Op op;
     long ret = 0;
@@ -1178,6 +1224,37 @@ TEST(ImageColorTest, SetMemDictSupportsOpTextEntryFormat) {
     EXPECT_EQ(ret, 0);
     EXPECT_EQ(x, 1);
     EXPECT_EQ(y, 1);
+}
+
+TEST(ImageColorTest, SetMemDictOverridesGlobalDictOnlyForCurrentObject) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_global_private_override.txt";
+    {
+        std::ofstream file(path, std::ios::binary);
+        ASSERT_TRUE(file.is_open());
+        file << "1E0500780$A$0.0.10$11\n";
+    }
+
+    op::Op loader;
+    op::Op private_user;
+    op::Op global_user;
+    long ret = 0;
+    loader.SetDict(4, path.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    const char *private_text = "B$4,3,8$5E0E\n";
+    private_user.SetMemDict(4, reinterpret_cast<const wchar_t *>(private_text), static_cast<long>(strlen(private_text)),
+                            &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::wstring converted;
+    private_user.GetDict(4, 0, converted);
+    EXPECT_EQ(converted, L"B$4,3,8$5E0E");
+
+    global_user.GetDict(4, 0, converted);
+    EXPECT_EQ(converted, L"A$11,3,10$78A0001E00");
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
 }
 
 TEST(ImageColorTest, AddDictRejectsInvalidOpTextEntry) {

@@ -127,8 +127,9 @@ class ImageSearchService : public ImageSearchAlgorithms {
     void str2binaryfbk(const wstring &color);
 
   private:
-    // 字库
-    Dictionary _dicts[_max_dict];
+    // SetMemDict/AddDict 写入对象私有槽；SetDict 写入全局文件字库槽。
+    Dictionary _private_dicts[_max_dict];
+    bool _private_dict_overrides[_max_dict];
     // 当前字库索引
     int _curr_idx;
     long _binary_preprocess_mode;
@@ -152,6 +153,8 @@ class ImageSearchService : public ImageSearchAlgorithms {
     void ApplyBinaryPreprocess();
     std::wstring FetchWordFromBinary(rect_t rc, const wstring &word);
     long FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects, std::wstring &out_str);
+    std::shared_ptr<Dictionary> ActiveDict(int idx);
+    Dictionary &MutablePrivateDict(int idx);
     void str2colors(const wstring &color, std::vector<color_t> &vcolor);
     // vmatches 是算法层使用的裸指针视图，holders 负责延长共享缓存对象的生命周期。
     void files2mats(const wstring &files, std::vector<PicMatchTemplate *> &vmatches, std::vector<wstring> &vstr,
