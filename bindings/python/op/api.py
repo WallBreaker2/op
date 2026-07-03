@@ -84,6 +84,12 @@ class Op:
         value = getattr(self._dll, name)(self._handle, *args)
         return value or ""
 
+    def _call_string_with_int(self, name: str, *args: Any) -> tuple[str, int]:
+        self._check_open()
+        ret = ctypes.c_int()
+        value = getattr(self._dll, name)(self._handle, *args, ctypes.byref(ret))
+        return value or "", int(ret.value)
+
     @staticmethod
     def _enum_text(value: str | Enum) -> str:
         return str(value.value) if isinstance(value, Enum) else str(value)
@@ -1106,8 +1112,183 @@ class Op:
     def get_now_dict(self) -> int:
         return self._call_int("OpGetNowDict")
 
+    def set_binary_preprocess(
+        self,
+        mode: int,
+        isolated_threshold: int = 1,
+        min_component_area: int = 2,
+        bridge_gap: int = 0,
+    ) -> bool:
+        return self._call_ok(
+            "OpSetBinaryPreprocess",
+            int(mode),
+            int(isolated_threshold),
+            int(min_component_area),
+            int(bridge_gap),
+        )
+
+    def get_binary_preprocess(self) -> tuple[int, int, int, int]:
+        self._check_open()
+        mode = ctypes.c_int()
+        isolated_threshold = ctypes.c_int()
+        min_component_area = ctypes.c_int()
+        bridge_gap = ctypes.c_int()
+        ok = self._dll.OpGetBinaryPreprocess(
+            self._handle,
+            ctypes.byref(mode),
+            ctypes.byref(isolated_threshold),
+            ctypes.byref(min_component_area),
+            ctypes.byref(bridge_gap),
+        )
+        self._ok(ok, "OpGetBinaryPreprocess")
+        return int(mode.value), int(isolated_threshold.value), int(min_component_area.value), int(bridge_gap.value)
+
     def fetch_word(self, x1: int, y1: int, x2: int, y2: int, color: str, word: str) -> str:
         return self._call_string("OpFetchWord", int(x1), int(y1), int(x2), int(y2), color, word)
+
+    def fetch_word_ex(self, x1: int, y1: int, x2: int, y2: int, color: str, sim: float, word: str) -> str:
+        return self._call_string("OpFetchWordEx", int(x1), int(y1), int(x2), int(y2), color, float(sim), word)
+
+    def extract_word_rects(self, x1: int, y1: int, x2: int, y2: int, color: str, sim: float, min_word_h: int) -> str:
+        return self._call_string(
+            "OpExtractWordRects",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+            int(min_word_h),
+        )
+
+    def extract_word_rects_ex(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        color: str,
+        sim: float,
+        min_word_w: int,
+        min_word_h: int,
+        padding: int,
+    ) -> str:
+        return self._call_string(
+            "OpExtractWordRectsEx",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+            int(min_word_w),
+            int(min_word_h),
+            int(padding),
+        )
+
+    def fetch_words(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        color: str,
+        sim: float,
+        words: str,
+        min_word_h: int,
+    ) -> str:
+        return self._call_string(
+            "OpFetchWords",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+            words,
+            int(min_word_h),
+        )
+
+    def fetch_words_ex(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        color: str,
+        sim: float,
+        words: str,
+        min_word_w: int,
+        min_word_h: int,
+        padding: int,
+    ) -> str:
+        return self._call_string(
+            "OpFetchWordsEx",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+            words,
+            int(min_word_w),
+            int(min_word_h),
+            int(padding),
+        )
+
+    def fetch_words_by_rects(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        color: str,
+        sim: float,
+        words: str,
+        rects: str,
+    ) -> str:
+        return self._call_string(
+            "OpFetchWordsByRects",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+            words,
+            rects,
+        )
+
+    def get_binary_preview(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        color: str,
+        sim: float,
+    ) -> tuple[str, int]:
+        return self._call_string_with_int(
+            "OpGetBinaryPreview",
+            int(x1),
+            int(y1),
+            int(x2),
+            int(y2),
+            color,
+            float(sim),
+        )
+
+    def get_word_preview(self, dict_info: str) -> tuple[str, int]:
+        return self._call_string_with_int("OpGetWordPreview", dict_info)
+
+    def check_word_dict(self, dict_info: str) -> tuple[str, int]:
+        return self._call_string_with_int("OpCheckWordDict", dict_info)
+
+    def normalize_word_dict(self, dict_info: str) -> tuple[str, int]:
+        return self._call_string_with_int("OpNormalizeWordDict", dict_info)
+
+    def rename_word_dict(self, dict_info: str, words: str) -> tuple[str, int]:
+        return self._call_string_with_int("OpRenameWordDict", dict_info, words)
 
     def get_words_no_dict(self, x1: int, y1: int, x2: int, y2: int, color: str) -> str:
         return self._call_string("OpGetWordsNoDict", int(x1), int(y1), int(x2), int(y2), color)
