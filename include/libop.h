@@ -455,9 +455,48 @@ class OP_API Op {
     void GetDictCount(_In_ long idx, _Out_ long *ret);
     // 获取当前使用的字库序号
     void GetNowDict(_Out_ long *ret);
+    // 设置点阵二值图预处理。mode: 0关闭, 1去孤立点, 2再过滤小连通域, 3允许按 bridge_gap 补1像素断笔
+    void SetBinaryPreprocess(_In_ long mode, _In_ long isolated_threshold, _In_ long min_component_area,
+                             _In_ long bridge_gap, _Out_ long *ret);
+    // 读取当前点阵二值图预处理参数
+    void GetBinaryPreprocess(_Out_ long *mode, _Out_ long *isolated_threshold, _Out_ long *min_component_area,
+                             _Out_ long *bridge_gap, _Out_ long *ret);
     // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
     void FetchWord(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color, _In_ const wchar_t *word,
                    _Out_ std::wstring &retstr);
+    // 根据相似度提取单个点阵字，适合有抗锯齿或轻微色差的文字
+    void FetchWordEx(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                     _In_ double sim, _In_ const wchar_t *word, _Out_ std::wstring &retstr);
+    // 自动切出指定范围内的点阵字块，返回格式: x1,y1,x2,y2|...
+    void ExtractWordRects(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                          _In_ double sim, _In_ long min_word_h, _Out_ std::wstring &retstr);
+    // 自动切出点阵字块，并按最小宽高过滤噪点；padding 用来给每个字块保留一点边缘
+    void ExtractWordRectsEx(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                            _In_ double sim, _In_ long min_word_w, _In_ long min_word_h, _In_ long padding,
+                            _Out_ std::wstring &retstr);
+    // 自动切字并按 words 的字符顺序生成多条点阵字库，返回多行字库文本
+    void FetchWords(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color, _In_ double sim,
+                    _In_ const wchar_t *words, _In_ long min_word_h, _Out_ std::wstring &retstr);
+    // 使用更细的切字参数批量生成点阵字库，适合截图里夹杂小噪点的情况
+    void FetchWordsEx(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                      _In_ double sim, _In_ const wchar_t *words, _In_ long min_word_w, _In_ long min_word_h,
+                      _In_ long padding, _Out_ std::wstring &retstr);
+    // 按指定字块生成多条点阵字库，rects 格式与 ExtractWordRects 的返回值一致
+    void FetchWordsByRects(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                           _In_ double sim, _In_ const wchar_t *words, _In_ const wchar_t *rects,
+                           _Out_ std::wstring &retstr);
+    // 返回指定区域按颜色规则二值化后的文本预览，ret 为前景点数量
+    void GetBinaryPreview(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
+                          _In_ double sim, _Out_ std::wstring &retstr, _Out_ long *ret);
+    // 返回点阵字库条目的文本预览，ret 为条目是否合法
+    void GetWordPreview(_In_ const wchar_t *dict_info, _Out_ std::wstring &retstr, _Out_ long *ret);
+    // 检查一段点阵字库文本，ret 为合法条目数量，retstr 为每条字库的摘要
+    void CheckWordDict(_In_ const wchar_t *dict_info, _Out_ std::wstring &retstr, _Out_ long *ret);
+    // 清理点阵字库文本，只保留合法条目，并统一输出为当前字库格式
+    void NormalizeWordDict(_In_ const wchar_t *dict_info, _Out_ std::wstring &retstr, _Out_ long *ret);
+    // 按顺序替换点阵字库条目的字名，适合制作后统一校正标签
+    void RenameWordDict(_In_ const wchar_t *dict_info, _In_ const wchar_t *words, _Out_ std::wstring &retstr,
+                        _Out_ long *ret);
     // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
     void GetWordsNoDict(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *color,
                         _Out_ std::wstring &retstr);

@@ -6,6 +6,7 @@
 
 #include <libop.h>
 
+#include <cwctype>
 #include <cwchar>
 #include <string>
 #include <vector>
@@ -31,6 +32,108 @@ bool parse_word_result_item(const wchar_t *begin, const wchar_t *end, long &x, l
     if (word_sep)
         *word_sep = parse_end;
     return true;
+}
+
+void append_word_rects(const std::vector<op::rect_t> &rects, long offset_x, long offset_y, std::wstring &out) {
+    out.clear();
+    for (const auto &rc : rects) {
+        out += std::to_wstring(rc.x1 + offset_x);
+        out += L",";
+        out += std::to_wstring(rc.y1 + offset_y);
+        out += L",";
+        out += std::to_wstring(rc.x2 + offset_x);
+        out += L",";
+        out += std::to_wstring(rc.y2 + offset_y);
+        out += L"|";
+    }
+    if (!out.empty())
+        out.pop_back();
+}
+
+void skip_spaces(const wchar_t *&p) {
+    while (*p && iswspace(*p))
+        ++p;
+}
+
+bool read_rect_value(const wchar_t *&p, long &value) {
+    skip_spaces(p);
+    wchar_t *end = nullptr;
+    const long parsed = wcstol(p, &end, 10);
+    if (end == p)
+        return false;
+    value = parsed;
+    p = end;
+    skip_spaces(p);
+    return true;
+}
+
+bool parse_word_rects(const wchar_t *text, long offset_x, long offset_y, long width, long height,
+                      std::vector<op::rect_t> &rects) {
+    rects.clear();
+    if (!text || !*text)
+        return false;
+
+    const wchar_t *p = text;
+    while (*p) {
+        long values[4] = {};
+        for (int i = 0; i < 4; ++i) {
+            if (!read_rect_value(p, values[i]))
+                return false;
+            if (i < 3) {
+                if (*p != L',')
+                    return false;
+                ++p;
+            }
+        }
+
+        const long local_x1 = values[0] - offset_x;
+        const long local_y1 = values[1] - offset_y;
+        const long local_x2 = values[2] - offset_x;
+        const long local_y2 = values[3] - offset_y;
+        if (local_x1 < 0 || local_y1 < 0 || local_x1 >= local_x2 || local_y1 >= local_y2 || local_x2 > width ||
+            local_y2 > height) {
+            rects.clear();
+            return false;
+        }
+
+        rects.emplace_back(static_cast<int>(local_x1), static_cast<int>(local_y1), static_cast<int>(local_x2),
+                           static_cast<int>(local_y2));
+
+        skip_spaces(p);
+        if (*p == L'|') {
+            ++p;
+            skip_spaces(p);
+            if (!*p)
+                return false;
+        } else if (*p) {
+            return false;
+        }
+    }
+
+    return !rects.empty();
+}
+
+double normalize_similarity(double sim) {
+    return sim < 0. || sim > 1. ? 1. : sim;
+}
+
+template <typename Fn>
+void capture_converted_region(op::internal::OpContext *context, long x1, long y1, long x2, long y2, Fn fn) {
+    if (!context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, context->image_proc._src)) {
+        setlog("error requestCapture");
+        return;
+    }
+
+    context->image_proc.set_offset(x1, y1);
+    fn();
+}
+
+template <typename Fn>
+void with_captured_region(op::internal::OpContext *context, long &x1, long &y1, long &x2, long &y2, Fn fn) {
+    if (!context->bkproc.check_bind() || !context->bkproc.RectConvert(x1, y1, x2, y2))
+        return;
+
+    capture_converted_region(context, x1, y1, x2, y2, fn);
 }
 
 } // namespace
@@ -80,24 +183,153 @@ void op::Op::GetDictCount(long idx, long *ret) {
 void op::Op::GetNowDict(long *ret) {
     internal::set_result(ret, m_context->image_proc.GetNowDict());
 }
+
+void op::Op::SetBinaryPreprocess(long mode, long isolated_threshold, long min_component_area, long bridge_gap,
+                                 long *ret) {
+    internal::set_result(ret,
+                         m_context->image_proc.SetBinaryPreprocess(mode, isolated_threshold, min_component_area,
+                                                                    bridge_gap));
+}
+
+void op::Op::GetBinaryPreprocess(long *mode, long *isolated_threshold, long *min_component_area, long *bridge_gap,
+                                 long *ret) {
+    long local_mode = 0;
+    long local_isolated_threshold = 0;
+    long local_min_component_area = 0;
+    long local_bridge_gap = 0;
+    const long result = m_context->image_proc.GetBinaryPreprocess(local_mode, local_isolated_threshold,
+                                                                  local_min_component_area, local_bridge_gap);
+    internal::set_result(mode, local_mode);
+    internal::set_result(isolated_threshold, local_isolated_threshold);
+    internal::set_result(min_component_area, local_min_component_area);
+    internal::set_result(bridge_gap, local_bridge_gap);
+    internal::set_result(ret, result);
+}
 // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
 void op::Op::FetchWord(long x1, long y1, long x2, long y2, const wchar_t *color, const wchar_t *word,
                       std::wstring &retstr) {
-    wstring str;
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            rect_t rc;
-            rc.x1 = rc.y1 = 0;
-            rc.x2 = x2 - x1;
-            rc.y2 = y2 - y1;
-            str = m_context->image_proc.FetchWord(rc, color, word);
-        }
-    }
-    retstr = str;
+    FetchWordEx(x1, y1, x2, y2, color, 1.0, word, retstr);
 }
+
+void op::Op::FetchWordEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, const wchar_t *word,
+                         std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    const std::wstring word_text = word ? word : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        rect_t rc;
+        rc.x1 = rc.y1 = 0;
+        rc.x2 = x2 - x1;
+        rc.y2 = y2 - y1;
+        retstr = m_context->image_proc.FetchWord(rc, color_text, sim, word_text);
+    });
+}
+
+void op::Op::ExtractWordRects(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long min_word_h,
+                              std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        std::vector<rect_t> rects;
+        m_context->image_proc.ExtractWordRects(color_text, sim, min_word_h, rects);
+        append_word_rects(rects, x1, y1, retstr);
+    });
+}
+
+void op::Op::ExtractWordRectsEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long min_word_w,
+                                long min_word_h, long padding, std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        std::vector<rect_t> rects;
+        m_context->image_proc.ExtractWordRectsEx(color_text, sim, min_word_w, min_word_h, padding, rects);
+        append_word_rects(rects, x1, y1, retstr);
+    });
+}
+
+void op::Op::FetchWords(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, const wchar_t *words,
+                       long min_word_h, std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    const std::wstring word_text = words ? words : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.FetchWords(color_text, sim, word_text, min_word_h, retstr);
+    });
+}
+
+void op::Op::FetchWordsEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, const wchar_t *words,
+                          long min_word_w, long min_word_h, long padding, std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    const std::wstring word_text = words ? words : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.FetchWordsEx(color_text, sim, word_text, min_word_w, min_word_h, padding, retstr);
+    });
+}
+
+void op::Op::FetchWordsByRects(long x1, long y1, long x2, long y2, const wchar_t *color, double sim,
+                               const wchar_t *words, const wchar_t *rects, std::wstring &retstr) {
+    retstr.clear();
+    const std::wstring color_text = color ? color : L"";
+    const std::wstring word_text = words ? words : L"";
+    sim = normalize_similarity(sim);
+
+    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
+        std::vector<rect_t> local_rects;
+        if (!parse_word_rects(rects, x1, y1, x2 - x1, y2 - y1, local_rects))
+            return;
+        if (local_rects.size() != word_text.size())
+            return;
+
+        capture_converted_region(m_context.get(), x1, y1, x2, y2, [&]() {
+            m_context->image_proc.FetchWordsByRects(color_text, sim, word_text, local_rects, retstr);
+        });
+    }
+}
+
+void op::Op::GetBinaryPreview(long x1, long y1, long x2, long y2, const wchar_t *color, double sim,
+                              std::wstring &retstr, long *ret) {
+    retstr.clear();
+    internal::set_result(ret, 0L);
+    const std::wstring color_text = color ? color : L"";
+    sim = normalize_similarity(sim);
+
+    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        internal::set_result(ret, m_context->image_proc.GetBinaryPreview(color_text, sim, retstr));
+    });
+}
+
+void op::Op::GetWordPreview(const wchar_t *dict_info, std::wstring &retstr, long *ret) {
+    retstr.clear();
+    internal::set_result(ret, m_context->image_proc.GetWordPreview(dict_info ? dict_info : L"", retstr));
+}
+
+void op::Op::CheckWordDict(const wchar_t *dict_info, std::wstring &retstr, long *ret) {
+    retstr.clear();
+    internal::set_result(ret, m_context->image_proc.CheckWordDict(dict_info ? dict_info : L"", retstr));
+}
+
+void op::Op::NormalizeWordDict(const wchar_t *dict_info, std::wstring &retstr, long *ret) {
+    retstr.clear();
+    internal::set_result(ret, m_context->image_proc.NormalizeWordDict(dict_info ? dict_info : L"", retstr));
+}
+
+void op::Op::RenameWordDict(const wchar_t *dict_info, const wchar_t *words, std::wstring &retstr, long *ret) {
+    retstr.clear();
+    internal::set_result(ret,
+                         m_context->image_proc.RenameWordDict(dict_info ? dict_info : L"", words ? words : L"", retstr));
+}
+
 // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
 void op::Op::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr) {
     wstring str;
