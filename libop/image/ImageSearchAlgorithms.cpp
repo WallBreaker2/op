@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <numeric>
+#include <queue>
 
 #include "../runtime/RuntimeUtils.h"
 
@@ -326,6 +327,101 @@ static long long center_distance2(const point_t &p, const rect_t &range) {
     return dx * dx + dy * dy;
 }
 
+static long long center_distance2(int x, int y, const rect_t &range) {
+    const long long center2x = static_cast<long long>(range.x1) + range.x2 - 1;
+    const long long center2y = static_cast<long long>(range.y1) + range.y2 - 1;
+    const long long dx = static_cast<long long>(x) * 2 - center2x;
+    const long long dy = static_cast<long long>(y) * 2 - center2y;
+    return dx * dx + dy * dy;
+}
+
+struct CenterRowScan {
+    CenterRowScan(int row, int begin_x, int end_x, const rect_t &range)
+        : y(row), x1(begin_x), x2(end_x), center2x(static_cast<long long>(range.x1) + range.x2 - 1) {
+        left = static_cast<int>(center2x / 2);
+        right = left + 1;
+        if (left >= x2)
+            left = x2 - 1;
+        if (right < x1)
+            right = x1;
+    }
+
+    bool next(int &x) {
+        while ((left >= x1 && left < x2) || (right >= x1 && right < x2)) {
+            const bool has_left = left >= x1 && left < x2;
+            const bool has_right = right >= x1 && right < x2;
+            if (has_left && has_right) {
+                const long long left_dx = static_cast<long long>(left) * 2 - center2x;
+                const long long right_dx = static_cast<long long>(right) * 2 - center2x;
+                if (left_dx * left_dx <= right_dx * right_dx) {
+                    x = left--;
+                    return true;
+                }
+                x = right++;
+                return true;
+            }
+            if (has_left) {
+                x = left--;
+                return true;
+            }
+            x = right++;
+            return true;
+        }
+        return false;
+    }
+
+    int y;
+    int x1;
+    int x2;
+    long long center2x;
+    int left;
+    int right;
+};
+
+struct CenterScanNode {
+    long long distance = 0;
+    int y = 0;
+    int x = 0;
+    size_t row_index = 0;
+};
+
+struct CenterScanNodeGreater {
+    bool operator()(const CenterScanNode &lhs, const CenterScanNode &rhs) const {
+        if (lhs.distance != rhs.distance)
+            return lhs.distance > rhs.distance;
+        if (lhs.y != rhs.y)
+            return lhs.y > rhs.y;
+        return lhs.x > rhs.x;
+    }
+};
+
+template <typename Fn> static bool for_each_center_scan_point(const rect_t &scan_range, const rect_t &order_range, Fn fn) {
+    std::vector<CenterRowScan> rows;
+    rows.reserve(static_cast<size_t>(scan_range.height()));
+    std::priority_queue<CenterScanNode, std::vector<CenterScanNode>, CenterScanNodeGreater> queue;
+
+    for (int y = scan_range.y1; y < scan_range.y2; ++y) {
+        rows.emplace_back(y, scan_range.x1, scan_range.x2, order_range);
+        int x = 0;
+        if (rows.back().next(x)) {
+            queue.push({center_distance2(x, y, order_range), y, x, rows.size() - 1});
+        }
+    }
+
+    while (!queue.empty()) {
+        const CenterScanNode node = queue.top();
+        queue.pop();
+        if (fn(node.x, node.y))
+            return true;
+
+        int x = 0;
+        if (rows[node.row_index].next(x))
+            queue.push({center_distance2(x, node.y, order_range), node.y, x, node.row_index});
+    }
+
+    return false;
+}
+
 static bool point_precedes_in_dir(const point_t &lhs, const point_t &rhs, int dir, const rect_t &range) {
     if (rhs.x == -1 || rhs.y == -1)
         return true;
@@ -382,17 +478,8 @@ template <typename Fn> static bool for_each_scan_point(const rect_t &scan_range,
                 if (fn(x, y))
                     return true;
     } else if (dir == 4) {
-        vpoint_t points;
-        points.reserve(scan_range.area());
-        for (int y = scan_range.y1; y < scan_range.y2; ++y)
-            for (int x = scan_range.x1; x < scan_range.x2; ++x)
-                points.push_back(point_t(x, y));
-        std::stable_sort(points.begin(), points.end(), [order_range](const point_t &lhs, const point_t &rhs) {
-            return point_precedes_in_dir(lhs, rhs, 4, order_range);
-        });
-        for (const auto &p : points)
-            if (fn(p.x, p.y))
-                return true;
+        // 中心扫描按距离、y、x 顺序直接生成，避免为大区域分配并排序所有坐标。
+        return for_each_center_scan_point(scan_range, order_range, fn);
     } else if (dir == 5) {
         for (int x = scan_range.x1; x < scan_range.x2; ++x)
             for (int y = scan_range.y1; y < scan_range.y2; ++y)
