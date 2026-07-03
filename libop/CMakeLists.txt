@@ -408,9 +408,15 @@ set(OP_HAS_OPENCV "${OP_HAS_OPENCV}" PARENT_SCOPE)
 install(FILES "${PROJECT_SOURCE_DIR}/include/libop.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
 install(FILES "${PROJECT_SOURCE_DIR}/include/op_c_api.h" DESTINATION "${PROJECT_SOURCE_DIR}/include")
 if(CMAKE_CL_64)
-  install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-  install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
+  set(_op_install_arch "x64")
 else()
-  install(TARGETS ${op_com} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-  install(TARGETS ${op_c_api} RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
+  set(_op_install_arch "x86")
 endif()
+
+install(TARGETS ${op_com}
+  RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/${_op_install_arch}"
+)
+install(TARGETS ${op_c_api}
+  RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/${_op_install_arch}"
+  ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/${_op_install_arch}"
+)
