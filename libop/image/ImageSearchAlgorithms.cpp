@@ -149,6 +149,21 @@ void get_match_points(const Image &img, vector<uint> &points, int transparent_co
     }
 }
 
+void build_pic_match_template(Image &img, PicMatchTemplate &match) {
+    match.image = &img;
+    match.transparent_count = check_transparent(&img);
+    match.gray_norm = 0;
+    match.transparent_points.clear();
+    match.gray.clear();
+    if (match.transparent_count) {
+        get_match_points(img, match.transparent_points, match.transparent_count);
+        return;
+    }
+
+    match.gray.fromImage4(img);
+    match.gray_norm = sum(match.gray.begin(), match.gray.end());
+}
+
 void gen_next(const Image &img, vector<int> &next) {
     next.resize(img.width * img.height);
 
@@ -577,22 +592,30 @@ long ImageSearchAlgorithms::FindMultiColorEx(std::vector<color_df_t> &first_colo
 }
 
 long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
+    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate *> views;
+    views.reserve(pics.size());
+    for (size_t i = 0; i < pics.size(); ++i) {
+        if (!pics[i])
+            continue;
+        build_pic_match_template(*pics[i], prepared[i]);
+        views.push_back(&prepared[i]);
+    }
+    return FindPic(views, dfcolor, sim, dir, x, y);
+}
+
+long ImageSearchAlgorithms::FindPic(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x,
+                                    long &y) {
     x = y = -1;
-    vector<uint> points;
-    ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
-    int tnorm;
-    // 将小循环放在最外面，提高处理速度
+    // 模板预处理由缓存层完成，这里只做扫描和匹配。
     for (size_t pic_id = 0; pic_id < pics.size(); ++pic_id) {
-        auto pic = pics[pic_id];
-        int use_ts_match = check_transparent(pic);
-        if (use_ts_match)
-            get_match_points(*pic, points, use_ts_match);
-        else {
-            gimg.fromImage4(*pic);
-            tnorm = sum(gimg.begin(), gimg.end());
-        }
+        auto match = pics[pic_id];
+        if (!match || !match->image)
+            continue;
+        auto pic = match->image;
+        const int use_ts_match = match->transparent_count;
 
         rect_t matchRect(0, 0, _src.width, _src.height);
         matchRect.shrinkRect(pic->width, pic->height);
@@ -600,8 +623,8 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
             continue;
         const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
         if (for_each_scan_point(matchRect, dir, [&](int j, int i) {
-                int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                              : real_match(j, i, &gimg, tnorm, sim));
+                int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, match->transparent_points, max_err_ct)
+                                              : real_match(j, i, &match->gray, match->gray_norm, sim));
                 if (match_ret) {
                     x = j + _x1 + _dx;
                     y = i + _y1 + _dy;
@@ -616,24 +639,32 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
 }
 
 long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
+    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate *> views;
+    views.reserve(pics.size());
+    for (size_t i = 0; i < pics.size(); ++i) {
+        if (!pics[i])
+            continue;
+        build_pic_match_template(*pics[i], prepared[i]);
+        views.push_back(&prepared[i]);
+    }
+    return FindPicTh(views, dfcolor, sim, dir, x, y);
+}
+
+long ImageSearchAlgorithms::FindPicTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir,
+                                      long &x, long &y) {
     x = y = -1;
-    vector<uint> points;
-    ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
-    int tnorm;
     std::vector<rect_t> blocks;
     // 将小循环放在最外面，提高处理速度
     for (size_t pic_id = 0; pic_id < pics.size(); ++pic_id) {
-        auto pic = pics[pic_id];
-        int use_ts_match = check_transparent(pic);
-        if (use_ts_match)
-            get_match_points(*pic, points, use_ts_match);
-        else {
-            gimg.fromImage4(*pic);
-            tnorm = sum(gimg.begin(), gimg.end());
-        }
-        auto pgimg = &gimg;
+        auto match = pics[pic_id];
+        if (!match || !match->image)
+            continue;
+        auto pic = match->image;
+        const int use_ts_match = match->transparent_count;
+        auto pgimg = &match->gray;
         rect_t matchRect(0, 0, _src.width, _src.height);
         matchRect.shrinkRect(pic->width, pic->height);
         if (!matchRect.valid())
@@ -646,12 +677,13 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolo
         results.reserve(blocks.size());
         for (size_t i = 0; i < blocks.size(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, dir, &points, pgimg, tnorm, matchRect, max_err_ct](rect_t block, Image *pic, int use_ts_match,
-                                                                      double sim) {
+                [this, dfcolor, dir, match, pgimg, matchRect, max_err_ct](rect_t block, Image *pic, int use_ts_match,
+                                                                          double sim) {
                     point_t found(-1, -1);
                     for_each_scan_point(block, dir, matchRect, [&](int j, int i) {
-                        int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                                      : real_match(j, i, pgimg, tnorm, sim));
+                        int match_ret =
+                            (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, match->transparent_points, max_err_ct)
+                                          : real_match(j, i, pgimg, match->gray_norm, sim));
                         if (match_ret) {
                             found = point_t(j + _x1 + _dx, i + _y1 + _dy);
                             return true;
@@ -685,23 +717,30 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolo
 }
 
 long ImageSearchAlgorithms::FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
+    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate *> views;
+    views.reserve(pics.size());
+    for (size_t i = 0; i < pics.size(); ++i) {
+        if (!pics[i])
+            continue;
+        build_pic_match_template(*pics[i], prepared[i]);
+        views.push_back(&prepared[i]);
+    }
+    return FindPicEx(views, dfcolor, sim, dir, vpd);
+}
+
+long ImageSearchAlgorithms::FindPicEx(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir,
+                                      vpoint_desc_t &vpd) {
     vpd.clear();
-    vector<uint> points;
     int match_ret = 0;
-    ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
-    int tnorm;
     for (size_t pic_id = 0; pic_id < pics.size(); ++pic_id) {
-        auto pic = pics[pic_id];
-        int use_ts_match = check_transparent(pic);
-
-        if (use_ts_match)
-            get_match_points(*pic, points, use_ts_match);
-        else {
-            gimg.fromImage4(*pic);
-            tnorm = sum(gimg.begin(), gimg.end());
-        }
+        auto match = pics[pic_id];
+        if (!match || !match->image)
+            continue;
+        auto pic = match->image;
+        const int use_ts_match = match->transparent_count;
 
         rect_t matchRect(0, 0, _src.width, _src.height);
         matchRect.shrinkRect(pic->width, pic->height);
@@ -710,8 +749,8 @@ long ImageSearchAlgorithms::FindPicEx(std::vector<Image *> &pics, color_t dfcolo
         const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
         for (int i = matchRect.y1; i < matchRect.y2; ++i) {
             for (int j = matchRect.x1; j < matchRect.x2; ++j) {
-                match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                          : real_match(j, i, &gimg, tnorm, sim));
+                match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, match->transparent_points, max_err_ct)
+                                          : real_match(j, i, &match->gray, match->gray_norm, sim));
                 if (match_ret) {
                     point_desc_t pd = {static_cast<int>(pic_id), point_t(j + _x1 + _dx, i + _y1 + _dy)};
 
@@ -727,24 +766,32 @@ long ImageSearchAlgorithms::FindPicEx(std::vector<Image *> &pics, color_t dfcolo
 }
 
 long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
+    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate *> views;
+    views.reserve(pics.size());
+    for (size_t i = 0; i < pics.size(); ++i) {
+        if (!pics[i])
+            continue;
+        build_pic_match_template(*pics[i], prepared[i]);
+        views.push_back(&prepared[i]);
+    }
+    return FindPicExTh(views, dfcolor, sim, dir, vpd);
+}
+
+long ImageSearchAlgorithms::FindPicExTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir,
+                                        vpoint_desc_t &vpd) {
     vpd.clear();
-    vector<uint> points;
-    ImageBin gimg;
     _gray.fromImage4(_src);
     record_sum(_gray);
-    int tnorm;
     std::vector<rect_t> blocks;
     // 将小循环放在最外面，提高处理速度
     for (size_t pic_id = 0; pic_id < pics.size(); ++pic_id) {
-        auto pic = pics[pic_id];
-        int use_ts_match = check_transparent(pic);
-        if (use_ts_match)
-            get_match_points(*pic, points, use_ts_match);
-        else {
-            gimg.fromImage4(*pic);
-            tnorm = sum(gimg.begin(), gimg.end());
-        }
-        auto pgimg = &gimg;
+        auto match = pics[pic_id];
+        if (!match || !match->image)
+            continue;
+        auto pic = match->image;
+        const int use_ts_match = match->transparent_count;
+        auto pgimg = &match->gray;
         rect_t matchRect(0, 0, _src.width, _src.height);
         matchRect.shrinkRect(pic->width, pic->height);
         if (!matchRect.valid())
@@ -757,13 +804,15 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfco
         results.reserve(blocks.size());
         for (size_t i = 0; i < blocks.size(); ++i) {
             results.push_back(m_threadPool.enqueue(
-                [this, dfcolor, &points, pgimg, tnorm, max_err_ct](rect_t block, Image *pic, int use_ts_match,
-                                                      double sim) -> vpoint_t {
+                [this, dfcolor, match, pgimg, max_err_ct](rect_t block, Image *pic, int use_ts_match,
+                                                          double sim) -> vpoint_t {
                     vpoint_t vp;
                     for (int i = block.y1; i < block.y2; ++i) {
                         for (int j = block.x1; j < block.x2; ++j) {
-                            int match_ret = (use_ts_match ? trans_match<false>(j, i, pic, dfcolor, points, max_err_ct)
-                                                          : real_match(j, i, pgimg, tnorm, sim));
+                            int match_ret =
+                                (use_ts_match
+                                     ? trans_match<false>(j, i, pic, dfcolor, match->transparent_points, max_err_ct)
+                                     : real_match(j, i, pgimg, match->gray_norm, sim));
                             if (match_ret) {
                                 vp.push_back(point_t(j + _x1 + _dx, i + _y1 + _dy));
                             }

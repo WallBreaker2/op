@@ -28,10 +28,21 @@ inline int HEX2INT(wchar_t c) {
 }
 
 using img_names = std::vector<std::wstring>;
+struct PicMatchTemplate {
+    // image 由缓存层持有，这里只保存匹配阶段需要的视图和派生数据。
+    Image *image = nullptr;
+    int transparent_count = 0;
+    int gray_norm = 0;
+    ImageBin gray;
+    vector<uint> transparent_points;
+};
+
 // 检查是否为透明图
 int check_transparent(Image *img);
 // 获取匹配点
 void get_match_points(const Image &img, vector<uint> &points, int transparent_count = 0);
+// 预处理找图模板，避免同一张图在多次查找时重复转灰度或提取透明点。
+void build_pic_match_template(Image &img, PicMatchTemplate &match);
 // 生成 KMP 的 next 表
 void gen_next(const Image &img, vector<int> &next);
 // 像素值求和
@@ -97,11 +108,19 @@ class ImageSearchAlgorithms {
 
     long FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
 
+    long FindPic(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
+
     long FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
+
+    long FindPicTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
 
     long FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
 
+    long FindPicEx(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
+
     long FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
+
+    long FindPicExTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
 
     long FindColorBlock(long count, long height, long width, long &x, long &y);
 
