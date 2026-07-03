@@ -18,9 +18,10 @@ namespace op::image {
 using op::ocr::HttpOcrService;
 
 namespace {
-// 普通找图模板缓存。放在进程级别，多个 Op 实例共享同一份已解码图片。
+// 普通找图模板缓存。放在进程级别，多个 Op 实例共享同一份已解码图片和预处理模板。
 // 匹配时会复制 shared_ptr 快照；FreePic 只移除缓存入口，不会提前释放正在匹配的图片。
 std::map<wstring, std::shared_ptr<Image>> g_pic_cache;
+std::map<wstring, std::shared_ptr<PicMatchTemplate>> g_pic_match_cache;
 std::shared_mutex g_pic_cache_mutex;
 
 template <typename Target, typename Value> bool set_out(Target *target, Value value) {
@@ -79,24 +80,49 @@ long clamp_long(long value, long low, long high) {
     return value;
 }
 
-std::shared_ptr<Image> find_cached_pic(const wstring &key) {
-    std::shared_lock<std::shared_mutex> lock(g_pic_cache_mutex);
-    auto it = g_pic_cache.find(key);
-    return it == g_pic_cache.end() ? nullptr : it->second;
+std::shared_ptr<PicMatchTemplate> make_pic_match(std::shared_ptr<Image> image) {
+    if (!image || image->empty())
+        return nullptr;
+
+    auto match = std::make_shared<PicMatchTemplate>();
+    build_pic_match_template(*image, *match);
+    return match;
 }
 
-bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image) {
-    if (key.empty() || !image || image->empty())
+bool find_cached_pic(const wstring &key, std::shared_ptr<Image> &image, std::shared_ptr<PicMatchTemplate> &match) {
+    std::shared_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    auto it = g_pic_cache.find(key);
+    if (it == g_pic_cache.end())
+        return false;
+
+    auto match_it = g_pic_match_cache.find(key);
+    if (match_it == g_pic_match_cache.end())
+        return false;
+
+    image = it->second;
+    match = match_it->second;
+    return image && match;
+}
+
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image, std::shared_ptr<PicMatchTemplate> match) {
+    if (key.empty() || !image || image->empty() || !match)
         return false;
 
     std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
     g_pic_cache[key] = std::move(image);
+    g_pic_match_cache[key] = std::move(match);
     return true;
+}
+
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image) {
+    return store_cached_pic(key, image, make_pic_match(image));
 }
 
 bool erase_cached_pic(const wstring &key) {
     std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
-    return g_pic_cache.erase(key) > 0;
+    const bool erased_image = g_pic_cache.erase(key) > 0;
+    const bool erased_match = g_pic_match_cache.erase(key) > 0;
+    return erased_image || erased_match;
 }
 
 std::shared_ptr<Image> read_pic_file(const wstring &path) {
@@ -210,30 +236,32 @@ long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstr
 // 图形定位
 long ImageSearchService::FindPic(const std::wstring &files, const wstring &delta_colors, double sim, long dir, long &x,
                         long &y) {
-    vector<Image *> vpic;
+    vector<PicMatchTemplate *> vmatches;
     // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
     vector<std::shared_ptr<Image>> holders;
+    vector<std::shared_ptr<PicMatchTemplate>> match_holders;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name, holders);
+    files2mats(files, vmatches, vpic_name, holders, match_holders);
     dfcolor.str2color(delta_colors);
     sim = 0.5 + sim / 2;
-    long ret = ImageSearchAlgorithms::FindPicTh(vpic, dfcolor, sim, dir, x, y);
+    long ret = ImageSearchAlgorithms::FindPicTh(vmatches, dfcolor, sim, dir, x, y);
     return ret;
 }
 //
 long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &delta_colors, double sim, long dir, wstring &retstr,
                           bool returnID) {
-    vector<Image *> vpic;
+    vector<PicMatchTemplate *> vmatches;
     // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
     vector<std::shared_ptr<Image>> holders;
+    vector<std::shared_ptr<PicMatchTemplate>> match_holders;
     vpoint_desc_t vpd;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name, holders);
+    files2mats(files, vmatches, vpic_name, holders, match_holders);
     dfcolor.str2color(delta_colors);
     sim = 0.5 + sim / 2;
-    long ret = ImageSearchAlgorithms::FindPicExTh(vpic, dfcolor, sim, dir, vpd);
+    long ret = ImageSearchAlgorithms::FindPicExTh(vmatches, dfcolor, sim, dir, vpd);
     std::wstringstream ss(std::wstringstream::in | std::wstringstream::out);
     if (returnID) {
         for (auto &it : vpd) {
@@ -739,11 +767,13 @@ long ImageSearchService::LoadMemPic(const wstring &file_name, void *data, long s
 }
 
 long ImageSearchService::GetPicSize(const wstring &file_name, long *width, long *height) {
-    auto image = find_cached_pic(file_name);
+    std::shared_ptr<Image> image;
+    std::shared_ptr<PicMatchTemplate> match;
+    find_cached_pic(file_name, image, match);
     if (!image) {
         wstring tp;
         if (Path2GlobalPath(file_name, _curr_path, tp))
-            image = find_cached_pic(tp);
+            find_cached_pic(tp, image, match);
     }
 
     if (image) {
@@ -886,34 +916,42 @@ void ImageSearchService::ApplyBinaryPreprocess() {
     }
 }
 
-void ImageSearchService::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr,
-                                    std::vector<std::shared_ptr<Image>> &holders) {
+void ImageSearchService::files2mats(const wstring &files, std::vector<PicMatchTemplate *> &vmatches,
+                                    std::vector<wstring> &vstr, std::vector<std::shared_ptr<Image>> &holders,
+                                    std::vector<std::shared_ptr<PicMatchTemplate>> &match_holders) {
     // std::vector<wstring>vstr, vstr2;
-    vpic.clear();
+    vmatches.clear();
     vstr.clear();
     holders.clear();
+    match_holders.clear();
     std::vector<wstring> names;
     split(files, names, L"|");
     wstring tp;
     for (auto &it : names) {
         // 先按原始名字查找，覆盖 LoadMemPic 名称和完整路径两种情况。
-        auto image = find_cached_pic(it);
+        std::shared_ptr<Image> image;
+        std::shared_ptr<PicMatchTemplate> match;
+        find_cached_pic(it, image, match);
         if (!image) {
             if (!Path2GlobalPath(it, _curr_path, tp))
                 continue;
-            image = find_cached_pic(tp);
+            find_cached_pic(tp, image, match);
             if (!image) {
                 image = read_pic_file(tp);
                 if (!image)
                     continue;
+                match = make_pic_match(image);
+                if (!match)
+                    continue;
                 // 自动读取本地文件时，只有开启缓存才写入全局缓存。
                 if (_enable_cache)
-                    store_cached_pic(tp, image);
+                    store_cached_pic(tp, image, match);
             }
         }
 
         holders.push_back(image);
-        vpic.push_back(image.get());
+        match_holders.push_back(match);
+        vmatches.push_back(match.get());
         vstr.push_back(it);
     }
 }

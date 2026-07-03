@@ -153,9 +153,10 @@ class ImageSearchService : public ImageSearchAlgorithms {
     std::wstring FetchWordFromBinary(rect_t rc, const wstring &word);
     long FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects, std::wstring &out_str);
     void str2colors(const wstring &color, std::vector<color_t> &vcolor);
-    // vpic 是算法层使用的裸指针视图，holders 负责延长共享缓存图片的生命周期。
-    void files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr,
-                    std::vector<std::shared_ptr<Image>> &holders);
+    // vmatches 是算法层使用的裸指针视图，holders 负责延长共享缓存对象的生命周期。
+    void files2mats(const wstring &files, std::vector<PicMatchTemplate *> &vmatches, std::vector<wstring> &vstr,
+                    std::vector<std::shared_ptr<Image>> &holders,
+                    std::vector<std::shared_ptr<PicMatchTemplate>> &match_holders);
 };
 
 } // namespace op::image
