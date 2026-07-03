@@ -272,8 +272,35 @@ OP_C_API int OP_CALL OpSaveDict(op_handle handle, int idx, const wchar_t *file_n
 OP_C_API int OP_CALL OpClearDict(op_handle handle, int idx);
 OP_C_API int OP_CALL OpGetDictCount(op_handle handle, int idx);
 OP_C_API int OP_CALL OpGetNowDict(op_handle handle);
+OP_C_API int OP_CALL OpSetBinaryPreprocess(op_handle handle, int mode, int isolated_threshold,
+                                           int min_component_area, int bridge_gap);
+OP_C_API int OP_CALL OpGetBinaryPreprocess(op_handle handle, int *mode, int *isolated_threshold,
+                                           int *min_component_area, int *bridge_gap);
 OP_C_API const wchar_t *OP_CALL OpFetchWord(op_handle handle, int x1, int y1, int x2, int y2,
                                             const wchar_t *color, const wchar_t *word);
+OP_C_API const wchar_t *OP_CALL OpFetchWordEx(op_handle handle, int x1, int y1, int x2, int y2,
+                                              const wchar_t *color, double sim, const wchar_t *word);
+OP_C_API const wchar_t *OP_CALL OpExtractWordRects(op_handle handle, int x1, int y1, int x2, int y2,
+                                                   const wchar_t *color, double sim, int min_word_h);
+OP_C_API const wchar_t *OP_CALL OpExtractWordRectsEx(op_handle handle, int x1, int y1, int x2, int y2,
+                                                     const wchar_t *color, double sim, int min_word_w,
+                                                     int min_word_h, int padding);
+OP_C_API const wchar_t *OP_CALL OpFetchWords(op_handle handle, int x1, int y1, int x2, int y2,
+                                             const wchar_t *color, double sim, const wchar_t *words,
+                                             int min_word_h);
+OP_C_API const wchar_t *OP_CALL OpFetchWordsEx(op_handle handle, int x1, int y1, int x2, int y2,
+                                               const wchar_t *color, double sim, const wchar_t *words,
+                                               int min_word_w, int min_word_h, int padding);
+OP_C_API const wchar_t *OP_CALL OpFetchWordsByRects(op_handle handle, int x1, int y1, int x2, int y2,
+                                                    const wchar_t *color, double sim, const wchar_t *words,
+                                                    const wchar_t *rects);
+OP_C_API const wchar_t *OP_CALL OpGetBinaryPreview(op_handle handle, int x1, int y1, int x2, int y2,
+                                                   const wchar_t *color, double sim, int *ret);
+OP_C_API const wchar_t *OP_CALL OpGetWordPreview(op_handle handle, const wchar_t *dict_info, int *ret);
+OP_C_API const wchar_t *OP_CALL OpCheckWordDict(op_handle handle, const wchar_t *dict_info, int *ret);
+OP_C_API const wchar_t *OP_CALL OpNormalizeWordDict(op_handle handle, const wchar_t *dict_info, int *ret);
+OP_C_API const wchar_t *OP_CALL OpRenameWordDict(op_handle handle, const wchar_t *dict_info,
+                                                 const wchar_t *words, int *ret);
 OP_C_API const wchar_t *OP_CALL OpGetWordsNoDict(op_handle handle, int x1, int y1, int x2, int y2,
                                                  const wchar_t *color);
 OP_C_API int OP_CALL OpGetWordResultCount(op_handle handle, const wchar_t *result);

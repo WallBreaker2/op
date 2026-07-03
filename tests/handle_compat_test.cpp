@@ -40,7 +40,7 @@ TEST(HandleCompatTest, ForegroundWindowHandleFitsInLongOnlyWhenNoTruncation) {
     TemporaryWindow window;
     ASSERT_TRUE(window.hwnd() != nullptr);
 
-    op::Client op;
+    op::Op op;
     LONG_PTR returned = 0;
     op.GetForegroundWindow(&returned);
 

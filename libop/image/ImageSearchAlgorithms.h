@@ -28,13 +28,24 @@ inline int HEX2INT(wchar_t c) {
 }
 
 using img_names = std::vector<std::wstring>;
+struct PicMatchTemplate {
+    // image 由缓存层持有，这里只保存匹配阶段需要的视图和派生数据。
+    Image *image = nullptr;
+    int transparent_count = 0;
+    int gray_norm = 0;
+    ImageBin gray;
+    vector<uint> transparent_points;
+};
+
 // 检查是否为透明图
 int check_transparent(Image *img);
 // 获取匹配点
-void get_match_points(const Image &img, vector<int> &points);
-// generate next index for kmp
+void get_match_points(const Image &img, vector<uint> &points, int transparent_count = 0);
+// 预处理找图模板，避免同一张图在多次查找时重复转灰度或提取透明点。
+void build_pic_match_template(Image &img, PicMatchTemplate &match);
+// 生成 KMP 的 next 表
 void gen_next(const Image &img, vector<int> &next);
-// sum of all pixels
+// 像素值求和
 int inline sum(uchar *begin, uchar *end) {
     int s = 0;
     while (begin != end)
@@ -97,31 +108,36 @@ class ImageSearchAlgorithms {
 
     long FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
 
+    long FindPic(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
+
     long FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
+
+    long FindPicTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y);
 
     long FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
 
+    long FindPicEx(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
+
     long FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
 
-    long FindColorBlock(double sim, long count, long height, long width, long &x, long &y);
+    long FindPicExTh(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd);
 
-    long FindColorBlockEx(double sim, long count, long height, long width, std::wstring &retstr);
+    long FindColorBlock(long count, long height, long width, long &x, long &y);
+
+    long FindColorBlockEx(long count, long height, long width, std::wstring &retstr);
 
     long Ocr(Dictionary &dict, double sim, std::wstring &ret_str);
 
     long OcrEx(Dictionary &dict, double sim, std::wstring &out_str);
 
-    long FindStr(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, double sim, long &retx, long &rety);
+    long FindStr(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, long &retx, long &rety);
 
-    long FindStrEx(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, double sim, std::wstring &out_str);
+    long FindStrEx(std::map<point_t, ocr_rec_t> &ps, const vector<wstring> &vstr, std::wstring &out_str);
     // 描述：查找目标图像中的直线
-    // 输入：精度
     // 输出：outStr:直线描述[法线角度，直线到原点的距离];ret:该直线上的点的数量
-    long FindLine(double sim, std::wstring &outStr);
+    long FindLine(std::wstring &outStr);
 
   private:
-    // rgb像素匹配
-    template <bool nodfcolor> long simple_match(long x, long y, Image *timg, color_t dfcolor, int tnrom, double sim);
     // 透明图匹配
     template <bool nodfcolor>
     long trans_match(long x, long y, Image *timg, color_t dfcolor, const vector<uint> &points, int max_error);
@@ -155,6 +171,7 @@ class ImageSearchAlgorithms {
     // 图像裁剪
     bool bin_image_cut(int min_word_h, const rect_t &inrc, rect_t &outrc);
     void get_rois(int min_word_h, std::vector<rect_t> &vroi);
+    void get_rois(int min_word_w, int min_word_h, int padding, std::vector<rect_t> &vroi);
     // ocr识别，返回识别到的字及对应坐标
 
     void bin_ocr(const Dictionary &dict, double sim, std::map<point_t, ocr_rec_t> &ps);

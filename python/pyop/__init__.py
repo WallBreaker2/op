@@ -7,6 +7,6 @@ _PKG_DIR = os.path.dirname(os.path.abspath(__file__))
 if hasattr(os, "add_dll_directory"):
     os.add_dll_directory(_PKG_DIR)
 
-from ._binding import libop
+from ._binding import Op
 
-__all__ = ["libop"]
+__all__ = ["Op"]

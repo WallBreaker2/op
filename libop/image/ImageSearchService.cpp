@@ -3,9 +3,15 @@
 #include "../runtime/RuntimeUtils.h"
 #include "../ocr/OcrService.h"
 #include <algorithm>
+#include <array>
 #include <bitset>
 #include <cmath>
+#include <filesystem>
 #include <fstream>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <sstream>
 
 namespace op::image {
@@ -13,6 +19,16 @@ namespace op::image {
 using op::ocr::HttpOcrService;
 
 namespace {
+// 普通找图模板缓存。放在进程级别，多个 Op 实例共享同一份已解码图片和预处理模板。
+// 匹配时会复制 shared_ptr 快照；FreePic 只移除缓存入口，不会提前释放正在匹配的图片。
+std::map<wstring, std::shared_ptr<Image>> g_pic_cache;
+std::map<wstring, std::shared_ptr<PicMatchTemplate>> g_pic_match_cache;
+std::shared_mutex g_pic_cache_mutex;
+
+// SetDict 加载的是文件字库，放在进程级槽位中，多个 Op 对象可以直接复用。
+std::array<std::shared_ptr<Dictionary>, ImageSearchService::_max_dict> g_file_dicts;
+std::shared_mutex g_file_dict_mutex;
+
 template <typename Target, typename Value> bool set_out(Target *target, Value value) {
     if (!target)
         return false;
@@ -31,28 +47,161 @@ color_t sim_to_point_color_diff(double sim) {
     color_diff.r = diff;
     return color_diff;
 }
+
+template <typename Fn> void for_each_dict_line(const wstring &dict_info, Fn fn) {
+    long item_index = 0;
+    size_t begin = 0;
+    while (begin <= dict_info.size()) {
+        size_t end = dict_info.find(L'\n', begin);
+        if (end == std::wstring::npos)
+            end = dict_info.size();
+
+        std::wstring item = dict_info.substr(begin, end - begin);
+        if (!item.empty() && item.back() == L'\r')
+            item.pop_back();
+
+        if (!item.empty())
+            fn(item_index++, item);
+
+        if (end == dict_info.size())
+            break;
+        begin = end + 1;
+    }
+}
+
+long clamp_preprocess_mode(long mode) {
+    if (mode < 0)
+        return 0;
+    if (mode > 3)
+        return 3;
+    return mode;
+}
+
+long clamp_long(long value, long low, long high) {
+    if (value < low)
+        return low;
+    if (value > high)
+        return high;
+    return value;
+}
+
+std::shared_ptr<PicMatchTemplate> make_pic_match(std::shared_ptr<Image> image) {
+    if (!image || image->empty())
+        return nullptr;
+
+    auto match = std::make_shared<PicMatchTemplate>();
+    build_pic_match_template(*image, *match);
+    return match;
+}
+
+bool find_cached_pic(const wstring &key, std::shared_ptr<Image> &image, std::shared_ptr<PicMatchTemplate> &match) {
+    std::shared_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    auto it = g_pic_cache.find(key);
+    if (it == g_pic_cache.end())
+        return false;
+
+    auto match_it = g_pic_match_cache.find(key);
+    if (match_it == g_pic_match_cache.end())
+        return false;
+
+    image = it->second;
+    match = match_it->second;
+    return image && match;
+}
+
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image, std::shared_ptr<PicMatchTemplate> match) {
+    if (key.empty() || !image || image->empty() || !match)
+        return false;
+
+    std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    g_pic_cache[key] = std::move(image);
+    g_pic_match_cache[key] = std::move(match);
+    return true;
+}
+
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image) {
+    return store_cached_pic(key, image, make_pic_match(image));
+}
+
+bool erase_cached_pic(const wstring &key) {
+    std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    const bool erased_image = g_pic_cache.erase(key) > 0;
+    const bool erased_match = g_pic_match_cache.erase(key) > 0;
+    return erased_image || erased_match;
+}
+
+std::shared_ptr<Image> read_pic_file(const wstring &path) {
+    auto image = std::make_shared<Image>();
+    if (!image->read(path.data()) || image->empty())
+        return nullptr;
+    return image;
+}
+
+std::shared_ptr<Image> read_mem_pic(void *data, long size) {
+    if (!data || size <= 0)
+        return nullptr;
+
+    auto image = std::make_shared<Image>();
+    if (!image->read(data, size) || image->empty())
+        return nullptr;
+    return image;
+}
+
+std::shared_ptr<Dictionary> find_global_file_dict(int idx) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict)
+        return nullptr;
+
+    std::shared_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    return g_file_dicts[static_cast<size_t>(idx)];
+}
+
+bool store_global_file_dict(int idx, std::shared_ptr<Dictionary> dict) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict || !dict || dict->empty())
+        return false;
+
+    std::unique_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    g_file_dicts[static_cast<size_t>(idx)] = std::move(dict);
+    return true;
+}
+
+void clear_global_file_dict(int idx) {
+    if (idx < 0 || idx >= ImageSearchService::_max_dict)
+        return;
+
+    std::unique_lock<std::shared_mutex> lock(g_file_dict_mutex);
+    g_file_dicts[static_cast<size_t>(idx)].reset();
+}
 } // namespace
 
 ImageSearchService::ImageSearchService() {
     _curr_idx = 0;
+    for (bool &it : _private_dict_overrides)
+        it = false;
     _enable_cache = 1;
+    _binary_preprocess_mode = 0;
+    _binary_isolated_threshold = 0;
+    _binary_min_component_area = 2;
+    _binary_bridge_gap = 1;
 }
 
 ImageSearchService::~ImageSearchService() {
 }
 
 long ImageSearchService::Capture(const std::wstring &file) {
-    wstring fpath = file;
-    if (fpath.find(L'\\') == -1)
-        fpath = _curr_path + L"\\" + fpath;
+    std::filesystem::path fpath(file);
+    if (!fpath.is_absolute())
+        fpath = std::filesystem::path(_curr_path) / fpath;
 
-    return _src.write(fpath.data());
+    return _src.write(fpath.c_str());
 }
 
 long ImageSearchService::CmpColor(long x, long y, const std::wstring &scolor, double sim) {
     std::vector<color_df_t> vcolor;
     str2colordfs(scolor, vcolor);
-    return ImageSearchAlgorithms::CmpColor(_src.at<color_t>(0, 0), vcolor, sim);
+    color_t color;
+    if (!ImageSearchAlgorithms::GetPixel(x, y, color))
+        return 0;
+    return ImageSearchAlgorithms::CmpColor(color, vcolor, sim);
 }
 
 long ImageSearchService::FindColor(const wstring &color, double sim, long dir, long &x, long &y) {
@@ -76,12 +225,12 @@ long ImageSearchService::FindMultiColor(const wstring &first_color, const wstrin
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    pt_cr_df_t tp;
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1));
+        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
         if (id2 != wstring::npos) {
+            pt_cr_df_t tp;
             swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
             if (id2 + 1 != it.length())
                 str2colordfs(it.substr(id2 + 1), tp.crdfs);
@@ -100,12 +249,12 @@ long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstr
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    pt_cr_df_t tp;
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1));
+        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
         if (id2 != wstring::npos) {
+            pt_cr_df_t tp;
             swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
             if (id2 + 1 != it.length())
                 str2colordfs(it.substr(id2 + 1), tp.crdfs);
@@ -119,33 +268,32 @@ long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstr
 // 图形定位
 long ImageSearchService::FindPic(const std::wstring &files, const wstring &delta_colors, double sim, long dir, long &x,
                         long &y) {
-    vector<Image *> vpic;
-    // vector<color_t> vcolor;
+    vector<PicMatchTemplate *> vmatches;
+    // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
+    vector<std::shared_ptr<Image>> holders;
+    vector<std::shared_ptr<PicMatchTemplate>> match_holders;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name);
+    files2mats(files, vmatches, vpic_name, holders, match_holders);
     dfcolor.str2color(delta_colors);
-    // str2colors(delta_colors, vcolor);
     sim = 0.5 + sim / 2;
-    // long ret = ImageSearchAlgorithms::FindPic(vpic, dfcolor, sim, x, y);
-    long ret = ImageSearchAlgorithms::FindPicTh(vpic, dfcolor, sim, dir, x, y);
-    // 清理缓存
-    if (!_enable_cache)
-        _pic_cache.clear();
+    long ret = ImageSearchAlgorithms::FindPicTh(vmatches, dfcolor, sim, dir, x, y);
     return ret;
 }
 //
 long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &delta_colors, double sim, long dir, wstring &retstr,
                           bool returnID) {
-    vector<Image *> vpic;
+    vector<PicMatchTemplate *> vmatches;
+    // 算法层沿用裸指针入参，这里用 holders 保证匹配期间图片对象仍然存活。
+    vector<std::shared_ptr<Image>> holders;
+    vector<std::shared_ptr<PicMatchTemplate>> match_holders;
     vpoint_desc_t vpd;
-    // vector<color_t> vcolor;
     color_t dfcolor;
     vector<std::wstring> vpic_name;
-    files2mats(files, vpic, vpic_name);
+    files2mats(files, vmatches, vpic_name, holders, match_holders);
     dfcolor.str2color(delta_colors);
     sim = 0.5 + sim / 2;
-    long ret = ImageSearchAlgorithms::FindPicExTh(vpic, dfcolor, sim, dir, vpd);
+    long ret = ImageSearchAlgorithms::FindPicExTh(vmatches, dfcolor, sim, dir, vpd);
     std::wstringstream ss(std::wstringstream::in | std::wstringstream::out);
     if (returnID) {
         for (auto &it : vpd) {
@@ -156,9 +304,6 @@ long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &del
             ss << vpic_name[it.id] << L"," << it.pos << L"|";
         }
     }
-    // 清理缓存
-    if (!_enable_cache)
-        _pic_cache.clear();
     retstr = ss.str();
     if (vpd.size())
         retstr.pop_back();
@@ -167,14 +312,14 @@ long ImageSearchService::FindPicEx(const std::wstring &files, const wstring &del
 
 long ImageSearchService::FindColorBlock(const wstring &color, double sim, long count, long height, long width, long &x,
                                long &y) {
-    str2binaryfbk(color);
-    return ImageSearchAlgorithms::FindColorBlock(sim, count, height, width, x, y);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindColorBlock(count, height, width, x, y);
 }
 
 long ImageSearchService::FindColorBlockEx(const wstring &color, double sim, long count, long height, long width,
                                  wstring &retstr) {
-    str2binaryfbk(color);
-    return ImageSearchAlgorithms::FindColorBlockEx(sim, count, height, width, retstr);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindColorBlockEx(count, height, width, retstr);
 }
 
 long ImageSearchService::GetColorNum(const wstring &color, double sim) {
@@ -186,33 +331,43 @@ long ImageSearchService::GetColorNum(const wstring &color, double sim) {
 long ImageSearchService::SetDict(int idx, const wstring &file_name) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    _dicts[idx].clear();
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = false;
     wstring fullpath;
     if (Path2GlobalPath(file_name, _curr_path, fullpath)) {
+        auto dict = std::make_shared<Dictionary>();
         // SetDict 按文件内容识别：OP 二进制 .dict 优先，失败后兼容大漠 txt。
-        _dicts[idx].read_dict(fullpath);
+        dict->read_dict(fullpath);
+        if (store_global_file_dict(idx, dict))
+            return 1;
+        clear_global_file_dict(idx);
+        return 0;
     } else {
+        clear_global_file_dict(idx);
         setlog(L"file '%s' does not exist", file_name.c_str());
     }
 
-    return _dicts[idx].empty() ? 0 : 1;
+    return 0;
 }
 
 std::wstring ImageSearchService::GetDict(long idx, long font_index) {
     wstring tp;
     if (idx < 0 || idx >= _max_dict)
         return tp;
-    if (font_index < 0 || static_cast<size_t>(font_index) >= _dicts[idx].words.size())
+    auto dict = ActiveDict(static_cast<int>(idx));
+    if (!dict || font_index < 0 || static_cast<size_t>(font_index) >= dict->words.size())
         return tp;
-    return _dicts[idx].words[font_index].to_string();
+    return dict->words[font_index].to_string();
 }
 
 long ImageSearchService::SetMemDict(int idx, void *data, long size) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    _dicts[idx].clear();
-    _dicts[idx].read_memory_dict_dm((const char *)data, size);
-    return _dicts[idx].empty() ? 0 : 1;
+    auto &dict = _private_dicts[idx];
+    dict.clear();
+    dict.read_memory_dict_dm((const char *)data, size);
+    _private_dict_overrides[idx] = true;
+    return dict.empty() ? 0 : 1;
 }
 
 long ImageSearchService::UseDict(int idx) {
@@ -229,21 +384,26 @@ long ImageSearchService::AddDict(long idx, const wstring &dict_info) {
     word1_t word;
     if (!dict_entry_importer::parse_text_dict_entry(dict_info, word))
         return 0;
-    _dicts[idx].add_word(word);
+    MutablePrivateDict(static_cast<int>(idx)).add_word(word);
     return 1;
 }
 
 long ImageSearchService::SaveDict(long idx, const wstring &file_name) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
-    return _dicts[idx].write_dict(file_name) ? 1 : 0;
+    auto dict = ActiveDict(static_cast<int>(idx));
+    if (!dict)
+        return 0;
+    Dictionary snapshot = *dict;
+    return snapshot.write_dict(file_name) ? 1 : 0;
 }
 
 long ImageSearchService::ClearDict(long idx) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
 
-    _dicts[idx].clear();
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = true;
     return 1;
 }
 
@@ -251,15 +411,65 @@ long ImageSearchService::GetDictCount(long idx) {
     if (idx < 0 || idx >= _max_dict)
         return 0;
 
-    return _dicts[idx].info._word_count;
+    auto dict = ActiveDict(static_cast<int>(idx));
+    return dict ? dict->info._word_count : 0;
 }
 
 long ImageSearchService::GetNowDict() {
     return _curr_idx;
 }
 
+std::shared_ptr<Dictionary> ImageSearchService::ActiveDict(int idx) {
+    if (idx < 0 || idx >= _max_dict)
+        return nullptr;
+    if (!_private_dicts[idx].empty())
+        return std::shared_ptr<Dictionary>(&_private_dicts[idx], [](Dictionary *) {});
+    if (_private_dict_overrides[idx])
+        return nullptr;
+
+    auto dict = find_global_file_dict(idx);
+    return dict && !dict->empty() ? dict : nullptr;
+}
+
+Dictionary &ImageSearchService::MutablePrivateDict(int idx) {
+    if (_private_dicts[idx].empty() && !_private_dict_overrides[idx]) {
+        if (auto global_dict = find_global_file_dict(idx)) {
+            // 修改字库前先拷贝全局槽，避免 AddDict 影响其它对象正在使用的文件字库。
+            _private_dicts[idx] = *global_dict;
+        }
+    }
+    _private_dict_overrides[idx] = true;
+    return _private_dicts[idx];
+}
+
+long ImageSearchService::SetBinaryPreprocess(long mode, long isolated_threshold, long min_component_area,
+                                             long bridge_gap) {
+    _binary_preprocess_mode = clamp_preprocess_mode(mode);
+    _binary_isolated_threshold = clamp_long(isolated_threshold, 0, 8);
+    _binary_min_component_area = min_component_area <= 0 ? 2 : clamp_long(min_component_area, 1, 4096);
+    _binary_bridge_gap = bridge_gap > 0 ? 1 : 0;
+    return 1;
+}
+
+long ImageSearchService::GetBinaryPreprocess(long &mode, long &isolated_threshold, long &min_component_area,
+                                             long &bridge_gap) const {
+    mode = _binary_preprocess_mode;
+    isolated_threshold = _binary_isolated_threshold;
+    min_component_area = _binary_min_component_area;
+    bridge_gap = _binary_bridge_gap;
+    return 1;
+}
+
 wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, const wstring &word) {
-    str2binaryfbk(color);
+    return FetchWord(rc, color, 1.0, word);
+}
+
+wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, double sim, const wstring &word) {
+    str2pointbinaryfbk(color, sim);
+    return FetchWordFromBinary(rc, word);
+}
+
+wstring ImageSearchService::FetchWordFromBinary(rect_t rc, const wstring &word) {
     auto orc = rc;
     if (!bin_image_cut(2, rc, orc))
         return L"";
@@ -283,12 +493,230 @@ wstring ImageSearchService::FetchWord(rect_t rc, const wstring &color, const wst
     return wt.to_string();
 }
 
+long ImageSearchService::FetchWordsFromBinary(const wstring &words, const std::vector<rect_t> &rects,
+                                              std::wstring &out_str) {
+    out_str.clear();
+    if (rects.empty() || rects.size() != words.size())
+        return 0;
+
+    for (size_t i = 0; i < rects.size(); ++i) {
+        if (!rects[i].valid() || rects[i].x2 > _src.width || rects[i].y2 > _src.height) {
+            out_str.clear();
+            return 0;
+        }
+
+        const std::wstring word(1, words[i]);
+        const std::wstring entry = FetchWordFromBinary(rects[i], word);
+        if (entry.empty()) {
+            out_str.clear();
+            return 0;
+        }
+        out_str += entry;
+        out_str += L"\n";
+    }
+    if (!out_str.empty())
+        out_str.pop_back();
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::ExtractWordRects(const wstring &color, double sim, long min_word_h, std::vector<rect_t> &rects) {
+    rects.clear();
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_h), rects);
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::ExtractWordRectsEx(const wstring &color, double sim, long min_word_w, long min_word_h,
+                                            long padding, std::vector<rect_t> &rects) {
+    rects.clear();
+    if (min_word_w <= 0)
+        min_word_w = 1;
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    if (padding < 0)
+        padding = 0;
+
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_w), static_cast<int>(min_word_h), static_cast<int>(padding), rects);
+    return static_cast<long>(rects.size());
+}
+
+long ImageSearchService::FetchWords(const wstring &color, double sim, const wstring &words, long min_word_h,
+                                    std::wstring &out_str) {
+    out_str.clear();
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    str2pointbinaryfbk(color, sim);
+    std::vector<rect_t> rects;
+    get_rois(static_cast<int>(min_word_h), rects);
+    const long rect_count = static_cast<long>(rects.size());
+    if (rect_count == 0 || rects.size() != words.size())
+        return 0;
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::FetchWordsEx(const wstring &color, double sim, const wstring &words, long min_word_w,
+                                      long min_word_h, long padding, std::wstring &out_str) {
+    out_str.clear();
+    if (min_word_w <= 0)
+        min_word_w = 1;
+    if (min_word_h <= 0)
+        min_word_h = 2;
+    if (padding < 0)
+        padding = 0;
+
+    std::vector<rect_t> rects;
+    str2pointbinaryfbk(color, sim);
+    get_rois(static_cast<int>(min_word_w), static_cast<int>(min_word_h), static_cast<int>(padding), rects);
+    const long rect_count = static_cast<long>(rects.size());
+    if (rect_count == 0)
+        return 0;
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::FetchWordsByRects(const wstring &color, double sim, const wstring &words,
+                                           const std::vector<rect_t> &rects, std::wstring &out_str) {
+    out_str.clear();
+    if (rects.empty() || rects.size() != words.size())
+        return 0;
+    str2pointbinaryfbk(color, sim);
+    return FetchWordsFromBinary(words, rects, out_str);
+}
+
+long ImageSearchService::GetBinaryPreview(const wstring &color, double sim, std::wstring &out_str) {
+    out_str.clear();
+    str2pointbinaryfbk(color, sim);
+    if (_binary.empty())
+        return 0;
+
+    long point_count = 0;
+    out_str += std::to_wstring(_binary.width);
+    out_str += L",";
+    out_str += std::to_wstring(_binary.height);
+    out_str += L"\n";
+    for (int y = 0; y < _binary.height; ++y) {
+        for (int x = 0; x < _binary.width; ++x) {
+            if (_binary.at(y, x) == WORD_COLOR) {
+                out_str += L"#";
+                ++point_count;
+            } else {
+                out_str += L".";
+            }
+        }
+        if (y + 1 < _binary.height)
+            out_str += L"\n";
+    }
+    return point_count;
+}
+
+long ImageSearchService::GetWordPreview(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+    word1_t word;
+    if (!dict_entry_importer::parse_text_dict_entry(dict_info, word))
+        return 0;
+
+    out_str += word.info.name;
+    out_str += L",";
+    out_str += std::to_wstring(word.info.w);
+    out_str += L",";
+    out_str += std::to_wstring(word.info.h);
+    out_str += L",";
+    out_str += std::to_wstring(word.info.bit_cnt);
+    out_str += L"\n";
+
+    for (int y = 0; y < word.info.h; ++y) {
+        for (int x = 0; x < word.info.w; ++x) {
+            const int idx = x * word.info.h + y;
+            out_str += GET_BIT(word.data[idx / 8], idx & 7) ? L"#" : L".";
+        }
+        if (y + 1 < word.info.h)
+            out_str += L"\n";
+    }
+    return 1;
+}
+
+long ImageSearchService::CheckWordDict(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+
+    long valid_count = 0;
+    for_each_dict_line(dict_info, [&](long item_index, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word)) {
+            const int area = word.info.w * word.info.h;
+            const int density = area > 0 ? static_cast<int>((word.info.bit_cnt * 100 + area / 2) / area) : 0;
+            out_str += std::to_wstring(item_index);
+            out_str += L",1,";
+            out_str += word.info.name;
+            out_str += L",";
+            out_str += std::to_wstring(word.info.w);
+            out_str += L",";
+            out_str += std::to_wstring(word.info.h);
+            out_str += L",";
+            out_str += std::to_wstring(word.info.bit_cnt);
+            out_str += L",";
+            out_str += std::to_wstring(density);
+            ++valid_count;
+        } else {
+            out_str += std::to_wstring(item_index);
+            out_str += L",0,invalid";
+        }
+        out_str += L"|";
+    });
+
+    if (!out_str.empty())
+        out_str.pop_back();
+    return valid_count;
+}
+
+long ImageSearchService::NormalizeWordDict(const wstring &dict_info, std::wstring &out_str) {
+    out_str.clear();
+
+    long valid_count = 0;
+    for_each_dict_line(dict_info, [&](long, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word)) {
+            if (!out_str.empty())
+                out_str += L"\n";
+            out_str += word.to_string();
+            ++valid_count;
+        }
+    });
+
+    return valid_count;
+}
+
+long ImageSearchService::RenameWordDict(const wstring &dict_info, const wstring &words, std::wstring &out_str) {
+    out_str.clear();
+
+    std::vector<word1_t> entries;
+    for_each_dict_line(dict_info, [&](long, const std::wstring &item) {
+        word1_t word;
+        if (dict_entry_importer::parse_text_dict_entry(item, word))
+            entries.push_back(word);
+    });
+
+    if (entries.empty() || entries.size() != words.size())
+        return 0;
+
+    for (size_t i = 0; i < entries.size(); ++i) {
+        entries[i].set_chars(std::wstring(1, words[i]));
+        if (!out_str.empty())
+            out_str += L"\n";
+        out_str += entries[i].to_string();
+    }
+
+    return static_cast<long>(entries.size());
+}
+
 long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out_str) {
     out_str.clear();
     if (sim < 0. || sim > 1.)
         sim = 1.;
     long s = 0;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -297,8 +725,8 @@ long ImageSearchService::OCR(const wstring &color, double sim, std::wstring &out
             }
         }
     } else {
-        str2binaryfbk(color, sim);
-        s = ImageSearchAlgorithms::Ocr(_dicts[_curr_idx], sim, out_str);
+        str2pointbinaryfbk(color, sim);
+        s = ImageSearchAlgorithms::Ocr(*dict, sim, out_str);
     }
 
     return s;
@@ -355,20 +783,20 @@ void ImageSearchService::str2colors(const wstring &color, std::vector<color_t> &
 }
 
 long ImageSearchService::LoadPic(const wstring &files) {
-    // std::vector<wstring>vstr, vstr2;
     std::vector<wstring> vstr;
     int loaded = 0;
     split(files, vstr, L"|");
     wstring tp;
     for (auto &it : vstr) {
-        // 路径转化
+        // 显式加载会按当前文件内容刷新全局缓存，EnablePicCache 只影响 FindPic 的自动缓存。
         if (!Path2GlobalPath(it, _curr_path, tp))
             continue;
-        // 先在缓存中查找
-        if (!_pic_cache.count(tp)) {
-            _pic_cache[tp].read(tp.data());
-        }
-        // 已存在于缓存中的文件也算加载成功
+
+        auto image = read_pic_file(tp);
+        if (!image)
+            continue;
+
+        store_cached_pic(tp, std::move(image));
         loaded++;
     }
     return loaded;
@@ -380,16 +808,14 @@ long ImageSearchService::FreePic(const wstring &files) {
     split(files, vstr, L"|");
     wstring tp;
     for (auto &it : vstr) {
-        // 看当前目录
-        auto cache_it = _pic_cache.find(it);
-        // 没查到再看一下资源目录
-        if (cache_it == _pic_cache.end()) {
-            cache_it = _pic_cache.find(_curr_path + L"\\" + it);
+        // 先按内存图片名或完整 key 删除。
+        if (erase_cached_pic(it)) {
+            loaded++;
+            continue;
         }
-        // 查到了就释放
-        if (cache_it != _pic_cache.end()) {
-            cache_it->second.release();
-            _pic_cache.erase(cache_it);
+
+        // 没查到再按资源目录解析后的文件路径删除。
+        if (Path2GlobalPath(it, _curr_path, tp) && tp != it && erase_cached_pic(tp)) {
             loaded++;
         }
     }
@@ -398,25 +824,32 @@ long ImageSearchService::FreePic(const wstring &files) {
 
 long ImageSearchService::LoadMemPic(const wstring &file_name, void *data, long size) {
     try {
-        if (!_pic_cache.count(file_name)) {
-            _pic_cache[file_name].read(data, size);
-        }
+        if (file_name.empty())
+            return 0;
+
+        auto image = read_mem_pic(data, size);
+        if (!image)
+            return 0;
+
+        // 同名内存图按新内容覆盖，避免全局缓存复用到旧模板。
+        return store_cached_pic(file_name, std::move(image)) ? 1 : 0;
     } catch (...) {
         return 0;
     }
-    return 1;
 }
 
 long ImageSearchService::GetPicSize(const wstring &file_name, long *width, long *height) {
-    // 看当前目录
-    auto cache_it = _pic_cache.find(file_name);
-    // 没查到再看一下资源目录
-    if (cache_it == _pic_cache.end()) {
-        cache_it = _pic_cache.find(_curr_path + L"\\" + file_name);
+    std::shared_ptr<Image> image;
+    std::shared_ptr<PicMatchTemplate> match;
+    find_cached_pic(file_name, image, match);
+    if (!image) {
+        wstring tp;
+        if (Path2GlobalPath(file_name, _curr_path, tp))
+            find_cached_pic(tp, image, match);
     }
-    // 查到了就释放
-    if (cache_it != _pic_cache.end()) {
-        if (!set_out(width, cache_it->second.width) || !set_out(height, cache_it->second.height))
+
+    if (image) {
+        if (!set_out(width, image->width) || !set_out(height, image->height))
             return 0;
         return 1;
     }
@@ -447,29 +880,151 @@ void ImageSearchService::str2binaryfbk(const wstring &color, double sim) {
     }
 }
 
-void ImageSearchService::files2mats(const wstring &files, std::vector<Image *> &vpic, std::vector<wstring> &vstr) {
-    // std::vector<wstring>vstr, vstr2;
-    Image *pm;
-    vpic.clear();
-    split(files, vstr, L"|");
-    wstring tp;
-    for (auto &it : vstr) {
-        // 先在缓存中查找是否已加载，包括从内存中加载的文件
-        if (_pic_cache.count(it)) {
-            pm = &_pic_cache[it];
-        } else {
-            // 路径转化
-            if (!Path2GlobalPath(it, _curr_path, tp))
-                continue;
-            // 再检测一次，包括绝对路径的文件
-            if (_pic_cache.count(tp)) {
-                pm = &_pic_cache[tp];
-            } else {
-                _pic_cache[tp].read(tp.data());
-                pm = &_pic_cache[tp];
+void ImageSearchService::str2pointbinaryfbk(const wstring &color) {
+    str2binaryfbk(color);
+    ApplyBinaryPreprocess();
+}
+
+void ImageSearchService::str2pointbinaryfbk(const wstring &color, double sim) {
+    str2binaryfbk(color, sim);
+    ApplyBinaryPreprocess();
+}
+
+void ImageSearchService::ApplyBinaryPreprocess() {
+    if (_binary_preprocess_mode <= 0 || _binary.empty())
+        return;
+
+    auto count_neighbors = [](const ImageBin &image, int x, int y) {
+        int count = 0;
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                if (dx == 0 && dy == 0)
+                    continue;
+                const int nx = x + dx;
+                const int ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= image.width || ny >= image.height)
+                    continue;
+                if (image.at(ny, nx) == WORD_COLOR)
+                    ++count;
             }
         }
-        vpic.push_back(pm);
+        return count;
+    };
+
+    if (_binary_preprocess_mode >= 1) {
+        ImageBin source = _binary;
+        for (int y = 0; y < source.height; ++y) {
+            for (int x = 0; x < source.width; ++x) {
+                if (source.at(y, x) == WORD_COLOR &&
+                    count_neighbors(source, x, y) <= _binary_isolated_threshold) {
+                    _binary.at(y, x) = WORD_BKCOLOR;
+                }
+            }
+        }
+    }
+
+    if (_binary_preprocess_mode >= 2 && _binary_min_component_area > 1) {
+        ImageBin visited;
+        visited.create(_binary.width, _binary.height);
+        std::fill(visited.begin(), visited.end(), 0);
+
+        std::vector<point_t> stack;
+        std::vector<point_t> component;
+        for (int y = 0; y < _binary.height; ++y) {
+            for (int x = 0; x < _binary.width; ++x) {
+                if (_binary.at(y, x) != WORD_COLOR || visited.at(y, x))
+                    continue;
+
+                stack.clear();
+                component.clear();
+                stack.push_back(point_t(x, y));
+                visited.at(y, x) = 1;
+
+                while (!stack.empty()) {
+                    const point_t p = stack.back();
+                    stack.pop_back();
+                    component.push_back(p);
+
+                    for (int dy = -1; dy <= 1; ++dy) {
+                        for (int dx = -1; dx <= 1; ++dx) {
+                            if (dx == 0 && dy == 0)
+                                continue;
+                            const int nx = p.x + dx;
+                            const int ny = p.y + dy;
+                            if (nx < 0 || ny < 0 || nx >= _binary.width || ny >= _binary.height)
+                                continue;
+                            if (visited.at(ny, nx) || _binary.at(ny, nx) != WORD_COLOR)
+                                continue;
+
+                            visited.at(ny, nx) = 1;
+                            stack.push_back(point_t(nx, ny));
+                        }
+                    }
+                }
+
+                if (static_cast<long>(component.size()) < _binary_min_component_area) {
+                    for (const auto &p : component)
+                        _binary.at(p.y, p.x) = WORD_BKCOLOR;
+                }
+            }
+        }
+    }
+
+    if (_binary_preprocess_mode >= 3 && _binary_bridge_gap > 0) {
+        ImageBin source = _binary;
+        for (int y = 0; y < source.height; ++y) {
+            for (int x = 0; x < source.width; ++x) {
+                if (source.at(y, x) == WORD_COLOR)
+                    continue;
+
+                const bool bridge_x = x > 0 && x + 1 < source.width && source.at(y, x - 1) == WORD_COLOR &&
+                                      source.at(y, x + 1) == WORD_COLOR;
+                const bool bridge_y = y > 0 && y + 1 < source.height && source.at(y - 1, x) == WORD_COLOR &&
+                                      source.at(y + 1, x) == WORD_COLOR;
+                if (bridge_x || bridge_y)
+                    _binary.at(y, x) = WORD_COLOR;
+            }
+        }
+    }
+}
+
+void ImageSearchService::files2mats(const wstring &files, std::vector<PicMatchTemplate *> &vmatches,
+                                    std::vector<wstring> &vstr, std::vector<std::shared_ptr<Image>> &holders,
+                                    std::vector<std::shared_ptr<PicMatchTemplate>> &match_holders) {
+    // std::vector<wstring>vstr, vstr2;
+    vmatches.clear();
+    vstr.clear();
+    holders.clear();
+    match_holders.clear();
+    std::vector<wstring> names;
+    split(files, names, L"|");
+    wstring tp;
+    for (auto &it : names) {
+        // 先按原始名字查找，覆盖 LoadMemPic 名称和完整路径两种情况。
+        std::shared_ptr<Image> image;
+        std::shared_ptr<PicMatchTemplate> match;
+        find_cached_pic(it, image, match);
+        if (!image) {
+            if (!Path2GlobalPath(it, _curr_path, tp))
+                continue;
+            find_cached_pic(tp, image, match);
+            if (!image) {
+                image = read_pic_file(tp);
+                if (!image)
+                    continue;
+                match = make_pic_match(image);
+                if (!match)
+                    continue;
+                // 自动读取本地文件时，只有开启缓存才写入全局缓存。
+                if (_enable_cache)
+                    store_cached_pic(tp, image, match);
+            }
+        }
+
+        holders.push_back(image);
+        match_holders.push_back(match);
+        vmatches.push_back(match.get());
+        vstr.push_back(it);
     }
 }
 
@@ -477,7 +1032,8 @@ long ImageSearchService::OcrEx(const wstring &color, double sim, std::wstring &r
     retstr.clear();
     if (sim < 0. || sim > 1.)
         sim = 1.;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         int find_ct = 0;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
@@ -498,8 +1054,8 @@ long ImageSearchService::OcrEx(const wstring &color, double sim, std::wstring &r
             retstr.pop_back();
         return find_ct;
     } else {
-        str2binaryfbk(color, sim);
-        return ImageSearchAlgorithms::OcrEx(_dicts[_curr_idx], sim, retstr);
+        str2pointbinaryfbk(color, sim);
+        return ImageSearchAlgorithms::OcrEx(*dict, sim, retstr);
     }
 }
 
@@ -509,7 +1065,8 @@ long ImageSearchService::FindStr(const wstring &str, const wstring &color, doubl
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -518,10 +1075,10 @@ long ImageSearchService::FindStr(const wstring &str, const wstring &color, doubl
             }
         }
     } else {
-        str2binaryfbk(color, sim);
-        ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
+        str2pointbinaryfbk(color, sim);
+        ImageSearchAlgorithms::bin_ocr(*dict, sim, ocr_res);
     }
-    return ImageSearchAlgorithms::FindStr(ocr_res, vstr, sim, retx, rety);
+    return ImageSearchAlgorithms::FindStr(ocr_res, vstr, retx, rety);
 }
 
 long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, double sim, std::wstring &out_str) {
@@ -531,7 +1088,8 @@ long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, dou
     if (sim < 0. || sim > 1.)
         sim = 1.;
     std::map<point_t, ocr_rec_t> ocr_res;
-    if (_dicts[_curr_idx].size() == 0) {
+    auto dict = ActiveDict(_curr_idx);
+    if (!dict) {
         vocr_rec_t res;
         HttpOcrService::getInstance()->ocr(_src.pdata, _src.width, _src.height, 4, res);
         for (auto &it : res) {
@@ -540,10 +1098,10 @@ long ImageSearchService::FindStrEx(const wstring &str, const wstring &color, dou
             }
         }
     } else {
-        str2binaryfbk(color, sim);
-        ImageSearchAlgorithms::bin_ocr(_dicts[_curr_idx], sim, ocr_res);
+        str2pointbinaryfbk(color, sim);
+        ImageSearchAlgorithms::bin_ocr(*dict, sim, ocr_res);
     }
-    return ImageSearchAlgorithms::FindStrEx(ocr_res, vstr, sim, out_str);
+    return ImageSearchAlgorithms::FindStrEx(ocr_res, vstr, out_str);
 }
 
 long ImageSearchService::OcrAuto(double sim, std::wstring &retstr) {
@@ -577,10 +1135,10 @@ long ImageSearchService::OcrAutoFromFile(const wstring &files, double sim, std::
 
 long ImageSearchService::FindLine(const wstring &color, double sim, wstring &retStr) {
     retStr.clear();
-    str2binaryfbk(color);
     if (sim < 0. || sim > 1.)
         sim = 1.;
-    return ImageSearchAlgorithms::FindLine(sim, retStr);
+    str2binaryfbk(color, sim);
+    return ImageSearchAlgorithms::FindLine(retStr);
 }
 
 } // namespace op::image

@@ -25,8 +25,6 @@ target_link_libraries(tools PRIVATE minhook::minhook)
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     install(TARGETS tools RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x64")
-    install(TARGETS tools ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x64")
 ELSE()
     install(TARGETS tools RUNTIME DESTINATION "${PROJECT_SOURCE_DIR}/bin/x86")
-    install(TARGETS tools ARCHIVE DESTINATION "${PROJECT_SOURCE_DIR}/lib/x86")
 ENDIF()

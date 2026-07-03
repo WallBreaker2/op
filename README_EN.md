@@ -42,10 +42,10 @@ op/
 │  ├─ image/       Color/image search, bitmap OCR, OCR HTTP wrapper, and YOLO HTTP wrapper
 │  ├─ opencv/      OpenCV template matching, feature matching, preprocessing, and bridge layer
 │  ├─ windows/      Windows API wrappers for windows, processes, memory, and injection
-│  ├─ core/        Shared utilities, paths, environment, pipes, and window layout helpers
+│  ├─ op/          Split implementation of the public C++ op::Op class
 │  ├─ common/      Internal image, color, dictionary, and shared-memory structures
 │  ├─ algorithm/   Common algorithms such as A*
-│  ├─ libop.cpp    Main C++ interface implementation used by COM/SWIG
+│  ├─ libop.cpp    op::Op construction, destruction, and context initialization
 ├─ include/        Public headers and exported interfaces
 ├─ tools/          Registration-free loader source, builds tools.dll
 ├─ swig/           Python SWIG binding files

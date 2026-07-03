@@ -1024,6 +1024,131 @@ STDMETHODIMP OpAutomation::FetchWord(LONG x1, LONG y1, LONG x2, LONG y2, BSTR co
     newstr.CopyTo(ret_str);
     return S_OK;
 }
+
+STDMETHODIMP OpAutomation::FetchWordEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR word,
+                                       BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.FetchWordEx(x1, y1, x2, y2, color, sim, word, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::ExtractWordRects(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,
+                                            LONG min_word_h, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.ExtractWordRects(x1, y1, x2, y2, color, sim, min_word_h, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::ExtractWordRectsEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,
+                                              LONG min_word_w, LONG min_word_h, LONG padding, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.ExtractWordRectsEx(x1, y1, x2, y2, color, sim, min_word_w, min_word_h, padding, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::FetchWords(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words,
+                                      LONG min_word_h, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.FetchWords(x1, y1, x2, y2, color, sim, words, min_word_h, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::FetchWordsEx(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words,
+                                        LONG min_word_w, LONG min_word_h, LONG padding, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.FetchWordsEx(x1, y1, x2, y2, color, sim, words, min_word_w, min_word_h, padding, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::FetchWordsByRects(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim, BSTR words,
+                                             BSTR rects, BSTR *ret_str) {
+    if (!ret_str)
+        return E_POINTER;
+
+    wstring s;
+    obj.FetchWordsByRects(x1, y1, x2, y2, color, sim, words, rects, s);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::GetBinaryPreview(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, DOUBLE sim,
+                                            BSTR *ret_str, LONG *ret) {
+    if (!ret_str || !ret)
+        return E_POINTER;
+
+    wstring s;
+    obj.GetBinaryPreview(x1, y1, x2, y2, color, sim, s, ret);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::GetWordPreview(BSTR dict_info, BSTR *ret_str, LONG *ret) {
+    if (!ret_str || !ret)
+        return E_POINTER;
+
+    wstring s;
+    obj.GetWordPreview(dict_info, s, ret);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::CheckWordDict(BSTR dict_info, BSTR *ret_str, LONG *ret) {
+    if (!ret_str || !ret)
+        return E_POINTER;
+
+    wstring s;
+    obj.CheckWordDict(dict_info, s, ret);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::NormalizeWordDict(BSTR dict_info, BSTR *ret_str, LONG *ret) {
+    if (!ret_str || !ret)
+        return E_POINTER;
+
+    wstring s;
+    obj.NormalizeWordDict(dict_info, s, ret);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::RenameWordDict(BSTR dict_info, BSTR words, BSTR *ret_str, LONG *ret) {
+    if (!ret_str || !ret)
+        return E_POINTER;
+
+    wstring s;
+    obj.RenameWordDict(dict_info, words, s, ret);
+    return CopyOutBstr(ret_str, s);
+}
+
+STDMETHODIMP OpAutomation::SetBinaryPreprocess(LONG mode, LONG isolated_threshold, LONG min_component_area,
+                                               LONG bridge_gap, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    obj.SetBinaryPreprocess(mode, isolated_threshold, min_component_area, bridge_gap, ret);
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::GetBinaryPreprocess(LONG *mode, LONG *isolated_threshold, LONG *min_component_area,
+                                               LONG *bridge_gap, LONG *ret) {
+    if (!mode || !isolated_threshold || !min_component_area || !bridge_gap || !ret)
+        return E_POINTER;
+
+    obj.GetBinaryPreprocess(mode, isolated_threshold, min_component_area, bridge_gap, ret);
+    return S_OK;
+}
+
 // 识别这个范围内所有满足条件的词组，这个识别函数不会用到字库. 只是识别大概形状的位置
 STDMETHODIMP OpAutomation::GetWordsNoDict(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR *ret_str) {
     if (!ret_str)

@@ -1,4 +1,7 @@
 #define OP_API
+#define _In_
+#define _Out_
+#define _Inout_
 %module pyop
 
 %{
@@ -15,7 +18,7 @@
 %apply long long *OUTPUT {LONG_PTR *}
 %apply size_t *OUTPUT {size_t *}
 
-%extend op::Client {
+%extend op::Op {
     void RunApp(const wchar_t *cmdline, long mode, long *ret) {
         unsigned long pid = 0;
         $self->RunApp(cmdline, mode, &pid, ret);

@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "memory/ProcessMemory.h"
 
@@ -11,7 +11,7 @@
 
 namespace {
 
-static LONG_PTR resolve_memory_hwnd(op::Client *self, LONG_PTR hwnd) {
+static LONG_PTR resolve_memory_hwnd(op::Op *self, LONG_PTR hwnd) {
     if (hwnd != 0)
         return hwnd;
     LONG_PTR bind_hwnd = 0;
@@ -21,7 +21,7 @@ static LONG_PTR resolve_memory_hwnd(op::Client *self, LONG_PTR hwnd) {
 
 } // namespace
 
-void op::Client::WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret) {
+void op::Op::WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t *data, long size, long *ret) {
     internal::set_result(ret, 0L);
     if (!ret || !address || !data || size < 0)
         return;
@@ -34,7 +34,7 @@ void op::Client::WriteData(LONG_PTR hwnd, const wchar_t *address, const wchar_t 
     }
 }
 // 读取数据
-void op::Client::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr) {
+void op::Op::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std::wstring &retstr) {
     retstr.clear();
     if (!address || size < 0)
         return;
@@ -47,7 +47,7 @@ void op::Client::ReadData(LONG_PTR hwnd, const wchar_t *address, long size, std:
     }
 }
 
-void op::Client::ReadInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t *ret) {
+void op::Op::ReadInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t *ret) {
     internal::set_result(ret, 0);
     if (!address || !ret)
         return;
@@ -60,7 +60,7 @@ void op::Client::ReadInt(LONG_PTR hwnd, const wchar_t *address, long type, int64
     }
 }
 
-void op::Client::WriteInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t value, long *ret) {
+void op::Op::WriteInt(LONG_PTR hwnd, const wchar_t *address, long type, int64_t value, long *ret) {
     internal::set_result(ret, 0L);
     if (!address || !ret)
         return;
@@ -73,7 +73,7 @@ void op::Client::WriteInt(LONG_PTR hwnd, const wchar_t *address, long type, int6
     }
 }
 
-void op::Client::ReadFloat(LONG_PTR hwnd, const wchar_t *address, float *ret) {
+void op::Op::ReadFloat(LONG_PTR hwnd, const wchar_t *address, float *ret) {
     internal::set_result(ret, 0.0f);
     if (!address || !ret)
         return;
@@ -86,7 +86,7 @@ void op::Client::ReadFloat(LONG_PTR hwnd, const wchar_t *address, float *ret) {
     }
 }
 
-void op::Client::WriteFloat(LONG_PTR hwnd, const wchar_t *address, float value, long *ret) {
+void op::Op::WriteFloat(LONG_PTR hwnd, const wchar_t *address, float value, long *ret) {
     internal::set_result(ret, 0L);
     if (!address || !ret)
         return;
@@ -99,7 +99,7 @@ void op::Client::WriteFloat(LONG_PTR hwnd, const wchar_t *address, float value, 
     }
 }
 
-void op::Client::ReadDouble(LONG_PTR hwnd, const wchar_t *address, double *ret) {
+void op::Op::ReadDouble(LONG_PTR hwnd, const wchar_t *address, double *ret) {
     internal::set_result(ret, 0.0);
     if (!address || !ret)
         return;
@@ -112,7 +112,7 @@ void op::Client::ReadDouble(LONG_PTR hwnd, const wchar_t *address, double *ret) 
     }
 }
 
-void op::Client::WriteDouble(LONG_PTR hwnd, const wchar_t *address, double value, long *ret) {
+void op::Op::WriteDouble(LONG_PTR hwnd, const wchar_t *address, double value, long *ret) {
     internal::set_result(ret, 0L);
     if (!address || !ret)
         return;
@@ -125,7 +125,7 @@ void op::Client::WriteDouble(LONG_PTR hwnd, const wchar_t *address, double value
     }
 }
 
-void op::Client::ReadString(LONG_PTR hwnd, const wchar_t *address, long type, long len, std::wstring &retstr) {
+void op::Op::ReadString(LONG_PTR hwnd, const wchar_t *address, long type, long len, std::wstring &retstr) {
     retstr.clear();
     if (!address)
         return;
@@ -138,7 +138,7 @@ void op::Client::ReadString(LONG_PTR hwnd, const wchar_t *address, long type, lo
     }
 }
 
-void op::Client::WriteString(LONG_PTR hwnd, const wchar_t *address, long type, const wchar_t *value, long *ret) {
+void op::Op::WriteString(LONG_PTR hwnd, const wchar_t *address, long type, const wchar_t *value, long *ret) {
     internal::set_result(ret, 0L);
     if (!address || !value || !ret)
         return;

@@ -184,7 +184,7 @@ TEST_F(OcrFixture, WordResultParsing) {
 }
 
 TEST(OcrParsing, WordResultParsingHandlesBadInput) {
-    op::Client op;
+    op::Op op;
     const wchar_t *result = L"12,34-first/56,78-second/";
 
     long word_count = -1;
@@ -294,7 +294,7 @@ TEST_F(OcrFixture, OcrAutoFromGeneratedConsoleLikeBmpContainsExpectedText) {
 }
 
 TEST(OcrDiagnostics, DISABLED_ProgramManagerDmSoftOcrDiagnostics) {
-    op::Client op;
+    op::Op op;
     long ret = 0;
 
     LONG_PTR hwnd = 0;
@@ -352,7 +352,7 @@ TEST(OcrDiagnostics, DISABLED_ProgramManagerDmSoftOcrDiagnostics) {
 }
 
 TEST(OcrDiagnostics, DISABLED_ProgramManagerOpDictOcrDiagnostics) {
-    op::Client op;
+    op::Op op;
     long ret = 0;
 
     LONG_PTR hwnd = 0;

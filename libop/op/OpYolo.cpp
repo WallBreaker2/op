@@ -1,5 +1,5 @@
-#include "ClientContext.h"
-#include "ClientResult.h"
+#include "OpContext.h"
+#include "OpResult.h"
 
 #include "image/Image.h"
 #include "runtime/RuntimeUtils.h"
@@ -67,7 +67,7 @@ static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson)
 
 } // namespace
 
-long op::Client::SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
+long op::Op::SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
     string argvs = argv ? _ws2string(argv) : "";
     vector<string> vstr;
     split(argvs, vstr, " ");
@@ -75,7 +75,7 @@ long op::Client::SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll
     const std::wstring dll = dll_name ? dll_name : L"";
     return op::yolo::YoloDetector::getInstance()->init(engine, dll, vstr) == 0 ? 1 : 0;
 }
-void op::Client::YoloDetect(long x1, long y1, long x2, long y2, double conf, double iou, std::wstring &retjson, long *ret) {
+void op::Op::YoloDetect(long x1, long y1, long x2, long y2, double conf, double iou, std::wstring &retjson, long *ret) {
     retjson.clear();
     internal::set_result(ret, 0L);
     if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
@@ -100,7 +100,7 @@ void op::Client::YoloDetect(long x1, long y1, long x2, long y2, double conf, dou
     }
 }
 
-void op::Client::YoloDetectFromFile(const wchar_t *file_name, double conf, double iou, std::wstring &retjson, long *ret) {
+void op::Op::YoloDetectFromFile(const wchar_t *file_name, double conf, double iou, std::wstring &retjson, long *ret) {
     retjson.clear();
     internal::set_result(ret, 0L);
     std::wstring fullpath;

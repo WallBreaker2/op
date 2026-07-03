@@ -54,23 +54,23 @@ struct TempCommandFile {
 
 } // namespace
 
-TEST(CoreTest, VersionIsNotEmpty) {
-    op::Client op;
+TEST(OpTest, VersionIsNotEmpty) {
+    op::Op op;
     wstring ver = op.Ver();
     EXPECT_FALSE(ver.empty()) << "Version string should not be empty";
     wcout << L"Version: " << ver << endl;
 }
 
-TEST(CoreTest, GetBasePath) {
-    op::Client op;
+TEST(OpTest, GetBasePath) {
+    op::Op op;
     wstring path;
     op.GetBasePath(path);
     wcout << L"Base Path: " << path << endl;
     // Just verify it doesn't crash; path may be empty in test env
 }
 
-TEST(CoreTest, GetID) {
-    op::Client op;
+TEST(OpTest, GetID) {
+    op::Op op;
     long id = 0;
     op.GetID(&id);
     cout << "Object ID: " << id << endl;
@@ -80,7 +80,7 @@ TEST(CoreTest, GetID) {
 // 2. Algorithm Module
 // ============================================================
 TEST(AlgorithmTest, AStarFindPath) {
-    op::Client op;
+    op::Op op;
     wstring path;
     op.AStarFindPath(100, 100, L"50,50", 0, 0, 99, 99, path);
 
@@ -101,14 +101,14 @@ TEST(AlgorithmTest, AStarFindPath) {
 }
 
 TEST(AlgorithmTest, AStarRejectsOutOfBoundsTarget) {
-    op::Client op;
+    op::Op op;
     wstring path;
     op.AStarFindPath(3, 3, L"", 0, 0, 3, 2, path);
     EXPECT_TRUE(path.empty());
 }
 
 TEST(AlgorithmTest, FindNearestPos) {
-    op::Client op;
+    op::Op op;
     wstring pos;
     op.FindNearestPos(L"10,10|20,20|30,30", 1, 15, 15, pos);
     wcout << L"Nearest Pos to (15,15): " << pos << endl;
@@ -119,14 +119,14 @@ TEST(AlgorithmTest, FindNearestPos) {
 // 3. WindowService Module
 // ============================================================
 TEST(WindowServiceTest, GetForegroundWindow) {
-    op::Client op;
+    op::Op op;
     LONG_PTR hwnd = 0;
     op.GetForegroundWindow(&hwnd);
     cout << "Foreground Window: " << hex << hwnd << dec << endl;
 }
 
 TEST(WindowServiceTest, ClientToScreenDesktopOriginIsStable) {
-    op::Client op;
+    op::Op op;
     const LONG_PTR hwnd = reinterpret_cast<LONG_PTR>(::GetDesktopWindow());
     long x = 10;
     long y = 20;
@@ -140,7 +140,7 @@ TEST(WindowServiceTest, ClientToScreenDesktopOriginIsStable) {
 }
 
 TEST(WindowServiceTest, GetWindowTitleAndRect) {
-    op::Client op;
+    op::Op op;
     LONG_PTR hwnd = 0;
     op.GetForegroundWindow(&hwnd);
     if (hwnd) {
@@ -155,21 +155,21 @@ TEST(WindowServiceTest, GetWindowTitleAndRect) {
 }
 
 TEST(WindowServiceTest, EnumWindow) {
-    op::Client op;
+    op::Op op;
     wstring list;
     op.EnumWindow(0, L"", L"", 1 + 2, list);
     wcout << L"EnumWindow (top 50 chars): " << list.substr(0, 50) << L"..." << endl;
 }
 
 TEST(WindowServiceTest, GetCmdStrEcho) {
-    op::Client op;
+    op::Op op;
     wstring out;
     op.GetCmdStr(L"cmd /c echo op_test_ok", 2000, out);
     EXPECT_NE(out.find(L"op_test_ok"), wstring::npos) << "GetCmdStr should return command output";
 }
 
 TEST(WindowServiceTest, GetCmdStrLongCommandLine) {
-    op::Client op;
+    op::Op op;
     wstring payload(400, L'a');
     wstring cmd = L"cmd /c echo " + payload;
     wstring out;
@@ -199,7 +199,7 @@ TEST(WindowServiceTest, GetCmdStrStartsUnicodeCommandLine) {
         EXPECT_EQ(written, sizeof(body) - 1);
     }
 
-    op::Client op;
+    op::Op op;
     wstring out;
     const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
     op.GetCmdStr(cmd.c_str(), 3000, out);
@@ -236,7 +236,7 @@ TEST(WindowServiceTest, GetCmdStrReturnsPartialOutputOnTimeout) {
         EXPECT_EQ(written, sizeof(body) - 1);
     }
 
-    op::Client op;
+    op::Op op;
     wstring out;
     const auto start = std::chrono::steady_clock::now();
     const wstring cmd = L"cmd /d /c call \"" + temp.script + L"\"";
@@ -249,7 +249,7 @@ TEST(WindowServiceTest, GetCmdStrReturnsPartialOutputOnTimeout) {
 }
 
 TEST(WindowServiceTest, RunAppReturnsPid) {
-    op::Client op;
+    op::Op op;
     unsigned long pid = 0;
     long ret = 0;
 
@@ -266,7 +266,7 @@ TEST(WindowServiceTest, RunAppReturnsPid) {
 }
 
 TEST(WindowServiceTest, GetCmdStrHandlesLargeOutputWithoutHanging) {
-    op::Client op;
+    op::Op op;
     wstring out;
     op.GetCmdStr(L"cmd /c for /L %i in (1,1,256) do @echo 0123456789abcdefghijklmnopqrstuvwxyz", 2000, out);
     EXPECT_NE(out.find(L"0123456789abcdefghijklmnopqrstuvwxyz"), wstring::npos);
@@ -274,7 +274,7 @@ TEST(WindowServiceTest, GetCmdStrHandlesLargeOutputWithoutHanging) {
 }
 
 TEST(WindowServiceTest, SendStringToFocusedChildEdit) {
-    op::Client op;
+    op::Op op;
     SendStringWindow wnd;
     ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
 
@@ -286,7 +286,7 @@ TEST(WindowServiceTest, SendStringToFocusedChildEdit) {
 }
 
 TEST(WindowServiceTest, SendStringImeToFocusedChildEdit) {
-    op::Client op;
+    op::Op op;
     SendStringWindow wnd;
     ASSERT_TRUE(wnd.Create()) << "failed to create test windows";
 
@@ -298,7 +298,7 @@ TEST(WindowServiceTest, SendStringImeToFocusedChildEdit) {
 }
 
 TEST(IntegrationTest, BindUnbindFurMarkIfPresent) {
-    op::Client op;
+    op::Op op;
     const wchar_t *capture_file = L"D:\\code\\op\\build\\furmark_bound_capture.bmp";
 
     auto parse_hwnds = [&](const wstring &list) -> vector<long> {

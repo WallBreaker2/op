@@ -188,7 +188,20 @@ var (
 	procClearDict              *windows.LazyProc
 	procGetDictCount           *windows.LazyProc
 	procGetNowDict             *windows.LazyProc
+	procSetBinaryPreprocess    *windows.LazyProc
+	procGetBinaryPreprocess    *windows.LazyProc
 	procFetchWord              *windows.LazyProc
+	procFetchWordEx            *windows.LazyProc
+	procExtractWordRects       *windows.LazyProc
+	procExtractWordRectsEx     *windows.LazyProc
+	procFetchWords             *windows.LazyProc
+	procFetchWordsEx           *windows.LazyProc
+	procFetchWordsByRects      *windows.LazyProc
+	procGetBinaryPreview       *windows.LazyProc
+	procGetWordPreview         *windows.LazyProc
+	procCheckWordDict          *windows.LazyProc
+	procNormalizeWordDict      *windows.LazyProc
+	procRenameWordDict         *windows.LazyProc
 	procGetWordsNoDict         *windows.LazyProc
 	procGetWordResultCount     *windows.LazyProc
 	procGetWordResultPos       *windows.LazyProc
@@ -398,7 +411,20 @@ func bindProcs() {
 	procClearDict = dll.NewProc("OpClearDict")
 	procGetDictCount = dll.NewProc("OpGetDictCount")
 	procGetNowDict = dll.NewProc("OpGetNowDict")
+	procSetBinaryPreprocess = dll.NewProc("OpSetBinaryPreprocess")
+	procGetBinaryPreprocess = dll.NewProc("OpGetBinaryPreprocess")
 	procFetchWord = dll.NewProc("OpFetchWord")
+	procFetchWordEx = dll.NewProc("OpFetchWordEx")
+	procExtractWordRects = dll.NewProc("OpExtractWordRects")
+	procExtractWordRectsEx = dll.NewProc("OpExtractWordRectsEx")
+	procFetchWords = dll.NewProc("OpFetchWords")
+	procFetchWordsEx = dll.NewProc("OpFetchWordsEx")
+	procFetchWordsByRects = dll.NewProc("OpFetchWordsByRects")
+	procGetBinaryPreview = dll.NewProc("OpGetBinaryPreview")
+	procGetWordPreview = dll.NewProc("OpGetWordPreview")
+	procCheckWordDict = dll.NewProc("OpCheckWordDict")
+	procNormalizeWordDict = dll.NewProc("OpNormalizeWordDict")
+	procRenameWordDict = dll.NewProc("OpRenameWordDict")
 	procGetWordsNoDict = dll.NewProc("OpGetWordsNoDict")
 	procGetWordResultCount = dll.NewProc("OpGetWordResultCount")
 	procGetWordResultPos = dll.NewProc("OpGetWordResultPos")

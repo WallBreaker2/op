@@ -1,8 +1,8 @@
-// op.idl: op 的 IDL 源
+// op.idl: IDL source for op.
 //
 
-// 此文件将由 MIDL 工具处理以
-// 生成类型库(op.tlb)和封送处理代码。
+// This file is processed by MIDL to generate the type library
+// (op.tlb) and proxy/stub marshaling code.
 
 import "oaidl.idl";
 import "ocidl.idl";
@@ -197,6 +197,19 @@ interface IOpAutomation : IDispatch
 	[id(229)] HRESULT GetWordResultCount([in] BSTR result, [out, retval] LONG* ret);
 	[id(230)] HRESULT GetWordResultPos([in] BSTR result, [in] LONG index, [out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(231)] HRESULT GetWordResultStr([in] BSTR result, [in] LONG index, [out, retval] BSTR* retstr);
+	[id(232)] HRESULT ExtractWordRects([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG min_word_h, [out, retval] BSTR* retstr);
+	[id(233)] HRESULT FetchWords([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] BSTR words, [in] LONG min_word_h, [out, retval] BSTR* retstr);
+	[id(234)] HRESULT GetBinaryPreview([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [out] BSTR* retstr, [out, retval] LONG* ret);
+	[id(235)] HRESULT GetWordPreview([in] BSTR dict_info, [out] BSTR* retstr, [out, retval] LONG* ret);
+	[id(236)] HRESULT CheckWordDict([in] BSTR dict_info, [out] BSTR* retstr, [out, retval] LONG* ret);
+	[id(237)] HRESULT FetchWordsByRects([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] BSTR words, [in] BSTR rects, [out, retval] BSTR* retstr);
+	[id(238)] HRESULT FetchWordEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] BSTR word, [out, retval] BSTR* retstr);
+	[id(239)] HRESULT ExtractWordRectsEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] LONG min_word_w, [in] LONG min_word_h, [in] LONG padding, [out, retval] BSTR* retstr);
+	[id(240)] HRESULT FetchWordsEx([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR color, [in] DOUBLE sim, [in] BSTR words, [in] LONG min_word_w, [in] LONG min_word_h, [in] LONG padding, [out, retval] BSTR* retstr);
+	[id(241)] HRESULT NormalizeWordDict([in] BSTR dict_info, [out] BSTR* retstr, [out, retval] LONG* ret);
+	[id(242)] HRESULT RenameWordDict([in] BSTR dict_info, [in] BSTR words, [out] BSTR* retstr, [out, retval] LONG* ret);
+	[id(243)] HRESULT SetBinaryPreprocess([in] LONG mode, [in] LONG isolated_threshold, [in] LONG min_component_area, [in] LONG bridge_gap, [out, retval] LONG* ret);
+	[id(244)] HRESULT GetBinaryPreprocess([out] LONG* mode, [out] LONG* isolated_threshold, [out] LONG* min_component_area, [out] LONG* bridge_gap, [out, retval] LONG* ret);
 
 	[id(250)] HRESULT WriteData([in] hyper hwnd, [in]BSTR address, [in] BSTR data, [in] LONG size, [out, retval] LONG* ret);
 	[id(251)] HRESULT ReadData([in] hyper hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
