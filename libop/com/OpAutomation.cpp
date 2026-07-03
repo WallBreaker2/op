@@ -972,9 +972,35 @@ STDMETHODIMP OpAutomation::GetDict(LONG idx, LONG font_index, BSTR *retstr) {
     return S_OK;
 }
 
-// 设置字库文件
-STDMETHODIMP OpAutomation::SetMemDict(LONG idx, BSTR data, LONG size, LONG *ret) {
-    obj.SetMemDict(idx, data, size, ret);
+// 从内存字节设置全局字库槽，支持 OP 二进制 .dict 和文本字库内容。
+STDMETHODIMP OpAutomation::SetMemDict(LONG idx, SAFEARRAY *data, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    if (!data)
+        return S_OK;
+
+    if (SafeArrayGetDim(data) != 1)
+        return S_OK;
+
+    VARTYPE vt = VT_EMPTY;
+    if (FAILED(SafeArrayGetVartype(data, &vt)) || vt != VT_UI1)
+        return S_OK;
+
+    LONG lower = 0;
+    LONG upper = -1;
+    if (FAILED(SafeArrayGetLBound(data, 1, &lower)) || FAILED(SafeArrayGetUBound(data, 1, &upper)) || upper < lower)
+        return S_OK;
+
+    void *bytes = nullptr;
+    const HRESULT hr = SafeArrayAccessData(data, &bytes);
+    if (FAILED(hr))
+        return hr;
+
+    const LONG byte_count = upper - lower + 1;
+    obj.SetMemDict(idx, bytes, byte_count, ret);
+    SafeArrayUnaccessData(data);
 
     return S_OK;
 }

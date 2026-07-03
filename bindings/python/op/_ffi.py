@@ -281,7 +281,7 @@ def _bind(dll: ctypes.WinDLL) -> ctypes.WinDLL:
         ("OpYoloDetectFromFile", c_wchar_p, [op_handle, c_wchar_p, c_double, c_double]),
         ("OpSetDict", c_int, [op_handle, c_int, c_wchar_p]),
         ("OpGetDict", c_wchar_p, [op_handle, c_int, c_int]),
-        ("OpSetMemDict", c_int, [op_handle, c_int, c_wchar_p, c_int]),
+        ("OpSetMemDict", c_int, [op_handle, c_int, c_void_p, c_int]),
         ("OpUseDict", c_int, [op_handle, c_int]),
         ("OpAddDict", c_int, [op_handle, c_int, c_wchar_p]),
         ("OpSaveDict", c_int, [op_handle, c_int, c_wchar_p]),
