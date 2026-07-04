@@ -3,8 +3,8 @@
 #include "OpResult.h"
 
 #include "image/Image.h"
-#include "runtime/JsonUtils.h"
-#include "runtime/RuntimeUtils.h"
+#include "base/JsonUtils.h"
+#include "base/Utils.h"
 #include "yolo/YoloDetector.h"
 
 #include <libop.h>

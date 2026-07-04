@@ -3,7 +3,7 @@
 #include "OpAutomation.h"
 #include "stdafx.h"
 
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 #include <cstdint>
 #include <filesystem>
 #include <string>

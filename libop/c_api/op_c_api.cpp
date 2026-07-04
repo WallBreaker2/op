@@ -2,7 +2,7 @@
 
 #include "../../include/libop.h"
 #include "../memory/ProcessMemory.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Environment.h"
 
 #include <Windows.h>
 #include <cstdint>

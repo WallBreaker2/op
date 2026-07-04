@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_RUNTIME_WINDOWS_HANDLE_H_
-#define OP_RUNTIME_WINDOWS_HANDLE_H_
+#ifndef OP_BASE_WINDOWS_HANDLE_H_
+#define OP_BASE_WINDOWS_HANDLE_H_
 
 #include <Windows.h>
 
@@ -61,4 +61,4 @@ class unique_handle {
 
 } // namespace op::win32
 
-#endif // OP_RUNTIME_WINDOWS_HANDLE_H_
+#endif // OP_BASE_WINDOWS_HANDLE_H_

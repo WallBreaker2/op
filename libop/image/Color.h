@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OP_IMAGE_COLOR_H_
 #define OP_IMAGE_COLOR_H_
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #include <algorithm>
 #define WORD_BKCOLOR 0
 #define WORD_COLOR 1

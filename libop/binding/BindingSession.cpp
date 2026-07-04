@@ -1,8 +1,8 @@
 // #include "stdafx.h"
 #include "BindingSession.h"
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeUtils.h"
-#include "../runtime/WindowsVersion.h"
+#include "../base/AutomationModes.h"
+#include "../base/Utils.h"
+#include "../base/WindowsVersion.h"
 #include <algorithm>
 #include <cwctype>
 #include <tuple>

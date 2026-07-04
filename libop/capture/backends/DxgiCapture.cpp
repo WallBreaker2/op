@@ -3,8 +3,8 @@
 #include "DxgiCapture.h"
 #include "../../hook/DxCaptureCommon.h"
 #include "../../image/Image.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
 #include <algorithm>
 #include <atlbase.h>
 #include <cstring>

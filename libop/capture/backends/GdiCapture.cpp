@@ -9,8 +9,8 @@
 
 #include "../../window/WindowService.h"
 #include "../../image/Image.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
 
 namespace {
 

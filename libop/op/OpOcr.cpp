@@ -3,7 +3,7 @@
 #include "OpResult.h"
 
 #include "ocr/OcrService.h"
-#include "runtime/RuntimeUtils.h"
+#include "base/Utils.h"
 
 #include <libop.h>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "../../runtime/Types.h"
+#include "../../base/Types.h"
 #include "WinMouse.h"
 
 namespace op::input {

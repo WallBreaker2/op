@@ -1,5 +1,5 @@
-#ifndef OP_RUNTIME_RUNTIME_ENVIRONMENT_H_
-#define OP_RUNTIME_RUNTIME_ENVIRONMENT_H_
+#ifndef OP_BASE_ENVIRONMENT_H_
+#define OP_BASE_ENVIRONMENT_H_
 #include <string>
 class RuntimeEnvironment {
   public:
@@ -14,4 +14,4 @@ class RuntimeEnvironment {
     static std::wstring m_basePath;
     static std::wstring m_opName;
 };
-#endif // OP_RUNTIME_RUNTIME_ENVIRONMENT_H_
+#endif // OP_BASE_ENVIRONMENT_H_
