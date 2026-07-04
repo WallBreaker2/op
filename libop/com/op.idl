@@ -137,6 +137,11 @@ interface IOpAutomation : IDispatch
 	[id(142)] HRESULT KeyPress([in] LONG vk_code, [out, retval] LONG* ret);
 	[id(143)] HRESULT KeyPressChar([in] BSTR vk_code, [out, retval] LONG* ret);
 	[id(144)] HRESULT GetCursorShape([out, retval] BSTR* ret);
+	[id(145)] HRESULT MoveToSmooth([in] LONG x, [in] LONG y, [in] LONG duration, [out, retval] LONG* ret);
+	[id(146)] HRESULT MoveToExSmooth([in] LONG x, [in] LONG y, [in] LONG w, [in] LONG h, [in] LONG duration, [out, retval] BSTR* ret);
+	[id(147)] HRESULT MovePath([in] BSTR path, [in] LONG duration, [out, retval] LONG* ret);
+	[id(148)] HRESULT DragPath([in] BSTR path, [in] LONG duration, [out, retval] LONG* ret);
+	[id(149)] HRESULT SetMouseTrajectory([in] LONG mode, [in] LONG min_duration, [in] LONG max_duration, [in] LONG jitter, [in] LONG start_delay, [in] LONG end_delay, [out, retval] LONG* ret);
 	//image & color 150-199
 	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);

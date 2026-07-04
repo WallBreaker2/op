@@ -529,6 +529,120 @@ TEST(MouseKeyTest, WindowsModeMouseMoveCarriesLeftButtonWhileHeld) {
     EXPECT_EQ(unbind_ret, 1);
 }
 
+TEST(MouseKeyTest, WindowsModeSmoothMoveUsesMultipleSteps) {
+    op::Op op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+
+    op.MoveToSmooth(120, 82, 0, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_GT(window.move_count, 1);
+    EXPECT_EQ(window.last_x, 120);
+    EXPECT_EQ(window.last_y, 82);
+
+    std::wstring pos;
+    window.ResetCounts();
+    op.MoveToExSmooth(80, 70, -8, -6, 0, pos);
+    ASSERT_FALSE(pos.empty());
+    long x = 0;
+    long y = 0;
+    ASSERT_EQ(swscanf_s(pos.c_str(), L"%ld,%ld", &x, &y), 2);
+    EXPECT_GE(x, 73);
+    EXPECT_LE(x, 80);
+    EXPECT_GE(y, 65);
+    EXPECT_LE(y, 70);
+    EXPECT_GT(window.move_count, 1);
+    EXPECT_EQ(window.last_x, x);
+    EXPECT_EQ(window.last_y, y);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, WindowsModeMouseTrajectoryConfig) {
+    op::Op op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.SetMouseTrajectory(1, 40, 100, 0, 10, 10, &ret);
+    EXPECT_EQ(ret, 1);
+    op.SetMouseTrajectory(3, 0, 0, 0, 0, 0, &ret);
+    EXPECT_EQ(ret, 0);
+    op.SetMouseTrajectory(2, 120, 80, 0, 0, 0, &ret);
+    EXPECT_EQ(ret, 0);
+    op.SetMouseTrajectory(2, 0, 0, 101, 0, 0, &ret);
+    EXPECT_EQ(ret, 0);
+
+    op.MoveTo(10, 12, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+
+    const auto start = std::chrono::steady_clock::now();
+    op.MoveToSmooth(100, 12, 0, &ret);
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - start)
+                             .count();
+    EXPECT_EQ(ret, 1);
+    EXPECT_GE(elapsed, 45);
+    EXPECT_GT(window.move_count, 1);
+    EXPECT_EQ(window.last_x, 100);
+    EXPECT_EQ(window.last_y, 12);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, WindowsModeMovePathAndDragPath) {
+    op::Op op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"windows", L"windows", 0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.MovePath(L"10,10|24,18|48,36", 0, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_GT(window.move_count, 3);
+    EXPECT_EQ(window.last_x, 48);
+    EXPECT_EQ(window.last_y, 36);
+
+    op.MovePath(L"10,10", 0, &ret);
+    EXPECT_EQ(ret, 0);
+    op.MovePath(L"10,10|10,10", 0, &ret);
+    EXPECT_EQ(ret, 0);
+    op.MovePath(L"10,10|bad", 0, &ret);
+    EXPECT_EQ(ret, 0);
+
+    window.ResetCounts();
+    op.DragPath(L"12,14|30,32|50,40", 0, &ret);
+    EXPECT_EQ(ret, 1);
+    EXPECT_EQ(window.left_down, 1);
+    EXPECT_EQ(window.left_up, 1);
+    EXPECT_GT(window.move_count, 3);
+    EXPECT_EQ(window.move_with_left_count, window.move_count - 1);
+    EXPECT_EQ(window.last_x, 50);
+    EXPECT_EQ(window.last_y, 40);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
 TEST(MouseKeyTest, WindowsModeMoveToKeepsClientCoordinatesAfterResize) {
     op::Op op;
     MouseEventWindow window;

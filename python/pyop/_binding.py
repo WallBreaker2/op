@@ -285,6 +285,21 @@ class Op(object):
     def MoveToEx(self, x, y, w, h):
         return _pyop.Op_MoveToEx(self, x, y, w, h)
 
+    def MoveToSmooth(self, x, y, duration):
+        return _pyop.Op_MoveToSmooth(self, x, y, duration)
+
+    def MoveToExSmooth(self, x, y, w, h, duration):
+        return _pyop.Op_MoveToExSmooth(self, x, y, w, h, duration)
+
+    def MovePath(self, path, duration):
+        return _pyop.Op_MovePath(self, path, duration)
+
+    def DragPath(self, path, duration):
+        return _pyop.Op_DragPath(self, path, duration)
+
+    def SetMouseTrajectory(self, mode, min_duration, max_duration, jitter, start_delay, end_delay):
+        return _pyop.Op_SetMouseTrajectory(self, mode, min_duration, max_duration, jitter, start_delay, end_delay)
+
     def LeftClick(self):
         return _pyop.Op_LeftClick(self)
 

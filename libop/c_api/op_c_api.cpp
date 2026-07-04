@@ -515,6 +515,29 @@ const wchar_t *OP_CALL OpMoveToEx(op_handle handle, int x, int y, int w, int h) 
     return call_string(handle, [&](op::Op &op, std::wstring &ret) { op.MoveToEx(x, y, w, h, ret); });
 }
 
+int OP_CALL OpMoveToSmooth(op_handle handle, int x, int y, int duration) {
+    return call_ret(handle, [&](op::Op &op, long *ret) { op.MoveToSmooth(x, y, duration, ret); });
+}
+
+const wchar_t *OP_CALL OpMoveToExSmooth(op_handle handle, int x, int y, int w, int h, int duration) {
+    return call_string(handle, [&](op::Op &op, std::wstring &ret) { op.MoveToExSmooth(x, y, w, h, duration, ret); });
+}
+
+int OP_CALL OpMovePath(op_handle handle, const wchar_t *path, int duration) {
+    return call_ret(handle, [&](op::Op &op, long *ret) { op.MovePath(safe_text(path), duration, ret); });
+}
+
+int OP_CALL OpDragPath(op_handle handle, const wchar_t *path, int duration) {
+    return call_ret(handle, [&](op::Op &op, long *ret) { op.DragPath(safe_text(path), duration, ret); });
+}
+
+int OP_CALL OpSetMouseTrajectory(op_handle handle, int mode, int min_duration, int max_duration, int jitter,
+                                 int start_delay, int end_delay) {
+    return call_ret(handle, [&](op::Op &op, long *ret) {
+        op.SetMouseTrajectory(mode, min_duration, max_duration, jitter, start_delay, end_delay, ret);
+    });
+}
+
 #define OP_MOUSE_RET(name, method) \
     int OP_CALL name(op_handle handle) { return call_ret(handle, [](op::Op &op, long *ret) { op.method(ret); }); }
 
