@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_RUNTIME_RUNTIME_UTILS_H_
-#define OP_RUNTIME_RUNTIME_UTILS_H_
+#ifndef OP_BASE_UTILS_H_
+#define OP_BASE_UTILS_H_
 #include "Types.h"
 std::wstring _s2wstring(const std::string &s);
 std::string _ws2string(const std::wstring &s);
@@ -86,4 +86,4 @@ std::wostream &operator<<(std::wostream &o, point_t const &rhs);
 bool Delay(long mis);
 bool Delays(long mis_min, long mis_max);
 
-#endif // OP_RUNTIME_RUNTIME_UTILS_H_
+#endif // OP_BASE_UTILS_H_

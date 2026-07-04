@@ -110,6 +110,7 @@ OP_C_API int OP_CALL OpBindWindow(op_handle handle, intptr_t hwnd, const wchar_t
 OP_C_API int OP_CALL OpBindWindowEx(op_handle handle, intptr_t display_hwnd, intptr_t input_hwnd,
                                     const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, int mode);
 OP_C_API int OP_CALL OpUnBindWindow(op_handle handle);
+OP_C_API int OP_CALL OpLockInput(op_handle handle, int lock);
 OP_C_API intptr_t OP_CALL OpGetBindWindow(op_handle handle);
 OP_C_API int OP_CALL OpIsBind(op_handle handle);
 
@@ -119,6 +120,12 @@ OP_C_API const wchar_t *OP_CALL OpGetCursorShape(op_handle handle);
 OP_C_API int OP_CALL OpMoveR(op_handle handle, int x, int y);
 OP_C_API int OP_CALL OpMoveTo(op_handle handle, int x, int y);
 OP_C_API const wchar_t *OP_CALL OpMoveToEx(op_handle handle, int x, int y, int w, int h);
+OP_C_API int OP_CALL OpMoveToSmooth(op_handle handle, int x, int y, int duration);
+OP_C_API const wchar_t *OP_CALL OpMoveToExSmooth(op_handle handle, int x, int y, int w, int h, int duration);
+OP_C_API int OP_CALL OpMovePath(op_handle handle, const wchar_t *path, int duration);
+OP_C_API int OP_CALL OpDragPath(op_handle handle, const wchar_t *path, int duration);
+OP_C_API int OP_CALL OpSetMouseTrajectory(op_handle handle, int mode, int min_duration, int max_duration, int jitter,
+                                          int start_delay, int end_delay);
 OP_C_API int OP_CALL OpLeftClick(op_handle handle);
 OP_C_API int OP_CALL OpLeftDoubleClick(op_handle handle);
 OP_C_API int OP_CALL OpLeftDown(op_handle handle);
@@ -265,7 +272,7 @@ OP_C_API const wchar_t *OP_CALL OpYoloDetectFromFile(op_handle handle, const wch
                                                      double iou);
 OP_C_API int OP_CALL OpSetDict(op_handle handle, int idx, const wchar_t *file_name);
 OP_C_API const wchar_t *OP_CALL OpGetDict(op_handle handle, int idx, int font_index);
-OP_C_API int OP_CALL OpSetMemDict(op_handle handle, int idx, const wchar_t *data, int size);
+OP_C_API int OP_CALL OpSetMemDict(op_handle handle, int idx, const void *data, int size);
 OP_C_API int OP_CALL OpUseDict(op_handle handle, int idx);
 OP_C_API int OP_CALL OpAddDict(op_handle handle, int idx, const wchar_t *dict_info);
 OP_C_API int OP_CALL OpSaveDict(op_handle handle, int idx, const wchar_t *file_name);

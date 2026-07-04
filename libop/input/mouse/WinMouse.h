@@ -1,5 +1,5 @@
 #pragma once
-#include "../../runtime/Types.h"
+#include "../../base/Types.h"
 #include <string>
 
 namespace op::input {
@@ -22,6 +22,17 @@ class WinMouse {
     virtual long MoveTo(int x, int y);
 
     virtual long MoveToEx(int x, int y, int w, int h, int &dst_x, int &dst_y);
+
+    virtual long MoveToSmooth(int x, int y, int duration);
+
+    virtual long MoveToExSmooth(int x, int y, int w, int h, int duration, int &dst_x, int &dst_y);
+
+    virtual long MovePath(const std::wstring &path, int duration);
+
+    virtual long DragPath(const std::wstring &path, int duration);
+
+    virtual long SetMouseTrajectory(int mode, int min_duration, int max_duration, int jitter, int start_delay,
+                                    int end_delay);
 
     virtual long LeftClick();
 
@@ -87,11 +98,18 @@ class WinMouse {
     long xbutton(WORD xbutton, WPARAM button, bool down);
     long xbutton_double_click(long (WinMouse::*click)(), WORD xbutton, WPARAM button, long delay);
     long send_wheel(DWORD input_flag, UINT window_message, int delta);
+    int resolve_trajectory_duration(int duration) const;
 
     HWND _hwnd;
     int _mode;
     int _x, _y;
     WPARAM _button_state;
+    int _trajectory_mode;
+    int _trajectory_min_duration;
+    int _trajectory_max_duration;
+    int _trajectory_jitter;
+    int _trajectory_start_delay;
+    int _trajectory_end_delay;
 };
 
 } // namespace op::input

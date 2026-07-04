@@ -14,7 +14,7 @@
 #include "kiero_d3d9.hpp"
 #include "kiero_opengl.hpp"
 #include "../hook/ApiResolver.h"
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 #include <string>
 #include <vector>
 

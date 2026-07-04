@@ -1,6 +1,6 @@
 #include "TemplateMatcher.h"
 #include "OpenCvHelpers.h"
-#include "../runtime/ThreadPool.h"
+#include "../base/ThreadPool.h"
 
 #include <algorithm>
 #include <atomic>

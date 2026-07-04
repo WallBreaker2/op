@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_RUNTIME_AUTOMATION_MODES_H_
-#define OP_RUNTIME_AUTOMATION_MODES_H_
+#ifndef OP_BASE_AUTOMATION_MODES_H_
+#define OP_BASE_AUTOMATION_MODES_H_
 #include "Types.h"
 #include <cstdint>
 #define SAFE_CLOSE(h)                                                                                                  \
@@ -103,7 +103,7 @@ extern long MOUSE_DX_DELAY;
 
 #ifndef OP_VERSION
 #define OP_VERSION MAKE_OP_VERSION(0, 4, 8, 1)
-#endif // OP_RUNTIME_AUTOMATION_MODES_H_
+#endif // OP_VERSION
 // 模块句柄
 // extern HINSTANCE gInstance;
 // 是否显示错误信息
@@ -113,4 +113,4 @@ extern long MOUSE_DX_DELAY;
 
 // extern wstring g_op_name;
 
-#endif
+#endif // OP_BASE_AUTOMATION_MODES_H_

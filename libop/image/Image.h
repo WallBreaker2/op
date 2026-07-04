@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OP_IMAGE_IMAGE_H_
 #define OP_IMAGE_IMAGE_H_
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #include <atlimage.h>
 #include <limits>
 #include <vector>

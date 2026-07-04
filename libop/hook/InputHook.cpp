@@ -1,6 +1,7 @@
 #include "InputHook.h"
-#include "../runtime/RuntimeUtils.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Utils.h"
+#include "../base/Environment.h"
+#include "../input/keyboard/KeyMessageUtils.h"
 #include "../input/mouse/CursorShape.h"
 #include "../hook/ApiResolver.h"
 #include "MinHookRuntime.h"
@@ -36,9 +37,12 @@ HCURSOR InputHook::m_cursor = nullptr;
 bool InputHook::m_cursorVisible = false;
 unsigned long long InputHook::m_cursorHash = 0;
 unsigned long long InputHook::m_cursorMeta = 0;
+LONG InputHook::m_inputLock = 0;
 bool InputHook::is_hooked = false;
 
 namespace {
+
+namespace key_message = op::input::key_message;
 
 WNDPROC g_rawWindowProc = nullptr;
 void *g_mouseGetDeviceStateRaw = nullptr;
@@ -119,7 +123,6 @@ UINT WINAPI hkGetRawInputDeviceList(PRAWINPUTDEVICELIST devices, PUINT count, UI
 UINT WINAPI hkGetRegisteredRawInputDevices(PRAWINPUTDEVICE devices, PUINT count, UINT size);
 HCURSOR WINAPI hkSetCursor(HCURSOR cursor);
 LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
-bool is_extended_vk(WPARAM vk);
 
 bool create_hook(void *target, void *detour, void **original = nullptr) {
     if (!target || !detour)
@@ -146,8 +149,6 @@ void remove_input_hooks() {
     }
     g_hookTargets.clear();
 }
-WORD scan_code(WPARAM vk);
-
 template <typename Target, typename Value> void set_out(Target *target, Value value) {
     if (target)
         *target = static_cast<Target>(value);
@@ -187,6 +188,101 @@ bool fake_raw_device(HANDLE device) {
     return fake_mouse_device(device) || fake_keyboard_device(device);
 }
 
+bool raw_type_locked(DWORD type) {
+    if (type == RIM_TYPEMOUSE)
+        return InputHook::mouseLocked();
+    if (type == RIM_TYPEKEYBOARD)
+        return InputHook::keyboardLocked();
+    return InputHook::mouseLocked() && InputHook::keyboardLocked();
+}
+
+bool has_input_lock() {
+    return InputHook::mouseLocked() || InputHook::keyboardLocked();
+}
+
+bool mouse_window_message(UINT message) {
+    switch (message) {
+    case WM_MOUSEMOVE:
+    case WM_NCMOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_LBUTTONDBLCLK:
+    case WM_NCLBUTTONDOWN:
+    case WM_NCLBUTTONUP:
+    case WM_NCLBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MBUTTONDBLCLK:
+    case WM_NCMBUTTONDOWN:
+    case WM_NCMBUTTONUP:
+    case WM_NCMBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_NCRBUTTONDOWN:
+    case WM_NCRBUTTONUP:
+    case WM_NCRBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_XBUTTONDBLCLK:
+    case WM_NCXBUTTONDOWN:
+    case WM_NCXBUTTONUP:
+    case WM_NCXBUTTONDBLCLK:
+    case WM_MOUSEWHEEL:
+    case WM_MOUSEHWHEEL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool keyboard_window_message(UINT message) {
+    switch (message) {
+    case WM_KEYDOWN:
+    case WM_KEYUP:
+    case WM_SYSKEYDOWN:
+    case WM_SYSKEYUP:
+    case WM_CHAR:
+    case WM_SYSCHAR:
+    case WM_DEADCHAR:
+    case WM_SYSDEADCHAR:
+    case WM_UNICHAR:
+    case WM_HOTKEY:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool mouse_button_vk(int vk) {
+    return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON || vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
+}
+
+bool virtual_key_locked(int vk) {
+    return mouse_button_vk(vk) ? InputHook::mouseLocked() : InputHook::keyboardLocked();
+}
+
+UINT raw_input_aligned_size(UINT size) {
+    const UINT_PTR align = sizeof(void *);
+    return static_cast<UINT>((static_cast<UINT_PTR>(size) + align - 1) & ~(align - 1));
+}
+
+UINT empty_raw_input(PUINT size) {
+    if (size)
+        *size = 0;
+    return 0;
+}
+
+UINT blocked_raw_input_data(LPVOID data, PUINT size) {
+    if (size)
+        *size = 0;
+    if (!data)
+        return 0;
+
+    ::SetLastError(ERROR_INVALID_HANDLE);
+    return static_cast<UINT>(-1);
+}
+
 void push_dinput_event(std::deque<DIDEVICEOBJECTDATA> &events, DWORD offset, DWORD data) {
     if (events.size() >= kDinputEventLimit)
         events.pop_front();
@@ -209,12 +305,10 @@ void push_raw_event(const RAWINPUT &raw) {
         ::PostMessage(InputHook::input_hwnd, WM_INPUT, RIM_INPUT, reinterpret_cast<LPARAM>(handle));
 }
 
-RAWINPUT *find_raw_event(HRAWINPUT handle) {
-    for (auto &event : g_rawEvents) {
-        if (event.first == handle)
-            return &event.second;
-    }
-    return nullptr;
+std::deque<std::pair<HRAWINPUT, RAWINPUT>>::iterator find_raw_event(HRAWINPUT handle) {
+    return std::find_if(g_rawEvents.begin(), g_rawEvents.end(), [&](const auto &event) {
+        return event.first == handle;
+    });
 }
 
 DWORD mouse_button_offset(int key) {
@@ -392,14 +486,10 @@ void hook_raw_input() {
 }
 
 void fill_mouse_state(DWORD size, LPVOID ptr) {
-    if (size == sizeof(MouseState)) {
-        memcpy(ptr, &InputHook::m_mouseState, sizeof(MouseState));
-        return;
-    }
-
     // DirectInput 鼠标轴是相对移动量，读取后需要消费，避免同一次移动被重复返回。
     const LONG dx = InputHook::m_mouseState.lAxisX;
     const LONG dy = InputHook::m_mouseState.lAxisY;
+    const LONG wheel = InputHook::consumeWheelDelta();
     InputHook::m_mouseState.lAxisX = 0;
     InputHook::m_mouseState.lAxisY = 0;
 
@@ -407,16 +497,17 @@ void fill_mouse_state(DWORD size, LPVOID ptr) {
         DIMOUSESTATE state = {};
         state.lX = dx;
         state.lY = dy;
-        state.lZ = InputHook::consumeWheelDelta();
+        state.lZ = wheel;
         state.rgbButtons[0] = InputHook::m_mouseState.abButtons[0];
         state.rgbButtons[1] = InputHook::m_mouseState.abButtons[1];
         state.rgbButtons[2] = InputHook::m_mouseState.abButtons[2];
+        state.rgbButtons[3] = InputHook::m_mouseState.abButtons[3];
         memcpy(ptr, &state, sizeof(state));
     } else {
         DIMOUSESTATE2 state = {};
         state.lX = dx;
         state.lY = dy;
-        state.lZ = InputHook::consumeWheelDelta();
+        state.lZ = wheel;
         state.rgbButtons[0] = InputHook::m_mouseState.abButtons[0];
         state.rgbButtons[1] = InputHook::m_mouseState.abButtons[1];
         state.rgbButtons[2] = InputHook::m_mouseState.abButtons[2];
@@ -480,8 +571,10 @@ RAWINPUT make_raw_keyboard(WPARAM vk, bool down) {
     raw.header.dwSize = sizeof(RAWINPUT);
     raw.header.hDevice = reinterpret_cast<HANDLE>(kFakeRawKeyboardDevice);
     raw.header.wParam = RIM_INPUT;
-    raw.data.keyboard.MakeCode = scan_code(vk);
-    raw.data.keyboard.Flags = static_cast<USHORT>((down ? RI_KEY_MAKE : RI_KEY_BREAK) | (is_extended_vk(vk) ? RI_KEY_E0 : 0));
+    raw.data.keyboard.MakeCode = key_message::ScanCode(static_cast<UINT>(vk));
+    raw.data.keyboard.Flags = static_cast<USHORT>(
+        (down ? RI_KEY_MAKE : RI_KEY_BREAK) |
+        (key_message::IsExtendedVirtualKey(static_cast<UINT>(vk)) ? RI_KEY_E0 : 0));
     raw.data.keyboard.VKey = static_cast<USHORT>(vk);
     raw.data.keyboard.Message = down ? WM_KEYDOWN : WM_KEYUP;
     return raw;
@@ -506,6 +599,69 @@ UINT write_raw_input(const RAWINPUT &raw, UINT command, LPVOID data, PUINT size)
         memcpy(data, &raw, sizeof(RAWINPUT));
     set_out(size, bytes);
     return bytes;
+}
+
+bool real_raw_input_locked(HRAWINPUT raw_input) {
+    if (!has_input_lock())
+        return false;
+    if (!g_getRawInputDataRaw)
+        return true;
+
+    RAWINPUTHEADER header = {};
+    UINT header_size = sizeof(header);
+    const UINT ret = reinterpret_cast<GetRawInputDataFn>(g_getRawInputDataRaw)(
+        raw_input, RID_HEADER, &header, &header_size, sizeof(RAWINPUTHEADER));
+    if (ret == sizeof(RAWINPUTHEADER))
+        return raw_type_locked(header.dwType);
+
+    return InputHook::mouseLocked() && InputHook::keyboardLocked();
+}
+
+UINT read_filtered_raw_input_buffer(PRAWINPUT data, PUINT size, UINT header_size) {
+    if (!g_getRawInputBufferRaw)
+        return empty_raw_input(size);
+    if (!data)
+        return reinterpret_cast<GetRawInputBufferFn>(g_getRawInputBufferRaw)(data, size, header_size);
+
+    const UINT capacity_bytes = *size;
+    if (capacity_bytes == 0)
+        return empty_raw_input(size);
+
+    std::vector<BYTE> buffer(capacity_bytes);
+    UINT read_bytes = capacity_bytes;
+    const UINT count = reinterpret_cast<GetRawInputBufferFn>(g_getRawInputBufferRaw)(
+        reinterpret_cast<PRAWINPUT>(buffer.data()), &read_bytes, header_size);
+    if (count == static_cast<UINT>(-1))
+        return count;
+
+    BYTE *src = buffer.data();
+    BYTE *end = buffer.data() + read_bytes;
+    BYTE *dst = reinterpret_cast<BYTE *>(data);
+    UINT written_count = 0;
+    UINT written_bytes = 0;
+    for (UINT i = 0; i < count && src + sizeof(RAWINPUTHEADER) <= end; ++i) {
+        auto *raw = reinterpret_cast<PRAWINPUT>(src);
+        const UINT raw_size = raw->header.dwSize;
+        if (raw_size < sizeof(RAWINPUTHEADER) || src + raw_size > end)
+            break;
+
+        const UINT aligned_size = raw_input_aligned_size(raw_size);
+        if (!raw_type_locked(raw->header.dwType) && written_bytes + aligned_size <= capacity_bytes) {
+            std::memmove(dst + written_bytes, src, raw_size);
+            if (aligned_size > raw_size)
+                std::memset(dst + written_bytes + raw_size, 0, aligned_size - raw_size);
+            written_bytes += aligned_size;
+            ++written_count;
+        }
+
+        BYTE *next_src = src + aligned_size;
+        if (next_src <= src || next_src > end)
+            break;
+        src = next_src;
+    }
+
+    set_out(size, written_bytes);
+    return written_count;
 }
 
 RID_DEVICE_INFO make_raw_device_info(HANDLE device) {
@@ -671,62 +827,12 @@ UINT append_fake_raw_device_list(PRAWINPUTDEVICELIST devices, PUINT count, UINT 
     return written_total;
 }
 
-bool is_extended_vk(WPARAM vk) {
-    switch (vk) {
-    case VK_RMENU:
-    case VK_RCONTROL:
-    case VK_INSERT:
-    case VK_DELETE:
-    case VK_HOME:
-    case VK_END:
-    case VK_PRIOR:
-    case VK_NEXT:
-    case VK_LEFT:
-    case VK_RIGHT:
-    case VK_UP:
-    case VK_DOWN:
-    case VK_NUMLOCK:
-    case VK_SNAPSHOT:
-    case VK_DIVIDE:
-    case VK_APPS:
-    case VK_LWIN:
-    case VK_RWIN:
-        return true;
-    default:
-        return false;
-    }
-}
-
 BYTE dik_code(WPARAM vk) {
-    switch (vk) {
-    case VK_NUMLOCK:
-        return 0x45;
-    case VK_PAUSE:
-        return 0xC5;
-    case VK_SNAPSHOT:
-        return 0xB7;
-    default:
-        break;
-    }
-
-    BYTE scan = static_cast<BYTE>(::MapVirtualKey(static_cast<UINT>(vk), MAPVK_VK_TO_VSC) & 0xff);
-    if (scan == 0)
-        return 0;
-    return is_extended_vk(vk) ? static_cast<BYTE>(scan | 0x80) : scan;
-}
-
-WORD scan_code(WPARAM vk) {
-    return static_cast<WORD>((::MapVirtualKey(static_cast<UINT>(vk), MAPVK_VK_TO_VSC)) & 0xff);
+    return key_message::DirectInputScanCode(static_cast<UINT>(vk));
 }
 
 LPARAM make_key_lparam(WPARAM vk, bool up) {
-    DWORD value = 1;
-    value |= static_cast<DWORD>(scan_code(vk)) << 16;
-    if (is_extended_vk(vk))
-        value |= 1u << 24;
-    if (up)
-        value |= 3u << 30;
-    return static_cast<LPARAM>(value);
+    return key_message::BuildKeyLParam(static_cast<UINT>(vk), up);
 }
 
 LPARAM client_to_screen_lparam(HWND hwnd, LPARAM lparam) {
@@ -755,6 +861,7 @@ int InputHook::setup(HWND hwnd) {
     m_lastMouseX = 0;
     m_lastMouseY = 0;
     m_wheelDelta = 0;
+    m_inputLock = 0;
 
     if (!AcquireMinHook())
         return 0;
@@ -828,7 +935,23 @@ int InputHook::release() {
     m_cursorVisible = false;
     m_cursorHash = 0;
     m_cursorMeta = 0;
+    m_inputLock = 0;
     return restored ? 1 : 0;
+}
+
+int InputHook::lockInput(int lock) {
+    if (lock < 0 || lock > 3)
+        return 0;
+    m_inputLock = lock;
+    return 1;
+}
+
+bool InputHook::mouseLocked() {
+    return m_inputLock == 1 || m_inputLock == 2;
+}
+
+bool InputHook::keyboardLocked() {
+    return m_inputLock == 1 || m_inputLock == 3;
 }
 
 void InputHook::moveTo(LPARAM lp) {
@@ -952,7 +1075,7 @@ HRESULT __stdcall hkGetDeviceState(IDirectInputDevice8W *device, DWORD size, LPV
         return DI_OK;
     }
     if (ptr && (is_mouse || (!known_device && same_vtable(device, g_mouseVtablePtr))) &&
-        (size == sizeof(MouseState) || size == sizeof(DIMOUSESTATE) || size == sizeof(DIMOUSESTATE2))) {
+        (size == sizeof(DIMOUSESTATE) || size == sizeof(DIMOUSESTATE2))) {
         fill_mouse_state(size, ptr);
         return DI_OK;
     }
@@ -989,7 +1112,7 @@ HRESULT __stdcall hkGetDeviceData(IDirectInputDevice8W *device, DWORD object_siz
 
 SHORT WINAPI hkGetKeyState(int vk) {
     SHORT original = 0;
-    if (g_getKeyStateRaw)
+    if (!virtual_key_locked(vk) && g_getKeyStateRaw)
         original = reinterpret_cast<GetKeyStateFn>(g_getKeyStateRaw)(vk);
     if (InputHook::isKeyDown(vk))
         return static_cast<SHORT>(original | 0x8000);
@@ -998,7 +1121,7 @@ SHORT WINAPI hkGetKeyState(int vk) {
 
 SHORT WINAPI hkGetAsyncKeyState(int vk) {
     SHORT original = 0;
-    if (g_getAsyncKeyStateRaw)
+    if (!virtual_key_locked(vk) && g_getAsyncKeyStateRaw)
         original = reinterpret_cast<GetKeyStateFn>(g_getAsyncKeyStateRaw)(vk);
     if (InputHook::isKeyDown(vk))
         return static_cast<SHORT>(original | 0x8000);
@@ -1016,6 +1139,8 @@ BOOL WINAPI hkGetKeyboardState(PBYTE key_state) {
         memset(key_state, 0, 256);
 
     for (int i = 0; i < 256; ++i) {
+        if (virtual_key_locked(i))
+            key_state[i] &= 0x7F;
         if (InputHook::m_vkState[i] & 0x80)
             key_state[i] |= 0x80;
     }
@@ -1037,9 +1162,19 @@ UINT WINAPI hkGetRawInputData(HRAWINPUT raw_input, UINT command, LPVOID data, PU
             return static_cast<UINT>(-1);
 
         std::lock_guard<std::mutex> lock(g_eventMutex);
-        RAWINPUT *raw = find_raw_event(raw_input);
-        return raw ? write_raw_input(*raw, command, data, size) : static_cast<UINT>(-1);
+        // 这是脚本自己压进来的 Raw Input，锁定外部输入时也要放行。
+        auto it = find_raw_event(raw_input);
+        if (it == g_rawEvents.end())
+            return static_cast<UINT>(-1);
+
+        const UINT ret = write_raw_input(it->second, command, data, size);
+        if (ret != static_cast<UINT>(-1) && command == RID_INPUT && data)
+            g_rawEvents.erase(it);
+        return ret;
     }
+
+    if (real_raw_input_locked(raw_input))
+        return blocked_raw_input_data(data, size);
 
     if (g_getRawInputDataRaw)
         return reinterpret_cast<GetRawInputDataFn>(g_getRawInputDataRaw)(raw_input, command, data, size, header_size);
@@ -1057,6 +1192,8 @@ UINT WINAPI hkGetRawInputBuffer(PRAWINPUT data, PUINT size, UINT header_size) {
             set_out(size, sizeof(RAWINPUT));
             return 0;
         }
+        if (InputHook::mouseLocked() && InputHook::keyboardLocked())
+            return empty_raw_input(size);
         if (g_getRawInputBufferRaw)
             return reinterpret_cast<GetRawInputBufferFn>(g_getRawInputBufferRaw)(data, size, header_size);
         set_out(size, 0);
@@ -1075,6 +1212,8 @@ UINT WINAPI hkGetRawInputBuffer(PRAWINPUT data, PUINT size, UINT header_size) {
 
     if (copied > 0 || !g_getRawInputBufferRaw)
         return copied;
+    if (has_input_lock())
+        return read_filtered_raw_input_buffer(data, size, header_size);
     return reinterpret_cast<GetRawInputBufferFn>(g_getRawInputBufferRaw)(data, size, header_size);
 }
 
@@ -1224,6 +1363,12 @@ LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam
         return 1;
     case OP_WM_CHAR:
         dispatch_window_message(hwnd, WM_CHAR, wparam, lparam ? lparam : 1);
+        return 1;
+    }
+
+    // 只拦外部输入。OP_WM_* 是脚本自己发来的消息，上面的分支已经放行。
+    if ((InputHook::mouseLocked() && mouse_window_message(message)) ||
+        (InputHook::keyboardLocked() && keyboard_window_message(message))) {
         return 1;
     }
 

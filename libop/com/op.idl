@@ -92,6 +92,7 @@ interface IOpAutomation : IDispatch
 	[id(102)] HRESULT GetBindWindow([out, retval] hyper* ret);
 	[id(103)] HRESULT IsBind([out, retval] LONG* ret);
 	[id(104)] HRESULT BindWindowEx([in] hyper display_hwnd, [in] hyper input_hwnd, [in] BSTR display, [in] BSTR mouse, [in] BSTR keypad, [in] LONG mode, [out, retval] LONG* ret);
+	[id(105)] HRESULT LockInput([in] LONG lock, [out, retval] LONG* ret);
 	//mouse & ketboard 120-149
 	[id(120)] HRESULT GetCursorPos([out] VARIANT* x, [out] VARIANT* y, [out, retval] LONG* ret);
 	[id(121)] HRESULT MoveR([in] LONG x, [in] LONG y, [out, retval] LONG* ret);
@@ -137,6 +138,11 @@ interface IOpAutomation : IDispatch
 	[id(142)] HRESULT KeyPress([in] LONG vk_code, [out, retval] LONG* ret);
 	[id(143)] HRESULT KeyPressChar([in] BSTR vk_code, [out, retval] LONG* ret);
 	[id(144)] HRESULT GetCursorShape([out, retval] BSTR* ret);
+	[id(145)] HRESULT MoveToSmooth([in] LONG x, [in] LONG y, [in] LONG duration, [out, retval] LONG* ret);
+	[id(146)] HRESULT MoveToExSmooth([in] LONG x, [in] LONG y, [in] LONG w, [in] LONG h, [in] LONG duration, [out, retval] BSTR* ret);
+	[id(147)] HRESULT MovePath([in] BSTR path, [in] LONG duration, [out, retval] LONG* ret);
+	[id(148)] HRESULT DragPath([in] BSTR path, [in] LONG duration, [out, retval] LONG* ret);
+	[id(149)] HRESULT SetMouseTrajectory([in] LONG mode, [in] LONG min_duration, [in] LONG max_duration, [in] LONG jitter, [in] LONG start_delay, [in] LONG end_delay, [out, retval] LONG* ret);
 	//image & color 150-199
 	[id(150)] HRESULT Capture([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] BSTR file_name, [out, retval] LONG* ret);
 	[id(151)] HRESULT CmpColor([in] LONG x, [in] LONG y, [in] BSTR color, [in] DOUBLE sim, [out, retval] LONG* ret);
@@ -155,7 +161,7 @@ interface IOpAutomation : IDispatch
 	[id(164)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
 	[id(165)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
 	[id(166)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
-	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval]LONG* ret);
+	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval] hyper* ret);
 	[id(168)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size, [out, retval]LONG* ret);
 	[id(169)] HRESULT MatchPicName([in] BSTR pic_name, [out, retval] BSTR* retstr);
 	[id(170)] HRESULT LoadMemPic([in] BSTR pic_name, [in]long long data, [in]LONG size,[out, retval] LONG* ret);
@@ -185,7 +191,7 @@ interface IOpAutomation : IDispatch
 	[id(211)] HRESULT SetYoloEngine([in] BSTR path_of_engine, [in] BSTR dll_name, [in] BSTR argv, [out, retval] LONG* ret);
 	[id(212)] HRESULT YoloDetect([in] LONG x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [in] DOUBLE conf, [in] DOUBLE iou, [out] BSTR* retjson, [out, retval] LONG* ret);
 	[id(213)] HRESULT YoloDetectFromFile([in] BSTR file_name, [in] DOUBLE conf, [in] DOUBLE iou, [out] BSTR* retjson, [out, retval] LONG* ret);
-	[id(220)] HRESULT SetMemDict([in] LONG idx, [in]BSTR data, [in]LONG size, [out, retval] LONG* ret);
+	[id(220)] HRESULT SetMemDict([in] LONG idx, [in] SAFEARRAY(BYTE) data, [out, retval] LONG* ret);
 	[id(221)] HRESULT GetDict([in] LONG idx, [in] LONG font_index, [out, retval] BSTR* retstr);
 	[id(222)] HRESULT AddDict([in] LONG idx, [in] BSTR dict_info, [out, retval] LONG* ret);
 	[id(223)] HRESULT SaveDict([in] LONG idx, [in] BSTR file_name, [out, retval] LONG* ret);

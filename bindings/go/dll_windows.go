@@ -76,6 +76,7 @@ var (
 	procBindWindow             *windows.LazyProc
 	procBindWindowEx           *windows.LazyProc
 	procUnBindWindow           *windows.LazyProc
+	procLockInput              *windows.LazyProc
 	procGetBindWindow          *windows.LazyProc
 	procIsBind                 *windows.LazyProc
 	procGetCursorPos           *windows.LazyProc
@@ -83,6 +84,11 @@ var (
 	procMoveR                  *windows.LazyProc
 	procMoveTo                 *windows.LazyProc
 	procMoveToEx               *windows.LazyProc
+	procMoveToSmooth           *windows.LazyProc
+	procMoveToExSmooth         *windows.LazyProc
+	procMovePath               *windows.LazyProc
+	procDragPath               *windows.LazyProc
+	procSetMouseTrajectory     *windows.LazyProc
 	procLeftClick              *windows.LazyProc
 	procLeftDoubleClick        *windows.LazyProc
 	procLeftDown               *windows.LazyProc
@@ -299,6 +305,7 @@ func bindProcs() {
 	procBindWindow = dll.NewProc("OpBindWindow")
 	procBindWindowEx = dll.NewProc("OpBindWindowEx")
 	procUnBindWindow = dll.NewProc("OpUnBindWindow")
+	procLockInput = dll.NewProc("OpLockInput")
 	procGetBindWindow = dll.NewProc("OpGetBindWindow")
 	procIsBind = dll.NewProc("OpIsBind")
 	procGetCursorPos = dll.NewProc("OpGetCursorPos")
@@ -306,6 +313,11 @@ func bindProcs() {
 	procMoveR = dll.NewProc("OpMoveR")
 	procMoveTo = dll.NewProc("OpMoveTo")
 	procMoveToEx = dll.NewProc("OpMoveToEx")
+	procMoveToSmooth = dll.NewProc("OpMoveToSmooth")
+	procMoveToExSmooth = dll.NewProc("OpMoveToExSmooth")
+	procMovePath = dll.NewProc("OpMovePath")
+	procDragPath = dll.NewProc("OpDragPath")
+	procSetMouseTrajectory = dll.NewProc("OpSetMouseTrajectory")
 	procLeftClick = dll.NewProc("OpLeftClick")
 	procLeftDoubleClick = dll.NewProc("OpLeftDoubleClick")
 	procLeftDown = dll.NewProc("OpLeftDown")

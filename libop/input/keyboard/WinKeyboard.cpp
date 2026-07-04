@@ -1,14 +1,9 @@
 // #include "stdafx.h"
 #include "WinKeyboard.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "KeyMessageUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
 #include <string>
-
-namespace {
-long send_message_result(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
-    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
-}
-}
 
 static unsigned int oem_code(unsigned int key) {
     short code[256] = {0};
@@ -54,46 +49,6 @@ static bool is_ctrl_vk(long vk_code) {
 
 static bool is_shift_vk(long vk_code) {
     return vk_code == VK_SHIFT || vk_code == VK_LSHIFT || vk_code == VK_RSHIFT;
-}
-
-static bool is_extended_vk(long vk_code) {
-    switch (vk_code) {
-    case VK_RMENU:
-    case VK_RCONTROL:
-    case VK_INSERT:
-    case VK_DELETE:
-    case VK_HOME:
-    case VK_END:
-    case VK_PRIOR:
-    case VK_NEXT:
-    case VK_LEFT:
-    case VK_RIGHT:
-    case VK_UP:
-    case VK_DOWN:
-    case VK_NUMLOCK:
-    case VK_SNAPSHOT:
-    case VK_DIVIDE:
-    case VK_APPS:
-    case VK_LWIN:
-    case VK_RWIN:
-        return true;
-    default:
-        return false;
-    }
-}
-
-// 按键消息的 lParam 需要带扫描码、扩展键标志和按下/抬起状态。
-static LPARAM build_windows_key_lparam(long vk_code, bool key_up, bool extended, bool alt_context) {
-    DWORD data = 1;
-    const WORD scan_code = static_cast<WORD>(::MapVirtualKey(vk_code, MAPVK_VK_TO_VSC));
-    data |= static_cast<DWORD>(scan_code) << 16;
-    if (extended)
-        data |= 1u << 24;
-    if (alt_context)
-        data |= 1u << 29;
-    if (key_up)
-        data |= 3u << 30;
-    return static_cast<LPARAM>(data);
 }
 
 // 按当前修饰键状态把虚拟键翻译成字符，供 WM_CHAR / WM_SYSCHAR 使用。
@@ -174,7 +129,7 @@ long WinKeyboard::KeyDown(long vk_code) {
         Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
         Input.ki.dwFlags = KEYEVENTF_SCANCODE;
         // 扫描码模式下，扩展键还需要补扩展键标志。
-        if (is_extended_vk(vk_code))
+        if (key_message::IsExtendedVirtualKey(static_cast<UINT>(vk_code)))
             Input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
         if (ret == 0)
@@ -183,13 +138,12 @@ long WinKeyboard::KeyDown(long vk_code) {
     }
     case INPUT_TYPE::IN_WINDOWS: {
         // windows 模式下补扩展键标志，并在 Alt 参与时切到系统键消息。
-        const bool extended = is_extended_vk(vk_code);
         const bool use_system_message = is_alt_vk(vk_code) || _alt_down;
         const bool alt_context = _alt_down && !is_alt_vk(vk_code);
         const UINT message = use_system_message ? WM_SYSKEYDOWN : WM_KEYDOWN;
-        const LPARAM lparam = build_windows_key_lparam(vk_code, false, extended, alt_context);
+        const LPARAM lparam = key_message::BuildKeyLParam(static_cast<UINT>(vk_code), false, alt_context);
 
-        ret = send_message_result(_hwnd, message, vk_code, lparam);
+        ret = message::SendTimeout(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {
@@ -234,7 +188,7 @@ long WinKeyboard::KeyUp(long vk_code) {
         Input.ki.wScan = MapVirtualKey(vk_code, MAPVK_VK_TO_VSC);
         Input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
         // 抬键时保持和按下阶段一致的扩展键标志。
-        if (is_extended_vk(vk_code))
+        if (key_message::IsExtendedVirtualKey(static_cast<UINT>(vk_code)))
             Input.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
         ret = ::SendInput(1, &Input, sizeof(INPUT));
         if (ret == 0)
@@ -244,13 +198,12 @@ long WinKeyboard::KeyUp(long vk_code) {
 
     case INPUT_TYPE::IN_WINDOWS: {
         // 抬键时保持和按下阶段一致的消息类型与 lParam 位语义。
-        const bool extended = is_extended_vk(vk_code);
         const bool use_system_message = is_alt_vk(vk_code) || _alt_down;
         const bool alt_context = _alt_down && !is_alt_vk(vk_code);
         const UINT message = use_system_message ? WM_SYSKEYUP : WM_KEYUP;
-        const LPARAM lparam = build_windows_key_lparam(vk_code, true, extended, alt_context);
+        const LPARAM lparam = key_message::BuildKeyLParam(static_cast<UINT>(vk_code), true, alt_context);
 
-        ret = send_message_result(_hwnd, message, vk_code, lparam);
+        ret = message::SendTimeout(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {
@@ -304,7 +257,7 @@ long WinKeyboard::KeyPress(long vk_code) {
         if (translate_vk_to_text(vk_code, _shift_down, _ctrl_down, _alt_down, text)) {
             const UINT char_message = _alt_down ? WM_SYSCHAR : WM_CHAR;
             for (wchar_t ch : text)
-                ::SendMessageTimeout(_hwnd, char_message, ch, 1, SMTO_BLOCK, 2000, nullptr);
+                message::SendTimeout(_hwnd, char_message, ch, 1);
         }
         ::Delay(KEYPAD_WINDOWS_DELAY);
         break;
@@ -327,7 +280,7 @@ long WinKeyboard::InputChar(wchar_t ch) {
         return ::SendInput(2, inputs, sizeof(INPUT)) == 2 ? 1 : 0;
     }
     case INPUT_TYPE::IN_WINDOWS:
-        return send_message_result(_hwnd, WM_CHAR, static_cast<WPARAM>(ch), 1);
+        return message::SendTimeout(_hwnd, WM_CHAR, static_cast<WPARAM>(ch), 1);
     }
     return 0;
 }

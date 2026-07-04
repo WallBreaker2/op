@@ -56,12 +56,12 @@ func (o *Op) GetDict(idx, fontIndex int) string {
 	return wcharString(ret)
 }
 
-func (o *Op) SetMemDict(idx int, data string, size int) int {
+func (o *Op) SetMemDict(idx int, data []byte) int {
 	if !o.valid() {
 		return 0
 	}
 
-	ret, _, _ := procSetMemDict.Call(o.handle, uintptr(idx), strArg(data), uintptr(size))
+	ret, _, _ := procSetMemDict.Call(o.handle, uintptr(idx), bytesPtr(data), uintptr(len(data)))
 	return int(ret)
 }
 

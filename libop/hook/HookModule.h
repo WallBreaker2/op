@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/AutomationModes.h"
+#include "../base/Environment.h"
 
 #include <string>
 

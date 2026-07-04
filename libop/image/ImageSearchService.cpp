@@ -1,6 +1,6 @@
 // #include "stdafx.h"
 #include "ImageSearchService.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 #include "../ocr/OcrService.h"
 #include <algorithm>
 #include <array>
@@ -218,13 +218,15 @@ long ImageSearchService::FindColorEx(const wstring &color, double sim, long dir,
     return ImageSearchAlgorithms::FindColorEx(colors, sim, dir, retstr);
 }
 
-long ImageSearchService::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,
-                               long &y) {
-    std::vector<color_df_t> vfirst_color;
+void ImageSearchService::parse_multi_color_args(const wstring &first_color, const wstring &offset_color,
+                                                std::vector<color_df_t> &vfirst_color,
+                                                std::vector<pt_cr_df_t> &voffset_cr) {
     str2colordfs(first_color, vfirst_color);
+
+    // offset_color 兼容旧格式: x|y|颜色描述，多段之间用英文逗号分隔。
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
-    std::vector<pt_cr_df_t> voffset_cr;
+    voffset_cr.clear();
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
@@ -239,30 +241,21 @@ long ImageSearchService::FindMultiColor(const wstring &first_color, const wstrin
             voffset_cr.push_back(tp);
         }
     }
+}
+
+long ImageSearchService::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir,
+                                        long &x, long &y) {
+    std::vector<color_df_t> vfirst_color;
+    std::vector<pt_cr_df_t> voffset_cr;
+    parse_multi_color_args(first_color, offset_color, vfirst_color, voffset_cr);
     return ImageSearchAlgorithms::FindMultiColor(vfirst_color, voffset_cr, sim, dir, x, y);
 }
 
 long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstring &offset_color, double sim, long dir,
-                                 wstring &retstr) {
+                                          wstring &retstr) {
     std::vector<color_df_t> vfirst_color;
-    str2colordfs(first_color, vfirst_color);
-    std::vector<wstring> vseconds;
-    split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    for (auto &it : vseconds) {
-        size_t id1, id2;
-        id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
-        if (id2 != wstring::npos) {
-            pt_cr_df_t tp;
-            swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
-            if (id2 + 1 != it.length())
-                str2colordfs(it.substr(id2 + 1), tp.crdfs);
-            else
-                break;
-            voffset_cr.push_back(tp);
-        }
-    }
+    parse_multi_color_args(first_color, offset_color, vfirst_color, voffset_cr);
     return ImageSearchAlgorithms::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
 }
 // 图形定位
@@ -360,14 +353,20 @@ std::wstring ImageSearchService::GetDict(long idx, long font_index) {
     return dict->words[font_index].to_string();
 }
 
-long ImageSearchService::SetMemDict(int idx, void *data, long size) {
-    if (idx < 0 || idx >= _max_dict)
+long ImageSearchService::SetMemDict(int idx, const void *data, long size) {
+    if (idx < 0 || idx >= _max_dict || !data || size <= 0)
         return 0;
-    auto &dict = _private_dicts[idx];
-    dict.clear();
-    dict.read_memory_dict_dm((const char *)data, size);
-    _private_dict_overrides[idx] = true;
-    return dict.empty() ? 0 : 1;
+
+    auto dict = std::make_shared<Dictionary>();
+    if (!dict->read_memory_dict(data, static_cast<size_t>(size)) || dict->empty())
+        return 0;
+
+    if (!store_global_file_dict(idx, dict))
+        return 0;
+
+    _private_dicts[idx].clear();
+    _private_dict_overrides[idx] = false;
+    return 1;
 }
 
 long ImageSearchService::UseDict(int idx) {
@@ -839,6 +838,9 @@ long ImageSearchService::LoadMemPic(const wstring &file_name, void *data, long s
 }
 
 long ImageSearchService::GetPicSize(const wstring &file_name, long *width, long *height) {
+    set_out(width, 0L);
+    set_out(height, 0L);
+
     std::shared_ptr<Image> image;
     std::shared_ptr<PicMatchTemplate> match;
     find_cached_pic(file_name, image, match);

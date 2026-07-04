@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OP_WINDOW_WINDOW_SERVICE_H_
 #define OP_WINDOW_WINDOW_SERVICE_H_
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #undef FindWindow
 #undef FindWindowEx
 namespace op {

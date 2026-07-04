@@ -4,7 +4,7 @@
 #include "../capture/FrameInfo.h"
 #include "../ipc/ProcessMutex.h"
 #include "../ipc/SharedMemory.h"
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 #include <atlbase.h>
 
 namespace op::hook {

@@ -1,8 +1,8 @@
 #include "OpContext.h"
 #include "OpResult.h"
 
-#include "runtime/AutomationModes.h"
-#include "runtime/RuntimeUtils.h"
+#include "base/AutomationModes.h"
+#include "base/Utils.h"
 
 #include <libop.h>
 
@@ -115,6 +115,10 @@ void op::Op::UnBindWindow(long *ret) {
     internal::set_result(ret, m_context->bkproc.UnBindWindow());
 }
 
+void op::Op::LockInput(long lock, long *ret) {
+    internal::set_result(ret, m_context->bkproc.LockInput(lock));
+}
+
 void op::Op::GetBindWindow(LONG_PTR *ret) {
     internal::set_result(ret, m_context->bkproc.GetBindWindow());
 }
@@ -151,6 +155,36 @@ void op::Op::MoveToEx(long x, long y, long w, long h, std::wstring &ret) {
     } else {
         ret.clear();
     }
+}
+
+void op::Op::MoveToSmooth(long x, long y, long duration, long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->MoveToSmooth(x, y, duration));
+}
+
+void op::Op::MoveToExSmooth(long x, long y, long w, long h, long duration, std::wstring &ret) {
+    int dst_x = x;
+    int dst_y = y;
+    if (m_context->bkproc._mouse->MoveToExSmooth(x, y, w, h, duration, dst_x, dst_y)) {
+        ret = std::to_wstring(dst_x) + L"," + std::to_wstring(dst_y);
+    } else {
+        ret.clear();
+    }
+}
+
+void op::Op::MovePath(const wchar_t *path, long duration, long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->MovePath(path ? path : L"", duration));
+}
+
+void op::Op::DragPath(const wchar_t *path, long duration, long *ret) {
+    internal::set_result(ret, m_context->bkproc._mouse->DragPath(path ? path : L"", duration));
+}
+
+void op::Op::SetMouseTrajectory(long mode, long min_duration, long max_duration, long jitter, long start_delay,
+                                long end_delay, long *ret) {
+    const long result = m_context->bkproc._mouse->SetMouseTrajectory(
+        static_cast<int>(mode), static_cast<int>(min_duration), static_cast<int>(max_duration),
+        static_cast<int>(jitter), static_cast<int>(start_delay), static_cast<int>(end_delay));
+    internal::set_result(ret, result);
 }
 
 void op::Op::LeftClick(long *ret) {

@@ -1,5 +1,6 @@
 #include "HttpClient.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/JsonUtils.h"
+#include "../base/Utils.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -229,47 +230,7 @@ bool http_post_json(const ParsedUrl &url, const std::string &body, int timeout_m
 }
 
 std::string json_unescape(const std::string &s) {
-    std::string out;
-    out.reserve(s.size());
-    for (size_t i = 0; i < s.size(); ++i) {
-        if (s[i] != '\\') {
-            out.push_back(s[i]);
-            continue;
-        }
-        if (i + 1 >= s.size())
-            break;
-        char c = s[++i];
-        switch (c) {
-        case '"':
-            out.push_back('"');
-            break;
-        case '\\':
-            out.push_back('\\');
-            break;
-        case '/':
-            out.push_back('/');
-            break;
-        case 'b':
-            out.push_back('\b');
-            break;
-        case 'f':
-            out.push_back('\f');
-            break;
-        case 'n':
-            out.push_back('\n');
-            break;
-        case 'r':
-            out.push_back('\r');
-            break;
-        case 't':
-            out.push_back('\t');
-            break;
-        default:
-            out.push_back(c);
-            break;
-        }
-    }
-    return out;
+    return internal::json::UnescapeString(s);
 }
 
 // --- shared endpoint configuration ---

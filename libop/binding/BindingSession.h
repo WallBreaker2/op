@@ -26,6 +26,7 @@ class BindingSession {
     virtual long BindWindow(LONG_PTR hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
                             long mode);
     virtual long UnBindWindow();
+    virtual long LockInput(long lock);
     // 返回当前绑定的显示窗口句柄。使用 BindWindowEx 时，输入句柄可能不同于这个句柄。
     virtual LONG_PTR GetBindWindow();
     virtual long IsBind();
@@ -53,6 +54,8 @@ class BindingSession {
     int _is_bind;
     int _display;
     int _mode;
+    int _mouse_mode;
+    int _keypad_mode;
     std::pair<wstring, wstring> _display_method;
     Image _pic;
 

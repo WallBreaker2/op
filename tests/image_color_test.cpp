@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -466,6 +467,28 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     }
 }
 
+TEST(ImageColorTest, FindPicReturnsMinusOneWhenTemplateIsMissing) {
+    op::Op op;
+    long ret = 0;
+    auto pixels = MakePixels(8, 8);
+    SetMemBmp(op, 8, 8, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = 123;
+    long y = 456;
+    op.FindPic(0, 0, 8, 8, L"missing_findpic_template", L"000000", 1.0, 0, &x, &y, &ret);
+
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    int cx = 123;
+    int cy = 456;
+    EXPECT_EQ(OpFindPic(nullptr, 0, 0, 8, 8, L"missing_findpic_template", L"000000", 1.0, 0, &cx, &cy), -1);
+    EXPECT_EQ(cx, -1);
+    EXPECT_EQ(cy, -1);
+}
+
 TEST(ImageColorTest, SharedPicCacheIsGlobalAcrossObjects) {
     op::Op loader;
     op::Op matcher;
@@ -545,6 +568,25 @@ TEST(ImageColorTest, SharedPicCacheIsGlobalAcrossObjects) {
     matcher.FreePic(file_path.c_str(), &ret);
     EXPECT_EQ(ret, 1);
     std::filesystem::remove(std::filesystem::path(file_path));
+}
+
+TEST(ImageColorTest, MissingPicSizeClearsOutputValues) {
+    op::Op op;
+    long width = 123;
+    long height = 456;
+    long ret = 99;
+
+    op.GetPicSize(L"__missing_pic_size_template__.bmp", &width, &height, &ret);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(width, 0);
+    EXPECT_EQ(height, 0);
+
+    int c_width = 123;
+    int c_height = 456;
+    EXPECT_EQ(OpGetPicSize(nullptr, L"__missing_pic_size_template__.bmp", &c_width, &c_height), 0);
+    EXPECT_EQ(c_width, 0);
+    EXPECT_EQ(c_height, 0);
 }
 
 TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
@@ -956,6 +998,32 @@ TEST(ImageColorTest, BinaryPreprocessDoesNotChangeColorBlockSearch) {
     EXPECT_EQ(y, 0);
 }
 
+TEST(ImageColorTest, ColorSearchFailurePathsClearOutputs) {
+    op::Op op;
+    long ret = 0;
+    auto pixels = MakePixels(6, 4);
+    SetMemBmp(op, 6, 4, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long count = 123;
+    op.GetColorNum(0, 0, 6, 4, L"000000", 1.0, &count);
+    EXPECT_EQ(count, 0);
+
+    long x = 123;
+    long y = 456;
+    ret = 99;
+    op.FindColorBlock(0, 0, 6, 4, L"000000", 1.0, 1, 1, 1, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    int cx = 123;
+    int cy = 456;
+    EXPECT_EQ(OpFindColorBlock(nullptr, 0, 0, 6, 4, L"000000", 1.0, 1, 1, 1, &cx, &cy), 0);
+    EXPECT_EQ(cx, -1);
+    EXPECT_EQ(cy, -1);
+}
+
 TEST(ImageColorTest, FindColorBlockExClearsResultAndRejectsInvalidSize) {
     op::Op op;
     long ret = 0;
@@ -1226,8 +1294,8 @@ TEST(ImageColorTest, SetMemDictSupportsOpTextEntryFormat) {
     EXPECT_EQ(y, 1);
 }
 
-TEST(ImageColorTest, SetMemDictOverridesGlobalDictOnlyForCurrentObject) {
-    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_global_private_override.txt";
+TEST(ImageColorTest, SetMemDictUpdatesGlobalDictForAllObjects) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setmemdict_global_update.txt";
     {
         std::ofstream file(path, std::ios::binary);
         ASSERT_TRUE(file.is_open());
@@ -1235,26 +1303,76 @@ TEST(ImageColorTest, SetMemDictOverridesGlobalDictOnlyForCurrentObject) {
     }
 
     op::Op loader;
-    op::Op private_user;
+    op::Op memory_loader;
     op::Op global_user;
     long ret = 0;
     loader.SetDict(4, path.c_str(), &ret);
     ASSERT_EQ(ret, 1);
 
-    const char *private_text = "B$4,3,8$5E0E\n";
-    private_user.SetMemDict(4, reinterpret_cast<const wchar_t *>(private_text), static_cast<long>(strlen(private_text)),
+    const char *memory_text = "B$4,3,8$5E0E\n";
+    memory_loader.SetMemDict(4, memory_text, static_cast<long>(strlen(memory_text)),
                             &ret);
     ASSERT_EQ(ret, 1);
 
     std::wstring converted;
-    private_user.GetDict(4, 0, converted);
+    memory_loader.GetDict(4, 0, converted);
     EXPECT_EQ(converted, L"B$4,3,8$5E0E");
 
     global_user.GetDict(4, 0, converted);
-    EXPECT_EQ(converted, L"A$11,3,10$78A0001E00");
+    EXPECT_EQ(converted, L"B$4,3,8$5E0E");
 
     std::error_code ec;
     std::filesystem::remove(path, ec);
+}
+
+TEST(ImageColorTest, SetMemDictSupportsBinaryDictFileBytes) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setmemdict_binary_bytes.dict";
+
+    op::Op writer;
+    op::Op loader;
+    op::Op reader;
+    long ret = 0;
+    writer.ClearDict(6, &ret);
+    ASSERT_EQ(ret, 1);
+    writer.AddDict(6, L"A$4,3,8$5E0E", &ret);
+    ASSERT_EQ(ret, 1);
+    writer.SaveDict(6, path.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::ifstream file(path, std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    std::vector<char> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    ASSERT_FALSE(bytes.empty());
+
+    loader.SetMemDict(6, bytes.data(), static_cast<long>(bytes.size()), &ret);
+    ASSERT_EQ(ret, 1);
+
+    std::wstring converted;
+    reader.GetDict(6, 0, converted);
+    EXPECT_EQ(converted, L"A$4,3,8$5E0E");
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+}
+
+TEST(ImageColorTest, DictSlotSupportsZeroToNinetyNine) {
+    op::Op op;
+    long ret = 0;
+    const char *dict_text = "A$4,3,8$5E0E\n";
+
+    op.SetMemDict(99, dict_text, static_cast<long>(strlen(dict_text)), &ret);
+    ASSERT_EQ(ret, 1);
+    op.UseDict(99, &ret);
+    EXPECT_EQ(ret, 1);
+
+    long count = 0;
+    op.GetDictCount(99, &count);
+    EXPECT_EQ(count, 1);
+
+    op.UseDict(100, &ret);
+    EXPECT_EQ(ret, 0);
+    op.SetMemDict(100, dict_text, static_cast<long>(strlen(dict_text)), &ret);
+    EXPECT_EQ(ret, 0);
 }
 
 TEST(ImageColorTest, AddDictRejectsInvalidOpTextEntry) {
@@ -1286,7 +1404,10 @@ TEST(ImageColorTest, SetMemDictRejectsInvalidOpTextEntry) {
     long ret = 0;
     const char *op_text = "A$4,3,8$5E\n";
 
-    op.SetMemDict(0, reinterpret_cast<const wchar_t *>(op_text), static_cast<long>(strlen(op_text)), &ret);
+    op.ClearDict(0, &ret);
+    ASSERT_EQ(ret, 1);
+
+    op.SetMemDict(0, op_text, static_cast<long>(strlen(op_text)), &ret);
     EXPECT_EQ(ret, 0);
 
     long count = -1;

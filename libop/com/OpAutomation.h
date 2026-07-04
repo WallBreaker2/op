@@ -180,6 +180,8 @@ class ATL_NO_VTABLE OpAutomation
     (LONGLONG display_hwnd, LONGLONG input_hwnd, BSTR display, BSTR mouse, BSTR keypad, LONG mode, LONG *ret);
     //
     STDMETHOD(UnBindWindow)(LONG *ret);
+    // 临时锁定目标窗口的外部输入。只对 dx 鼠标、dx 键盘有效。
+    STDMETHOD(LockInput)(LONG lock, LONG *ret);
     // 获取当前对象已经绑定的窗口句柄. 无绑定返回0
     STDMETHOD(GetBindWindow)(LONGLONG *ret);
     // 判定当前对象是否已绑定窗口.
@@ -195,6 +197,17 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(MoveTo)(LONG x, LONG y, LONG *ret);
     // 把鼠标移动到目的范围内的任意一点
     STDMETHOD(MoveToEx)(LONG x, LONG y, LONG w, LONG h, BSTR *ret);
+    // 按模拟轨迹移动到指定点
+    STDMETHOD(MoveToSmooth)(LONG x, LONG y, LONG duration, LONG *ret);
+    // 在目标范围内随机取点，并按模拟轨迹移动过去
+    STDMETHOD(MoveToExSmooth)(LONG x, LONG y, LONG w, LONG h, LONG duration, BSTR *ret);
+    // 按 x,y|x,y 格式提供的路径移动
+    STDMETHOD(MovePath)(BSTR path, LONG duration, LONG *ret);
+    // 按 x,y|x,y 格式提供的路径拖拽
+    STDMETHOD(DragPath)(BSTR path, LONG duration, LONG *ret);
+    // 设置模拟轨迹参数，只影响 Smooth 和 Path 系列鼠标移动
+    STDMETHOD(SetMouseTrajectory)(LONG mode, LONG min_duration, LONG max_duration, LONG jitter, LONG start_delay,
+                                  LONG end_delay, LONG *ret);
     // 按下鼠标左键
     STDMETHOD(LeftClick)(LONG *ret);
     // 双击鼠标左键
@@ -300,7 +313,7 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(LoadMemPic)(BSTR pic_name, long long data, LONG size, LONG *ret);
     STDMETHOD(GetPicSize)(BSTR pic_name, VARIANT *width, VARIANT *height, LONG *ret);
     // 获取指定区域的图像,用二进制数据的方式返回
-    STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, LONG *ret);
+    STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, LONGLONG *ret);
     // Get a 24-bit bitmap payload for the specified region.
     STDMETHOD(GetScreenDataBmp)(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT *data, VARIANT *size, LONG *ret);
     // Get current screen frame info.
@@ -312,7 +325,7 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(SetDict)(LONG idx, BSTR file_name, LONG *ret);
     STDMETHOD(GetDict)(LONG idx, LONG font_index, BSTR *ret_str);
     // 设置内存字库文件
-    STDMETHOD(SetMemDict)(LONG idx, BSTR data, LONG size, LONG *ret);
+    STDMETHOD(SetMemDict)(LONG idx, SAFEARRAY *data, LONG *ret);
     // 使用哪个字库文件进行识别
     STDMETHOD(UseDict)(LONG idx, LONG *ret);
     // 给指定的字库中添加一条字库信息

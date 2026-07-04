@@ -1,8 +1,10 @@
 #include "OpContext.h"
+#include "OpCaptureHelpers.h"
 #include "OpResult.h"
 
 #include "image/Image.h"
-#include "runtime/RuntimeUtils.h"
+#include "base/JsonUtils.h"
+#include "base/Utils.h"
 #include "yolo/YoloDetector.h"
 
 #include <libop.h>
@@ -12,35 +14,10 @@
 
 namespace {
 
-static std::wstring json_escape(const std::wstring &text) {
-    std::wstring out;
-    for (const auto ch : text) {
-        switch (ch) {
-        case L'\\':
-            out += L"\\\\";
-            break;
-        case L'"':
-            out += L"\\\"";
-            break;
-        case L'\n':
-            out += L"\\n";
-            break;
-        case L'\r':
-            out += L"\\r";
-            break;
-        case L'\t':
-            out += L"\\t";
-            break;
-        default:
-            out += ch;
-            break;
-        }
-    }
-    return out;
-}
+constexpr const wchar_t *kYoloFailureJson = L"{\"ok\":0,\"code\":-1,\"results\":[]}";
 
 static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson) {
-    retjson = L"{\"code\":0,\"results\":[";
+    retjson = L"{\"ok\":1,\"code\":0,\"results\":[";
     bool first = true;
     for (const auto &it : items) {
         if (!first)
@@ -49,7 +26,7 @@ static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson)
         retjson += L"{\"class_id\":";
         retjson += std::to_wstring(it.class_id);
         retjson += L",\"label\":\"";
-        retjson += json_escape(it.label);
+        retjson += op::internal::json::EscapeString(it.label);
         retjson += L"\",\"bbox\":[";
         retjson += std::to_wstring(it.left_top.x);
         retjson += L",";
@@ -59,7 +36,7 @@ static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson)
         retjson += L",";
         retjson += std::to_wstring(it.right_bottom.y);
         retjson += L"],\"confidence\":";
-        retjson += std::to_wstring(it.confidence);
+        retjson += op::internal::json::FormatDouble(it.confidence);
         retjson += L"}";
     }
     retjson += L"]}";
@@ -76,13 +53,9 @@ long op::Op::SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll_nam
     return op::yolo::YoloDetector::getInstance()->init(engine, dll, vstr) == 0 ? 1 : 0;
 }
 void op::Op::YoloDetect(long x1, long y1, long x2, long y2, double conf, double iou, std::wstring &retjson, long *ret) {
-    retjson.clear();
+    retjson = kYoloFailureJson;
     internal::set_result(ret, 0L);
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-            return;
-        }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         vyolo_rec_t res;
         const int n =
             op::yolo::YoloDetector::getInstance()->detect(m_context->image_proc._src.pdata, m_context->image_proc._src.width,
@@ -97,11 +70,11 @@ void op::Op::YoloDetect(long x1, long y1, long x2, long y2, double conf, double 
         }
         build_yolo_json(res, retjson);
         internal::set_result(ret, n);
-    }
+    });
 }
 
 void op::Op::YoloDetectFromFile(const wchar_t *file_name, double conf, double iou, std::wstring &retjson, long *ret) {
-    retjson.clear();
+    retjson = kYoloFailureJson;
     internal::set_result(ret, 0L);
     std::wstring fullpath;
     if (!Path2GlobalPath(file_name ? file_name : L"", m_context->curr_path, fullpath))

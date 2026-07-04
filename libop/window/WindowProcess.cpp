@@ -1,6 +1,6 @@
 #include "WindowService.h"
 
-#include "runtime/WindowsHandle.h"
+#include "base/WindowsHandle.h"
 
 #include <Tlhelp32.h>
 #include <cwchar>

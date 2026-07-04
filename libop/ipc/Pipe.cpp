@@ -1,8 +1,8 @@
 // #include "stdafx.h"
 #include "Pipe.h"
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeUtils.h"
-#include "../runtime/WindowsHandle.h"
+#include "../base/AutomationModes.h"
+#include "../base/Utils.h"
+#include "../base/WindowsHandle.h"
 #include <chrono>
 #include <iostream>
 #include <tlhelp32.h>

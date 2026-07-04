@@ -48,6 +48,59 @@ func (o *Op) MoveToEx(x, y, w, h int) string {
 	return wcharString(ret)
 }
 
+func (o *Op) MoveToSmooth(x, y, duration int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procMoveToSmooth.Call(o.handle, uintptr(x), uintptr(y), uintptr(duration))
+	return int(ret)
+}
+
+func (o *Op) MoveToExSmooth(x, y, w, h, duration int) string {
+	if !o.valid() {
+		return ""
+	}
+
+	ret, _, _ := procMoveToExSmooth.Call(o.handle, uintptr(x), uintptr(y), uintptr(w), uintptr(h), uintptr(duration))
+	return wcharString(ret)
+}
+
+func (o *Op) MovePath(path string, duration int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procMovePath.Call(o.handle, strArg(path), uintptr(duration))
+	return int(ret)
+}
+
+func (o *Op) DragPath(path string, duration int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procDragPath.Call(o.handle, strArg(path), uintptr(duration))
+	return int(ret)
+}
+
+func (o *Op) SetMouseTrajectory(mode, minDuration, maxDuration, jitter, startDelay, endDelay int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procSetMouseTrajectory.Call(
+		o.handle,
+		uintptr(mode),
+		uintptr(minDuration),
+		uintptr(maxDuration),
+		uintptr(jitter),
+		uintptr(startDelay),
+		uintptr(endDelay),
+	)
+	return int(ret)
+}
+
 func (o *Op) LeftClick() int {
 	return o.callNoArgs(procLeftClick)
 }
@@ -160,6 +213,15 @@ func (o *Op) SetMouseDelay(typ string, delay int) int {
 	}
 
 	ret, _, _ := procSetMouseDelay.Call(o.handle, strArg(typ), uintptr(delay))
+	return int(ret)
+}
+
+func (o *Op) LockInput(lock int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procLockInput.Call(o.handle, uintptr(lock))
 	return int(ret)
 }
 
