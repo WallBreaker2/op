@@ -165,6 +165,20 @@ void build_pic_match_template(Image &img, PicMatchTemplate &match) {
     match.gray_norm = sum(match.gray.begin(), match.gray.end());
 }
 
+void prepare_pic_views(const std::vector<Image *> &pics, std::vector<PicMatchTemplate> &prepared,
+                       std::vector<PicMatchTemplate *> &views) {
+    prepared.resize(pics.size());
+    views.clear();
+    views.reserve(pics.size());
+    // 这里保留旧行为：空图片直接跳过，算法层看到的是压缩后的模板视图列表。
+    for (size_t i = 0; i < pics.size(); ++i) {
+        if (!pics[i])
+            continue;
+        build_pic_match_template(*pics[i], prepared[i]);
+        views.push_back(&prepared[i]);
+    }
+}
+
 void gen_next(const Image &img, vector<int> &next) {
     next.resize(img.width * img.height);
 
@@ -679,15 +693,9 @@ long ImageSearchAlgorithms::FindMultiColorEx(std::vector<color_df_t> &first_colo
 }
 
 long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
-    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate> prepared;
     std::vector<PicMatchTemplate *> views;
-    views.reserve(pics.size());
-    for (size_t i = 0; i < pics.size(); ++i) {
-        if (!pics[i])
-            continue;
-        build_pic_match_template(*pics[i], prepared[i]);
-        views.push_back(&prepared[i]);
-    }
+    prepare_pic_views(pics, prepared, views);
     return FindPic(views, dfcolor, sim, dir, x, y);
 }
 
@@ -726,15 +734,9 @@ long ImageSearchAlgorithms::FindPic(std::vector<PicMatchTemplate *> &pics, color
 }
 
 long ImageSearchAlgorithms::FindPicTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, long &x, long &y) {
-    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate> prepared;
     std::vector<PicMatchTemplate *> views;
-    views.reserve(pics.size());
-    for (size_t i = 0; i < pics.size(); ++i) {
-        if (!pics[i])
-            continue;
-        build_pic_match_template(*pics[i], prepared[i]);
-        views.push_back(&prepared[i]);
-    }
+    prepare_pic_views(pics, prepared, views);
     return FindPicTh(views, dfcolor, sim, dir, x, y);
 }
 
@@ -804,15 +806,9 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<PicMatchTemplate *> &pics, col
 }
 
 long ImageSearchAlgorithms::FindPicEx(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
-    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate> prepared;
     std::vector<PicMatchTemplate *> views;
-    views.reserve(pics.size());
-    for (size_t i = 0; i < pics.size(); ++i) {
-        if (!pics[i])
-            continue;
-        build_pic_match_template(*pics[i], prepared[i]);
-        views.push_back(&prepared[i]);
-    }
+    prepare_pic_views(pics, prepared, views);
     return FindPicEx(views, dfcolor, sim, dir, vpd);
 }
 
@@ -853,15 +849,9 @@ long ImageSearchAlgorithms::FindPicEx(std::vector<PicMatchTemplate *> &pics, col
 }
 
 long ImageSearchAlgorithms::FindPicExTh(std::vector<Image *> &pics, color_t dfcolor, double sim, long dir, vpoint_desc_t &vpd) {
-    std::vector<PicMatchTemplate> prepared(pics.size());
+    std::vector<PicMatchTemplate> prepared;
     std::vector<PicMatchTemplate *> views;
-    views.reserve(pics.size());
-    for (size_t i = 0; i < pics.size(); ++i) {
-        if (!pics[i])
-            continue;
-        build_pic_match_template(*pics[i], prepared[i]);
-        views.push_back(&prepared[i]);
-    }
+    prepare_pic_views(pics, prepared, views);
     return FindPicExTh(views, dfcolor, sim, dir, vpd);
 }
 

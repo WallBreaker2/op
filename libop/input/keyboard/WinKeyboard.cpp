@@ -143,7 +143,7 @@ long WinKeyboard::KeyDown(long vk_code) {
         const UINT message = use_system_message ? WM_SYSKEYDOWN : WM_KEYDOWN;
         const LPARAM lparam = key_message::BuildKeyLParam(static_cast<UINT>(vk_code), false, alt_context);
 
-        ret = key_message::SendTimeout(_hwnd, message, vk_code, lparam);
+        ret = message::SendTimeout(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {
@@ -203,7 +203,7 @@ long WinKeyboard::KeyUp(long vk_code) {
         const UINT message = use_system_message ? WM_SYSKEYUP : WM_KEYUP;
         const LPARAM lparam = key_message::BuildKeyLParam(static_cast<UINT>(vk_code), true, alt_context);
 
-        ret = key_message::SendTimeout(_hwnd, message, vk_code, lparam);
+        ret = message::SendTimeout(_hwnd, message, vk_code, lparam);
         if (ret == 0)
             setlog("error code=%d", GetLastError());
         else {
@@ -257,7 +257,7 @@ long WinKeyboard::KeyPress(long vk_code) {
         if (translate_vk_to_text(vk_code, _shift_down, _ctrl_down, _alt_down, text)) {
             const UINT char_message = _alt_down ? WM_SYSCHAR : WM_CHAR;
             for (wchar_t ch : text)
-                key_message::SendTimeout(_hwnd, char_message, ch, 1);
+                message::SendTimeout(_hwnd, char_message, ch, 1);
         }
         ::Delay(KEYPAD_WINDOWS_DELAY);
         break;
@@ -280,7 +280,7 @@ long WinKeyboard::InputChar(wchar_t ch) {
         return ::SendInput(2, inputs, sizeof(INPUT)) == 2 ? 1 : 0;
     }
     case INPUT_TYPE::IN_WINDOWS:
-        return key_message::SendTimeout(_hwnd, WM_CHAR, static_cast<WPARAM>(ch), 1);
+        return message::SendTimeout(_hwnd, WM_CHAR, static_cast<WPARAM>(ch), 1);
     }
     return 0;
 }

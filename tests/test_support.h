@@ -49,6 +49,19 @@ struct SendStringWindow {
     ~SendStringWindow();
 };
 
+struct MouseMoveEvent {
+    long x = 0;
+    long y = 0;
+    WPARAM wparam = 0;
+};
+
+struct MouseButtonEvent {
+    UINT message = 0;
+    long x = 0;
+    long y = 0;
+    WPARAM wparam = 0;
+};
+
 struct MouseEventWindow {
     HWND hwnd = nullptr;
     int left_down = 0;
@@ -104,10 +117,14 @@ struct MouseEventWindow {
     long last_x = 0;
     long last_y = 0;
     WPARAM last_move_wparam = 0;
+    std::vector<MouseMoveEvent> move_events;
+    std::vector<MouseButtonEvent> button_events;
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
     bool Create();
     void SetTestCursor(HCURSOR cursor);
+    bool HasMove(long x, long y, WPARAM required_state, WPARAM blocked_state = 0) const;
+    bool HasButton(UINT message, long x, long y) const;
     void ResetCounts();
     ~MouseEventWindow();
 };

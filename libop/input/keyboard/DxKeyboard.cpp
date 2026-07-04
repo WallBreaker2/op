@@ -50,8 +50,8 @@ long DxKeyboard::KeyDown(long vk_code) {
     if (!valid_vk(vk_code))
         return 0;
 
-    const long ret = key_message::SendTimeout(_hwnd, OP_WM_KEYDOWN, static_cast<WPARAM>(vk_code),
-                                              key_message::BuildKeyLParam(static_cast<UINT>(vk_code), false));
+    const long ret = message::SendTimeout(_hwnd, OP_WM_KEYDOWN, static_cast<WPARAM>(vk_code),
+                                          key_message::BuildKeyLParam(static_cast<UINT>(vk_code), false));
     if (ret == 1)
         _keys[static_cast<size_t>(vk_code)] = 0x80;
     return ret;
@@ -61,8 +61,8 @@ long DxKeyboard::KeyUp(long vk_code) {
     if (!valid_vk(vk_code))
         return 0;
 
-    const long ret = key_message::SendTimeout(_hwnd, OP_WM_KEYUP, static_cast<WPARAM>(vk_code),
-                                              key_message::BuildKeyLParam(static_cast<UINT>(vk_code), true));
+    const long ret = message::SendTimeout(_hwnd, OP_WM_KEYUP, static_cast<WPARAM>(vk_code),
+                                          key_message::BuildKeyLParam(static_cast<UINT>(vk_code), true));
     if (ret == 1)
         _keys[static_cast<size_t>(vk_code)] = 0;
     return ret;
@@ -95,7 +95,7 @@ long DxKeyboard::KeyPress(long vk_code) {
 }
 
 long DxKeyboard::InputChar(wchar_t ch) {
-    return key_message::SendTimeout(_hwnd, OP_WM_CHAR, static_cast<WPARAM>(ch), 1);
+    return message::SendTimeout(_hwnd, OP_WM_CHAR, static_cast<WPARAM>(ch), 1);
 }
 
 } // namespace op::input

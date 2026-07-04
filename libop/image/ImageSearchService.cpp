@@ -218,13 +218,15 @@ long ImageSearchService::FindColorEx(const wstring &color, double sim, long dir,
     return ImageSearchAlgorithms::FindColorEx(colors, sim, dir, retstr);
 }
 
-long ImageSearchService::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir, long &x,
-                               long &y) {
-    std::vector<color_df_t> vfirst_color;
+void ImageSearchService::parse_multi_color_args(const wstring &first_color, const wstring &offset_color,
+                                                std::vector<color_df_t> &vfirst_color,
+                                                std::vector<pt_cr_df_t> &voffset_cr) {
     str2colordfs(first_color, vfirst_color);
+
+    // offset_color 兼容旧格式: x|y|颜色描述，多段之间用英文逗号分隔。
     std::vector<wstring> vseconds;
     split(offset_color, vseconds, L",");
-    std::vector<pt_cr_df_t> voffset_cr;
+    voffset_cr.clear();
     for (auto &it : vseconds) {
         size_t id1, id2;
         id1 = it.find(L'|');
@@ -239,30 +241,21 @@ long ImageSearchService::FindMultiColor(const wstring &first_color, const wstrin
             voffset_cr.push_back(tp);
         }
     }
+}
+
+long ImageSearchService::FindMultiColor(const wstring &first_color, const wstring &offset_color, double sim, long dir,
+                                        long &x, long &y) {
+    std::vector<color_df_t> vfirst_color;
+    std::vector<pt_cr_df_t> voffset_cr;
+    parse_multi_color_args(first_color, offset_color, vfirst_color, voffset_cr);
     return ImageSearchAlgorithms::FindMultiColor(vfirst_color, voffset_cr, sim, dir, x, y);
 }
 
 long ImageSearchService::FindMultiColorEx(const wstring &first_color, const wstring &offset_color, double sim, long dir,
-                                 wstring &retstr) {
+                                          wstring &retstr) {
     std::vector<color_df_t> vfirst_color;
-    str2colordfs(first_color, vfirst_color);
-    std::vector<wstring> vseconds;
-    split(offset_color, vseconds, L",");
     std::vector<pt_cr_df_t> voffset_cr;
-    for (auto &it : vseconds) {
-        size_t id1, id2;
-        id1 = it.find(L'|');
-        id2 = (id1 == wstring::npos ? wstring::npos : it.find(L'|', id1 + 1));
-        if (id2 != wstring::npos) {
-            pt_cr_df_t tp;
-            swscanf(it.c_str(), L"%d|%d", &tp.x, &tp.y);
-            if (id2 + 1 != it.length())
-                str2colordfs(it.substr(id2 + 1), tp.crdfs);
-            else
-                break;
-            voffset_cr.push_back(tp);
-        }
-    }
+    parse_multi_color_args(first_color, offset_color, vfirst_color, voffset_cr);
     return ImageSearchAlgorithms::FindMultiColorEx(vfirst_color, voffset_cr, sim, dir, retstr);
 }
 // 图形定位

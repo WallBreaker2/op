@@ -3,6 +3,7 @@
 #include "OpResult.h"
 
 #include "image/Image.h"
+#include "runtime/JsonUtils.h"
 #include "runtime/RuntimeUtils.h"
 #include "yolo/YoloDetector.h"
 
@@ -12,33 +13,6 @@
 #include <vector>
 
 namespace {
-
-static std::wstring json_escape(const std::wstring &text) {
-    std::wstring out;
-    for (const auto ch : text) {
-        switch (ch) {
-        case L'\\':
-            out += L"\\\\";
-            break;
-        case L'"':
-            out += L"\\\"";
-            break;
-        case L'\n':
-            out += L"\\n";
-            break;
-        case L'\r':
-            out += L"\\r";
-            break;
-        case L'\t':
-            out += L"\\t";
-            break;
-        default:
-            out += ch;
-            break;
-        }
-    }
-    return out;
-}
 
 static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson) {
     retjson = L"{\"code\":0,\"results\":[";
@@ -50,7 +24,7 @@ static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson)
         retjson += L"{\"class_id\":";
         retjson += std::to_wstring(it.class_id);
         retjson += L",\"label\":\"";
-        retjson += json_escape(it.label);
+        retjson += op::internal::json::EscapeString(it.label);
         retjson += L"\",\"bbox\":[";
         retjson += std::to_wstring(it.left_top.x);
         retjson += L",";
@@ -60,7 +34,7 @@ static void build_yolo_json(const op::vyolo_rec_t &items, std::wstring &retjson)
         retjson += L",";
         retjson += std::to_wstring(it.right_bottom.y);
         retjson += L"],\"confidence\":";
-        retjson += std::to_wstring(it.confidence);
+        retjson += op::internal::json::FormatDouble(it.confidence);
         retjson += L"}";
     }
     retjson += L"]}";

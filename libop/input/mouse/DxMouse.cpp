@@ -1,17 +1,12 @@
 #include "DxMouse.h"
 #include "CursorShape.h"
+#include "../InputMessageUtils.h"
 #include "../../hook/HookProtocol.h"
 #include "../../hook/InputHookClient.h"
 #include "../../runtime/AutomationModes.h"
 #include "../../runtime/RuntimeUtils.h"
 
 namespace input_hook_client = op::hook::input_hook_client;
-
-namespace {
-long send_op_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
-    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
-}
-}
 
 namespace op::input {
 
@@ -79,7 +74,7 @@ long DxMouse::MoveR(int rx, int ry) {
 
 long DxMouse::MoveTo(int x, int y) {
     const POINT pt{x, y};
-    long ret = send_op_message(_hwnd, OP_WM_MOUSEMOVE, button_state(), MAKELPARAM(pt.x, pt.y));
+    long ret = message::SendTimeout(_hwnd, OP_WM_MOUSEMOVE, button_state(), MAKELPARAM(pt.x, pt.y));
 
     _x = pt.x, _y = pt.y;
     return ret;
@@ -88,7 +83,7 @@ long DxMouse::MoveTo(int x, int y) {
 long DxMouse::send_button(UINT message, WPARAM button, bool down) {
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, down);
-    const long ret = send_op_message(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    const long ret = message::SendTimeout(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
     if (ret)
         set_button_state(button, down);
     return ret;
@@ -97,8 +92,8 @@ long DxMouse::send_button(UINT message, WPARAM button, bool down) {
 long DxMouse::send_xbutton(UINT message, WORD xbutton, WPARAM button, bool down) {
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, down);
-    const long ret = send_op_message(_hwnd, message, MAKEWPARAM(static_cast<WORD>(state), xbutton),
-                                     MAKELPARAM(pt.x, pt.y));
+    const long ret =
+        message::SendTimeout(_hwnd, message, MAKEWPARAM(static_cast<WORD>(state), xbutton), MAKELPARAM(pt.x, pt.y));
     if (ret)
         set_button_state(button, down);
     return ret;
@@ -114,7 +109,7 @@ long DxMouse::click(long (DxMouse::*down)(), long (DxMouse::*up)()) {
 long DxMouse::send_double_click(UINT message, UINT up_message, WPARAM button) {
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, true);
-    const long r1 = send_op_message(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    const long r1 = message::SendTimeout(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
     if (r1)
         set_button_state(button, true);
     ::Delay(MOUSE_DX_DELAY);
@@ -144,8 +139,9 @@ long DxMouse::xbutton_double_click(long (DxMouse::*click_func)(), WORD xbutton_i
 
 long DxMouse::wheel(UINT message, int delta) {
     const POINT pt = current_client_point();
-    return send_op_message(_hwnd, message, MAKEWPARAM(static_cast<WORD>(button_state()), static_cast<WORD>(delta)),
-                           MAKELPARAM(pt.x, pt.y));
+    return message::SendTimeout(_hwnd, message,
+                                MAKEWPARAM(static_cast<WORD>(button_state()), static_cast<WORD>(delta)),
+                                MAKELPARAM(pt.x, pt.y));
 }
 
 long DxMouse::LeftClick() {
