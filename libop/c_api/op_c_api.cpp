@@ -88,9 +88,29 @@ const wchar_t *call_string(op_handle handle, Func &&func) {
     }
 }
 
+template <typename Func>
+const wchar_t *call_json_string(op_handle handle, const wchar_t *fallback, Func &&func) {
+    if (!handle)
+        return fallback;
+
+    try {
+        handle->string_result.clear();
+        std::forward<Func>(func)(handle->op, handle->string_result);
+        if (handle->string_result.empty())
+            handle->string_result = fallback;
+        return handle->string_result.c_str();
+    } catch (...) {
+        return fallback;
+    }
+}
+
 const wchar_t *safe_text(const wchar_t *text) {
     return text ? text : L"";
 }
+
+constexpr const wchar_t *kJsonFailure = L"{\"ok\":0}";
+constexpr const wchar_t *kJsonResultsFailure = L"{\"ok\":0,\"results\":[]}";
+constexpr const wchar_t *kYoloJsonFailure = L"{\"ok\":0,\"code\":-1,\"results\":[]}";
 
 long in_int(const int *value) {
     return value ? *value : 0;
@@ -671,12 +691,24 @@ const wchar_t *OP_CALL OpFindMultiColorEx(op_handle handle, int x1, int y1, int 
 
 int OP_CALL OpFindPic(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *files,
                       const wchar_t *delta_color, double sim, int dir, int *x, int *y) {
-    return call_ret(handle, [&](op::Op &op, long *ret) {
-        long lx = 0, ly = 0;
-        op.FindPic(x1, y1, x2, y2, safe_text(files), safe_text(delta_color), sim, dir, &lx, &ly, ret);
+    out_int(x, -1);
+    out_int(y, -1);
+    if (!handle)
+        return -1;
+
+    try {
+        long lx = -1;
+        long ly = -1;
+        long ret = -1;
+        handle->op.FindPic(x1, y1, x2, y2, safe_text(files), safe_text(delta_color), sim, dir, &lx, &ly, &ret);
         out_int(x, lx);
         out_int(y, ly);
-    });
+        return static_cast<int>(ret);
+    } catch (...) {
+        out_int(x, -1);
+        out_int(y, -1);
+        return -1;
+    }
 }
 
 const wchar_t *OP_CALL OpFindPicEx(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *files,
@@ -695,8 +727,10 @@ const wchar_t *OP_CALL OpFindPicExS(op_handle handle, int x1, int y1, int x2, in
 
 int OP_CALL OpFindColorBlock(op_handle handle, int x1, int y1, int x2, int y2, const wchar_t *color, double sim,
                              int count, int height, int width, int *x, int *y) {
+    out_int(x, -1);
+    out_int(y, -1);
     return call_ret(handle, [&](op::Op &op, long *ret) {
-        long lx = 0, ly = 0;
+        long lx = -1, ly = -1;
         op.FindColorBlock(x1, y1, x2, y2, safe_text(color), sim, count, height, width, &lx, &ly, ret);
         out_int(x, lx);
         out_int(y, ly);
@@ -735,6 +769,8 @@ int OP_CALL OpLoadMemPic(op_handle handle, const wchar_t *file_name, void *data,
 }
 
 int OP_CALL OpGetPicSize(op_handle handle, const wchar_t *pic_name, int *width, int *height) {
+    out_int(width, 0);
+    out_int(height, 0);
     return call_ret(handle, [&](op::Op &op, long *ret) {
         long w = 0, h = 0;
         op.GetPicSize(safe_text(pic_name), &w, &h, ret);
@@ -879,14 +915,14 @@ int OP_CALL OpCvSharpen(op_handle handle, const wchar_t *src_file, const wchar_t
 }
 
 const wchar_t *OP_CALL OpCvConnectedComponents(op_handle handle, const wchar_t *src_file, double min_area) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonResultsFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvConnectedComponents(safe_text(src_file), min_area, json, &ret);
     });
 }
 
 const wchar_t *OP_CALL OpCvFindContours(op_handle handle, const wchar_t *src_file, double min_area) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonResultsFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvFindContours(safe_text(src_file), min_area, json, &ret);
     });
@@ -943,7 +979,7 @@ int OP_CALL OpCvThin(op_handle handle, const wchar_t *src_file, const wchar_t *d
 const wchar_t *OP_CALL OpCvMatchTemplate(op_handle handle, int x, int y, int width, int height,
                                          const wchar_t *template_name, double threshold, int dir, int strip_mode,
                                          int method, int color_mode) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvMatchTemplate(x, y, width, height, safe_text(template_name), threshold, dir, strip_mode, method,
                            color_mode, json, &ret);
@@ -953,7 +989,7 @@ const wchar_t *OP_CALL OpCvMatchTemplate(op_handle handle, int x, int y, int wid
 const wchar_t *OP_CALL OpCvMatchTemplateScale(op_handle handle, int x, int y, int width, int height,
                                               const wchar_t *template_name, const wchar_t *scales, double threshold,
                                               int method, int color_mode) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvMatchTemplateScale(x, y, width, height, safe_text(template_name), safe_text(scales), threshold, method,
                                 color_mode, json, &ret);
@@ -963,7 +999,7 @@ const wchar_t *OP_CALL OpCvMatchTemplateScale(op_handle handle, int x, int y, in
 const wchar_t *OP_CALL OpCvMatchAnyTemplate(op_handle handle, int x, int y, int width, int height,
                                             const wchar_t *template_names, double threshold, int dir,
                                             int strip_mode, int method, int color_mode) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvMatchAnyTemplate(x, y, width, height, safe_text(template_names), threshold, dir, strip_mode, method,
                               color_mode, json, &ret);
@@ -973,7 +1009,7 @@ const wchar_t *OP_CALL OpCvMatchAnyTemplate(op_handle handle, int x, int y, int 
 const wchar_t *OP_CALL OpCvMatchAllTemplates(op_handle handle, int x, int y, int width, int height,
                                              const wchar_t *template_names, double threshold, int dir,
                                              int strip_mode, int method, int color_mode) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonResultsFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvMatchAllTemplates(x, y, width, height, safe_text(template_names), threshold, dir, strip_mode, method,
                                color_mode, json, &ret);
@@ -982,7 +1018,7 @@ const wchar_t *OP_CALL OpCvMatchAllTemplates(op_handle handle, int x, int y, int
 
 const wchar_t *OP_CALL OpCvFeatureMatchTemplate(op_handle handle, int x, int y, int width, int height,
                                                 const wchar_t *template_name, double threshold) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvFeatureMatchTemplate(x, y, width, height, safe_text(template_name), threshold, json, &ret);
     });
@@ -990,7 +1026,7 @@ const wchar_t *OP_CALL OpCvFeatureMatchTemplate(op_handle handle, int x, int y, 
 
 const wchar_t *OP_CALL OpCvEdgeMatchTemplate(op_handle handle, int x, int y, int width, int height,
                                              const wchar_t *template_name, double threshold) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvEdgeMatchTemplate(x, y, width, height, safe_text(template_name), threshold, json, &ret);
     });
@@ -998,7 +1034,7 @@ const wchar_t *OP_CALL OpCvEdgeMatchTemplate(op_handle handle, int x, int y, int
 
 const wchar_t *OP_CALL OpCvShapeMatchTemplate(op_handle handle, int x, int y, int width, int height,
                                               const wchar_t *template_name, double threshold) {
-    return call_string(handle, [&](op::Op &op, std::wstring &json) {
+    return call_json_string(handle, kJsonFailure, [&](op::Op &op, std::wstring &json) {
         long ret = 0;
         op.CvShapeMatchTemplate(x, y, width, height, safe_text(template_name), threshold, json, &ret);
     });
@@ -1021,14 +1057,14 @@ int OP_CALL OpSetYoloEngine(op_handle handle, const wchar_t *path_of_engine, con
 }
 
 const wchar_t *OP_CALL OpYoloDetect(op_handle handle, int x1, int y1, int x2, int y2, double conf, double iou) {
-    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+    return call_json_string(handle, kYoloJsonFailure, [&](op::Op &op, std::wstring &ret) {
         long status = 0;
         op.YoloDetect(x1, y1, x2, y2, conf, iou, ret, &status);
     });
 }
 
 const wchar_t *OP_CALL OpYoloDetectFromFile(op_handle handle, const wchar_t *file_name, double conf, double iou) {
-    return call_string(handle, [&](op::Op &op, std::wstring &ret) {
+    return call_json_string(handle, kYoloJsonFailure, [&](op::Op &op, std::wstring &ret) {
         long status = 0;
         op.YoloDetectFromFile(safe_text(file_name), conf, iou, ret, &status);
     });

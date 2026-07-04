@@ -923,32 +923,17 @@ STDMETHODIMP OpAutomation::GetPicSize(BSTR pic_name, VARIANT *width, VARIANT *he
     return S_OK;
 }
 
-// 获取指定区域的图像,用二进制数据的方式返回
-STDMETHODIMP OpAutomation::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG *ret) {
-    // #if OP64
-    //	data->vt = VT_I8;
-    //	data->llVal = 0;
-    // #else
-    //	data->vt = VT_I4;
-    //	data->lVal = 0;
-    // #endif
-    //	* ret = 0;
-    //	void* data_ = nullptr;
-    //	obj.GetScreenData(x1, y1, x2, y2, &data_, ret);
-    //
-    // #if OP64
-    //	data->llVal = (long long)data_;
-    // #else
-    //	data->lVal = (long)data_;
-    // #endif
-    //	* ret = 1;
+// 返回截图内存地址，x64 下不能用 LONG，否则高位会被截断。
+STDMETHODIMP OpAutomation::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONGLONG *ret) {
     if (!ret)
         return E_POINTER;
-    SetOutValue(ret, 0L);
+    SetOutValue(ret, 0LL);
     size_t data_ = 0;
     long capture_ret = 0;
     obj.GetScreenData(x1, y1, x2, y2, &data_, &capture_ret);
-    return SetOutValue(ret, static_cast<long>(data_));
+    if (!capture_ret)
+        return S_OK;
+    return SetOutValue(ret, static_cast<LONGLONG>(data_));
 }
 
 STDMETHODIMP OpAutomation::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT *data, VARIANT *size,
