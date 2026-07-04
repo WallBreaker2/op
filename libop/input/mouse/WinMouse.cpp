@@ -1,6 +1,7 @@
 // #include "stdafx.h"
 #include "WinMouse.h"
 #include "CursorShape.h"
+#include "../InputMessageUtils.h"
 #include "../../runtime/AutomationModes.h"
 #include "../../runtime/RuntimeUtils.h"
 #include <algorithm>
@@ -13,10 +14,6 @@
 #include <vector>
 
 namespace {
-long send_message_result(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
-    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
-}
-
 double point_distance(POINT a, POINT b) {
     const double dx = static_cast<double>(b.x - a.x);
     const double dy = static_cast<double>(b.y - a.y);
@@ -296,7 +293,7 @@ long WinMouse::MoveTo(int x, int y) {
         break;
     }
     case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_message_result(_hwnd, WM_MOUSEMOVE, button_state(), MAKELPARAM(client_pt.x, client_pt.y));
+        ret = message::SendTimeout(_hwnd, WM_MOUSEMOVE, button_state(), MAKELPARAM(client_pt.x, client_pt.y));
         break;
     }
     }
@@ -351,7 +348,7 @@ long WinMouse::send_input_click(DWORD down_flags, DWORD up_flags, DWORD mouse_da
 long WinMouse::send_windows_button(UINT message, WPARAM button, bool down) {
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, down);
-    const long ret = send_message_result(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    const long ret = message::SendTimeout(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
     if (ret)
         set_button_state(button, down);
     return ret;
@@ -360,8 +357,8 @@ long WinMouse::send_windows_button(UINT message, WPARAM button, bool down) {
 long WinMouse::send_windows_xbutton(UINT message, WORD xbutton, WPARAM button, bool down) {
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, down);
-    const long ret = send_message_result(_hwnd, message, MAKEWPARAM(static_cast<WORD>(state), xbutton),
-                                         MAKELPARAM(pt.x, pt.y));
+    const long ret =
+        message::SendTimeout(_hwnd, message, MAKEWPARAM(static_cast<WORD>(state), xbutton), MAKELPARAM(pt.x, pt.y));
     if (ret)
         set_button_state(button, down);
     return ret;
@@ -387,7 +384,7 @@ long WinMouse::button_double_click(long (WinMouse::*click)(), UINT message, UINT
     ::Delay(delay);
     const POINT pt = current_client_point();
     const WPARAM state = button_state_with(button, true);
-    const long r2 = send_message_result(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
+    const long r2 = message::SendTimeout(_hwnd, message, state, MAKELPARAM(pt.x, pt.y));
     if (r2)
         set_button_state(button, true);
     ::Delay(delay);
@@ -421,9 +418,9 @@ long WinMouse::send_wheel(DWORD input_flag, UINT window_message, int delta) {
     case INPUT_TYPE::IN_WINDOWS: {
         POINT pt = current_client_point();
         ::ClientToScreen(_hwnd, &pt);
-        return send_message_result(_hwnd, window_message,
-                                   MAKEWPARAM(static_cast<WORD>(button_state()), static_cast<WORD>(delta)),
-                                   MAKELPARAM(pt.x, pt.y));
+        return message::SendTimeout(_hwnd, window_message,
+                                    MAKEWPARAM(static_cast<WORD>(button_state()), static_cast<WORD>(delta)),
+                                    MAKELPARAM(pt.x, pt.y));
     }
     }
     return 0;

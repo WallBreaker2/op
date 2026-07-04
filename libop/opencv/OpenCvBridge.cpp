@@ -1,56 +1,12 @@
 #include "OpenCvBridge.h"
 
+#include "../runtime/JsonUtils.h"
 #include "../runtime/RuntimeUtils.h"
 
 #include <algorithm>
-#include <iomanip>
 #include <sstream>
 
 namespace opcv::bridge {
-
-namespace {
-
-std::wstring EscapeJsonString(const std::wstring &value) {
-    std::wstring escaped;
-    escaped.reserve(value.size() + 8);
-    for (wchar_t ch : value) {
-        switch (ch) {
-        case L'\\':
-            escaped += L"\\\\";
-            break;
-        case L'"':
-            escaped += L"\\\"";
-            break;
-        case L'\b':
-            escaped += L"\\b";
-            break;
-        case L'\f':
-            escaped += L"\\f";
-            break;
-        case L'\n':
-            escaped += L"\\n";
-            break;
-        case L'\r':
-            escaped += L"\\r";
-            break;
-        case L'\t':
-            escaped += L"\\t";
-            break;
-        default:
-            escaped.push_back(ch);
-            break;
-        }
-    }
-    return escaped;
-}
-
-std::wstring FormatJsonDouble(double value) {
-    std::wostringstream oss;
-    oss << std::fixed << std::setprecision(6) << value;
-    return oss.str();
-}
-
-} // namespace
 
 MatchColorMode ParseColorMode(long color_mode) {
     return color_mode == 0 ? MatchColorMode::Color : MatchColorMode::Gray;
@@ -63,7 +19,8 @@ std::wstring BuildMatchJson(const MatchResult &match, bool ok) {
 
     std::wostringstream oss;
     oss << L"{\"ok\":1,\"x\":" << match.x << L",\"y\":" << match.y << L",\"width\":" << match.width
-        << L",\"height\":" << match.height << L",\"score\":" << FormatJsonDouble(match.score) << L"}";
+        << L",\"height\":" << match.height << L",\"score\":" << op::internal::json::FormatDouble(match.score)
+        << L"}";
     return oss.str();
 }
 
@@ -73,9 +30,9 @@ std::wstring BuildNamedMatchJson(const NamedMatchResult &match, bool ok) {
     }
 
     std::wostringstream oss;
-    oss << L"{\"ok\":1,\"name\":\"" << EscapeJsonString(match.name) << L"\",\"x\":" << match.match.x << L",\"y\":"
-        << match.match.y << L",\"width\":" << match.match.width << L",\"height\":" << match.match.height
-        << L",\"score\":" << FormatJsonDouble(match.match.score) << L"}";
+    oss << L"{\"ok\":1,\"name\":\"" << op::internal::json::EscapeString(match.name) << L"\",\"x\":"
+        << match.match.x << L",\"y\":" << match.match.y << L",\"width\":" << match.match.width << L",\"height\":"
+        << match.match.height << L",\"score\":" << op::internal::json::FormatDouble(match.match.score) << L"}";
     return oss.str();
 }
 
@@ -86,9 +43,10 @@ std::wstring BuildAllMatchesJson(const std::vector<NamedMatchResult> &matches, b
         if (i != 0) {
             oss << L",";
         }
-        oss << L"{\"name\":\"" << EscapeJsonString(matches[i].name) << L"\",\"x\":" << matches[i].match.x << L",\"y\":"
-            << matches[i].match.y << L",\"width\":" << matches[i].match.width << L",\"height\":"
-            << matches[i].match.height << L",\"score\":" << FormatJsonDouble(matches[i].match.score) << L"}";
+        oss << L"{\"name\":\"" << op::internal::json::EscapeString(matches[i].name) << L"\",\"x\":"
+            << matches[i].match.x << L",\"y\":" << matches[i].match.y << L",\"width\":"
+            << matches[i].match.width << L",\"height\":" << matches[i].match.height
+            << L",\"score\":" << op::internal::json::FormatDouble(matches[i].match.score) << L"}";
     }
     oss << L"]}";
     return oss.str();

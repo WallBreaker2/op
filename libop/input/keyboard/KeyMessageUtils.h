@@ -1,12 +1,9 @@
 #pragma once
 
+#include "../InputMessageUtils.h"
 #include "../../runtime/Types.h"
 
 namespace op::input::key_message {
-
-inline long SendTimeout(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
-    return ::SendMessageTimeout(hwnd, message, wparam, lparam, SMTO_BLOCK, 2000, nullptr) ? 1L : 0L;
-}
 
 inline bool IsExtendedVirtualKey(UINT vk_code) {
     switch (vk_code) {

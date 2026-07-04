@@ -844,19 +844,20 @@ TEST(MouseKeyTest, DxModeMouseMoveCarriesLeftButtonWhileHeld) {
     op.MoveTo(48, 64, &ret);
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(120);
+    // DX hook 会把 OP 消息转成普通鼠标消息；桌面环境下还可能夹进真实移动，所以只检查目标移动出现过。
     EXPECT_GE(window.move_with_left_count, 1);
-    EXPECT_NE(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
-    EXPECT_EQ(window.last_x, 48);
-    EXPECT_EQ(window.last_y, 64);
+    EXPECT_TRUE(window.HasMove(48, 64, MK_LBUTTON));
 
     op.LeftUp(&ret);
     ASSERT_EQ(ret, 1);
+    PumpMessagesFor(80);
+    window.ResetCounts();
+
     op.MoveR(3, 4, &ret);
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(120);
-    EXPECT_EQ(window.last_move_wparam & MK_LBUTTON, static_cast<WPARAM>(0));
-    EXPECT_EQ(window.last_x, 51);
-    EXPECT_EQ(window.last_y, 68);
+    EXPECT_EQ(window.move_with_left_count, 0);
+    EXPECT_TRUE(window.HasMove(51, 68, 0, MK_LBUTTON));
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
@@ -878,26 +879,28 @@ TEST(MouseKeyTest, DxModeMoveToKeepsClientCoordinatesAfterResize) {
 
     ASSERT_TRUE(ResizeClient(window.hwnd, 640, 360));
     PumpMessagesFor(80);
+    window.ResetCounts();
 
     op.MoveTo(200, 200, &ret);
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(120);
-    EXPECT_EQ(window.last_x, 200);
-    EXPECT_EQ(window.last_y, 200);
+    EXPECT_TRUE(window.HasMove(200, 200, 0));
 
+    window.ResetCounts();
     op.MoveR(20, -40, &ret);
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(120);
-    EXPECT_EQ(window.last_x, 220);
-    EXPECT_EQ(window.last_y, 160);
+    EXPECT_TRUE(window.HasMove(220, 160, 0));
 
     ASSERT_TRUE(ResizeClient(window.hwnd, 320, 180));
     PumpMessagesFor(80);
+    window.ResetCounts();
+
     op.LeftClick(&ret);
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(120);
-    EXPECT_EQ(window.last_x, 220);
-    EXPECT_EQ(window.last_y, 160);
+    EXPECT_TRUE(window.HasButton(WM_LBUTTONDOWN, 220, 160));
+    EXPECT_TRUE(window.HasButton(WM_LBUTTONUP, 220, 160));
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);
@@ -934,8 +937,7 @@ TEST(MouseKeyTest, DxModeLockInputBlocksExternalMouseMessages) {
     EXPECT_EQ(ret, 1);
     PumpMessagesFor(80);
     EXPECT_GE(window.move_count, 1);
-    EXPECT_EQ(window.last_x, 30);
-    EXPECT_EQ(window.last_y, 40);
+    EXPECT_TRUE(window.HasMove(30, 40, 0));
 
     op.LockInput(0, &ret);
     EXPECT_EQ(ret, 1);
