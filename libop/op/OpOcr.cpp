@@ -1,4 +1,5 @@
 #include "OpContext.h"
+#include "OpCaptureHelpers.h"
 #include "OpResult.h"
 
 #include "ocr/OcrService.h"
@@ -117,25 +118,6 @@ double normalize_similarity(double sim) {
     return sim < 0. || sim > 1. ? 1. : sim;
 }
 
-template <typename Fn>
-void capture_converted_region(op::internal::OpContext *context, long x1, long y1, long x2, long y2, Fn fn) {
-    if (!context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, context->image_proc._src)) {
-        setlog("error requestCapture");
-        return;
-    }
-
-    context->image_proc.set_offset(x1, y1);
-    fn();
-}
-
-template <typename Fn>
-void with_captured_region(op::internal::OpContext *context, long &x1, long &y1, long &x2, long &y2, Fn fn) {
-    if (!context->bkproc.check_bind() || !context->bkproc.RectConvert(x1, y1, x2, y2))
-        return;
-
-    capture_converted_region(context, x1, y1, x2, y2, fn);
-}
-
 } // namespace
 
 long op::Op::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name, const wchar_t *argv) {
@@ -218,7 +200,7 @@ void op::Op::FetchWordEx(long x1, long y1, long x2, long y2, const wchar_t *colo
     const std::wstring word_text = word ? word : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         rect_t rc;
         rc.x1 = rc.y1 = 0;
         rc.x2 = x2 - x1;
@@ -233,7 +215,7 @@ void op::Op::ExtractWordRects(long x1, long y1, long x2, long y2, const wchar_t 
     const std::wstring color_text = color ? color : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         std::vector<rect_t> rects;
         m_context->image_proc.ExtractWordRects(color_text, sim, min_word_h, rects);
         append_word_rects(rects, x1, y1, retstr);
@@ -246,7 +228,7 @@ void op::Op::ExtractWordRectsEx(long x1, long y1, long x2, long y2, const wchar_
     const std::wstring color_text = color ? color : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         std::vector<rect_t> rects;
         m_context->image_proc.ExtractWordRectsEx(color_text, sim, min_word_w, min_word_h, padding, rects);
         append_word_rects(rects, x1, y1, retstr);
@@ -260,7 +242,7 @@ void op::Op::FetchWords(long x1, long y1, long x2, long y2, const wchar_t *color
     const std::wstring word_text = words ? words : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         m_context->image_proc.FetchWords(color_text, sim, word_text, min_word_h, retstr);
     });
 }
@@ -272,7 +254,7 @@ void op::Op::FetchWordsEx(long x1, long y1, long x2, long y2, const wchar_t *col
     const std::wstring word_text = words ? words : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         m_context->image_proc.FetchWordsEx(color_text, sim, word_text, min_word_w, min_word_h, padding, retstr);
     });
 }
@@ -291,7 +273,7 @@ void op::Op::FetchWordsByRects(long x1, long y1, long x2, long y2, const wchar_t
         if (local_rects.size() != word_text.size())
             return;
 
-        capture_converted_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        internal::capture_converted_region(m_context.get(), x1, y1, x2, y2, [&]() {
             m_context->image_proc.FetchWordsByRects(color_text, sim, word_text, local_rects, retstr);
         });
     }
@@ -304,7 +286,7 @@ void op::Op::GetBinaryPreview(long x1, long y1, long x2, long y2, const wchar_t 
     const std::wstring color_text = color ? color : L"";
     sim = normalize_similarity(sim);
 
-    with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         internal::set_result(ret, m_context->image_proc.GetBinaryPreview(color_text, sim, retstr));
     });
 }
@@ -334,25 +316,20 @@ void op::Op::RenameWordDict(const wchar_t *dict_info, const wchar_t *words, std:
 void op::Op::GetWordsNoDict(long x1, long y1, long x2, long y2, const wchar_t *color, std::wstring &retstr) {
     wstring str;
     const std::wstring color_text = color ? color : L"";
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.str2binaryfbk(color_text);
-            std::vector<rect_t> vroi;
-            m_context->image_proc.get_rois(5, vroi);
-            for (auto &it : vroi) {
-                const wstring tempWord = m_context->image_proc.FetchWord(it, color_text, L"");
-                str += std::to_wstring(it.x1);
-                str += L",";
-                str += std::to_wstring(it.y1);
-                str += L"-";
-                str += tempWord;
-                str += L"/";
-            }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.str2binaryfbk(color_text);
+        std::vector<rect_t> vroi;
+        m_context->image_proc.get_rois(5, vroi);
+        for (auto &it : vroi) {
+            const wstring tempWord = m_context->image_proc.FetchWord(it, color_text, L"");
+            str += std::to_wstring(it.x1);
+            str += L",";
+            str += std::to_wstring(it.y1);
+            str += L"-";
+            str += tempWord;
+            str += L"/";
         }
-    }
+    });
     retstr = str;
 }
 // 在使用GetWords进行词组识别以后,可以用此接口进行识别词组数量的计算
@@ -435,27 +412,17 @@ void op::Op::GetWordResultStr(const wchar_t *result, long index, std::wstring &r
 // 识别屏幕范围(x1,y1,x2,y2)内符合color_format的字符串,并且相似度为sim,sim取值范围(0.1-1.0),
 void op::Op::Ocr(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
     wstring str;
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.OCR(color, sim, str);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.OCR(color, sim, str);
+    });
     retstr = str;
 }
 // 回识别到的字符串，以及每个字符的坐标.
 void op::Op::OcrEx(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, std::wstring &retstr) {
     wstring str;
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.OcrEx(color, sim, str);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.OcrEx(color, sim, str);
+    });
     retstr = str;
 }
 // 在屏幕范围(x1,y1,x2,y2)内,查找string(可以是任意个字符串的组合),并返回符合color_format的坐标位置
@@ -467,42 +434,26 @@ void op::Op::FindStr(long x1, long y1, long x2, long y2, const wchar_t *strs, co
     internal::set_result(retx, x);
     internal::set_result(rety, y);
     internal::set_result(ret, 0L);
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            internal::set_result(ret, m_context->image_proc.FindStr(strs, color, sim, x, y));
-            internal::set_result(retx, x);
-            internal::set_result(rety, y);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        internal::set_result(ret, m_context->image_proc.FindStr(strs, color, sim, x, y));
+        internal::set_result(retx, x);
+        internal::set_result(rety, y);
+    });
 }
 // 返回符合color_format的所有坐标位置
 void op::Op::FindStrEx(long x1, long y1, long x2, long y2, const wchar_t *strs, const wchar_t *color, double sim,
                       std::wstring &retstr) {
     wstring str;
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.FindStrEx(strs, color, sim, str);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2,
+                                   [&]() { m_context->image_proc.FindStrEx(strs, color, sim, str); });
     retstr = str;
 }
 
 void op::Op::OcrAuto(long x1, long y1, long x2, long y2, double sim, std::wstring &retstr) {
     wstring str;
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.OcrAuto(sim, str);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
+        m_context->image_proc.OcrAuto(sim, str);
+    });
     retstr = str;
 }
 
@@ -520,12 +471,6 @@ void op::Op::OcrAutoFromFile(const wchar_t *file_name, double sim, std::wstring 
 }
 
 void op::Op::FindLine(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, wstring &retstr) {
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-        } else {
-            m_context->image_proc.set_offset(x1, y1);
-            m_context->image_proc.FindLine(color, sim, retstr);
-        }
-    }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2,
+                                   [&]() { m_context->image_proc.FindLine(color, sim, retstr); });
 }
