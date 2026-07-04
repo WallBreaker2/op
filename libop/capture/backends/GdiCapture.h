@@ -2,7 +2,7 @@
 #ifndef OP_CAPTURE_BACKENDS_GDI_CAPTURE_H_
 #define OP_CAPTURE_BACKENDS_GDI_CAPTURE_H_
 #include "../ICaptureBackend.h"
-#include "../../runtime/Types.h"
+#include "../../base/Types.h"
 #include <thread>
 namespace op {
 struct Image;

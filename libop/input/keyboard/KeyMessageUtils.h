@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../InputMessageUtils.h"
-#include "../../runtime/Types.h"
+#include "../../base/Types.h"
 
 namespace op::input::key_message {
 

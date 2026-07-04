@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OP_MEMORY_PROCESS_MEMORY_H_
 #define OP_MEMORY_PROCESS_MEMORY_H_
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 #include "BlackBone/Process/Process.h"
 #include <Windows.h>
 #include <cstdint>

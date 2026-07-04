@@ -1,4 +1,4 @@
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 
 // 描述： 设置显示Hook
 // 返回值:1 成功，0失败

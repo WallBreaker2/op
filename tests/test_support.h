@@ -13,7 +13,7 @@
 #include <winhttp.h>
 
 #include "../libop/hook/HookProtocol.h"
-#include "../libop/runtime/Types.h"
+#include "../libop/base/Types.h"
 #include "../include/libop.h"
 
 namespace test_support {

@@ -2,8 +2,8 @@
 #include "KeyMessageUtils.h"
 #include "../../hook/HookProtocol.h"
 #include "../../hook/InputHookClient.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
 
 namespace input_hook_client = op::hook::input_hook_client;
 

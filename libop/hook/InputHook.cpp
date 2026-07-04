@@ -1,6 +1,6 @@
 #include "InputHook.h"
-#include "../runtime/RuntimeUtils.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Utils.h"
+#include "../base/Environment.h"
 #include "../input/keyboard/KeyMessageUtils.h"
 #include "../input/mouse/CursorShape.h"
 #include "../hook/ApiResolver.h"

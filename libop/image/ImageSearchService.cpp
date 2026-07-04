@@ -1,6 +1,6 @@
 // #include "stdafx.h"
 #include "ImageSearchService.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 #include "../ocr/OcrService.h"
 #include <algorithm>
 #include <array>

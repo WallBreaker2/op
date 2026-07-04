@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OP_OCR_DICTIONARY_H_
 #define OP_OCR_DICTIONARY_H_
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 #include "Image.h"
 #include "BitFunctions.h"
 #include <algorithm>

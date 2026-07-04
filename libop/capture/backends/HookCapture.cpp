@@ -2,9 +2,9 @@
 // #include "stdafx.h"
 
 #include "HookCapture.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeEnvironment.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Environment.h"
+#include "../../base/Utils.h"
 #include "../../hook/HookModule.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"

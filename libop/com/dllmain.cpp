@@ -1,7 +1,7 @@
 // dllmain.cpp: DllMain 的实现。
 
 #include "dllmain.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Environment.h"
 #include "compreg.h"
 #include "op_i.h"
 #include "resource.h"

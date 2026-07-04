@@ -1,7 +1,7 @@
 #ifndef OP_HOOK_INPUT_HOOK_H_
 #define OP_HOOK_INPUT_HOOK_H_
 
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 
 namespace op::hook {
 

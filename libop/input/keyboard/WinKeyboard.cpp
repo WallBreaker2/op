@@ -1,8 +1,8 @@
 // #include "stdafx.h"
 #include "WinKeyboard.h"
 #include "KeyMessageUtils.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
 #include <string>
 
 static unsigned int oem_code(unsigned int key) {

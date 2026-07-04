@@ -1,6 +1,6 @@
 #include "HttpClient.h"
-#include "../runtime/JsonUtils.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/JsonUtils.h"
+#include "../base/Utils.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>

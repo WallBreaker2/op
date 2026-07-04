@@ -1,7 +1,7 @@
 #include "DxCaptureCommon.h"
 
 #include "DisplayHook.h"
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 
 namespace op::hook {
 

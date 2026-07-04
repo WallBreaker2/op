@@ -2,9 +2,9 @@
 #include "WgcCapture.h"
 #include "../../hook/DxCaptureCommon.h"
 #include "../../image/Image.h"
-#include "../../runtime/AutomationModes.h"
-#include "../../runtime/RuntimeUtils.h"
-#include "../../runtime/WindowsVersion.h"
+#include "../../base/AutomationModes.h"
+#include "../../base/Utils.h"
+#include "../../base/WindowsVersion.h"
 #include <algorithm>
 #include <climits>
 #include <cstdlib>

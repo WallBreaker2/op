@@ -1,5 +1,5 @@
 #include "HookExport.h"
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Environment.h"
 #include "DisplayHook.h"
 #include "InputHook.h"
 

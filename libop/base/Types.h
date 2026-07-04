@@ -1,6 +1,6 @@
 #pragma once
-#ifndef OP_RUNTIME_TYPES_H_
-#define OP_RUNTIME_TYPES_H_
+#ifndef OP_BASE_TYPES_H_
+#define OP_BASE_TYPES_H_
 #include <Windows.h>
 #include <assert.h>
 
@@ -138,4 +138,4 @@ using vyolo_rec_t = std::vector<yolo_rec_t>;
 
 } // namespace op
 
-#endif // OP_RUNTIME_TYPES_H_
+#endif // OP_BASE_TYPES_H_
