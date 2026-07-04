@@ -467,6 +467,28 @@ TEST(ImageColorTest, FindPicHonorsDirection) {
     }
 }
 
+TEST(ImageColorTest, FindPicReturnsMinusOneWhenTemplateIsMissing) {
+    op::Op op;
+    long ret = 0;
+    auto pixels = MakePixels(8, 8);
+    SetMemBmp(op, 8, 8, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long x = 123;
+    long y = 456;
+    op.FindPic(0, 0, 8, 8, L"missing_findpic_template", L"000000", 1.0, 0, &x, &y, &ret);
+
+    EXPECT_EQ(ret, -1);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    int cx = 123;
+    int cy = 456;
+    EXPECT_EQ(OpFindPic(nullptr, 0, 0, 8, 8, L"missing_findpic_template", L"000000", 1.0, 0, &cx, &cy), -1);
+    EXPECT_EQ(cx, -1);
+    EXPECT_EQ(cy, -1);
+}
+
 TEST(ImageColorTest, SharedPicCacheIsGlobalAcrossObjects) {
     op::Op loader;
     op::Op matcher;
@@ -546,6 +568,25 @@ TEST(ImageColorTest, SharedPicCacheIsGlobalAcrossObjects) {
     matcher.FreePic(file_path.c_str(), &ret);
     EXPECT_EQ(ret, 1);
     std::filesystem::remove(std::filesystem::path(file_path));
+}
+
+TEST(ImageColorTest, MissingPicSizeClearsOutputValues) {
+    op::Op op;
+    long width = 123;
+    long height = 456;
+    long ret = 99;
+
+    op.GetPicSize(L"__missing_pic_size_template__.bmp", &width, &height, &ret);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(width, 0);
+    EXPECT_EQ(height, 0);
+
+    int c_width = 123;
+    int c_height = 456;
+    EXPECT_EQ(OpGetPicSize(nullptr, L"__missing_pic_size_template__.bmp", &c_width, &c_height), 0);
+    EXPECT_EQ(c_width, 0);
+    EXPECT_EQ(c_height, 0);
 }
 
 TEST(ImageColorTest, FindPicTransparentOddPointsCountsCenterMismatchOnce) {
@@ -955,6 +996,32 @@ TEST(ImageColorTest, BinaryPreprocessDoesNotChangeColorBlockSearch) {
     EXPECT_EQ(ret, 1);
     EXPECT_EQ(x, 5);
     EXPECT_EQ(y, 0);
+}
+
+TEST(ImageColorTest, ColorSearchFailurePathsClearOutputs) {
+    op::Op op;
+    long ret = 0;
+    auto pixels = MakePixels(6, 4);
+    SetMemBmp(op, 6, 4, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    long count = 123;
+    op.GetColorNum(0, 0, 6, 4, L"000000", 1.0, &count);
+    EXPECT_EQ(count, 0);
+
+    long x = 123;
+    long y = 456;
+    ret = 99;
+    op.FindColorBlock(0, 0, 6, 4, L"000000", 1.0, 1, 1, 1, &x, &y, &ret);
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(x, -1);
+    EXPECT_EQ(y, -1);
+
+    int cx = 123;
+    int cy = 456;
+    EXPECT_EQ(OpFindColorBlock(nullptr, 0, 0, 6, 4, L"000000", 1.0, 1, 1, 1, &cx, &cy), 0);
+    EXPECT_EQ(cx, -1);
+    EXPECT_EQ(cy, -1);
 }
 
 TEST(ImageColorTest, FindColorBlockExClearsResultAndRejectsInvalidSize) {

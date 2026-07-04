@@ -313,7 +313,7 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(LoadMemPic)(BSTR pic_name, long long data, LONG size, LONG *ret);
     STDMETHOD(GetPicSize)(BSTR pic_name, VARIANT *width, VARIANT *height, LONG *ret);
     // 获取指定区域的图像,用二进制数据的方式返回
-    STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, LONG *ret);
+    STDMETHOD(GetScreenData)(LONG x1, LONG y1, LONG x2, LONG y2, LONGLONG *ret);
     // Get a 24-bit bitmap payload for the specified region.
     STDMETHOD(GetScreenDataBmp)(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT *data, VARIANT *size, LONG *ret);
     // Get current screen frame info.

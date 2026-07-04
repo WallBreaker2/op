@@ -838,6 +838,9 @@ long ImageSearchService::LoadMemPic(const wstring &file_name, void *data, long s
 }
 
 long ImageSearchService::GetPicSize(const wstring &file_name, long *width, long *height) {
+    set_out(width, 0L);
+    set_out(height, 0L);
+
     std::shared_ptr<Image> image;
     std::shared_ptr<PicMatchTemplate> match;
     find_cached_pic(file_name, image, match);

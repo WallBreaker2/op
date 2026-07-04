@@ -1,5 +1,7 @@
 #include "test_support.h"
 
+#include "op_c_api.h"
+
 #include "../libop/opencv/TemplateMatcher.h"
 
 #include <algorithm>
@@ -414,6 +416,14 @@ void BuildLargePyramidTemplateData(
 TEST(OpenCvTest, ReportsVersion) {
     const std::wstring version = opcv::GetOpenCvVersion();
     EXPECT_FALSE(version.empty());
+}
+
+TEST(OpenCvTest, CApiJsonMethodsReturnFailureJsonForInvalidHandle) {
+    EXPECT_EQ(L"{\"ok\":0}", std::wstring(OpCvMatchTemplate(nullptr, 0, 0, 10, 10, L"missing", 0.9, 0, 0, 0, 0)));
+    EXPECT_EQ(L"{\"ok\":0,\"results\":[]}",
+              std::wstring(OpCvConnectedComponents(nullptr, L"missing.bmp", 1.0)));
+    EXPECT_EQ(L"{\"ok\":0,\"results\":[]}",
+              std::wstring(OpCvMatchAllTemplates(nullptr, 0, 0, 10, 10, L"missing", 0.9, 0, 0, 0, 0)));
 }
 
 TEST(OpenCvTest, TemplateStoreAndMatchApis) {

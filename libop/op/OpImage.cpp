@@ -118,7 +118,7 @@ void op::Op::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, c
 
     long found_x = -1;
     long found_y = -1;
-    internal::set_result(ret, 0L);
+    internal::set_result(ret, -1L);
     internal::set_result(x, found_x);
     internal::set_result(y, found_y);
 
@@ -154,9 +154,11 @@ void op::Op::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files
 
 void op::Op::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long count,
                            long height, long width, long *x, long *y, long *ret) {
-    long found_x = 0;
-    long found_y = 0;
+    long found_x = -1;
+    long found_y = -1;
     internal::set_result(ret, 0L);
+    internal::set_result(x, found_x);
+    internal::set_result(y, found_y);
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         internal::set_result(ret,
                              m_context->image_proc.FindColorBlock(color, sim, count, height, width, found_x, found_y));
@@ -186,6 +188,7 @@ void op::Op::GetColor(long x, long y, std::wstring &ret) {
 }
 
 void op::Op::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long *ret) {
+    internal::set_result(ret, 0L);
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         internal::set_result(ret, m_context->image_proc.GetColorNum(color, sim));
     });
@@ -208,6 +211,8 @@ void op::Op::LoadMemPic(const wchar_t *file_name, void *data, long size, long *r
 }
 
 void op::Op::GetPicSize(const wchar_t *pic_name, long *width, long *height, long *ret) {
+    internal::set_result(width, 0L);
+    internal::set_result(height, 0L);
     internal::set_result(ret, m_context->image_proc.GetPicSize(pic_name, width, height));
 }
 

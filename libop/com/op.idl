@@ -161,7 +161,7 @@ interface IOpAutomation : IDispatch
 	[id(164)] HRESULT SetDisplayInput([in] BSTR method, [out, retval] LONG* ret);
 	[id(165)] HRESULT LoadPic([in] BSTR pic_name, [out, retval] LONG* ret);
 	[id(166)] HRESULT FreePic([in] BSTR Pic_name, [out, retval] LONG* ret);
-	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval]LONG* ret);
+	[id(167)] HRESULT GetScreenData([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out, retval] hyper* ret);
 	[id(168)] HRESULT GetScreenDataBmp([in] LONG  x1, [in] LONG y1, [in] LONG x2, [in] LONG y2, [out] VARIANT* data, [out] VARIANT* size, [out, retval]LONG* ret);
 	[id(169)] HRESULT MatchPicName([in] BSTR pic_name, [out, retval] BSTR* retstr);
 	[id(170)] HRESULT LoadMemPic([in] BSTR pic_name, [in]long long data, [in]LONG size,[out, retval] LONG* ret);
