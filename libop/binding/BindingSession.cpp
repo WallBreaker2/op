@@ -16,6 +16,7 @@
 #endif
 
 #include "../capture/sources/MemoryImageSource.h"
+#include "../hook/InputHookClient.h"
 #include "../input/keyboard/DxKeyboard.h"
 #include "../input/keyboard/WinKeyboard.h"
 #include "../input/mouse/DxMouse.h"
@@ -135,7 +136,8 @@ const wchar_t *display_mode_name(int display) {
 } // namespace
 
 BindingSession::BindingSession()
-    : _display_hwnd(0), _input_hwnd(0), _is_bind(0), _capture(nullptr), _mouse(std::make_unique<WinMouse>()),
+    : _display_hwnd(0), _input_hwnd(0), _is_bind(0), _display(0), _mode(0), _mouse_mode(INPUT_TYPE::IN_NORMAL),
+      _keypad_mode(INPUT_TYPE::IN_NORMAL), _capture(nullptr), _mouse(std::make_unique<WinMouse>()),
       _keyboard(std::make_unique<WinKeyboard>()) {
     _display_method = std::make_pair<wstring, wstring>(L"screen", L"");
 }
@@ -248,6 +250,8 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         _display = display;
         _display_hwnd = displayWnd;
         _input_hwnd = inputWnd;
+        _mouse_mode = mouse;
+        _keypad_mode = keypad;
         set_display_method(L"screen");
 
         _capture = createDisplay(display);
@@ -309,12 +313,35 @@ long BindingSession::UnBindWindow() {
     return reset_bind_state(true);
 }
 
+long BindingSession::LockInput(long lock) {
+    if (lock < 0 || lock > 3)
+        return 0;
+    if (lock == 0)
+        return op::hook::input_hook_client::LockInput(_input_hwnd, 0);
+    if (!_is_bind || !_input_hwnd)
+        return 0;
+
+    const bool need_mouse = lock == 1 || lock == 2;
+    const bool need_keyboard = lock == 1 || lock == 3;
+    if ((need_mouse && _mouse_mode != INPUT_TYPE::IN_DX) || (need_keyboard && _keypad_mode != INPUT_TYPE::IN_DX))
+        return 0;
+
+    return op::hook::input_hook_client::LockInput(_input_hwnd, static_cast<int>(lock));
+}
+
 long BindingSession::reset_bind_state(bool restore_default_input) {
+    if (_input_hwnd && (_mouse_mode == INPUT_TYPE::IN_DX || _keypad_mode == INPUT_TYPE::IN_DX)) {
+        // 解绑时主动解锁，避免脚本异常退出后目标窗口还留在锁定状态。
+        op::hook::input_hook_client::LockInput(_input_hwnd, 0);
+    }
+
     _display_hwnd = NULL;
     _input_hwnd = NULL;
     _display = 0;
     _is_bind = 0;
     _mode = 0;
+    _mouse_mode = INPUT_TYPE::IN_NORMAL;
+    _keypad_mode = INPUT_TYPE::IN_NORMAL;
 
     if (_capture) {
         _capture->UnBind();

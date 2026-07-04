@@ -264,6 +264,9 @@ class Op(object):
     def UnBindWindow(self):
         return _pyop.Op_UnBindWindow(self)
 
+    def LockInput(self, lock):
+        return _pyop.Op_LockInput(self, lock)
+
     def GetBindWindow(self):
         return _pyop.Op_GetBindWindow(self)
 

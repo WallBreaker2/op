@@ -403,6 +403,9 @@ class Op:
     def unbind_window(self) -> bool:
         return self._call_ok("OpUnBindWindow")
 
+    def lock_input(self, lock: int) -> bool:
+        return self._call_ok("OpLockInput", int(lock))
+
     def get_bind_window(self) -> int:
         return self._call_intptr("OpGetBindWindow")
 

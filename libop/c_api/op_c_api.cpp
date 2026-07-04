@@ -480,6 +480,10 @@ int OP_CALL OpUnbindWindow(op_handle handle) {
     return OpUnBindWindow(handle);
 }
 
+int OP_CALL OpLockInput(op_handle handle, int lock) {
+    return call_ret(handle, [&](op::Op &op, long *ret) { op.LockInput(lock, ret); });
+}
+
 intptr_t OP_CALL OpGetBindWindow(op_handle handle) {
     return call_intptr(handle, [](op::Op &op, LONG_PTR *ret) { op.GetBindWindow(ret); });
 }

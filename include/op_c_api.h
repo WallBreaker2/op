@@ -110,6 +110,7 @@ OP_C_API int OP_CALL OpBindWindow(op_handle handle, intptr_t hwnd, const wchar_t
 OP_C_API int OP_CALL OpBindWindowEx(op_handle handle, intptr_t display_hwnd, intptr_t input_hwnd,
                                     const wchar_t *display, const wchar_t *mouse, const wchar_t *keypad, int mode);
 OP_C_API int OP_CALL OpUnBindWindow(op_handle handle);
+OP_C_API int OP_CALL OpLockInput(op_handle handle, int lock);
 OP_C_API intptr_t OP_CALL OpGetBindWindow(op_handle handle);
 OP_C_API int OP_CALL OpIsBind(op_handle handle);
 

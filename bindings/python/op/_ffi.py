@@ -176,6 +176,7 @@ def _bind(dll: ctypes.WinDLL) -> ctypes.WinDLL:
         ("OpBindWindow", c_int, [op_handle, intptr_t, c_wchar_p, c_wchar_p, c_wchar_p, c_int]),
         ("OpBindWindowEx", c_int, [op_handle, intptr_t, intptr_t, c_wchar_p, c_wchar_p, c_wchar_p, c_int]),
         ("OpUnBindWindow", c_int, [op_handle]),
+        ("OpLockInput", c_int, [op_handle, c_int]),
         ("OpGetBindWindow", intptr_t, [op_handle]),
         ("OpIsBind", c_int, [op_handle]),
         ("OpGetCursorPos", c_int, [op_handle, c_int_p, c_int_p]),
