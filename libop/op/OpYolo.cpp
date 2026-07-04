@@ -1,4 +1,5 @@
 #include "OpContext.h"
+#include "OpCaptureHelpers.h"
 #include "OpResult.h"
 
 #include "image/Image.h"
@@ -78,11 +79,7 @@ long op::Op::SetYoloEngine(const wchar_t *path_of_engine, const wchar_t *dll_nam
 void op::Op::YoloDetect(long x1, long y1, long x2, long y2, double conf, double iou, std::wstring &retjson, long *ret) {
     retjson.clear();
     internal::set_result(ret, 0L);
-    if (m_context->bkproc.check_bind() && m_context->bkproc.RectConvert(x1, y1, x2, y2)) {
-        if (!m_context->bkproc.requestCapture(x1, y1, x2 - x1, y2 - y1, m_context->image_proc._src)) {
-            setlog("error requestCapture");
-            return;
-        }
+    internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         vyolo_rec_t res;
         const int n =
             op::yolo::YoloDetector::getInstance()->detect(m_context->image_proc._src.pdata, m_context->image_proc._src.width,
@@ -97,7 +94,7 @@ void op::Op::YoloDetect(long x1, long y1, long x2, long y2, double conf, double 
         }
         build_yolo_json(res, retjson);
         internal::set_result(ret, n);
-    }
+    });
 }
 
 void op::Op::YoloDetectFromFile(const wchar_t *file_name, double conf, double iou, std::wstring &retjson, long *ret) {

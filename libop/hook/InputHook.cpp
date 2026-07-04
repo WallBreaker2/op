@@ -1,6 +1,7 @@
 #include "InputHook.h"
 #include "../runtime/RuntimeUtils.h"
 #include "../runtime/RuntimeEnvironment.h"
+#include "../input/keyboard/KeyMessageUtils.h"
 #include "../input/mouse/CursorShape.h"
 #include "../hook/ApiResolver.h"
 #include "MinHookRuntime.h"
@@ -40,6 +41,8 @@ LONG InputHook::m_inputLock = 0;
 bool InputHook::is_hooked = false;
 
 namespace {
+
+namespace key_message = op::input::key_message;
 
 WNDPROC g_rawWindowProc = nullptr;
 void *g_mouseGetDeviceStateRaw = nullptr;
@@ -120,7 +123,6 @@ UINT WINAPI hkGetRawInputDeviceList(PRAWINPUTDEVICELIST devices, PUINT count, UI
 UINT WINAPI hkGetRegisteredRawInputDevices(PRAWINPUTDEVICE devices, PUINT count, UINT size);
 HCURSOR WINAPI hkSetCursor(HCURSOR cursor);
 LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
-bool is_extended_vk(WPARAM vk);
 
 bool create_hook(void *target, void *detour, void **original = nullptr) {
     if (!target || !detour)
@@ -147,8 +149,6 @@ void remove_input_hooks() {
     }
     g_hookTargets.clear();
 }
-WORD scan_code(WPARAM vk);
-
 template <typename Target, typename Value> void set_out(Target *target, Value value) {
     if (target)
         *target = static_cast<Target>(value);
@@ -571,8 +571,10 @@ RAWINPUT make_raw_keyboard(WPARAM vk, bool down) {
     raw.header.dwSize = sizeof(RAWINPUT);
     raw.header.hDevice = reinterpret_cast<HANDLE>(kFakeRawKeyboardDevice);
     raw.header.wParam = RIM_INPUT;
-    raw.data.keyboard.MakeCode = scan_code(vk);
-    raw.data.keyboard.Flags = static_cast<USHORT>((down ? RI_KEY_MAKE : RI_KEY_BREAK) | (is_extended_vk(vk) ? RI_KEY_E0 : 0));
+    raw.data.keyboard.MakeCode = key_message::ScanCode(static_cast<UINT>(vk));
+    raw.data.keyboard.Flags = static_cast<USHORT>(
+        (down ? RI_KEY_MAKE : RI_KEY_BREAK) |
+        (key_message::IsExtendedVirtualKey(static_cast<UINT>(vk)) ? RI_KEY_E0 : 0));
     raw.data.keyboard.VKey = static_cast<USHORT>(vk);
     raw.data.keyboard.Message = down ? WM_KEYDOWN : WM_KEYUP;
     return raw;
@@ -825,62 +827,12 @@ UINT append_fake_raw_device_list(PRAWINPUTDEVICELIST devices, PUINT count, UINT 
     return written_total;
 }
 
-bool is_extended_vk(WPARAM vk) {
-    switch (vk) {
-    case VK_RMENU:
-    case VK_RCONTROL:
-    case VK_INSERT:
-    case VK_DELETE:
-    case VK_HOME:
-    case VK_END:
-    case VK_PRIOR:
-    case VK_NEXT:
-    case VK_LEFT:
-    case VK_RIGHT:
-    case VK_UP:
-    case VK_DOWN:
-    case VK_NUMLOCK:
-    case VK_SNAPSHOT:
-    case VK_DIVIDE:
-    case VK_APPS:
-    case VK_LWIN:
-    case VK_RWIN:
-        return true;
-    default:
-        return false;
-    }
-}
-
 BYTE dik_code(WPARAM vk) {
-    switch (vk) {
-    case VK_NUMLOCK:
-        return 0x45;
-    case VK_PAUSE:
-        return 0xC5;
-    case VK_SNAPSHOT:
-        return 0xB7;
-    default:
-        break;
-    }
-
-    BYTE scan = static_cast<BYTE>(::MapVirtualKey(static_cast<UINT>(vk), MAPVK_VK_TO_VSC) & 0xff);
-    if (scan == 0)
-        return 0;
-    return is_extended_vk(vk) ? static_cast<BYTE>(scan | 0x80) : scan;
-}
-
-WORD scan_code(WPARAM vk) {
-    return static_cast<WORD>((::MapVirtualKey(static_cast<UINT>(vk), MAPVK_VK_TO_VSC)) & 0xff);
+    return key_message::DirectInputScanCode(static_cast<UINT>(vk));
 }
 
 LPARAM make_key_lparam(WPARAM vk, bool up) {
-    DWORD value = 1;
-    value |= static_cast<DWORD>(scan_code(vk)) << 16;
-    if (is_extended_vk(vk))
-        value |= 1u << 24;
-    if (up)
-        value |= 3u << 30;
-    return static_cast<LPARAM>(value);
+    return key_message::BuildKeyLParam(static_cast<UINT>(vk), up);
 }
 
 LPARAM client_to_screen_lparam(HWND hwnd, LPARAM lparam) {
