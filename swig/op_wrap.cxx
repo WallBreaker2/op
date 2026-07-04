@@ -7573,6 +7573,316 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Op_MoveToSmooth(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long *arg5 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long temp5 ;
+  int res5 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[4] ;
+
+  arg5 = &temp5;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_MoveToSmooth", 4, 4, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_MoveToSmooth" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_MoveToSmooth" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_MoveToSmooth" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_MoveToSmooth" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  (arg1)->MoveToSmooth(arg2,arg3,arg4,arg5);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res5)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg5)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_long, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_MoveToExSmooth(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  long arg6 ;
+  std::wstring *arg7 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  std::wstring temp7 ;
+  int res7 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[6] ;
+
+  arg7 = &temp7;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_MoveToExSmooth", 6, 6, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_MoveToExSmooth" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_MoveToExSmooth" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_MoveToExSmooth" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_MoveToExSmooth" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_MoveToExSmooth" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  ecode6 = SWIG_AsVal_long(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Op_MoveToExSmooth" "', argument " "6"" of type '" "long""'");
+  }
+  arg6 = static_cast< long >(val6);
+  (arg1)->MoveToExSmooth(arg2,arg3,arg4,arg5,arg6,*arg7);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res7)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_std_wstring((*arg7)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_std__wstring, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_MovePath(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  long arg3 ;
+  long *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
+
+  arg4 = &temp4;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_MovePath", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_MovePath" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_MovePath" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_MovePath" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  (arg1)->MovePath((wchar_t const *)arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_DragPath(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  wchar_t *arg2 = 0 ;
+  long arg3 ;
+  long *arg4 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  wchar_t *buf2 = 0 ;
+  int alloc2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long temp4 ;
+  int res4 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[3] ;
+
+  arg4 = &temp4;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_DragPath", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_DragPath" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  res2 = SWIG_AsWCharPtrAndSize(swig_obj[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Op_DragPath" "', argument " "2"" of type '" "wchar_t const *""'");
+  }
+  arg2 = reinterpret_cast< wchar_t * >(buf2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_DragPath" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  (arg1)->DragPath((wchar_t const *)arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res4)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg4)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_long, new_flags), 1);
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Op_SetMouseTrajectory(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long arg3 ;
+  long arg4 ;
+  long arg5 ;
+  long arg6 ;
+  long arg7 ;
+  long *arg8 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  long val4 ;
+  int ecode4 = 0 ;
+  long val5 ;
+  int ecode5 = 0 ;
+  long val6 ;
+  int ecode6 = 0 ;
+  long val7 ;
+  int ecode7 = 0 ;
+  long temp8 ;
+  int res8 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[7] ;
+
+  arg8 = &temp8;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_SetMouseTrajectory", 7, 7, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_SetMouseTrajectory" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_SetMouseTrajectory" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(swig_obj[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Op_SetMouseTrajectory" "', argument " "3"" of type '" "long""'");
+  }
+  arg3 = static_cast< long >(val3);
+  ecode4 = SWIG_AsVal_long(swig_obj[3], &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Op_SetMouseTrajectory" "', argument " "4"" of type '" "long""'");
+  }
+  arg4 = static_cast< long >(val4);
+  ecode5 = SWIG_AsVal_long(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Op_SetMouseTrajectory" "', argument " "5"" of type '" "long""'");
+  }
+  arg5 = static_cast< long >(val5);
+  ecode6 = SWIG_AsVal_long(swig_obj[5], &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Op_SetMouseTrajectory" "', argument " "6"" of type '" "long""'");
+  }
+  arg6 = static_cast< long >(val6);
+  ecode7 = SWIG_AsVal_long(swig_obj[6], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Op_SetMouseTrajectory" "', argument " "7"" of type '" "long""'");
+  }
+  arg7 = static_cast< long >(val7);
+  (arg1)->SetMouseTrajectory(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res8)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg8)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_long, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Op_LeftClick(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   op::Op *arg1 = 0 ;
@@ -16552,6 +16862,11 @@ static PyMethodDef SwigMethods[] = {
 	 { "Op_MoveR", _wrap_Op_MoveR, METH_VARARGS, NULL},
 	 { "Op_MoveTo", _wrap_Op_MoveTo, METH_VARARGS, NULL},
 	 { "Op_MoveToEx", _wrap_Op_MoveToEx, METH_VARARGS, NULL},
+	 { "Op_MoveToSmooth", _wrap_Op_MoveToSmooth, METH_VARARGS, NULL},
+	 { "Op_MoveToExSmooth", _wrap_Op_MoveToExSmooth, METH_VARARGS, NULL},
+	 { "Op_MovePath", _wrap_Op_MovePath, METH_VARARGS, NULL},
+	 { "Op_DragPath", _wrap_Op_DragPath, METH_VARARGS, NULL},
+	 { "Op_SetMouseTrajectory", _wrap_Op_SetMouseTrajectory, METH_VARARGS, NULL},
 	 { "Op_LeftClick", _wrap_Op_LeftClick, METH_O, NULL},
 	 { "Op_LeftDoubleClick", _wrap_Op_LeftDoubleClick, METH_O, NULL},
 	 { "Op_LeftDown", _wrap_Op_LeftDown, METH_O, NULL},

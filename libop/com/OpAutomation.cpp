@@ -521,6 +521,40 @@ STDMETHODIMP OpAutomation::MoveToEx(LONG x, LONG y, LONG w, LONG h, BSTR *ret) {
     return CopyOutBstr(ret, s);
 }
 
+STDMETHODIMP OpAutomation::MoveToSmooth(LONG x, LONG y, LONG duration, LONG *ret) {
+    obj.MoveToSmooth(x, y, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::MoveToExSmooth(LONG x, LONG y, LONG w, LONG h, LONG duration, BSTR *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    std::wstring s;
+    obj.MoveToExSmooth(x, y, w, h, duration, s);
+    return CopyOutBstr(ret, s);
+}
+
+STDMETHODIMP OpAutomation::MovePath(BSTR path, LONG duration, LONG *ret) {
+    obj.MovePath(path, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::DragPath(BSTR path, LONG duration, LONG *ret) {
+    obj.DragPath(path, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::SetMouseTrajectory(LONG mode, LONG min_duration, LONG max_duration, LONG jitter,
+                                              LONG start_delay, LONG end_delay, LONG *ret) {
+    obj.SetMouseTrajectory(mode, min_duration, max_duration, jitter, start_delay, end_delay, ret);
+
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::LeftClick(LONG *ret) {
     obj.LeftClick(ret);
 

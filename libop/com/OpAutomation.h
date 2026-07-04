@@ -195,6 +195,17 @@ class ATL_NO_VTABLE OpAutomation
     STDMETHOD(MoveTo)(LONG x, LONG y, LONG *ret);
     // 把鼠标移动到目的范围内的任意一点
     STDMETHOD(MoveToEx)(LONG x, LONG y, LONG w, LONG h, BSTR *ret);
+    // 按模拟轨迹移动到指定点
+    STDMETHOD(MoveToSmooth)(LONG x, LONG y, LONG duration, LONG *ret);
+    // 在目标范围内随机取点，并按模拟轨迹移动过去
+    STDMETHOD(MoveToExSmooth)(LONG x, LONG y, LONG w, LONG h, LONG duration, BSTR *ret);
+    // 按 x,y|x,y 格式提供的路径移动
+    STDMETHOD(MovePath)(BSTR path, LONG duration, LONG *ret);
+    // 按 x,y|x,y 格式提供的路径拖拽
+    STDMETHOD(DragPath)(BSTR path, LONG duration, LONG *ret);
+    // 设置模拟轨迹参数，只影响 Smooth 和 Path 系列鼠标移动
+    STDMETHOD(SetMouseTrajectory)(LONG mode, LONG min_duration, LONG max_duration, LONG jitter, LONG start_delay,
+                                  LONG end_delay, LONG *ret);
     // 按下鼠标左键
     STDMETHOD(LeftClick)(LONG *ret);
     // 双击鼠标左键

@@ -425,6 +425,37 @@ class Op:
     def move_to_ex(self, x: int, y: int, width: int, height: int) -> str:
         return self._call_string("OpMoveToEx", int(x), int(y), int(width), int(height))
 
+    def move_to_smooth(self, x: int, y: int, duration: int) -> bool:
+        return self._call_ok("OpMoveToSmooth", int(x), int(y), int(duration))
+
+    def move_to_ex_smooth(self, x: int, y: int, width: int, height: int, duration: int) -> str:
+        return self._call_string("OpMoveToExSmooth", int(x), int(y), int(width), int(height), int(duration))
+
+    def move_path(self, path: str, duration: int) -> bool:
+        return self._call_ok("OpMovePath", str(path), int(duration))
+
+    def drag_path(self, path: str, duration: int) -> bool:
+        return self._call_ok("OpDragPath", str(path), int(duration))
+
+    def set_mouse_trajectory(
+        self,
+        mode: int,
+        min_duration: int,
+        max_duration: int,
+        jitter: int,
+        start_delay: int,
+        end_delay: int,
+    ) -> bool:
+        return self._call_ok(
+            "OpSetMouseTrajectory",
+            int(mode),
+            int(min_duration),
+            int(max_duration),
+            int(jitter),
+            int(start_delay),
+            int(end_delay),
+        )
+
     def left_click(self) -> bool:
         return self._call_ok("OpLeftClick")
 

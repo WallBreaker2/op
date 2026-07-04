@@ -119,6 +119,12 @@ OP_C_API const wchar_t *OP_CALL OpGetCursorShape(op_handle handle);
 OP_C_API int OP_CALL OpMoveR(op_handle handle, int x, int y);
 OP_C_API int OP_CALL OpMoveTo(op_handle handle, int x, int y);
 OP_C_API const wchar_t *OP_CALL OpMoveToEx(op_handle handle, int x, int y, int w, int h);
+OP_C_API int OP_CALL OpMoveToSmooth(op_handle handle, int x, int y, int duration);
+OP_C_API const wchar_t *OP_CALL OpMoveToExSmooth(op_handle handle, int x, int y, int w, int h, int duration);
+OP_C_API int OP_CALL OpMovePath(op_handle handle, const wchar_t *path, int duration);
+OP_C_API int OP_CALL OpDragPath(op_handle handle, const wchar_t *path, int duration);
+OP_C_API int OP_CALL OpSetMouseTrajectory(op_handle handle, int mode, int min_duration, int max_duration, int jitter,
+                                          int start_delay, int end_delay);
 OP_C_API int OP_CALL OpLeftClick(op_handle handle);
 OP_C_API int OP_CALL OpLeftDoubleClick(op_handle handle);
 OP_C_API int OP_CALL OpLeftDown(op_handle handle);
