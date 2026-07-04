@@ -1,5 +1,5 @@
 #pragma once
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #include <mutex>
 
 namespace op::yolo {

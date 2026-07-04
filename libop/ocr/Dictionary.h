@@ -1,10 +1,11 @@
 #pragma once
 #ifndef OP_OCR_DICTIONARY_H_
 #define OP_OCR_DICTIONARY_H_
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 #include "Image.h"
 #include "BitFunctions.h"
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -319,6 +320,13 @@ inline bool parse_text_dict_entry(const std::wstring &s, word1_t &word) {
 } // namespace dict_entry_importer
 
 struct Dictionary {
+    // SetMemDict 没有文件名，不能靠后缀判断；这里按内存内容识别字库格式。
+    enum class memory_format {
+        invalid,
+        op_binary,
+        text,
+    };
+
     // v0 v1
     struct dict_info_t {
         __int16 _this_ver; // 0 1
@@ -333,11 +341,82 @@ struct Dictionary {
     Dictionary() {
     }
     std::vector<word1_t> words;
+    static bool read_bytes(const unsigned char *buf, size_t size, size_t &offset, void *out, size_t out_size) {
+        if (!buf || !out || offset > size || out_size > size - offset)
+            return false;
+        std::memcpy(out, buf + offset, out_size);
+        offset += out_size;
+        return true;
+    }
+    static bool valid_word_info(const word1_info &head) {
+        if (head.w == 0 || head.h == 0)
+            return false;
+        const size_t bit_count = static_cast<size_t>(head.w) * static_cast<size_t>(head.h);
+        return head.bit_cnt > 0 && static_cast<size_t>(head.bit_cnt) <= bit_count;
+    }
+    // OP 二进制字库没有 magic，这里用头部校验和完整长度校验来避免文本误判。
+    static bool is_binary_dict_memory(const void *data, size_t size) {
+        const auto *buf = static_cast<const unsigned char *>(data);
+        size_t offset = 0;
+        dict_info_t file_info;
+        if (!read_bytes(buf, size, offset, &file_info, sizeof(file_info)))
+            return false;
+        if (file_info._word_count <= 0)
+            return false;
+        if (file_info._check_code != (file_info._this_ver ^ file_info._word_count))
+            return false;
+
+        const size_t word_count = static_cast<size_t>(file_info._word_count);
+        if (file_info._this_ver == 0) {
+            if (word_count > (size - offset) / sizeof(word_t))
+                return false;
+            for (size_t i = 0; i < word_count; ++i) {
+                word_t old_word;
+                if (!read_bytes(buf, size, offset, &old_word, sizeof(old_word)))
+                    return false;
+                if (old_word.info.width <= 0 || old_word.info.height <= 0 || old_word.info.width > 255 ||
+                    old_word.info.height > 255 || old_word.info.bit_count <= 0 ||
+                    old_word.info.bit_count > old_word.info.width * old_word.info.height)
+                    return false;
+            }
+            return offset == size;
+        }
+
+        if (file_info._this_ver != 1)
+            return false;
+
+        for (size_t i = 0; i < word_count; ++i) {
+            word1_info head;
+            if (!read_bytes(buf, size, offset, &head, sizeof(head)))
+                return false;
+            if (!valid_word_info(head))
+                return false;
+            const size_t data_size = (static_cast<size_t>(head.w) * static_cast<size_t>(head.h) + 7u) / 8u;
+            if (offset > size || data_size > size - offset)
+                return false;
+            offset += data_size;
+        }
+        return offset == size;
+    }
+    // 先识别合法 OP 二进制字库；不符合时，再按文本字库内容处理。
+    static memory_format detect_memory_format(const void *data, size_t size) {
+        if (!data || size == 0)
+            return memory_format::invalid;
+        if (is_binary_dict_memory(data, size))
+            return memory_format::op_binary;
+
+        const auto *buf = static_cast<const unsigned char *>(data);
+        for (size_t i = 0; i < size; ++i) {
+            if (buf[i] == '$')
+                return memory_format::text;
+        }
+        return memory_format::invalid;
+    }
     void read_dict(const std::wstring &s) {
         if (s.empty())
             return;
 
-        // SetDict 的入口：优先识别 OP 二进制 .dict，失败后尝试大漠文本字库。
+        // SetDict 的入口：优先识别 OP 二进制 .dict；不符合时再按大漠文本字库读取。
         if (read_binary_dict(s))
             return;
         read_dict_dm(s);
@@ -406,6 +485,57 @@ struct Dictionary {
         sort_dict();
         return true;
     }
+    bool read_binary_dict_memory(const void *data, size_t size) {
+        clear();
+        if (!is_binary_dict_memory(data, size))
+            return false;
+
+        const auto *buf = static_cast<const unsigned char *>(data);
+        size_t offset = 0;
+        dict_info_t file_info;
+        if (!read_bytes(buf, size, offset, &file_info, sizeof(file_info)))
+            return false;
+
+        info = file_info;
+        words.resize(static_cast<size_t>(file_info._word_count));
+        if (file_info._this_ver == 0) {
+            info._this_ver = 1;
+            word_t tmp;
+            for (size_t i = 0; i < words.size(); ++i) {
+                if (!read_bytes(buf, size, offset, &tmp, sizeof(tmp))) {
+                    clear();
+                    return false;
+                }
+                words[i].from_word(tmp);
+            }
+            info._check_code = info._this_ver ^ info._word_count;
+        } else if (file_info._this_ver == 1) {
+            word1_info head;
+            for (size_t i = 0; i < words.size(); ++i) {
+                if (!read_bytes(buf, size, offset, &head, sizeof(head))) {
+                    clear();
+                    return false;
+                }
+                words[i].info = head;
+                const size_t data_size = (static_cast<size_t>(head.w) * static_cast<size_t>(head.h) + 7u) / 8u;
+                words[i].data.resize(data_size);
+                if (!read_bytes(buf, size, offset, words[i].data.data(), data_size)) {
+                    clear();
+                    return false;
+                }
+            }
+        } else {
+            clear();
+            return false;
+        }
+
+        if (offset != size) {
+            clear();
+            return false;
+        }
+        sort_dict();
+        return true;
+    }
     void read_dict_dm(const std::wstring &s) {
         clear();
         std::fstream file;
@@ -429,7 +559,7 @@ struct Dictionary {
             size_t idx1 = ss.find(L'$');
             auto idx2 = ss.find(L'$', idx1 + 1);
             word1_t wd1;
-            // 文件导入只接受大漠文本格式；OP 三段文本只用于 AddDict/SetMemDict 单条导入。
+            // 文件导入只接受大漠文本格式；OP 三段文本用于 AddDict 和内存文本字库。
             if (idx1 != -1 && idx2 != -1 && dm_dict_compat::parse_dm_text_word(ss, wd1))
                 add_word(wd1);
         }
@@ -462,6 +592,19 @@ struct Dictionary {
                 add_word(wd1);
         }
         sort_dict();
+    }
+    bool read_memory_dict(const void *data, size_t size) {
+        // 内存入口支持完整 .dict 字节，也支持按行保存的文本字库。
+        switch (detect_memory_format(data, size)) {
+        case memory_format::op_binary:
+            return read_binary_dict_memory(data, size);
+        case memory_format::text:
+            read_memory_dict_dm(static_cast<const char *>(data), size);
+            return !empty();
+        default:
+            clear();
+            return false;
+        }
     }
 
     bool write_dict(const std::wstring &s) {

@@ -1,8 +1,8 @@
 #include "TesseractOcr.h"
 
-#include "../runtime/RuntimeUtils.h"
+#include "../base/Utils.h"
 
-#include "../runtime/RuntimeEnvironment.h"
+#include "../base/Environment.h"
 
 #include <leptonica/allheaders.h>
 

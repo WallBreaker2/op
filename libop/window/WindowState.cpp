@@ -1,5 +1,5 @@
 #include "WindowService.h"
-#include "../runtime/WindowsHandle.h"
+#include "../base/WindowsHandle.h"
 
 namespace op {
 

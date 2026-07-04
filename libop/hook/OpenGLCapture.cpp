@@ -5,8 +5,8 @@
 #include "../hook/ApiResolver.h"
 #include "../ipc/ProcessMutex.h"
 #include "../ipc/SharedMemory.h"
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/AutomationModes.h"
+#include "../base/Utils.h"
 #include <gl\glu.h>
 
 #define DEBUG_HOOK 0

@@ -5,11 +5,11 @@
 常见的图像算法，例如图像查找，颜色序列匹配（多点着色）
 由于ocr与图像查找类似，故也在类ImageLoc中实现
 */
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #include "../ocr/Dictionary.h"
 #include "../image/BitFunctions.h"
 #include "../image/Color.h"
-#include "../runtime/ThreadPool.h"
+#include "../base/ThreadPool.h"
 #include <string>
 #include <vector>
 

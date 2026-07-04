@@ -1,6 +1,6 @@
 #include "test_support.h"
 
-#include "../libop/runtime/ThreadPool.h"
+#include "../libop/base/ThreadPool.h"
 
 #include <vector>
 

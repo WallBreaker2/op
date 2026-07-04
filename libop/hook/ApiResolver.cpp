@@ -1,6 +1,6 @@
 // #include "stdafx.h"
 #include "ApiResolver.h"
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 
 void *ResolveApi(const char *mod_name, const char *func_name) {
     auto hdll = ::GetModuleHandleA(mod_name);

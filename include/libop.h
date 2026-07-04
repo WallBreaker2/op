@@ -226,6 +226,8 @@ class OP_API Op {
                       _In_ const wchar_t *mouse, _In_ const wchar_t *keypad, _In_ long mode, _Out_ long *ret);
     // 解绑窗口
     void UnBindWindow(_Out_ long *ret);
+    // 临时锁定目标窗口的外部输入。只对 dx 鼠标、dx 键盘有效。
+    void LockInput(_In_ long lock, _Out_ long *ret);
     // 获取当前对象已经绑定的显示窗口句柄. 无绑定返回0
     void GetBindWindow(_Out_ LONG_PTR *ret);
     // 判定当前对象是否已绑定窗口.
@@ -241,6 +243,18 @@ class OP_API Op {
     void MoveTo(_In_ long x, _In_ long y, _Out_ long *ret);
     // 把鼠标移动到目的范围内的任意一点
     void MoveToEx(_In_ long x, _In_ long y, _In_ long w, _In_ long h, _Out_ std::wstring &ret);
+    // 按模拟轨迹移动到指定点
+    void MoveToSmooth(_In_ long x, _In_ long y, _In_ long duration, _Out_ long *ret);
+    // 在目标范围内随机取点，并按模拟轨迹移动过去
+    void MoveToExSmooth(_In_ long x, _In_ long y, _In_ long w, _In_ long h, _In_ long duration,
+                        _Out_ std::wstring &ret);
+    // 按 x,y|x,y 格式提供的路径移动
+    void MovePath(_In_ const wchar_t *path, _In_ long duration, _Out_ long *ret);
+    // 按 x,y|x,y 格式提供的路径拖拽
+    void DragPath(_In_ const wchar_t *path, _In_ long duration, _Out_ long *ret);
+    // 设置模拟轨迹参数，只影响 Smooth 和 Path 系列鼠标移动
+    void SetMouseTrajectory(_In_ long mode, _In_ long min_duration, _In_ long max_duration, _In_ long jitter,
+                            _In_ long start_delay, _In_ long end_delay, _Out_ long *ret);
     // 按下鼠标左键
     void LeftClick(_Out_ long *ret);
     // 双击鼠标左键
@@ -442,7 +456,7 @@ class OP_API Op {
     // 获取指定字库中指定条目的字库信息
     void GetDict(_In_ long idx, _In_ long font_index, _Out_ std::wstring &retstr);
     // 设置内存字库文件
-    void SetMemDict(_In_ long idx, _In_ const wchar_t *data, _In_ long size, _Out_ long *ret);
+    void SetMemDict(_In_ long idx, _In_reads_bytes_(size) const void *data, _In_ long size, _Out_ long *ret);
     // 使用哪个字库文件进行识别
     void UseDict(_In_ long idx, _Out_ long *ret);
     // 给指定的字库中添加一条字库信息

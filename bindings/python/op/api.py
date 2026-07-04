@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import locale
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -402,6 +403,9 @@ class Op:
     def unbind_window(self) -> bool:
         return self._call_ok("OpUnBindWindow")
 
+    def lock_input(self, lock: int) -> bool:
+        return self._call_ok("OpLockInput", int(lock))
+
     def get_bind_window(self) -> int:
         return self._call_intptr("OpGetBindWindow")
 
@@ -423,6 +427,37 @@ class Op:
 
     def move_to_ex(self, x: int, y: int, width: int, height: int) -> str:
         return self._call_string("OpMoveToEx", int(x), int(y), int(width), int(height))
+
+    def move_to_smooth(self, x: int, y: int, duration: int) -> bool:
+        return self._call_ok("OpMoveToSmooth", int(x), int(y), int(duration))
+
+    def move_to_ex_smooth(self, x: int, y: int, width: int, height: int, duration: int) -> str:
+        return self._call_string("OpMoveToExSmooth", int(x), int(y), int(width), int(height), int(duration))
+
+    def move_path(self, path: str, duration: int) -> bool:
+        return self._call_ok("OpMovePath", str(path), int(duration))
+
+    def drag_path(self, path: str, duration: int) -> bool:
+        return self._call_ok("OpDragPath", str(path), int(duration))
+
+    def set_mouse_trajectory(
+        self,
+        mode: int,
+        min_duration: int,
+        max_duration: int,
+        jitter: int,
+        start_delay: int,
+        end_delay: int,
+    ) -> bool:
+        return self._call_ok(
+            "OpSetMouseTrajectory",
+            int(mode),
+            int(min_duration),
+            int(max_duration),
+            int(jitter),
+            int(start_delay),
+            int(end_delay),
+        )
 
     def left_click(self) -> bool:
         return self._call_ok("OpLeftClick")
@@ -1090,9 +1125,20 @@ class Op:
     def get_dict(self, idx: int, font_index: int) -> str:
         return self._call_string("OpGetDict", int(idx), int(font_index))
 
-    def set_mem_dict(self, idx: int, data: str, size: int | None = None) -> bool:
-        data_size = len(data) if size is None else int(size)
-        return self._call_ok("OpSetMemDict", int(idx), data, data_size)
+    def set_mem_dict(self, idx: int, data: str | bytes | bytearray | memoryview | int, size: int | None = None) -> bool:
+        self._check_open()
+        if isinstance(data, int):
+            if size is None:
+                raise ValueError("size is required when data is a pointer")
+            ptr = ctypes.c_void_p(data)
+            data_size = int(size)
+        else:
+            raw = data.encode(locale.getpreferredencoding(False)) if isinstance(data, str) else bytes(data)
+            buffer = ctypes.create_string_buffer(raw)
+            ptr = ctypes.cast(buffer, ctypes.c_void_p)
+            data_size = len(raw) if size is None else int(size)
+        ok = self._dll.OpSetMemDict(self._handle, int(idx), ptr, data_size)
+        return self._ok(ok, "OpSetMemDict")
 
     def use_dict(self, idx: int) -> bool:
         return self._call_ok("OpUseDict", int(idx))

@@ -1,5 +1,7 @@
 #include "test_support.h"
 
+#include "op_c_api.h"
+
 using namespace test_support;
 
 TEST(YoloTest, SetYoloEngineAcceptsBaseUrlAndAliasArgs) {
@@ -13,11 +15,16 @@ TEST(YoloTest, SetYoloEngineRejectsInvalidUrl) {
     EXPECT_EQ(0, op.SetYoloEngine(L"http://", L"", L"--timeout=5000"));
 }
 
-TEST(YoloTest, YoloDetectFromFileReturnsEmptyForMissingFile) {
+TEST(YoloTest, YoloDetectFromFileReturnsFailureJsonForMissingFile) {
     op::Op op;
     std::wstring json = L"not-empty";
     long ret = 123;
     op.YoloDetectFromFile(L"__missing_yolo_input__.bmp", 0.25, 0.45, json, &ret);
     EXPECT_EQ(0, ret);
-    EXPECT_TRUE(json.empty());
+    EXPECT_EQ(L"{\"ok\":0,\"code\":-1,\"results\":[]}", json);
+}
+
+TEST(YoloTest, CApiYoloDetectReturnsFailureJsonForInvalidHandle) {
+    EXPECT_STREQ(L"{\"ok\":0,\"code\":-1,\"results\":[]}",
+                 OpYoloDetectFromFile(nullptr, L"__missing_yolo_input__.bmp", 0.25, 0.45));
 }

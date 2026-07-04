@@ -3,7 +3,7 @@
 #include "OpAutomation.h"
 #include "stdafx.h"
 
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -473,6 +473,11 @@ STDMETHODIMP OpAutomation::UnBindWindow(LONG *ret) {
     return S_OK;
 }
 
+STDMETHODIMP OpAutomation::LockInput(LONG lock, LONG *ret) {
+    obj.LockInput(lock, ret);
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::GetBindWindow(LONGLONG *ret) {
     LONG_PTR hwnd = 0;
     obj.GetBindWindow(&hwnd);
@@ -519,6 +524,40 @@ STDMETHODIMP OpAutomation::MoveToEx(LONG x, LONG y, LONG w, LONG h, BSTR *ret) {
     std::wstring s;
     obj.MoveToEx(x, y, w, h, s);
     return CopyOutBstr(ret, s);
+}
+
+STDMETHODIMP OpAutomation::MoveToSmooth(LONG x, LONG y, LONG duration, LONG *ret) {
+    obj.MoveToSmooth(x, y, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::MoveToExSmooth(LONG x, LONG y, LONG w, LONG h, LONG duration, BSTR *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    std::wstring s;
+    obj.MoveToExSmooth(x, y, w, h, duration, s);
+    return CopyOutBstr(ret, s);
+}
+
+STDMETHODIMP OpAutomation::MovePath(BSTR path, LONG duration, LONG *ret) {
+    obj.MovePath(path, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::DragPath(BSTR path, LONG duration, LONG *ret) {
+    obj.DragPath(path, duration, ret);
+
+    return S_OK;
+}
+
+STDMETHODIMP OpAutomation::SetMouseTrajectory(LONG mode, LONG min_duration, LONG max_duration, LONG jitter,
+                                              LONG start_delay, LONG end_delay, LONG *ret) {
+    obj.SetMouseTrajectory(mode, min_duration, max_duration, jitter, start_delay, end_delay, ret);
+
+    return S_OK;
 }
 
 STDMETHODIMP OpAutomation::LeftClick(LONG *ret) {
@@ -884,32 +923,17 @@ STDMETHODIMP OpAutomation::GetPicSize(BSTR pic_name, VARIANT *width, VARIANT *he
     return S_OK;
 }
 
-// 获取指定区域的图像,用二进制数据的方式返回
-STDMETHODIMP OpAutomation::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONG *ret) {
-    // #if OP64
-    //	data->vt = VT_I8;
-    //	data->llVal = 0;
-    // #else
-    //	data->vt = VT_I4;
-    //	data->lVal = 0;
-    // #endif
-    //	* ret = 0;
-    //	void* data_ = nullptr;
-    //	obj.GetScreenData(x1, y1, x2, y2, &data_, ret);
-    //
-    // #if OP64
-    //	data->llVal = (long long)data_;
-    // #else
-    //	data->lVal = (long)data_;
-    // #endif
-    //	* ret = 1;
+// 返回截图内存地址，x64 下不能用 LONG，否则高位会被截断。
+STDMETHODIMP OpAutomation::GetScreenData(LONG x1, LONG y1, LONG x2, LONG y2, LONGLONG *ret) {
     if (!ret)
         return E_POINTER;
-    SetOutValue(ret, 0L);
+    SetOutValue(ret, 0LL);
     size_t data_ = 0;
     long capture_ret = 0;
     obj.GetScreenData(x1, y1, x2, y2, &data_, &capture_ret);
-    return SetOutValue(ret, static_cast<long>(data_));
+    if (!capture_ret)
+        return S_OK;
+    return SetOutValue(ret, static_cast<LONGLONG>(data_));
 }
 
 STDMETHODIMP OpAutomation::GetScreenDataBmp(LONG x1, LONG y1, LONG x2, LONG y2, VARIANT *data, VARIANT *size,
@@ -972,9 +996,35 @@ STDMETHODIMP OpAutomation::GetDict(LONG idx, LONG font_index, BSTR *retstr) {
     return S_OK;
 }
 
-// 设置字库文件
-STDMETHODIMP OpAutomation::SetMemDict(LONG idx, BSTR data, LONG size, LONG *ret) {
-    obj.SetMemDict(idx, data, size, ret);
+// 从内存字节设置全局字库槽，支持 OP 二进制 .dict 和文本字库内容。
+STDMETHODIMP OpAutomation::SetMemDict(LONG idx, SAFEARRAY *data, LONG *ret) {
+    if (!ret)
+        return E_POINTER;
+
+    *ret = 0;
+    if (!data)
+        return S_OK;
+
+    if (SafeArrayGetDim(data) != 1)
+        return S_OK;
+
+    VARTYPE vt = VT_EMPTY;
+    if (FAILED(SafeArrayGetVartype(data, &vt)) || vt != VT_UI1)
+        return S_OK;
+
+    LONG lower = 0;
+    LONG upper = -1;
+    if (FAILED(SafeArrayGetLBound(data, 1, &lower)) || FAILED(SafeArrayGetUBound(data, 1, &upper)) || upper < lower)
+        return S_OK;
+
+    void *bytes = nullptr;
+    const HRESULT hr = SafeArrayAccessData(data, &bytes);
+    if (FAILED(hr))
+        return hr;
+
+    const LONG byte_count = upper - lower + 1;
+    obj.SetMemDict(idx, bytes, byte_count, ret);
+    SafeArrayUnaccessData(data);
 
     return S_OK;
 }

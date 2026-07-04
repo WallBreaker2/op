@@ -1,7 +1,7 @@
 // #pragma once
 #ifndef OP_HOOK_DISPLAY_HOOK_H_
 #define OP_HOOK_DISPLAY_HOOK_H_
-#include "../runtime/AutomationModes.h"
+#include "../base/AutomationModes.h"
 #include <string>
 
 namespace op::hook {

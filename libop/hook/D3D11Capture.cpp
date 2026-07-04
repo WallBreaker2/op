@@ -5,8 +5,8 @@
 #include "../capture/FrameInfo.h"
 #include "../ipc/ProcessMutex.h"
 #include "../ipc/SharedMemory.h"
-#include "../runtime/AutomationModes.h"
-#include "../runtime/RuntimeUtils.h"
+#include "../base/AutomationModes.h"
+#include "../base/Utils.h"
 #include <atlbase.h>
 #include <cstddef>
 #include <d3d11.h>
@@ -38,37 +38,6 @@ void write_shared_frame(std::span<std::byte> sharedFrame, HWND hwnd, UINT width,
 }
 
 } // namespace
-
-class D3D11TextureMap {
-  public:
-    D3D11TextureMap(ID3D11DeviceContext *context, ID3D11Resource *resource) : context_(context), resource_(resource) {
-    }
-
-    ~D3D11TextureMap() {
-        if (mapped_) {
-            context_->Unmap(resource_, 0);
-        }
-    }
-
-    D3D11TextureMap(const D3D11TextureMap &) = delete;
-    D3D11TextureMap &operator=(const D3D11TextureMap &) = delete;
-
-    HRESULT map(D3D11_MAPPED_SUBRESOURCE *mapped) {
-        if (!context_ || !resource_ || !mapped) {
-            return E_POINTER;
-        }
-        HRESULT hr = context_->Map(resource_, 0, D3D11_MAP_READ, 0, mapped);
-        if (hr >= 0) {
-            mapped_ = true;
-        }
-        return hr;
-    }
-
-  private:
-    ID3D11DeviceContext *context_;
-    ID3D11Resource *resource_;
-    bool mapped_ = false;
-};
 
 void dx11_capture(IDXGISwapChain *swapchain) {
     HRESULT hr = 0;

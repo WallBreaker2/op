@@ -1,6 +1,6 @@
 #ifndef OP_IMAGE_IMAGE_VIEW_H_
 #define OP_IMAGE_IMAGE_VIEW_H_
-#include "../runtime/Types.h"
+#include "../base/Types.h"
 #include "../image/Image.h"
 
 namespace op {

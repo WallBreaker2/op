@@ -264,6 +264,9 @@ class Op(object):
     def UnBindWindow(self):
         return _pyop.Op_UnBindWindow(self)
 
+    def LockInput(self, lock):
+        return _pyop.Op_LockInput(self, lock)
+
     def GetBindWindow(self):
         return _pyop.Op_GetBindWindow(self)
 
@@ -284,6 +287,21 @@ class Op(object):
 
     def MoveToEx(self, x, y, w, h):
         return _pyop.Op_MoveToEx(self, x, y, w, h)
+
+    def MoveToSmooth(self, x, y, duration):
+        return _pyop.Op_MoveToSmooth(self, x, y, duration)
+
+    def MoveToExSmooth(self, x, y, w, h, duration):
+        return _pyop.Op_MoveToExSmooth(self, x, y, w, h, duration)
+
+    def MovePath(self, path, duration):
+        return _pyop.Op_MovePath(self, path, duration)
+
+    def DragPath(self, path, duration):
+        return _pyop.Op_DragPath(self, path, duration)
+
+    def SetMouseTrajectory(self, mode, min_duration, max_duration, jitter, start_delay, end_delay):
+        return _pyop.Op_SetMouseTrajectory(self, mode, min_duration, max_duration, jitter, start_delay, end_delay)
 
     def LeftClick(self):
         return _pyop.Op_LeftClick(self)
@@ -600,8 +618,47 @@ class Op(object):
     def GetNowDict(self):
         return _pyop.Op_GetNowDict(self)
 
+    def SetBinaryPreprocess(self, mode, isolated_threshold, min_component_area, bridge_gap):
+        return _pyop.Op_SetBinaryPreprocess(self, mode, isolated_threshold, min_component_area, bridge_gap)
+
+    def GetBinaryPreprocess(self):
+        return _pyop.Op_GetBinaryPreprocess(self)
+
     def FetchWord(self, x1, y1, x2, y2, color, word):
         return _pyop.Op_FetchWord(self, x1, y1, x2, y2, color, word)
+
+    def FetchWordEx(self, x1, y1, x2, y2, color, sim, word):
+        return _pyop.Op_FetchWordEx(self, x1, y1, x2, y2, color, sim, word)
+
+    def ExtractWordRects(self, x1, y1, x2, y2, color, sim, min_word_h):
+        return _pyop.Op_ExtractWordRects(self, x1, y1, x2, y2, color, sim, min_word_h)
+
+    def ExtractWordRectsEx(self, x1, y1, x2, y2, color, sim, min_word_w, min_word_h, padding):
+        return _pyop.Op_ExtractWordRectsEx(self, x1, y1, x2, y2, color, sim, min_word_w, min_word_h, padding)
+
+    def FetchWords(self, x1, y1, x2, y2, color, sim, words, min_word_h):
+        return _pyop.Op_FetchWords(self, x1, y1, x2, y2, color, sim, words, min_word_h)
+
+    def FetchWordsEx(self, x1, y1, x2, y2, color, sim, words, min_word_w, min_word_h, padding):
+        return _pyop.Op_FetchWordsEx(self, x1, y1, x2, y2, color, sim, words, min_word_w, min_word_h, padding)
+
+    def FetchWordsByRects(self, x1, y1, x2, y2, color, sim, words, rects):
+        return _pyop.Op_FetchWordsByRects(self, x1, y1, x2, y2, color, sim, words, rects)
+
+    def GetBinaryPreview(self, x1, y1, x2, y2, color, sim):
+        return _pyop.Op_GetBinaryPreview(self, x1, y1, x2, y2, color, sim)
+
+    def GetWordPreview(self, dict_info):
+        return _pyop.Op_GetWordPreview(self, dict_info)
+
+    def CheckWordDict(self, dict_info):
+        return _pyop.Op_CheckWordDict(self, dict_info)
+
+    def NormalizeWordDict(self, dict_info):
+        return _pyop.Op_NormalizeWordDict(self, dict_info)
+
+    def RenameWordDict(self, dict_info, words):
+        return _pyop.Op_RenameWordDict(self, dict_info, words)
 
     def GetWordsNoDict(self, x1, y1, x2, y2, color):
         return _pyop.Op_GetWordsNoDict(self, x1, y1, x2, y2, color)

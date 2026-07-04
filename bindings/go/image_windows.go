@@ -60,7 +60,7 @@ func (o *Op) FindMultiColorEx(x1, y1, x2, y2 int, firstColor, offsetColor string
 
 func (o *Op) FindPic(x1, y1, x2, y2 int, files, deltaColor string, sim float64, dir int) (int, int, int) {
 	if !o.valid() {
-		return 0, 0, 0
+		return -1, -1, -1
 	}
 
 	var x, y int32
@@ -88,7 +88,7 @@ func (o *Op) FindPicExS(x1, y1, x2, y2 int, files, deltaColor string, sim float6
 
 func (o *Op) FindColorBlock(x1, y1, x2, y2 int, color string, sim float64, count, height, width int) (int, int, int) {
 	if !o.valid() {
-		return 0, 0, 0
+		return 0, -1, -1
 	}
 
 	var x, y int32

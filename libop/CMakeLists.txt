@@ -150,11 +150,11 @@ if(enable_wgc)
   list(APPEND OP_LOCAL_CXX20_SOURCES "capture/backends/WgcCapture.cpp")
 endif()
 
-set(OP_RUNTIME_SOURCES
-  "runtime/AutomationModes.cpp"
-  "runtime/RuntimeUtils.cpp"
-  "runtime/RuntimeEnvironment.cpp"
-  "runtime/WindowsVersion.cpp"
+set(OP_BASE_SOURCES
+  "base/AutomationModes.cpp"
+  "base/Utils.cpp"
+  "base/Environment.cpp"
+  "base/WindowsVersion.cpp"
 )
 
 set(OP_WINDOW_SOURCES
@@ -221,7 +221,7 @@ set(OP_LIBOP_SOURCES
   ${OP_CAPTURE_SOURCES}
   ${OP_INPUT_SOURCES}
   ${OP_HOOK_SOURCES}
-  ${OP_RUNTIME_SOURCES}
+  ${OP_BASE_SOURCES}
   ${OP_WINDOW_SOURCES}
   ${OP_IMAGE_SOURCES}
   ${OP_NETWORK_SOURCES}

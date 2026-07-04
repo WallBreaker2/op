@@ -365,25 +365,29 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
         case WM_MOUSEMOVE:
             self->move_count++;
             self->last_move_wparam = wparam;
-            if (wparam & MK_LBUTTON)
-                self->move_with_left_count++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->move_events.push_back({self->last_x, self->last_y, wparam});
+            if (wparam & MK_LBUTTON)
+                self->move_with_left_count++;
             return 0;
         case WM_LBUTTONDOWN:
             self->left_down++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_LBUTTONDBLCLK:
             self->left_double++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_LBUTTONUP:
             self->left_up++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_MBUTTONDOWN:
             self->middle_down++;
@@ -404,16 +408,19 @@ LRESULT CALLBACK MouseEventWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
             self->right_down++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_RBUTTONDBLCLK:
             self->right_double++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_RBUTTONUP:
             self->right_up++;
             self->last_x = GET_X_LPARAM(lparam);
             self->last_y = GET_Y_LPARAM(lparam);
+            self->button_events.push_back({msg, self->last_x, self->last_y, wparam});
             return 0;
         case WM_XBUTTONDOWN:
             if (HIWORD(wparam) == XBUTTON1)
@@ -576,6 +583,24 @@ void MouseEventWindow::SetTestCursor(HCURSOR cursor) {
     test_cursor = cursor;
 }
 
+bool MouseEventWindow::HasMove(long x, long y, WPARAM required_state, WPARAM blocked_state) const {
+    for (const auto &event : move_events) {
+        if (event.x == x && event.y == y && (event.wparam & required_state) == required_state &&
+            (event.wparam & blocked_state) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MouseEventWindow::HasButton(UINT message, long x, long y) const {
+    for (const auto &event : button_events) {
+        if (event.message == message && event.x == x && event.y == y)
+            return true;
+    }
+    return false;
+}
+
 void MouseEventWindow::ResetCounts() {
     left_down = 0;
     left_up = 0;
@@ -627,6 +652,8 @@ void MouseEventWindow::ResetCounts() {
     last_x = 0;
     last_y = 0;
     last_move_wparam = 0;
+    move_events.clear();
+    button_events.clear();
 }
 
 MouseEventWindow::~MouseEventWindow() {

@@ -19,7 +19,8 @@ namespace op::image {
 */
 class ImageSearchService : public ImageSearchAlgorithms {
   public:
-    const static int _max_dict = 10;
+    // 字库槽位对外范围为 0-99。
+    const static int _max_dict = 100;
 
     ImageSearchService();
     ~ImageSearchService();
@@ -51,7 +52,7 @@ class ImageSearchService : public ImageSearchAlgorithms {
 
     long GetColorNum(const wstring &color, double sim);
 
-    long SetMemDict(int idx, void *data, long size);
+    long SetMemDict(int idx, const void *data, long size);
 
     long SetDict(int idx, const wstring &file);
 
@@ -127,7 +128,7 @@ class ImageSearchService : public ImageSearchAlgorithms {
     void str2binaryfbk(const wstring &color);
 
   private:
-    // SetMemDict/AddDict 写入对象私有槽；SetDict 写入全局文件字库槽。
+    // SetDict/SetMemDict 写入全局字库槽；AddDict/ClearDict 写入对象私有槽。
     Dictionary _private_dicts[_max_dict];
     bool _private_dict_overrides[_max_dict];
     // 当前字库索引
@@ -147,6 +148,8 @@ class ImageSearchService : public ImageSearchAlgorithms {
     // RETURN TYPE 0:word colors info; 1:bk color info
     int str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors);
     int str2colordfs(const wstring &color_str, std::vector<color_df_t> &colors, std::vector<bool> *explicit_dfs);
+    void parse_multi_color_args(const wstring &first_color, const wstring &offset_color,
+                                std::vector<color_df_t> &vfirst_color, std::vector<pt_cr_df_t> &voffset_cr);
     void str2binaryfbk(const wstring &color, double sim);
     void str2pointbinaryfbk(const wstring &color);
     void str2pointbinaryfbk(const wstring &color, double sim);

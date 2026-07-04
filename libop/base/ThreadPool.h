@@ -1,5 +1,5 @@
-#ifndef OP_RUNTIME_THREAD_POOL_H_
-#define OP_RUNTIME_THREAD_POOL_H_
+#ifndef OP_BASE_THREAD_POOL_H_
+#define OP_BASE_THREAD_POOL_H_
 
 #include <condition_variable>
 #include <functional>
@@ -87,4 +87,4 @@ inline ThreadPool::~ThreadPool() {
     for (std::thread &worker : workers)
         worker.join();
 }
-#endif // OP_RUNTIME_THREAD_POOL_H_
+#endif // OP_BASE_THREAD_POOL_H_
