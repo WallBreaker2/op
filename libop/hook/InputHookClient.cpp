@@ -91,6 +91,34 @@ long call_release_input_hook(HWND hwnd) {
     return ret;
 }
 
+long call_set_input_lock(HWND hwnd, int lock) {
+    DWORD pid = 0;
+    ::GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0)
+        return 0;
+
+    blackbone::Process proc;
+    const NTSTATUS status = proc.Attach(pid);
+    if (!NT_SUCCESS(status)) {
+        setlog(L"input hook lock attach failed. pid=%d hwnd=%p status=0x%X", pid, hwnd, status);
+        return 0;
+    }
+
+    long ret = 0;
+    const std::wstring dll_name = resolve_hook_dll(proc);
+    using set_input_lock_t = long(__stdcall *)(int);
+    auto remote = blackbone::MakeRemoteFunction<set_input_lock_t>(proc, dll_name, "SetInputLock");
+    if (remote) {
+        auto call_ret = remote(lock);
+        ret = call_ret.result();
+    } else {
+        setlog(L"remote function 'SetInputLock' not found in %s.", dll_name.c_str());
+    }
+
+    proc.Detach();
+    return ret;
+}
+
 bool call_cursor_shape(HWND hwnd, unsigned long long &hash, unsigned long long &meta) {
     DWORD pid = 0;
     ::GetWindowThreadProcessId(hwnd, &pid);
@@ -162,6 +190,19 @@ long UnBind(HWND hwnd) {
 
     g_bind_refs.erase(it);
     return call_release_input_hook(hwnd);
+}
+
+long LockInput(HWND hwnd, int lock) {
+    if (lock < 0 || lock > 3)
+        return 0;
+    if (!hwnd)
+        return lock == 0 ? 1 : 0;
+
+    std::lock_guard<std::mutex> guard(g_mutex);
+    if (g_bind_refs.find(hwnd) == g_bind_refs.end())
+        return lock == 0 ? 1 : 0;
+
+    return call_set_input_lock(hwnd, lock);
 }
 
 bool GetCursorShape(HWND hwnd, unsigned long long &hash, unsigned long long &meta) {

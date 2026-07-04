@@ -216,6 +216,15 @@ func (o *Op) SetMouseDelay(typ string, delay int) int {
 	return int(ret)
 }
 
+func (o *Op) LockInput(lock int) int {
+	if !o.valid() {
+		return 0
+	}
+
+	ret, _, _ := procLockInput.Call(o.handle, uintptr(lock))
+	return int(ret)
+}
+
 func (o *Op) GetKeyState(vkCode int) int {
 	if !o.valid() {
 		return 0

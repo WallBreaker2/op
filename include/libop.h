@@ -226,6 +226,8 @@ class OP_API Op {
                       _In_ const wchar_t *mouse, _In_ const wchar_t *keypad, _In_ long mode, _Out_ long *ret);
     // 解绑窗口
     void UnBindWindow(_Out_ long *ret);
+    // 临时锁定目标窗口的外部输入。只对 dx 鼠标、dx 键盘有效。
+    void LockInput(_In_ long lock, _Out_ long *ret);
     // 获取当前对象已经绑定的显示窗口句柄. 无绑定返回0
     void GetBindWindow(_Out_ LONG_PTR *ret);
     // 判定当前对象是否已绑定窗口.

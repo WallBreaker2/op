@@ -473,6 +473,11 @@ STDMETHODIMP OpAutomation::UnBindWindow(LONG *ret) {
     return S_OK;
 }
 
+STDMETHODIMP OpAutomation::LockInput(LONG lock, LONG *ret) {
+    obj.LockInput(lock, ret);
+    return S_OK;
+}
+
 STDMETHODIMP OpAutomation::GetBindWindow(LONGLONG *ret) {
     LONG_PTR hwnd = 0;
     obj.GetBindWindow(&hwnd);

@@ -82,6 +82,12 @@ long __stdcall ReleaseInputHook() {
     return 1;
 }
 
+long __stdcall SetInputLock(int lock) {
+    if (!InputHook::is_hooked)
+        return lock == 0 ? 1 : 0;
+    return InputHook::lockInput(lock);
+}
+
 unsigned long long __stdcall GetInputCursorShapeHash() {
     return InputHook::cursorShapeHash();
 }

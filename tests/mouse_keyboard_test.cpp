@@ -904,6 +904,50 @@ TEST(MouseKeyTest, DxModeMoveToKeepsClientCoordinatesAfterResize) {
     EXPECT_EQ(unbind_ret, 1);
 }
 
+TEST(MouseKeyTest, DxModeLockInputBlocksExternalMouseMessages) {
+    op::Op op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"dx", L"windows", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX mouse bind unavailable on current environment";
+    }
+
+    op.LockInput(4, &ret);
+    EXPECT_EQ(ret, 0);
+    op.LockInput(3, &ret);
+    EXPECT_EQ(ret, 0);
+
+    window.ResetCounts();
+    ::SendMessageW(window.hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(7, 9));
+    EXPECT_EQ(window.move_count, 1);
+
+    op.LockInput(2, &ret);
+    ASSERT_EQ(ret, 1);
+    window.ResetCounts();
+    ::SendMessageW(window.hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(11, 13));
+    EXPECT_EQ(window.move_count, 0);
+
+    op.MoveTo(30, 40, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(80);
+    EXPECT_GE(window.move_count, 1);
+    EXPECT_EQ(window.last_x, 30);
+    EXPECT_EQ(window.last_y, 40);
+
+    op.LockInput(0, &ret);
+    EXPECT_EQ(ret, 1);
+    window.ResetCounts();
+    ::SendMessageW(window.hwnd, WM_MOUSEMOVE, 0, MAKELPARAM(15, 17));
+    EXPECT_EQ(window.move_count, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
 TEST(MouseKeyTest, DxModeGetCursorShapeUsesHookedSetCursor) {
     op::Op op;
     MouseEventWindow window;
@@ -1020,6 +1064,114 @@ TEST(MouseKeyTest, DxModeFeedsDirectInputBufferedData) {
     EXPECT_GE(window.raw_keyboard_count, 2);
     EXPECT_GE(window.raw_key_down, 1);
     EXPECT_GE(window.raw_key_up, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeFeedsDirectInputDeviceState) {
+    op::Op op;
+    MouseEventWindow window;
+    ASSERT_TRUE(window.Create());
+
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.hwnd, L"normal", L"dx", L"dx", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX input bind unavailable on current environment";
+    }
+
+    DirectInputDevice mouse;
+    if (!mouse.Create(kTestGuidSysMouse, window.hwnd)) {
+        long unbind_ret = 0;
+        op.UnBindWindow(&unbind_ret);
+        GTEST_SKIP() << "DirectInput mouse unavailable on current environment";
+    }
+
+    op.MoveTo(20, 20, &ret);
+    ASSERT_EQ(ret, 1);
+    op.MoveR(5, 7, &ret);
+    ASSERT_EQ(ret, 1);
+    op.LeftDown(&ret);
+    ASSERT_EQ(ret, 1);
+    op.Wheel(WHEEL_DELTA, &ret);
+    ASSERT_EQ(ret, 1);
+
+    DIMOUSESTATE mouse_state = {};
+    ASSERT_TRUE(SUCCEEDED(mouse.device->GetDeviceState(sizeof(mouse_state), &mouse_state)));
+    EXPECT_EQ(mouse_state.lX, 25);
+    EXPECT_EQ(mouse_state.lY, 27);
+    EXPECT_EQ(mouse_state.lZ, WHEEL_DELTA);
+    EXPECT_EQ(mouse_state.rgbButtons[0], 0x80);
+
+    DIMOUSESTATE consumed_state = {};
+    ASSERT_TRUE(SUCCEEDED(mouse.device->GetDeviceState(sizeof(consumed_state), &consumed_state)));
+    EXPECT_EQ(consumed_state.lX, 0);
+    EXPECT_EQ(consumed_state.lY, 0);
+    EXPECT_EQ(consumed_state.lZ, 0);
+    EXPECT_EQ(consumed_state.rgbButtons[0], 0x80);
+
+    op.MoveR(3, 4, &ret);
+    ASSERT_EQ(ret, 1);
+    op.XButton1Down(&ret);
+    ASSERT_EQ(ret, 1);
+    op.Wheel(-WHEEL_DELTA, &ret);
+    ASSERT_EQ(ret, 1);
+
+    DIMOUSESTATE2 mouse_state2 = {};
+    ASSERT_TRUE(SUCCEEDED(mouse.device->GetDeviceState(sizeof(mouse_state2), &mouse_state2)));
+    EXPECT_EQ(mouse_state2.lX, 3);
+    EXPECT_EQ(mouse_state2.lY, 4);
+    EXPECT_EQ(mouse_state2.lZ, -WHEEL_DELTA);
+    EXPECT_EQ(mouse_state2.rgbButtons[0], 0x80);
+    EXPECT_EQ(mouse_state2.rgbButtons[3], 0x80);
+
+    op.XButton1Up(&ret);
+    EXPECT_EQ(ret, 1);
+    op.LeftUp(&ret);
+    EXPECT_EQ(ret, 1);
+
+    long unbind_ret = 0;
+    op.UnBindWindow(&unbind_ret);
+    EXPECT_EQ(unbind_ret, 1);
+}
+
+TEST(MouseKeyTest, DxModeLockInputBlocksExternalKeyboardMessages) {
+    SendStringWindow window;
+    ASSERT_TRUE(window.Create());
+
+    op::Op op;
+    long ret = 0;
+    op.BindWindow((long)(intptr_t)window.edit, L"normal", L"windows", L"dx", 0, &ret);
+    if (ret != 1) {
+        GTEST_SKIP() << "DX keyboard bind unavailable on current environment";
+    }
+
+    op.LockInput(2, &ret);
+    EXPECT_EQ(ret, 0);
+
+    ::SetWindowTextW(window.edit, L"");
+    ::SendMessageW(window.edit, WM_CHAR, L'A', 1);
+    PumpMessagesFor(50);
+    EXPECT_EQ(window.GetEditText(), L"A");
+
+    ::SetWindowTextW(window.edit, L"");
+    op.LockInput(3, &ret);
+    ASSERT_EQ(ret, 1);
+    ::SendMessageW(window.edit, WM_CHAR, L'B', 1);
+    PumpMessagesFor(50);
+    EXPECT_EQ(window.GetEditText(), L"");
+
+    op.KeyPressStr(L"C", 1, &ret);
+    EXPECT_EQ(ret, 1);
+    PumpMessagesFor(120);
+    EXPECT_EQ(window.GetEditText(), L"C");
+
+    op.LockInput(0, &ret);
+    EXPECT_EQ(ret, 1);
+    ::SendMessageW(window.edit, WM_CHAR, L'D', 1);
+    PumpMessagesFor(50);
+    EXPECT_EQ(window.GetEditText(), L"CD");
 
     long unbind_ret = 0;
     op.UnBindWindow(&unbind_ret);

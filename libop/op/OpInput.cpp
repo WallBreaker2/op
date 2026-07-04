@@ -115,6 +115,10 @@ void op::Op::UnBindWindow(long *ret) {
     internal::set_result(ret, m_context->bkproc.UnBindWindow());
 }
 
+void op::Op::LockInput(long lock, long *ret) {
+    internal::set_result(ret, m_context->bkproc.LockInput(lock));
+}
+
 void op::Op::GetBindWindow(LONG_PTR *ret) {
     internal::set_result(ret, m_context->bkproc.GetBindWindow());
 }

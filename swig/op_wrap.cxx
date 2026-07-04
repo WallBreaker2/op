@@ -7261,6 +7261,46 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Op_LockInput(PyObject *self, PyObject *args) {
+  PyObject *resultobj = 0;
+  op::Op *arg1 = 0 ;
+  long arg2 ;
+  long *arg3 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long temp3 ;
+  int res3 = SWIG_TMPOBJ ;
+  PyObject *swig_obj[2] ;
+
+  arg3 = &temp3;
+  (void)self;
+  if (!SWIG_Python_UnpackTuple(args, "Op_LockInput", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_op__Op, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Op_LockInput" "', argument " "1"" of type '" "op::Op *""'");
+  }
+  arg1 = reinterpret_cast< op::Op * >(argp1);
+  ecode2 = SWIG_AsVal_long(swig_obj[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Op_LockInput" "', argument " "2"" of type '" "long""'");
+  }
+  arg2 = static_cast< long >(val2);
+  (arg1)->LockInput(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  if (SWIG_IsTmpObj(res3)) {
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_long((*arg3)), 1);
+  } else {
+    int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_long, new_flags), 1);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Op_GetBindWindow(PyObject *self, PyObject *args) {
   PyObject *resultobj = 0;
   op::Op *arg1 = 0 ;
@@ -16855,6 +16895,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "Op_BindWindow", _wrap_Op_BindWindow, METH_VARARGS, NULL},
 	 { "Op_BindWindowEx", _wrap_Op_BindWindowEx, METH_VARARGS, NULL},
 	 { "Op_UnBindWindow", _wrap_Op_UnBindWindow, METH_O, NULL},
+	 { "Op_LockInput", _wrap_Op_LockInput, METH_VARARGS, NULL},
 	 { "Op_GetBindWindow", _wrap_Op_GetBindWindow, METH_O, NULL},
 	 { "Op_IsBind", _wrap_Op_IsBind, METH_O, NULL},
 	 { "Op_GetCursorPos", _wrap_Op_GetCursorPos, METH_O, NULL},

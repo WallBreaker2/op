@@ -8,6 +8,7 @@ namespace op::hook {
 struct MouseState {
     LONG lAxisX;
     LONG lAxisY;
+    // 内部累计状态，不对应 DirectInput 的 DIMOUSESTATE 内存布局。
     BYTE abButtons[5];
     BYTE bPadding[3]; // 保持结构体 4 字节对齐。
 };
@@ -20,6 +21,9 @@ class InputHook {
 
     static int setup(HWND hwnd_);
     static int release();
+    static int lockInput(int lock);
+    static bool mouseLocked();
+    static bool keyboardLocked();
     static void moveTo(LPARAM lp);
     static void button(LPARAM lp, int key, bool down);
     static void updateWheel(WPARAM, LPARAM, bool horizontal);
@@ -39,6 +43,7 @@ class InputHook {
     static bool m_cursorVisible;
     static unsigned long long m_cursorHash;
     static unsigned long long m_cursorMeta;
+    static LONG m_inputLock;
 };
 
 } // namespace op::hook
