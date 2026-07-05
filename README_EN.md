@@ -7,72 +7,84 @@
 
 [中文](README.md)
 
-OP (Operator & Open) is an open-source automation plugin for Windows. It provides window automation, background mouse and keyboard input, screen capture, image/color search, OCR, YOLO HTTP detection, OpenCV image processing, memory access, and related desktop automation features. The core is written in C++ and exposed through COM interfaces with x86/x64 support.
+OP (Operator & Open) is a Windows automation plugin. It brings window discovery, background binding, screen capture, mouse and keyboard input, color and image search, OCR, OpenCV, YOLO HTTP detection, and process memory access into one set of APIs for scripting tools and desktop automation programs.
 
-OCR supports two paths: fixed-font scenarios can use local bitmap dictionaries, including OP binary dictionaries and the text bitmap dictionary format compatible with DaMo; when no bitmap dictionary is used, OP can call the standalone OCR HTTP service [op_ocr_engine](https://github.com/WallBreaker2/op_ocr_engine), with Tesseract, PaddleOCR, and other general/model OCR backends. YOLO detection uses the same external HTTP service pattern: OP captures or loads images, then sends them to a separate YOLO11/YOLOv11 backend. See [YOLO HTTP detection](doc/yolo.md). A minimal sample service is available at `tools/op_yolo_engine.py`.
+The core is written in C++. It exposes COM, C API, Python, and Go bindings, with x86 and x64 builds. Capture backends cover normal windows, GDI, DXGI, WGC, DirectX hooks, OpenGL, and OpenGL ES. Image templates and OCR dictionaries can be loaded from files or from memory, which makes it easier to ship resources inside your own program.
+
+OCR has two practical paths. Fixed-font scenes can use local bitmap dictionaries, including OP binary dictionaries and the text bitmap dictionary format compatible with DaMo. General OCR can be delegated to the standalone HTTP service [op_ocr_engine](https://github.com/WallBreaker2/op_ocr_engine), backed by engines such as Tesseract or PaddleOCR.
+
+YOLO detection follows the same external-service model. OP captures or loads the image and wraps the HTTP request; model inference runs in a separate service. See [YOLO HTTP detection](doc/yolo.md) for the API format. A minimal sample service is included at `tools/op_yolo_engine.py`.
 
 ## Documentation
 
-- [GitHub Wiki](https://github.com/WallBreaker2/op/wiki): installation, APIs, OpenCV, OCR, registration-free usage, and language demos
+- [GitHub Wiki](https://github.com/WallBreaker2/op/wiki): installation, API reference, OpenCV, OCR, registration-free usage, and language demos
 - [Releases](https://github.com/WallBreaker2/op/releases)
+- [Local OCR notes](doc/ocr.md)
+- [YOLO HTTP detection](doc/yolo.md)
 - [OPTestTool](https://github.com/flaot/OPTestTool)
 
 ## Features
 
-- Window search, window state control, window layout, and background binding
-- Foreground and background mouse/keyboard simulation
-- GDI, DXGI, WGC, DirectX, and OpenGL capture modes
-- Color search, image search, image input sources, and memory image input
-- Bitmap-dictionary OCR, compatible with OP dictionaries and DaMo text bitmap dictionaries
-- Standalone OCR HTTP service integration for Tesseract, PaddleOCR, and other general/model OCR backends
-- Standalone YOLO HTTP detection service integration for YOLO11/YOLOv11 and other external detection backends
-- OpenCV template matching, feature matching, and file preprocessing
-- Process memory access, assembly calls, and utility algorithms
+- Window enumeration, process lookup, window state control, and batch window layout
+- Normal binding, background binding, and separated display/input window handles
+- GDI, DXGI, WGC, DX hook, OpenGL, and OpenGL ES capture modes
+- Foreground/background mouse and keyboard input, smooth movement, path movement, and DX input locking
+- Color search, image search, transparent templates, OpenCV template matching, and feature matching
+- Bitmap-dictionary OCR with file and memory dictionary loading
+- OCR and YOLO HTTP service integration
+- COM, C API, Python, and Go access
+- Process memory read/write, assembly calls, and utility algorithms
 
 ## Repository Layout
 
 ```text
 op/
-├─ libop/          Core plugin source
-│  ├─ com/         COM registration, IDL, type library, and IOpAutomation implementation
-│  ├─ binding/     Window binding and background-mode dispatch
-│  ├─ capture/     Capture sources and GDI/DXGI/WGC/Hook capture backends
-│  ├─ input/       Mouse, keyboard, and DX input backends
-│  ├─ hook/        Display/input hooks, injection protocol, and exported hook entrypoints
-│  ├─ image/       Color/image search, bitmap OCR, OCR HTTP wrapper, and YOLO HTTP wrapper
-│  ├─ opencv/      OpenCV template matching, feature matching, preprocessing, and bridge layer
-│  ├─ windows/      Windows API wrappers for windows, processes, memory, and injection
-│  ├─ op/          Split implementation of the public C++ op::Op class
-│  ├─ common/      Internal image, color, dictionary, and shared-memory structures
-│  ├─ algorithm/   Common algorithms such as A*
-│  ├─ libop.cpp    op::Op construction, destruction, and context initialization
-├─ include/        Public headers and exported interfaces
-├─ tools/          Registration-free loader source, builds tools.dll
-├─ swig/           Python SWIG binding files
-├─ examples/       Local examples and test assets
-├─ tests/          C++ unit and integration tests
-├─ doc/op.wiki/    GitHub Wiki documentation source
-├─ 3rd_party/      Third-party source or local dependencies
-├─ ci/             CI helper scripts
-├─ bin/            Runtime files or built binaries
-├─ out/            Historical or optional output directory
-├─ build.py        Recommended one-command build entry
-└─ CMakeLists.txt  CMake project entry
+├─ libop/            Core C++ source
+│  ├─ op/            Split implementation of the public op::Op API
+│  ├─ c_api/         C API wrapper
+│  ├─ com/           COM component, IDL, and automation interface
+│  ├─ binding/       Window binding and background-mode dispatch
+│  ├─ capture/       GDI, DXGI, WGC, Hook, and related capture backends
+│  ├─ hook/          Remote injection, display/input hooks, and shared-frame writing
+│  ├─ input/         Mouse and keyboard input backends
+│  ├─ image/         Image loading, color search, image search, and image services
+│  ├─ ocr/           Dictionary management and OCR implementation
+│  ├─ opencv/        OpenCV bridge, template matching, and image processing
+│  ├─ window/        Window, process, and DLL injection helpers
+│  ├─ base/          Basic types, runtime environment, and utility functions
+│  ├─ ipc/           Shared memory, mutexes, pipes, and other IPC helpers
+│  ├─ memory/        Target-process memory access
+│  ├─ network/       HTTP client and network helpers
+│  ├─ algorithm/     Internal algorithms and shared calculation logic
+│  └─ yolo/          YOLO detector wrapper
+├─ include/          Public headers
+├─ bindings/         Python and Go wrappers over the C API
+├─ swig/             SWIG-generated binding files
+├─ python/           `pyop` Python package source
+├─ tools/            Registration-free loader tools and YOLO sample service
+├─ examples/         Local examples and test assets
+├─ tests/            C++ unit and integration tests
+├─ doc/              In-repository notes and diagrams
+├─ scripts/          Wheel build scripts
+├─ ci/               CI triplets and helper configuration
+├─ 3rd_party/        Third-party source or local dependencies
+├─ build.py          Recommended one-command build entry
+└─ CMakeLists.txt    CMake project entry
 ```
 
 ## Quick Start
 
-Download a release package, then register the DLL that matches your host process bitness:
+Download a release package and use the DLL that matches the bitness of your host process. COM usage requires registration:
 
 ```powershell
 # 32-bit host process
-regsvr32 op_x86.dll
+regsvr32 .\op_x86.dll
 
 # 64-bit host process
-regsvr32 op_x64.dll
+regsvr32 .\op_x64.dll
 ```
 
-Minimal Python example:
+Minimal Python example through COM:
 
 ```python
 from win32com.client import Dispatch
@@ -87,28 +99,88 @@ For registration-free usage, see the Wiki:
 - [Python registration-free example](https://github.com/WallBreaker2/op/wiki/demo/python-regfree)
 - [C# / Lua / Golang / Rust / Node.js / Java demos](https://github.com/WallBreaker2/op/wiki/Home)
 
+## Python
+
+The `op-plugins` wheel is for users who want to use `pyop` directly. It supports Python 3.9-3.12 and provides both `win32` and `win_amd64` builds:
+
+```powershell
+pip install op-plugins
+```
+
+```python
+from pyop import Op
+
+op = Op()
+print("op version:", op.Ver())
+```
+
+To install a specific wheel from GitHub Releases, replace `<tag>` and `<wheel>` with the actual names:
+
+```powershell
+pip install https://github.com/WallBreaker2/op/releases/download/<tag>/<wheel>.whl
+```
+
+Notes:
+
+- 64-bit Python needs a `win_amd64` wheel; 32-bit Python needs a `win32` wheel
+- The wheel already includes the OP runtime files for the matching architecture
+- `bindings/python` is a separate `ctypes` wrapper over the C API. Use it when you want to call `op_c_api_*.dll` directly instead of going through the SWIG `pyop` module
+
+Verify the installation:
+
+```powershell
+python -c "from pyop import Op; print(Op().Ver())"
+```
+
 ## Build
 
 Requirements:
 
+- Windows 10 or newer
 - Visual Studio 2022 or newer
 - CMake 3.24 or newer
-- Windows SDK 10.0.19041.0 or newer
+- Python 3.12 for build scripts, SWIG bindings, and test tools
 
-Recommended build entry:
+Use `build.py` from the repository root:
 
 ```powershell
-# Default: Release + x64
-python build.py
+# Release x64, matching the current CI setup
+python build.py -g vs2026 -t Release -a x64
 
 # Build x86
-python build.py -a x86
+python build.py -g vs2026 -t Release -a x86
 
 # Debug build
-python build.py -t Debug
+python build.py -g vs2026 -t Debug -a x64
+
+# If your machine uses VS2022, switch the generator
+python build.py -g vs2022 -t Release -a x64
 ```
 
-Release artifacts are installed to `bin/x86` or `bin/x64`.
+Release artifacts are installed to `bin/x86` or `bin/x64`. A release package normally contains:
+
+```text
+op_x86.dll / op_x64.dll
+op_c_api_x86.dll / op_c_api_x64.dll
+tools.dll
+_pyop.pyd
+pyop.py
+lib/op_c_api_x86.lib / lib/op_c_api_x64.lib
+```
+
+Build a local wheel:
+
+```powershell
+pip install scikit-build-core setuptools-scm
+.\scripts\build_wheel.ps1
+```
+
+For a manual wheel build, run `build.py` once first so native dependencies are bootstrapped:
+
+```powershell
+python build.py -g vs2026 -t Release -a x64
+pip wheel . --no-deps -w wheelhouse
+```
 
 ## Community
 
@@ -124,4 +196,3 @@ Release artifacts are installed to `bin/x86` or `bin/x64`.
 
 - [TSPLUG](https://github.com/tcplugins/tsplug)
 - [Kiero](https://github.com/Rebzzel/kiero)
-
