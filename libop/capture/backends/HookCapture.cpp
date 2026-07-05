@@ -314,14 +314,15 @@ bool HookCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
 
     auto frame = makeHookFrameView(*_shmem, src_width, src_height);
 
-    if (GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX) { // NORMAL
-
+    // 远端写入共享帧的行顺序不完全等同于渲染大类。
+    // DX 和 EGL/GLES 已经是窗口坐标方向；传统 OpenGL 仍按左下角原点翻转读取。
+    const bool top_down_frame = GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX || _render_type == RDT_GL_ES;
+    if (top_down_frame) {
         for (int i = 0; i < h; i++) {
             const auto row = hookFrameRow(frame.pixels, src_width, i + y1, x1, w);
             memcpy(img.ptr<uchar>(i), row.data(), row.size());
         }
     } else {
-
         for (int i = 0; i < h; i++) {
             const auto row = hookFrameRow(frame.pixels, src_width, src_height - 1 - i - y1, x1, w);
             memcpy(img.ptr<uchar>(i), row.data(), row.size());
