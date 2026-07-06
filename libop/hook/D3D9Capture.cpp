@@ -1,6 +1,8 @@
 #include "D3D9Capture.h"
 
 #include "DisplayHook.h"
+#include "DxCaptureCommon.h"
+#include "SharedFrame.h"
 #include "../capture/FrameInfo.h"
 #include "../ipc/ProcessMutex.h"
 #include "../ipc/SharedMemory.h"
@@ -81,9 +83,15 @@ HRESULT dx9_capture(LPDIRECT3DDEVICE9 pDevice) {
     if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
         mutex.lock();
         uchar *pshare = mem.data<byte>();
-        reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, surface_Desc.Width,
-                                                      surface_Desc.Height);
-        memcpy(pshare + sizeof(FrameInfo), (byte *)lockedRect.pBits, lockedRect.Pitch * surface_Desc.Height);
+        if (SharedFrameHasCapacity(mem, surface_Desc.Width, surface_Desc.Height)) {
+            reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, surface_Desc.Width,
+                                                          surface_Desc.Height);
+            CopyImageData(reinterpret_cast<char *>(pshare + sizeof(FrameInfo)),
+                          reinterpret_cast<const char *>(lockedRect.pBits), surface_Desc.Height, surface_Desc.Width,
+                          lockedRect.Pitch, IBF_B8G8R8A8);
+        } else {
+            WriteSharedFrameHeader(mem, DisplayHook::render_hwnd, surface_Desc.Width, surface_Desc.Height);
+        }
         mutex.unlock();
     }
 

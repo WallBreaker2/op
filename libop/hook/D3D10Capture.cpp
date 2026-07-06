@@ -2,6 +2,7 @@
 
 #include "DisplayHook.h"
 #include "DxCaptureCommon.h"
+#include "SharedFrame.h"
 #include "../capture/FrameInfo.h"
 #include "../ipc/ProcessMutex.h"
 #include "../ipc/SharedMemory.h"
@@ -148,9 +149,13 @@ void dx10_capture(IDXGISwapChain *pswapchain) {
     ProcessMutex mutex;
     if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
         mutex.lock();
-        auto sharedFrame = make_shared_frame_span(mem, textDesc.Width, textDesc.Height);
-        write_shared_frame(sharedFrame, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height, mapText.pData,
-                           textDesc.Height, textDesc.Width, mapText.RowPitch, fmt);
+        if (SharedFrameHasCapacity(mem, textDesc.Width, textDesc.Height)) {
+            auto sharedFrame = make_shared_frame_span(mem, textDesc.Width, textDesc.Height);
+            write_shared_frame(sharedFrame, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height, mapText.pData,
+                               textDesc.Height, textDesc.Width, mapText.RowPitch, fmt);
+        } else {
+            WriteSharedFrameHeader(mem, DisplayHook::render_hwnd, textDesc.Width, textDesc.Height);
+        }
         mutex.unlock();
     } else {
 #if DEBUG_HOOK

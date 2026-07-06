@@ -27,45 +27,11 @@ kiero::Error kiero::locate<kiero::Implementation_D3D11>(void* in, void* out)
 {
   KIERO_UNUSED(in);
 
-  auto dxgi_dll = GetModuleHandleA("dxgi.dll");
-  if (!dxgi_dll) {
-    KIERO_DBG_MSG("dxgi.dll not loaded");
-    return Error_ModuleNotFound;
-  }
-
   auto d3d11_dll = GetModuleHandleA("d3d11.dll");
   if (!d3d11_dll) {
     KIERO_DBG_MSG("d3d11.dll not loaded");
     return Error_ModuleNotFound;
   }
-
-  auto CreateDXGIFactory = (
-    (CreateDXGIFactory_t)
-    GetProcAddress(dxgi_dll, "CreateDXGIFactory")
-  );
-  if (!CreateDXGIFactory) {
-    KIERO_DBG_MSG("CreateDXGIFactory not found");
-    return Error_MethodNotFound;
-  }
-
-  IDXGIFactory* factory;
-  auto hresult = CreateDXGIFactory(
-    __uuidof(IDXGIFactory),
-    (void**)&factory
-  );
-  if (hresult != S_OK) {
-    KIERO_DBG_MSG("CreateDXGIFactory failed (%d)", hresult);
-    return Error_D3D11_CreateDXGIFactoryFailed;
-  }
-  KIERO_DEFER([&]() { factory->Release(); });
-
-  IDXGIAdapter* adapter;
-  hresult = factory->EnumAdapters(0, &adapter);
-  if (hresult != S_OK) {
-    KIERO_DBG_MSG("EnumAdapters failed (%d)", hresult);
-    return Error_D3D11_EnumAdaptersFailed;
-  }
-  KIERO_DEFER([&]() { adapter->Release(); });
 
   auto D3D11CreateDeviceAndSwapChain =(
     (D3D11CreateDeviceAndSwapChain_t)
@@ -75,6 +41,38 @@ kiero::Error kiero::locate<kiero::Implementation_D3D11>(void* in, void* out)
     KIERO_DBG_MSG("D3D11CreateDeviceAndSwapChain not found");
     return Error_MethodNotFound;
   }
+
+  auto dxgi_dll = GetModuleHandleA("dxgi.dll");
+  IDXGIFactory* factory = nullptr;
+  IDXGIAdapter* adapter = nullptr;
+  if (dxgi_dll) {
+    auto CreateDXGIFactory = (
+      (CreateDXGIFactory_t)
+      GetProcAddress(dxgi_dll, "CreateDXGIFactory")
+    );
+    if (CreateDXGIFactory) {
+      HRESULT factory_result = CreateDXGIFactory(
+        __uuidof(IDXGIFactory),
+        (void**)&factory
+      );
+      if (factory_result == S_OK && factory) {
+        auto adapter_result = factory->EnumAdapters(0, &adapter);
+        if (adapter_result != S_OK) {
+          KIERO_DBG_MSG("EnumAdapters failed (%d), will try default hardware adapter", adapter_result);
+        }
+      } else {
+        KIERO_DBG_MSG("CreateDXGIFactory failed (%d), will try default hardware adapter", factory_result);
+      }
+    } else {
+      KIERO_DBG_MSG("CreateDXGIFactory not found, will try default hardware adapter");
+    }
+  } else {
+    KIERO_DBG_MSG("dxgi.dll not loaded, will try default hardware adapter");
+  }
+  KIERO_DEFER([&]() {
+    if (adapter) adapter->Release();
+    if (factory) factory->Release();
+  });
 
   kiero::_::DummyWin32Window window;
   kiero::_::create_dummy_win32_window(&window);
@@ -100,27 +98,56 @@ kiero::Error kiero::locate<kiero::Implementation_D3D11>(void* in, void* out)
     D3D_FEATURE_LEVEL_10_0,
   };
 
-  IDXGISwapChain* swapchain;
-  ID3D11Device* device;
-  ID3D11DeviceContext* context;
+  IDXGISwapChain* swapchain = nullptr;
+  ID3D11Device* device = nullptr;
+  ID3D11DeviceContext* context = nullptr;
   D3D_FEATURE_LEVEL feature_level;
 
-  hresult = D3D11CreateDeviceAndSwapChain(
-    adapter,
-    D3D_DRIVER_TYPE_UNKNOWN,
-    nullptr,
-    0,
-    feature_levels,
-    ARRAYSIZE(feature_levels),
-    D3D11_SDK_VERSION,
-    &sc_desc,
-    &swapchain,
-    &device,
-    &feature_level,
-    &context
-  );
+  auto release_created_objects = [&]() {
+    if (swapchain) {
+      swapchain->Release();
+      swapchain = nullptr;
+    }
+    if (device) {
+      device->Release();
+      device = nullptr;
+    }
+    if (context) {
+      context->Release();
+      context = nullptr;
+    }
+  };
+
+  auto create_dummy_swapchain = [&](IDXGIAdapter* selected_adapter, D3D_DRIVER_TYPE driver_type) {
+    release_created_objects();
+    return D3D11CreateDeviceAndSwapChain(
+      selected_adapter,
+      driver_type,
+      nullptr,
+      0,
+      feature_levels,
+      ARRAYSIZE(feature_levels),
+      D3D11_SDK_VERSION,
+      &sc_desc,
+      &swapchain,
+      &device,
+      &feature_level,
+      &context
+    );
+  };
+
+  HRESULT hresult = adapter ? create_dummy_swapchain(adapter, D3D_DRIVER_TYPE_UNKNOWN) : E_FAIL;
+  if (FAILED(hresult)) {
+    KIERO_DBG_MSG("D3D11 adapter swapchain failed (%d), trying default hardware", hresult);
+    hresult = create_dummy_swapchain(nullptr, D3D_DRIVER_TYPE_HARDWARE);
+  }
+  if (FAILED(hresult)) {
+    KIERO_DBG_MSG("D3D11 hardware swapchain failed (%d), trying WARP", hresult);
+    hresult = create_dummy_swapchain(nullptr, D3D_DRIVER_TYPE_WARP);
+  }
   if (hresult != S_OK) {
     KIERO_DBG_MSG("D3D11CreateDeviceAndSwapChain failed (%d)", hresult);
+    release_created_objects();
     return Error_D3D11_CreateDeviceAndSwapChainFailed;
   }
   KIERO_DEFER([&]() {
@@ -131,23 +158,15 @@ kiero::Error kiero::locate<kiero::Implementation_D3D11>(void* in, void* out)
 
   D3D11Output* output = (D3D11Output*)out;
 
-  for (auto vtable = *(void***)swapchain; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->swapchain_methods.push_back(ptr);
-  }
+  void** swapchain_vtable = *(void***)swapchain;
+  void** device_vtable = *(void***)device;
+  void** context_vtable = *(void***)context;
 
-  for (auto vtable = *(void***)device; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->device_methods.push_back(ptr);
-  }
-
-  for (auto vtable = *(void***)context; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->context_methods.push_back(ptr);
-  }
+  // COM vtables are not null-terminated. Keep these counts aligned with the
+  // original kiero table sizes used before the kiero2 migration.
+  output->swapchain_methods.assign(swapchain_vtable, swapchain_vtable + 18);
+  output->device_methods.assign(device_vtable, device_vtable + 43);
+  output->context_methods.assign(context_vtable, context_vtable + 144);
 
   return Error_Nil;
 }
