@@ -1,5 +1,6 @@
 #include "HookExport.h"
 #include "../base/Environment.h"
+#include "../base/Utils.h"
 #include "DisplayHook.h"
 #include "InputHook.h"
 
@@ -9,6 +10,7 @@ using op::hook::InputHook;
 namespace {
 
 int g_ref_count = 0;
+int g_display_ref_count = 0;
 int g_input_ref_count = 0;
 
 void release_module_if_idle() {
@@ -25,16 +27,28 @@ long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
     if (!DisplayHook::is_hooked) {
         ret = DisplayHook::setup(hwnd_, render_type_);
         DisplayHook::is_hooked = ret == 1;
-        g_ref_count += DisplayHook::is_hooked;
+        if (DisplayHook::is_hooked) {
+            g_ref_count++;
+            g_display_ref_count = 1;
+        }
     } else {
         if (DisplayHook::render_hwnd == hwnd_ && DisplayHook::render_type == render_type_) {
+            g_display_ref_count++;
             ret = 1;
         } else {
+            if (g_display_ref_count > 0) {
+                setlog("DisplayHook already bound hwnd=%p render_type=%d, reject hwnd=%p render_type=%d",
+                       DisplayHook::render_hwnd, DisplayHook::render_type, hwnd_, render_type_);
+                return 0;
+            }
             DisplayHook::release();
+            if (g_ref_count > 0)
+                g_ref_count--;
             ret = DisplayHook::setup(hwnd_, render_type_);
             DisplayHook::is_hooked = ret == 1;
-            if (!DisplayHook::is_hooked && g_ref_count > 0) {
-                g_ref_count--;
+            if (DisplayHook::is_hooked) {
+                g_ref_count++;
+                g_display_ref_count = 1;
             }
         }
     }
@@ -43,7 +57,7 @@ long __stdcall SetDisplayHook(HWND hwnd_, int render_type_) {
 
 long __stdcall ReleaseDisplayHook() {
     int ret = 0;
-    if (DisplayHook::is_hooked) {
+    if (DisplayHook::is_hooked && g_display_ref_count > 0 && --g_display_ref_count == 0) {
         DisplayHook::is_hooked = false;
         ret = DisplayHook::release();
         if (g_ref_count > 0)
