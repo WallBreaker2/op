@@ -6,10 +6,12 @@
 #include "../../base/Environment.h"
 #include "../../base/Utils.h"
 #include "../../hook/HookModule.h"
+#include "../../hook/SharedFrame.h"
 #include "BlackBone/Process/Process.h"
 #include "BlackBone/Process/RPC/RemoteFunction.hpp"
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <span>
 
 #include "../../image/Image.h"
@@ -305,44 +307,102 @@ long HookCapture::UnBindNox() {
 }
 
 bool HookCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
-    img.create(w, h);
-    _pmutex->lock();
-    FrameInfo *pInfo = reinterpret_cast<FrameInfo *>(_shmem->data<std::byte>());
-
-    const int src_width = pInfo->width > 0 ? (int)pInfo->width : (int)_width;
-    const int src_height = pInfo->height > 0 ? (int)pInfo->height : (int)_height;
-
-    if (pInfo->width > 0 && pInfo->height > 0 &&
-        ((long)pInfo->width != _width || (long)pInfo->height != _height)) {
-        _width = (long)pInfo->width;
-        _height = (long)pInfo->height;
-    }
-
-    if (src_width <= 0 || src_height <= 0 || x1 < 0 || y1 < 0 || w <= 0 || h <= 0 || x1 + w > src_width ||
-        y1 + h > src_height) {
-        _pmutex->unlock();
+    if (!_pmutex || !_shmem) {
         return false;
     }
 
-    auto frame = makeHookFrameView(*_shmem, src_width, src_height);
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        _pmutex->lock();
+        FrameInfo *pInfo = reinterpret_cast<FrameInfo *>(_shmem->data<std::byte>());
+        const FrameInfo info = pInfo ? *pInfo : FrameInfo{};
+        if (!isHookFrameReady(info, _hwnd)) {
+            _pmutex->unlock();
+            return false;
+        }
 
-    // 远端写入共享帧的行顺序不完全等同于渲染大类。
-    // DX 和 EGL/GLES 已经是窗口坐标方向；传统 OpenGL 仍按左下角原点翻转读取。
-    const bool top_down_frame = GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX || _render_type == RDT_GL_ES;
-    if (top_down_frame) {
-        for (int i = 0; i < h; i++) {
-            const auto row = hookFrameRow(frame.pixels, src_width, i + y1, x1, w);
-            memcpy(img.ptr<uchar>(i), row.data(), row.size());
+        const int src_width = info.width > 0 ? (int)info.width : (int)_width;
+        const int src_height = info.height > 0 ? (int)info.height : (int)_height;
+
+        if (info.width > 0 && info.height > 0 &&
+            ((long)info.width != _width || (long)info.height != _height)) {
+            _width = (long)info.width;
+            _height = (long)info.height;
         }
-    } else {
-        for (int i = 0; i < h; i++) {
-            const auto row = hookFrameRow(frame.pixels, src_width, src_height - 1 - i - y1, x1, w);
-            memcpy(img.ptr<uchar>(i), row.data(), row.size());
+
+        if (!op::hook::SharedFrameHasCapacity(*_shmem, src_width, src_height)) {
+            _pmutex->unlock();
+            if (!ensureSharedFrameCapacity(src_width, src_height)) {
+                return false;
+            }
+            waitForBindReady();
+            continue;
         }
+
+        if (src_width <= 0 || src_height <= 0 || x1 < 0 || y1 < 0 || w <= 0 || h <= 0 || x1 + w > src_width ||
+            y1 + h > src_height) {
+            _pmutex->unlock();
+            return false;
+        }
+
+        img.create(w, h);
+        auto frame = makeHookFrameView(*_shmem, src_width, src_height);
+
+        // 远端写入共享帧的行顺序不完全等同于渲染大类。
+        // DX 和 EGL/GLES 已经是窗口坐标方向；传统 OpenGL 仍按左下角原点翻转读取。
+        const bool top_down_frame = GET_RENDER_TYPE(_render_type) == RENDER_TYPE::DX || _render_type == RDT_GL_ES;
+        if (top_down_frame) {
+            for (int i = 0; i < h; i++) {
+                const auto row = hookFrameRow(frame.pixels, src_width, i + y1, x1, w);
+                memcpy(img.ptr<uchar>(i), row.data(), row.size());
+            }
+        } else {
+            for (int i = 0; i < h; i++) {
+                const auto row = hookFrameRow(frame.pixels, src_width, src_height - 1 - i - y1, x1, w);
+                memcpy(img.ptr<uchar>(i), row.data(), row.size());
+            }
+        }
+
+        _pmutex->unlock();
+        return true;
     }
 
-    _pmutex->unlock();
-    return true;
+    return false;
+}
+
+bool HookCapture::ensureSharedFrameCapacity(int width, int height) {
+    const size_t required = op::hook::RequiredSharedFrameBytes(width, height);
+    if (required == 0) {
+        return false;
+    }
+    if (_shmem && _shmem->size() >= required) {
+        return true;
+    }
+
+    if (!_pmutex) {
+        auto mutex = std::make_unique<ProcessMutex>();
+        if (!mutex->open_create(_mutex_name)) {
+            return false;
+        }
+        _pmutex = mutex.release();
+    }
+
+    for (int attempt = 0; attempt < 20; ++attempt) {
+        _pmutex->lock();
+        SAFE_DELETE(_shmem);
+
+        auto shmem = std::make_unique<SharedMemory>();
+        const bool opened = shmem->open_create(_shared_res_name, required);
+        if (opened && shmem->size() >= required) {
+            _shmem = shmem.release();
+            _pmutex->unlock();
+            return true;
+        }
+
+        _pmutex->unlock();
+        ::Sleep(10);
+    }
+
+    return false;
 }
 
 } // namespace op::capture

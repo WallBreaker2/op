@@ -29,6 +29,7 @@ class HookCapture : public ICaptureBackend {
     long UnBindNox();
 
   private:
+    bool ensureSharedFrameCapacity(int width, int height);
     // blackbone::Process _process;
     std::wstring m_opPath;
 };

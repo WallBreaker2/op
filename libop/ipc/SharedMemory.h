@@ -1,6 +1,7 @@
 #pragma once
 #include "../base/WindowsHandle.h"
 #include <cstdint>
+#include <cstddef>
 #include <string>
 #include <utility>
 #include <windows.h>
@@ -37,6 +38,7 @@ class SharedMemory {
             return false;
         _hmap = std::move(temph);
         _paddress = address;
+        _size = mapped_size(address);
         return true;
     }
     /*open only*/
@@ -51,6 +53,7 @@ class SharedMemory {
             return false;
         _hmap = std::move(temph);
         _paddress = address;
+        _size = mapped_size(address);
         return true;
     }
     /*close the shared memory*/
@@ -58,6 +61,7 @@ class SharedMemory {
         if (_paddress)
             UnmapViewOfFile(_paddress);
         _paddress = nullptr;
+        _size = 0;
         _hmap.reset();
     }
     template <typename T> T &at(int idx_) {
@@ -67,16 +71,27 @@ class SharedMemory {
     template <typename T> T *data() {
         return (T *)_paddress;
     }
+    size_t size() const {
+        return _size;
+    }
 
   protected:
     /*SharedMemory operator=(const SharedMemory& rhs) {
         return rhs;
     }*/
   private:
+    static size_t mapped_size(void *address) {
+        MEMORY_BASIC_INFORMATION info{};
+        if (!address || ::VirtualQuery(address, &info, sizeof(info)) == 0)
+            return 0;
+        return info.RegionSize;
+    }
+
     // handle of shared file map
     op::win32::unique_handle _hmap;
     // address of shared memory
     void *_paddress{nullptr};
+    size_t _size{0};
 };
 
 } // namespace op
