@@ -126,6 +126,24 @@ TEST(ImageColorTest, CmpColor) {
     EXPECT_TRUE(ret) << "CmpColor should match the same color just read";
 }
 
+TEST(ImageColorTest, GetColorAndCmpColorWorkAtBottomRightEdge) {
+    op::Op op;
+    long ret = 0;
+    const int width = 4;
+    const int height = 4;
+    auto pixels = MakePixels(width, height, 0xff, 0xff, 0xff);
+    PaintPixel(pixels, width, width - 1, height - 1, 0x12, 0x34, 0x56);
+    SetMemBmp(op, width, height, pixels, ret);
+    ASSERT_EQ(ret, 1);
+
+    wstring color;
+    op.GetColor(width - 1, height - 1, color);
+    EXPECT_EQ(color, L"563412");
+
+    op.CmpColor(width - 1, height - 1, L"563412", 1.0, &ret);
+    EXPECT_EQ(ret, 1);
+}
+
 TEST(ImageColorTest, CmpColorUsesSimilarityAndExplicitDelta) {
     op::Op op;
     long ret = 0;

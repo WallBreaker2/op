@@ -1,6 +1,7 @@
 #include "OpenGLCapture.h"
 
 #include "DisplayHook.h"
+#include "SharedFrame.h"
 #include "../capture/FrameInfo.h"
 #include "../hook/ApiResolver.h"
 #include "../ipc/ProcessMutex.h"
@@ -46,8 +47,12 @@ long gl_capture() {
     if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
         mutex.lock();
         uchar *pshare = mem.data<byte>();
-        reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, width, height);
-        pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
+        if (SharedFrameHasCapacity(mem, width, height)) {
+            reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, width, height);
+            pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
+        } else {
+            WriteSharedFrameHeader(mem, DisplayHook::render_hwnd, width, height);
+        }
         mutex.unlock();
     } else {
         DisplayHook::set_capture_enabled(false);
@@ -106,8 +111,12 @@ long egl_capture() {
     if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
         mutex.lock();
         uchar *pshare = mem.data<byte>();
-        reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, width, height);
-        pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
+        if (SharedFrameHasCapacity(mem, width, height)) {
+            reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, width, height);
+            pglReadPixels(0, 0, width, height, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pshare + sizeof(FrameInfo));
+        } else {
+            WriteSharedFrameHeader(mem, DisplayHook::render_hwnd, width, height);
+        }
         mutex.unlock();
     } else {
         DisplayHook::set_capture_enabled(false);

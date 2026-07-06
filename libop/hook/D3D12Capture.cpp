@@ -4,6 +4,8 @@
 #include "D3D12Capture.h"
 
 #include "DisplayHook.h"
+#include "DxCaptureCommon.h"
+#include "SharedFrame.h"
 #include <directx/d3dx12.h>
 #include "../capture/FrameInfo.h"
 #include "../ipc/ProcessMutex.h"
@@ -68,6 +70,19 @@ void D3D12Capture::CaptureFrame(IDXGISwapChain *swapChain) {
     UINT64 sizeInBytes;
     D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
     device->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, nullptr, nullptr, &sizeInBytes);
+    const UINT backBufferWidth = static_cast<UINT>(desc.Width);
+    const UINT backBufferHeight = static_cast<UINT>(desc.Height);
+
+    if (readbackResource_.Get() &&
+        (readbackDataWidth_ != backBufferWidth || readbackDataHeight_ != backBufferHeight ||
+         readbackDataPitch_ != footprint.Footprint.RowPitch)) {
+        if (readbackData_) {
+            readbackResource_->Unmap(0, nullptr);
+            readbackData_ = nullptr;
+        }
+        readbackResource_.Reset();
+        commandAllocator_.Reset();
+    }
 
     if (readbackResource_.Get()) {
         if (readbackData_ == nullptr) {
@@ -78,7 +93,7 @@ void D3D12Capture::CaptureFrame(IDXGISwapChain *swapChain) {
         }
 
         UINT frameRowPitch = readbackDataPitch_;
-        UINT frameWidth = frameRowPitch / 4;
+        UINT frameWidth = readbackDataWidth_;
         UINT frameHeight = readbackDataHeight_;
 
         SharedMemory mem;
@@ -88,11 +103,15 @@ void D3D12Capture::CaptureFrame(IDXGISwapChain *swapChain) {
         if (mem.open(DisplayHook::shared_res_name) && mutex.open(DisplayHook::mutex_name)) {
             mutex.lock();
             uchar *pshare = mem.data<byte>();
-            reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, frameWidth, frameHeight);
-            static_assert(sizeof(FrameInfo) == 28);
+            if (SharedFrameHasCapacity(mem, frameWidth, frameHeight)) {
+                reinterpret_cast<FrameInfo *>(pshare)->format(DisplayHook::render_hwnd, frameWidth, frameHeight);
+                static_assert(sizeof(FrameInfo) == 28);
 
-            CopyImageData((char *)pshare + sizeof(FrameInfo), (char *)readbackData_, frameWidth, frameHeight,
-                          frameRowPitch, fmt);
+                CopyImageData((char *)pshare + sizeof(FrameInfo), (char *)readbackData_, frameHeight, frameWidth,
+                              frameRowPitch, fmt);
+            } else {
+                WriteSharedFrameHeader(mem, DisplayHook::render_hwnd, frameWidth, frameHeight);
+            }
             mutex.unlock();
         } else {
 #if DEBUG_HOOK
@@ -114,8 +133,8 @@ void D3D12Capture::CaptureFrame(IDXGISwapChain *swapChain) {
         }
 
     } else {
-        readbackDataWidth_ = footprint.Footprint.Width;
-        readbackDataHeight_ = footprint.Footprint.Height;
+        readbackDataWidth_ = backBufferWidth;
+        readbackDataHeight_ = backBufferHeight;
         readbackDataPitch_ = footprint.Footprint.RowPitch;
 
         auto readbackResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeInBytes);

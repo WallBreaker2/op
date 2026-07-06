@@ -88,6 +88,7 @@ kiero::Error kiero::locate<kiero::Implementation_D3D10>(void* in, void* out)
   sc_desc.OutputWindow = window.hwnd;
   sc_desc.Windowed = TRUE;
   sc_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+  sc_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
   IDXGISwapChain* swapchain;
   ID3D10Device* device;
@@ -115,17 +116,13 @@ kiero::Error kiero::locate<kiero::Implementation_D3D10>(void* in, void* out)
 
   D3D10Output* output = (D3D10Output*)out;
 
-  for (auto vtable = *(void***)swapchain; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->swapchain_methods.push_back(ptr);
-  }
+  void** swapchain_vtable = *(void***)swapchain;
+  void** device_vtable = *(void***)device;
 
-  for (auto vtable = *(void***)device; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->device_methods.push_back(ptr);
-  }
+  // COM vtables are not null-terminated. Keep these counts aligned with the
+  // original kiero table sizes used before the kiero2 migration.
+  output->swapchain_methods.assign(swapchain_vtable, swapchain_vtable + 18);
+  output->device_methods.assign(device_vtable, device_vtable + 98);
 
   return Error_Nil;
 }
