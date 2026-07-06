@@ -156,35 +156,19 @@ kiero::Error kiero::locate<kiero::Implementation_D3D12>(void* in, void* out)
 
   D3D12Output* output = (D3D12Output*)out;
 
-  for (auto vtable = *(void***)device; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->device_methods.push_back(ptr);
-  }
+  void** device_vtable = *(void***)device;
+  void** command_queue_vtable = *(void***)command_queue;
+  void** command_allocator_vtable = *(void***)command_allocator;
+  void** command_list_vtable = *(void***)command_list;
+  void** swapchain_vtable = *(void***)swapchain;
 
-  for (auto vtable = *(void***)command_queue; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->command_queue_methods.push_back(ptr);
-  }
-
-  for (auto vtable = *(void***)command_allocator; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->command_allocator_methods.push_back(ptr);
-  }
-
-  for (auto vtable = *(void***)command_list; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->command_list_methods.push_back(ptr);
-  }
-
-  for (auto vtable = *(void***)swapchain; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->swapchain_methods.push_back(ptr);
-  }
+  // COM vtables are not null-terminated. Keep these counts aligned with the
+  // original kiero table sizes used before the kiero2 migration.
+  output->device_methods.assign(device_vtable, device_vtable + 44);
+  output->command_queue_methods.assign(command_queue_vtable, command_queue_vtable + 19);
+  output->command_allocator_methods.assign(command_allocator_vtable, command_allocator_vtable + 9);
+  output->command_list_methods.assign(command_list_vtable, command_list_vtable + 60);
+  output->swapchain_methods.assign(swapchain_vtable, swapchain_vtable + 18);
 
   return Error_Nil;
 }

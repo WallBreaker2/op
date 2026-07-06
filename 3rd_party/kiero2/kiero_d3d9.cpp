@@ -36,17 +36,35 @@ kiero::Error kiero::locate<kiero::Implementation_D3D9>(void* in, void* out)
   kiero::_::create_dummy_win32_window(&window);
   KIERO_DEFER([&]() { kiero::_::destroy_dummy_win32_window(&window); });
 
+  D3DDISPLAYMODE display_mode = {};
+  auto hresult = d3d9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &display_mode);
+  if (hresult != S_OK) {
+    KIERO_DBG_MSG("GetAdapterDisplayMode failed (%d)", hresult);
+    return Error_D3D9_CreateDeviceFailed;
+  }
+
   D3DPRESENT_PARAMETERS present_parameters = {};
-  present_parameters.Windowed = TRUE;
+  present_parameters.BackBufferWidth = 0;
+  present_parameters.BackBufferHeight = 0;
+  present_parameters.BackBufferFormat = display_mode.Format;
+  present_parameters.BackBufferCount = 0;
+  present_parameters.MultiSampleType = D3DMULTISAMPLE_NONE;
+  present_parameters.MultiSampleQuality = 0;
   present_parameters.SwapEffect = D3DSWAPEFFECT_DISCARD;
   present_parameters.hDeviceWindow = window.hwnd;
+  present_parameters.Windowed = TRUE;
+  present_parameters.EnableAutoDepthStencil = FALSE;
+  present_parameters.AutoDepthStencilFormat = D3DFMT_UNKNOWN;
+  present_parameters.Flags = 0;
+  present_parameters.FullScreen_RefreshRateInHz = 0;
+  present_parameters.PresentationInterval = 0;
 
   IDirect3DDevice9* device;
-  auto hresult = d3d9->CreateDevice(
+  hresult = d3d9->CreateDevice(
     D3DADAPTER_DEFAULT,
     D3DDEVTYPE_HAL,
     window.hwnd,
-    D3DCREATE_SOFTWARE_VERTEXPROCESSING,
+    D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_DISABLE_DRIVER_MANAGEMENT,
     &present_parameters,
     &device
   );
@@ -58,11 +76,11 @@ kiero::Error kiero::locate<kiero::Implementation_D3D9>(void* in, void* out)
 
   D3D9Output* output = (D3D9Output*)out;
 
-  for (auto vtable = *(void***)device; vtable; vtable++) {
-    auto ptr = *vtable;
-    if (!ptr) break;
-    output->device_methods.push_back(ptr);
-  }
+  void** device_vtable = *(void***)device;
+
+  // COM vtables are not null-terminated. Keep this count aligned with the
+  // original kiero table size used before the kiero2 migration.
+  output->device_methods.assign(device_vtable, device_vtable + 119);
 
   return Error_Nil;
 }

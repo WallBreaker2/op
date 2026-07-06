@@ -48,8 +48,9 @@ long __stdcall ReleaseDisplayHook() {
         ret = DisplayHook::release();
         if (g_ref_count > 0)
             g_ref_count--;
-        release_module_if_idle();
     }
+
+    release_module_if_idle();
 
     return ret;
 }

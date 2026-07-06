@@ -23,6 +23,14 @@ namespace {
 constexpr DWORD kHookFrameReadyTimeoutMs = 200;
 constexpr DWORD kHookFramePollIntervalMs = 10;
 
+void release_remote_display_hook(blackbone::Process &proc, const std::wstring &dllname) {
+    using release_display_hook_t = long(__stdcall *)(void);
+    auto release = blackbone::MakeRemoteFunction<release_display_hook_t>(proc, dllname, "ReleaseDisplayHook");
+    if (release) {
+        release();
+    }
+}
+
 struct HookFrameView {
     FrameInfo *info = nullptr;
     std::span<std::byte> pixels;
@@ -95,7 +103,6 @@ long HookCapture::BindEx(HWND hwnd, long render_type) {
             bool injected = false;
             // 判断是否已经注入
             auto _dllptr = proc.modules().GetModule(dllname);
-            auto mods = proc.modules().GetAllModules();
             if (_dllptr) {
                 injected = true;
             } else {
@@ -121,6 +128,9 @@ long HookCapture::BindEx(HWND hwnd, long render_type) {
                     // setlog("after pSetXHook");
                     bind_ret = cret.result();
                     // setlog("after result");
+                    if (bind_ret != 1) {
+                        release_remote_display_hook(proc, dllname);
+                    }
                 } else {
                     setlog(L"remote function 'SetDisplayHook' not found in %s.", dllname.c_str());
                 }
@@ -225,7 +235,6 @@ long HookCapture::BindNox(HWND hwnd, long render_type) {
         bool injected = false;
         // 判断是否已经注入
         auto _dllptr = proc.modules().GetModule(dllname);
-        auto mods = proc.modules().GetAllModules();
         if (_dllptr) {
             injected = true;
         } else {
@@ -247,6 +256,9 @@ long HookCapture::BindNox(HWND hwnd, long render_type) {
             if (pSetXHook) {
                 auto cret = pSetXHook(hwnd, render_type);
                 bind_ret = cret.result();
+                if (bind_ret != 1) {
+                    release_remote_display_hook(proc, dllname);
+                }
             } else {
                 setlog(L"remote function not found.");
             }
