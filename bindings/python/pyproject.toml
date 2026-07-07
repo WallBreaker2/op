@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "op-capi"
-version = "0.4.8.2"
+version = "0.4.8.3"
 description = "ctypes wrapper for OP C API DLL"
 readme = "README.md"
 requires-python = ">=3.10"
