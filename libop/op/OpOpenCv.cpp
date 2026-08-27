@@ -9,99 +9,71 @@
 
 #include <sstream>
 #include <string>
+#include <initializer_list>
 #include <utility>
 #include <vector>
 
 namespace {
 
-bool parse_cv_threshold_mode(const wchar_t *mode_text, opcv::ThresholdMode &mode) {
+// 统一处理 OpenCV 文本模式的大小写、别名和默认值映射。
+template <typename Mode>
+bool parse_cv_mode(const wchar_t *mode_text, Mode &mode,
+                  std::initializer_list<std::pair<const wchar_t *, Mode>> entries) {
     std::wstring value = mode_text ? mode_text : L"";
     wstring2lower(value);
 
-    if (value == L"binary" || value.empty()) {
-        mode = opcv::ThresholdMode::Binary;
-    } else if (value == L"binary_inv" || value == L"inv") {
-        mode = opcv::ThresholdMode::BinaryInv;
-    } else if (value == L"otsu") {
-        mode = opcv::ThresholdMode::Otsu;
-    } else if (value == L"otsu_inv") {
-        mode = opcv::ThresholdMode::OtsuInv;
-    } else if (value == L"adaptive") {
-        mode = opcv::ThresholdMode::Adaptive;
-    } else if (value == L"adaptive_inv") {
-        mode = opcv::ThresholdMode::AdaptiveInv;
-    } else {
-        return false;
+    for (const auto &entry : entries) {
+        if (value == entry.first) {
+            mode = entry.second;
+            return true;
+        }
     }
-    return true;
+    return false;
+}
+
+bool parse_cv_threshold_mode(const wchar_t *mode_text, opcv::ThresholdMode &mode) {
+    return parse_cv_mode(mode_text, mode, {{L"binary", opcv::ThresholdMode::Binary},
+                                           {L"", opcv::ThresholdMode::Binary},
+                                           {L"binary_inv", opcv::ThresholdMode::BinaryInv},
+                                           {L"inv", opcv::ThresholdMode::BinaryInv},
+                                           {L"otsu", opcv::ThresholdMode::Otsu},
+                                           {L"otsu_inv", opcv::ThresholdMode::OtsuInv},
+                                           {L"adaptive", opcv::ThresholdMode::Adaptive},
+                                           {L"adaptive_inv", opcv::ThresholdMode::AdaptiveInv}});
 }
 
 bool parse_cv_color_space(const wchar_t *space_text, opcv::InRangeColorSpace &color_space) {
-    std::wstring value = space_text ? space_text : L"";
-    wstring2lower(value);
-
-    if (value == L"bgr" || value.empty()) {
-        color_space = opcv::InRangeColorSpace::Bgr;
-    } else if (value == L"hsv") {
-        color_space = opcv::InRangeColorSpace::Hsv;
-    } else if (value == L"gray" || value == L"grey") {
-        color_space = opcv::InRangeColorSpace::Gray;
-    } else {
-        return false;
-    }
-    return true;
+    return parse_cv_mode(space_text, color_space, {{L"bgr", opcv::InRangeColorSpace::Bgr},
+                                                   {L"", opcv::InRangeColorSpace::Bgr},
+                                                   {L"hsv", opcv::InRangeColorSpace::Hsv},
+                                                   {L"gray", opcv::InRangeColorSpace::Gray},
+                                                   {L"grey", opcv::InRangeColorSpace::Gray}});
 }
 
 bool parse_cv_morphology_mode(const wchar_t *mode_text, opcv::MorphologyMode &mode) {
-    std::wstring value = mode_text ? mode_text : L"";
-    wstring2lower(value);
-
-    if (value == L"erode") {
-        mode = opcv::MorphologyMode::Erode;
-    } else if (value == L"dilate") {
-        mode = opcv::MorphologyMode::Dilate;
-    } else if (value == L"open" || value.empty()) {
-        mode = opcv::MorphologyMode::Open;
-    } else if (value == L"close") {
-        mode = opcv::MorphologyMode::Close;
-    } else {
-        return false;
-    }
-    return true;
+    return parse_cv_mode(mode_text, mode, {{L"erode", opcv::MorphologyMode::Erode},
+                                           {L"dilate", opcv::MorphologyMode::Dilate},
+                                           {L"open", opcv::MorphologyMode::Open},
+                                           {L"", opcv::MorphologyMode::Open},
+                                           {L"close", opcv::MorphologyMode::Close}});
 }
 
 bool parse_cv_thin_mode(const wchar_t *mode_text, opcv::ThinMode &mode) {
-    std::wstring value = mode_text ? mode_text : L"";
-    wstring2lower(value);
-
-    if (value == L"zhang_suen" || value == L"zhangsuen" || value.empty()) {
-        mode = opcv::ThinMode::ZhangSuen;
-    } else if (value == L"guo_hall" || value == L"guohall") {
-        mode = opcv::ThinMode::GuoHall;
-    } else if (value == L"morph") {
-        mode = opcv::ThinMode::Morph;
-    } else {
-        return false;
-    }
-    return true;
+    return parse_cv_mode(mode_text, mode, {{L"zhang_suen", opcv::ThinMode::ZhangSuen},
+                                           {L"zhangsuen", opcv::ThinMode::ZhangSuen},
+                                           {L"", opcv::ThinMode::ZhangSuen},
+                                           {L"guo_hall", opcv::ThinMode::GuoHall},
+                                           {L"guohall", opcv::ThinMode::GuoHall},
+                                           {L"morph", opcv::ThinMode::Morph}});
 }
 
 bool parse_cv_blur_mode(const wchar_t *mode_text, opcv::BlurMode &mode) {
-    std::wstring value = mode_text ? mode_text : L"";
-    wstring2lower(value);
-
-    if (value == L"gaussian" || value.empty()) {
-        mode = opcv::BlurMode::Gaussian;
-    } else if (value == L"median") {
-        mode = opcv::BlurMode::Median;
-    } else if (value == L"bilateral") {
-        mode = opcv::BlurMode::Bilateral;
-    } else if (value == L"box" || value == L"mean") {
-        mode = opcv::BlurMode::Box;
-    } else {
-        return false;
-    }
-    return true;
+    return parse_cv_mode(mode_text, mode, {{L"gaussian", opcv::BlurMode::Gaussian},
+                                           {L"", opcv::BlurMode::Gaussian},
+                                           {L"median", opcv::BlurMode::Median},
+                                           {L"bilateral", opcv::BlurMode::Bilateral},
+                                           {L"box", opcv::BlurMode::Box},
+                                           {L"mean", opcv::BlurMode::Box}});
 }
 
 bool parse_cv_number_list(const wchar_t *text, std::vector<double> &values) {
