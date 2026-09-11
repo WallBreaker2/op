@@ -48,6 +48,14 @@ constexpr int PTX(op::uint pt) {
 namespace op {
 std::ostream &operator<<(std::ostream &o, point_t const &rhs);
 std::wostream &operator<<(std::wostream &o, point_t const &rhs);
+
+// 可空输出参数：target 为空时跳过写入，返回是否写成功。
+template <typename Target, typename Value> inline bool set_out(Target *target, Value value) {
+    if (!target)
+        return false;
+    *target = static_cast<Target>(value);
+    return true;
+}
 } // namespace op
 
 bool Delay(long mis);
