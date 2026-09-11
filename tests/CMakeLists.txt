@@ -170,7 +170,6 @@ target_include_directories(op_test PRIVATE
   "${CMAKE_CURRENT_SOURCE_DIR}"
   "${PROJECT_SOURCE_DIR}/include"
   "${PROJECT_SOURCE_DIR}/libop"
-  "${PROJECT_SOURCE_DIR}/libop/runtime"
   "${PROJECT_SOURCE_DIR}/libop/window"
   "${PROJECT_SOURCE_DIR}/libop/image"
   "${PROJECT_SOURCE_DIR}/libop/ocr"
@@ -210,7 +209,6 @@ if(OP_HAS_OPENCV_SOURCES AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/debug_runner/ma
   target_include_directories(op_debug PRIVATE
     "${PROJECT_SOURCE_DIR}/include"
     "${PROJECT_SOURCE_DIR}/libop"
-    "${PROJECT_SOURCE_DIR}/libop/runtime"
     "${PROJECT_SOURCE_DIR}/libop/window"
     "${PROJECT_SOURCE_DIR}/libop/image"
     "${PROJECT_SOURCE_DIR}/libop/ocr"
