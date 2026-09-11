@@ -27,7 +27,9 @@ void op::Op::SetPath(const wchar_t *path, long *ret) {
         else
             fpath = m_context->curr_path + fpath;
         if (::PathFileExistsW(fpath.data())) {
-            m_context->curr_path = path;
+            // 写回已解析的绝对路径，与上面的绝对路径分支保持一致；
+            // 否则第二次以相对路径调用后，curr_path 会变成相对串，后续拼接全部失效。
+            m_context->curr_path = fpath;
             m_context->image_proc._curr_path = m_context->curr_path;
             m_context->bkproc._curr_path = m_context->curr_path;
             internal::set_result(ret, 1L);
