@@ -179,30 +179,8 @@ void split(const std::string &s, std::vector<std::string> &v, const std::string 
         v.emplace_back(s.substr(pos1));
 }
 
-void wstring2upper(std::wstring &s) {
-    std::transform(s.begin(), s.end(), s.begin(), towupper);
-}
-
-void string2upper(std::string &s) {
-    std::transform(s.begin(), s.end(), s.begin(), toupper);
-}
-
 void wstring2lower(std::wstring &s) {
     std::transform(s.begin(), s.end(), s.begin(), towlower);
-}
-
-void string2lower(std::string &s) {
-    std::transform(s.begin(), s.end(), s.begin(), tolower);
-}
-
-void replacea(std::string &str, const std::string &oldval, const std::string &newval) {
-    size_t x0 = 0, dx = newval.length() - oldval.length() + 1;
-    size_t idx = str.find(oldval, x0);
-    while (idx != -1 && x0 >= 0) {
-        str.replace(idx, oldval.length(), newval);
-        x0 = idx + dx;
-        idx = str.find(oldval, x0);
-    }
 }
 
 void replacew(std::wstring &str, const std::wstring &oldval, const std::wstring &newval) {

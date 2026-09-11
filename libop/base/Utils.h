@@ -12,13 +12,8 @@ long Path2GlobalPath(const std::wstring &file, const std::wstring &curr_path, st
 void split(const std::wstring &s, std::vector<std::wstring> &v, const std::wstring &c);
 void split(const std::string &s, std::vector<std::string> &v, const std::string &c);
 
-void wstring2upper(std::wstring &s);
-void string2upper(std::string &s);
-
 void wstring2lower(std::wstring &s);
-void string2lower(std::string &s);
 
-void replacea(std::string &str, const std::string &oldval, const std::string &newval);
 void replacew(std::wstring &str, const std::wstring &oldval, const std::wstring &newval);
 
 // for debug
@@ -48,34 +43,6 @@ constexpr int PTY(op::uint pt) {
 
 constexpr int PTX(op::uint pt) {
     return pt & 0xffff;
-}
-
-template <typename T> void nextVal(const T &t, int *next) {
-    next[0] = -1;
-    int k = -1, j = 0;
-    while (j < (int)t.size() - 1) {
-        if (k == -1 || t[k] == t[j]) {
-            k++;
-            j++;
-            next[j] = k;
-        } else {
-            k = next[k];
-        }
-    }
-}
-template <typename T> int kmp(const T &s, const T &t) {
-    std::vector<int> next(t.size());
-    nextVal(t, next.data());
-    int i = 0, j = 0;
-    while (i < (int)s.size() && j < (int)t.size()) {
-        if (j == -1 || s[i] == t[j]) {
-            i++;
-            j++;
-        } else {
-            j = next[j];
-        }
-    }
-    return j == s.size() ? i - j : -1;
 }
 
 namespace op {
