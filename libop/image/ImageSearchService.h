@@ -2,7 +2,6 @@
 #include "ImageSearchAlgorithms.h"
 #include <memory>
 #include <string>
-// #include "TesseractOcr.h"
 
 namespace op::image {
 
