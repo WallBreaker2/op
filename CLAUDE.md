@@ -43,8 +43,10 @@ are installed into the same package directory via CMake install rules.
 Local wheel build: `./scripts/build_wheel.ps1` (bootstraps deps via `build.py`, sets `CMAKE_ARGS`, runs `pip wheel`).
 CMake also auto-detects `build/_deps/{BlackBone,vcpkg,opencv}` when env vars are unset.
 
-Regenerating SWIG bindings (`swig/genPythonWrap.bat`) also requires copying `swig/pyop.py`
-to `python/pyop/_binding.py`.
+Regenerating SWIG bindings: run `swig/genPythonWrap.bat`. It invokes `swig -python -c++ op.i`
+to regenerate `swig/op_wrap.cxx` + `swig/pyop.py`, then copies the latter to
+`python/pyop/_binding.py`. `python/pyop/_binding.py` is the checked-in authoritative copy —
+`swig/pyop.py` is only a build intermediate and is git-ignored (do not commit it).
 
 ## Test commands
 

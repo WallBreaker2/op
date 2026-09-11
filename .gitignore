@@ -308,6 +308,10 @@ __pycache__/
 # wheelhouse
 wheelhouse*
 
+# SWIG 生成的 Python 包装器：每次 genPythonWrap.bat 都会重建。
+# 入库的权威副本是 python/pyop/_binding.py（它由该脚本末尾的 copy 产出）。
+swig/pyop.py
+
 .venv*
 
 SKILL.md
