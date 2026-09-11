@@ -144,85 +144,45 @@ long DxMouse::wheel(UINT message, int delta) {
                                 MAKELPARAM(pt.x, pt.y));
 }
 
-long DxMouse::LeftClick() {
-    return click(&DxMouse::LeftDown, &DxMouse::LeftUp);
-}
+// DxMouse 的按钮只走窗口消息一条路径，访问器本身已是一行转发；
+// 这里按按钮收敛成宏，省去 20 个同构签名各写一遍的样板。
+#define OP_DX_MOUSE_BUTTON(Name, down_msg, up_msg, dbl_msg, mk) \
+    long DxMouse::Name##Click() { \
+        return click(&DxMouse::Name##Down, &DxMouse::Name##Up); \
+    } \
+    long DxMouse::Name##DoubleClick() { \
+        return double_click(&DxMouse::Name##Click, dbl_msg, up_msg, mk); \
+    } \
+    long DxMouse::Name##Down() { \
+        return send_button(down_msg, mk, true); \
+    } \
+    long DxMouse::Name##Up() { \
+        return send_button(up_msg, mk, false); \
+    }
 
-long DxMouse::LeftDoubleClick() {
-    return double_click(&DxMouse::LeftClick, OP_WM_LBUTTONDBLCLK, OP_WM_LBUTTONUP, MK_LBUTTON);
-}
+// 侧键的 WPARAM 高字要携带 xbutton 标识，因此走 send_xbutton / xbutton 这条独立通道。
+#define OP_DX_MOUSE_XBUTTON(Name, xbtn, mk) \
+    long DxMouse::Name##Click() { \
+        return click(&DxMouse::Name##Down, &DxMouse::Name##Up); \
+    } \
+    long DxMouse::Name##DoubleClick() { \
+        return xbutton_double_click(&DxMouse::Name##Click, xbtn, mk); \
+    } \
+    long DxMouse::Name##Down() { \
+        return xbutton(xbtn, mk, true); \
+    } \
+    long DxMouse::Name##Up() { \
+        return xbutton(xbtn, mk, false); \
+    }
 
-long DxMouse::LeftDown() {
-    return send_button(OP_WM_LBUTTONDOWN, MK_LBUTTON, true);
-}
+OP_DX_MOUSE_BUTTON(Left, OP_WM_LBUTTONDOWN, OP_WM_LBUTTONUP, OP_WM_LBUTTONDBLCLK, MK_LBUTTON)
+OP_DX_MOUSE_BUTTON(Middle, OP_WM_MBUTTONDOWN, OP_WM_MBUTTONUP, OP_WM_MBUTTONDBLCLK, MK_MBUTTON)
+OP_DX_MOUSE_BUTTON(Right, OP_WM_RBUTTONDOWN, OP_WM_RBUTTONUP, OP_WM_RBUTTONDBLCLK, MK_RBUTTON)
+OP_DX_MOUSE_XBUTTON(XButton1, XBUTTON1, MK_XBUTTON1)
+OP_DX_MOUSE_XBUTTON(XButton2, XBUTTON2, MK_XBUTTON2)
 
-long DxMouse::LeftUp() {
-    return send_button(OP_WM_LBUTTONUP, MK_LBUTTON, false);
-}
-
-long DxMouse::MiddleClick() {
-    return click(&DxMouse::MiddleDown, &DxMouse::MiddleUp);
-}
-
-long DxMouse::MiddleDoubleClick() {
-    return double_click(&DxMouse::MiddleClick, OP_WM_MBUTTONDBLCLK, OP_WM_MBUTTONUP, MK_MBUTTON);
-}
-
-long DxMouse::MiddleDown() {
-    return send_button(OP_WM_MBUTTONDOWN, MK_MBUTTON, true);
-}
-
-long DxMouse::MiddleUp() {
-    return send_button(OP_WM_MBUTTONUP, MK_MBUTTON, false);
-}
-
-long DxMouse::RightClick() {
-    return click(&DxMouse::RightDown, &DxMouse::RightUp);
-}
-
-long DxMouse::RightDoubleClick() {
-    return double_click(&DxMouse::RightClick, OP_WM_RBUTTONDBLCLK, OP_WM_RBUTTONUP, MK_RBUTTON);
-}
-
-long DxMouse::RightDown() {
-    return send_button(OP_WM_RBUTTONDOWN, MK_RBUTTON, true);
-}
-
-long DxMouse::RightUp() {
-    return send_button(OP_WM_RBUTTONUP, MK_RBUTTON, false);
-}
-
-long DxMouse::XButton1Click() {
-    return click(&DxMouse::XButton1Down, &DxMouse::XButton1Up);
-}
-
-long DxMouse::XButton1DoubleClick() {
-    return xbutton_double_click(&DxMouse::XButton1Click, XBUTTON1, MK_XBUTTON1);
-}
-
-long DxMouse::XButton1Down() {
-    return xbutton(XBUTTON1, MK_XBUTTON1, true);
-}
-
-long DxMouse::XButton1Up() {
-    return xbutton(XBUTTON1, MK_XBUTTON1, false);
-}
-
-long DxMouse::XButton2Click() {
-    return click(&DxMouse::XButton2Down, &DxMouse::XButton2Up);
-}
-
-long DxMouse::XButton2DoubleClick() {
-    return xbutton_double_click(&DxMouse::XButton2Click, XBUTTON2, MK_XBUTTON2);
-}
-
-long DxMouse::XButton2Down() {
-    return xbutton(XBUTTON2, MK_XBUTTON2, true);
-}
-
-long DxMouse::XButton2Up() {
-    return xbutton(XBUTTON2, MK_XBUTTON2, false);
-}
+#undef OP_DX_MOUSE_BUTTON
+#undef OP_DX_MOUSE_XBUTTON
 
 long DxMouse::Wheel(int delta) {
     return wheel(OP_WM_MOUSEWHEEL, delta);
