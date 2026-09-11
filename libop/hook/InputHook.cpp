@@ -847,6 +847,17 @@ void dispatch_window_message(HWND hwnd, UINT message, WPARAM wparam, LPARAM lpar
         ::CallWindowProc(g_rawWindowProc, hwnd, message, wparam, lparam);
 }
 
+// CallWindowProc 直通窗口过程，绕过了 TranslateMessage，需要自己翻译按键字符。
+wchar_t translate_key_to_char(UINT vk, LPARAM lparam) {
+    if ((InputHook::m_vkState[VK_CONTROL] & 0x80) || (InputHook::m_vkState[VK_MENU] & 0x80))
+        return 0;
+
+    const UINT scan = static_cast<UINT>((static_cast<ULONG_PTR>(lparam) >> 16) & 0xFF);
+    wchar_t buffer[4] = {};
+    const int count = ::ToUnicodeEx(vk, scan, InputHook::m_vkState, buffer, 4, 0, ::GetKeyboardLayout(0));
+    return count == 1 ? buffer[0] : 0;
+}
+
 } // namespace
 
 int InputHook::setup(HWND hwnd) {
@@ -1353,10 +1364,14 @@ LRESULT CALLBACK opWndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam
         InputHook::updateWheel(wparam, lparam, true);
         dispatch_window_message(hwnd, WM_MOUSEHWHEEL, wparam, client_to_screen_lparam(hwnd, lparam));
         return 1;
-    case OP_WM_KEYDOWN:
+    case OP_WM_KEYDOWN: {
         InputHook::updateKey(wparam, true);
-        dispatch_window_message(hwnd, WM_KEYDOWN, wparam, lparam ? lparam : make_key_lparam(wparam, false));
+        const LPARAM key_lparam = lparam ? lparam : make_key_lparam(wparam, false);
+        dispatch_window_message(hwnd, WM_KEYDOWN, wparam, key_lparam);
+        if (const wchar_t ch = translate_key_to_char(static_cast<UINT>(wparam), key_lparam))
+            dispatch_window_message(hwnd, WM_CHAR, static_cast<WPARAM>(ch), key_lparam);
         return 1;
+    }
     case OP_WM_KEYUP:
         InputHook::updateKey(wparam, false);
         dispatch_window_message(hwnd, WM_KEYUP, wparam, lparam ? lparam : make_key_lparam(wparam, true));
