@@ -23,11 +23,6 @@ namespace {
 
 using op::hook::D3D11TextureMap;
 
-template <typename Target, typename Value> void set_out(Target *target, Value value) {
-    if (target)
-        *target = static_cast<Target>(value);
-}
-
 struct ClientBoxCandidate {
     D3D11_BOX box{};
     int width = 0;
@@ -1206,13 +1201,7 @@ bool WgcCapture::hasCapturedFrame() {
 }
 
 void WgcCapture::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
-    m_frameInfo.hwnd = (unsigned __int64)hwnd;
-    m_frameInfo.frameId = inc ? m_frameInfo.frameId + 1 : m_frameInfo.frameId;
-    m_frameInfo.time = static_cast<unsigned __int32>(::GetTickCount64());
-    m_frameInfo.width = w;
-    m_frameInfo.height = h;
-    m_frameInfo.fmtChk();
-    memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
+    WriteFrameInfo(m_frameInfo, dst, hwnd, w, h, inc);
 }
 
 } // namespace op::capture

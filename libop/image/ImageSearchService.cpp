@@ -29,13 +29,6 @@ std::shared_mutex g_pic_cache_mutex;
 std::array<std::shared_ptr<Dictionary>, ImageSearchService::_max_dict> g_file_dicts;
 std::shared_mutex g_file_dict_mutex;
 
-template <typename Target, typename Value> bool set_out(Target *target, Value value) {
-    if (!target)
-        return false;
-    *target = static_cast<Target>(value);
-    return true;
-}
-
 color_t sim_to_point_color_diff(double sim) {
     if (sim < 0.0 || sim > 1.0)
         sim = 1.0;

@@ -16,13 +16,6 @@ namespace {
 using ATL::CComPtr;
 using op::hook::D3D11TextureMap;
 
-template <typename Target, typename Value> bool set_out(Target *target, Value value) {
-    if (!target)
-        return false;
-    *target = static_cast<Target>(value);
-    return true;
-}
-
 class DxgiFrameLease {
   public:
     explicit DxgiFrameLease(IDXGIOutputDuplication *duplication) : duplication_(duplication) {
@@ -409,13 +402,7 @@ bool DxgiCapture::GetDesktopFrame(ID3D11Texture2D **texture, DWORD timeout_ms, b
 }
 
 void DxgiCapture::fmtFrameInfo(void *dst, HWND hwnd, int w, int h, bool inc) {
-    m_frameInfo.hwnd = (unsigned __int64)hwnd;
-    m_frameInfo.frameId = inc ? m_frameInfo.frameId + 1 : m_frameInfo.frameId;
-    m_frameInfo.time = static_cast<unsigned __int32>(::GetTickCount64());
-    m_frameInfo.width = w;
-    m_frameInfo.height = h;
-    m_frameInfo.fmtChk();
-    memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
+    WriteFrameInfo(m_frameInfo, dst, hwnd, w, h, inc);
 }
 
 } // namespace op::capture

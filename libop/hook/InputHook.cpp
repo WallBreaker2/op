@@ -149,10 +149,6 @@ void remove_input_hooks() {
     }
     g_hookTargets.clear();
 }
-template <typename Target, typename Value> void set_out(Target *target, Value value) {
-    if (target)
-        *target = static_cast<Target>(value);
-}
 
 using GetDeviceStateFn = HRESULT(__stdcall *)(IDirectInputDevice8W *, DWORD, LPVOID);
 using GetDeviceDataFn = HRESULT(__stdcall *)(IDirectInputDevice8W *, DWORD, LPDIDEVICEOBJECTDATA, LPDWORD, DWORD);

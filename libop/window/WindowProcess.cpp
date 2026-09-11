@@ -1,6 +1,7 @@
 #include "WindowService.h"
 
 #include "base/WindowsHandle.h"
+#include "base/Utils.h"
 
 #include <Tlhelp32.h>
 #include <cwchar>
@@ -15,11 +16,6 @@
 namespace op {
 
 namespace {
-
-template <typename Target, typename Value> void set_out(Target *target, Value value) {
-    if (target)
-        *target = static_cast<Target>(value);
-}
 
 void append_process_id(std::wstring &result, DWORD pid) {
     if (!result.empty())

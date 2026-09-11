@@ -300,13 +300,7 @@ void GdiCapture::release_device_context() {
 }
 
 void GdiCapture::fmtFrameInfo(void *dst, HWND hwnd, int w, int h) {
-    m_frameInfo.hwnd = (unsigned __int64)hwnd;
-    m_frameInfo.frameId++;
-    m_frameInfo.time = static_cast<unsigned int>(::GetTickCount64());
-    m_frameInfo.width = w;
-    m_frameInfo.height = h;
-    m_frameInfo.fmtChk();
-    memcpy(dst, &m_frameInfo, sizeof(m_frameInfo));
+    WriteFrameInfo(m_frameInfo, dst, hwnd, w, h, true);
 }
 
 } // namespace op::capture

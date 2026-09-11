@@ -1,6 +1,7 @@
 #ifndef OP_CAPTURE_FRAME_INFO_H_
 #define OP_CAPTURE_FRAME_INFO_H_
 #include <Windows.h>
+#include <cstring>
 #include <ostream>
 
 namespace op::capture {
@@ -27,6 +28,18 @@ struct FrameInfo {
     }
 };
 #pragma pack()
+// 采集后端共用的帧头写入：更新自身 FrameInfo 后整块拷到共享内存头部。
+// inc=false 用于同一帧被多次取用时保持 frameId 不变。
+inline void WriteFrameInfo(FrameInfo &info, void *dst, HWND hwnd, int w, int h, bool inc = true) {
+    info.hwnd = (unsigned __int64)hwnd;
+    if (inc)
+        info.frameId++;
+    info.time = static_cast<unsigned __int32>(::GetTickCount64());
+    info.width = w;
+    info.height = h;
+    info.fmtChk();
+    memcpy(dst, &info, sizeof(info));
+}
 
 } // namespace op::capture
 
