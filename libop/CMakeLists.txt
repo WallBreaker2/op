@@ -295,7 +295,6 @@ set(OP_PRIVATE_INCLUDE_DIRS
   "${PROJECT_BINARY_DIR}"
   "${PROJECT_SOURCE_DIR}/include"
   "${CMAKE_CURRENT_SOURCE_DIR}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/runtime"
   "${CMAKE_CURRENT_SOURCE_DIR}/window"
   "${CMAKE_CURRENT_SOURCE_DIR}/image"
   "${CMAKE_CURRENT_SOURCE_DIR}/network"
@@ -345,7 +344,7 @@ target_compile_definitions(${op_com} PRIVATE
 target_include_directories(${op_com}
   PRIVATE ${OP_PRIVATE_INCLUDE_DIRS}
 )
-set_target_properties(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"${CMAKE_CURRENT_SOURCE_DIR}/com/op.def\" /NODEFAULTLIB:\"mfc110d\"")
+set_target_properties(${op_com} PROPERTIES LINK_FLAGS "/DEF:\"${CMAKE_CURRENT_SOURCE_DIR}/com/op.def\"")
 
 add_library(${op_c_api} SHARED)
 target_sources(${op_c_api} PRIVATE ${OP_C_API_SOURCES})
