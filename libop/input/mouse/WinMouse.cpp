@@ -535,231 +535,92 @@ long WinMouse::SetMouseTrajectory(int mode, int min_duration, int max_duration, 
     return 1;
 }
 
-long WinMouse::LeftClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return send_input_click(MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, 0, MOUSE_NORMAL_DELAY);
+// 每个鼠标按钮都要在 IN_NORMAL(SendInput) 和 IN_WINDOWS(窗口消息) 两条路径上各写一遍分发，
+// 22 个访问器合计 44 处同构 switch。这里把"一次声明、两路分发"收敛成宏：
+// 每个按钮只需给出它在两条路径上的编码常量，两条分支就不会再各自漂移。
+#define OP_WIN_MOUSE_BUTTON(Name, down_flag, up_flag, down_msg, up_msg, dbl_msg, mk) \
+    long WinMouse::Name##Down() { \
+        long ret = 0; \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            ret = send_input_mouse(down_flag); \
+            break; \
+        case INPUT_TYPE::IN_WINDOWS: \
+            ret = send_windows_button(down_msg, mk, true); \
+            break; \
+        } \
+        return ret; \
+    } \
+    long WinMouse::Name##Up() { \
+        long ret = 0; \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            ret = send_input_mouse(up_flag); \
+            break; \
+        case INPUT_TYPE::IN_WINDOWS: \
+            ret = send_windows_button(up_msg, mk, false); \
+            break; \
+        } \
+        return ret; \
+    } \
+    long WinMouse::Name##Click() { \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            return send_input_click(down_flag, up_flag, 0, MOUSE_NORMAL_DELAY); \
+        case INPUT_TYPE::IN_WINDOWS: \
+            return button_click(&WinMouse::Name##Down, &WinMouse::Name##Up, MOUSE_WINDOWS_DELAY); \
+        } \
+        return 0; \
+    } \
+    long WinMouse::Name##DoubleClick() { \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            return normal_double_click(&WinMouse::Name##Click, MOUSE_NORMAL_DELAY); \
+        case INPUT_TYPE::IN_WINDOWS: \
+            return button_double_click(&WinMouse::Name##Click, dbl_msg, up_msg, mk, MOUSE_WINDOWS_DELAY); \
+        } \
+        return 0; \
     }
 
-    case INPUT_TYPE::IN_WINDOWS: {
-        return button_click(&WinMouse::LeftDown, &WinMouse::LeftUp, MOUSE_WINDOWS_DELAY);
-    }
-    }
-    return 0;
-}
-
-long WinMouse::LeftDoubleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return normal_double_click(&WinMouse::LeftClick, MOUSE_NORMAL_DELAY);
-    }
-    case INPUT_TYPE::IN_WINDOWS: {
-        return button_double_click(&WinMouse::LeftClick, WM_LBUTTONDBLCLK, WM_LBUTTONUP, MK_LBUTTON,
-                                   MOUSE_WINDOWS_DELAY);
-    }
-    }
-    return 0;
-}
-
-long WinMouse::LeftDown() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_LEFTDOWN);
-        break;
-    }
-
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_LBUTTONDOWN, MK_LBUTTON, true);
-        break;
-    }
-    }
-    return ret;
-}
-
-long WinMouse::LeftUp() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_LEFTUP);
-        break;
+// 侧键走 send_windows_xbutton / xbutton 这条独立通道（WPARAM 高字携带 xbutton 标识），
+// 因此单击需要传入 xbtn 作为 mouseData，双击走 xbutton_double_click。
+#define OP_WIN_MOUSE_XBUTTON(Name, xbtn, mk) \
+    long WinMouse::Name##Down() { \
+        return xbutton(xbtn, mk, true); \
+    } \
+    long WinMouse::Name##Up() { \
+        return xbutton(xbtn, mk, false); \
+    } \
+    long WinMouse::Name##Click() { \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            return send_input_click(MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, xbtn, MOUSE_NORMAL_DELAY); \
+        case INPUT_TYPE::IN_WINDOWS: \
+            return button_click(&WinMouse::Name##Down, &WinMouse::Name##Up, MOUSE_WINDOWS_DELAY); \
+        } \
+        return 0; \
+    } \
+    long WinMouse::Name##DoubleClick() { \
+        switch (_mode) { \
+        case INPUT_TYPE::IN_NORMAL: \
+            return normal_double_click(&WinMouse::Name##Click, MOUSE_NORMAL_DELAY); \
+        case INPUT_TYPE::IN_WINDOWS: \
+            return xbutton_double_click(&WinMouse::Name##Click, xbtn, mk, MOUSE_WINDOWS_DELAY); \
+        } \
+        return 0; \
     }
 
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_LBUTTONUP, MK_LBUTTON, false);
-        break;
-    }
-    }
-    return ret;
-}
+OP_WIN_MOUSE_BUTTON(Left, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_LBUTTONDBLCLK,
+                    MK_LBUTTON)
+OP_WIN_MOUSE_BUTTON(Middle, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, WM_MBUTTONDOWN, WM_MBUTTONUP,
+                    WM_MBUTTONDBLCLK, MK_MBUTTON)
+OP_WIN_MOUSE_BUTTON(Right, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, WM_RBUTTONDOWN, WM_RBUTTONUP,
+                    WM_RBUTTONDBLCLK, MK_RBUTTON)
+OP_WIN_MOUSE_XBUTTON(XButton1, XBUTTON1, MK_XBUTTON1)
+OP_WIN_MOUSE_XBUTTON(XButton2, XBUTTON2, MK_XBUTTON2)
 
-long WinMouse::MiddleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL:
-        return send_input_click(MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, 0, MOUSE_NORMAL_DELAY);
-    case INPUT_TYPE::IN_WINDOWS:
-        return button_click(&WinMouse::MiddleDown, &WinMouse::MiddleUp, MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::MiddleDoubleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return normal_double_click(&WinMouse::MiddleClick, MOUSE_NORMAL_DELAY);
-    }
-    case INPUT_TYPE::IN_WINDOWS:
-        return button_double_click(&WinMouse::MiddleClick, WM_MBUTTONDBLCLK, WM_MBUTTONUP, MK_MBUTTON,
-                                   MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::MiddleDown() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_MIDDLEDOWN);
-        break;
-    }
-
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_MBUTTONDOWN, MK_MBUTTON, true);
-        break;
-    }
-    }
-    return ret;
-}
-
-long WinMouse::MiddleUp() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_MIDDLEUP);
-        break;
-    }
-
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_MBUTTONUP, MK_MBUTTON, false);
-        break;
-    }
-    }
-    return ret;
-}
-
-long WinMouse::RightClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return send_input_click(MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, 0, MOUSE_NORMAL_DELAY);
-    }
-
-    case INPUT_TYPE::IN_WINDOWS: {
-        return button_click(&WinMouse::RightDown, &WinMouse::RightUp, MOUSE_WINDOWS_DELAY);
-    }
-    }
-    return 0;
-}
-
-long WinMouse::RightDoubleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return normal_double_click(&WinMouse::RightClick, MOUSE_NORMAL_DELAY);
-    }
-    case INPUT_TYPE::IN_WINDOWS:
-        return button_double_click(&WinMouse::RightClick, WM_RBUTTONDBLCLK, WM_RBUTTONUP, MK_RBUTTON,
-                                   MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::RightDown() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_RIGHTDOWN);
-        break;
-    }
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_RBUTTONDOWN, MK_RBUTTON, true);
-        break;
-    }
-    }
-    return ret;
-}
-
-long WinMouse::RightUp() {
-    long ret = 0;
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        ret = send_input_mouse(MOUSEEVENTF_RIGHTUP);
-        break;
-    }
-
-    case INPUT_TYPE::IN_WINDOWS: {
-        ret = send_windows_button(WM_RBUTTONUP, MK_RBUTTON, false);
-        break;
-    }
-    }
-    return ret;
-}
-
-long WinMouse::XButton1Click() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL:
-        return send_input_click(MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, XBUTTON1, MOUSE_NORMAL_DELAY);
-    case INPUT_TYPE::IN_WINDOWS:
-        return button_click(&WinMouse::XButton1Down, &WinMouse::XButton1Up, MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::XButton1DoubleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return normal_double_click(&WinMouse::XButton1Click, MOUSE_NORMAL_DELAY);
-    }
-    case INPUT_TYPE::IN_WINDOWS:
-        return xbutton_double_click(&WinMouse::XButton1Click, XBUTTON1, MK_XBUTTON1, MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::XButton1Down() {
-    return xbutton(XBUTTON1, MK_XBUTTON1, true);
-}
-
-long WinMouse::XButton1Up() {
-    return xbutton(XBUTTON1, MK_XBUTTON1, false);
-}
-
-long WinMouse::XButton2Click() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL:
-        return send_input_click(MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, XBUTTON2, MOUSE_NORMAL_DELAY);
-    case INPUT_TYPE::IN_WINDOWS:
-        return button_click(&WinMouse::XButton2Down, &WinMouse::XButton2Up, MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::XButton2DoubleClick() {
-    switch (_mode) {
-    case INPUT_TYPE::IN_NORMAL: {
-        return normal_double_click(&WinMouse::XButton2Click, MOUSE_NORMAL_DELAY);
-    }
-    case INPUT_TYPE::IN_WINDOWS:
-        return xbutton_double_click(&WinMouse::XButton2Click, XBUTTON2, MK_XBUTTON2, MOUSE_WINDOWS_DELAY);
-    }
-    return 0;
-}
-
-long WinMouse::XButton2Down() {
-    return xbutton(XBUTTON2, MK_XBUTTON2, true);
-}
-
-long WinMouse::XButton2Up() {
-    return xbutton(XBUTTON2, MK_XBUTTON2, false);
-}
+#undef OP_WIN_MOUSE_BUTTON
+#undef OP_WIN_MOUSE_XBUTTON
 
 long WinMouse::Wheel(int delta) {
     return send_wheel(MOUSEEVENTF_WHEEL, WM_MOUSEWHEEL, delta);
