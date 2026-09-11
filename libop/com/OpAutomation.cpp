@@ -41,6 +41,15 @@ HRESULT RunCvRetOnly(LONG *ret, Callback &&callback) {
 
 } // namespace
 
+// 形参恰为 (LONG *ret) 的纯转发：宏内 obj.<Name>(ret) 由同一个 Name 推导，
+// 方法名写错会直接编译失败，因此不可能悄悄转发到错误的对象上。
+#define OP_COM_FORWARD(Name) \
+    STDMETHODIMP OpAutomation::Name(LONG *ret) { \
+        obj.Name(ret); \
+        return S_OK; \
+    }
+
+
 OpAutomation::OpAutomation() {
 }
 
@@ -75,15 +84,9 @@ STDMETHODIMP OpAutomation::GetBasePath(BSTR *path) {
     return S_OK;
 }
 
-STDMETHODIMP OpAutomation::GetID(LONG *ret) {
-    obj.GetID(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(GetID)
 
-STDMETHODIMP OpAutomation::GetLastError(LONG *ret) {
-    obj.GetLastError(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(GetLastError)
 
 STDMETHODIMP OpAutomation::SetShowErrorMsg(LONG show_type, LONG *ret) {
     obj.SetShowErrorMsg(show_type, ret);
@@ -435,11 +438,7 @@ STDMETHODIMP OpAutomation::BindWindowEx(LONGLONG display_hwnd, LONGLONG input_hw
     return S_OK;
 }
 
-STDMETHODIMP OpAutomation::UnBindWindow(LONG *ret) {
-    obj.UnBindWindow(ret);
-
-    return S_OK;
-}
+OP_COM_FORWARD(UnBindWindow)
 
 STDMETHODIMP OpAutomation::LockInput(LONG lock, LONG *ret) {
     obj.LockInput(lock, ret);
@@ -452,10 +451,7 @@ STDMETHODIMP OpAutomation::GetBindWindow(LONGLONG *ret) {
     return SetOutValue(ret, hwnd);
 }
 
-STDMETHODIMP OpAutomation::IsBind(LONG *ret) {
-    obj.IsBind(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(IsBind)
 
 STDMETHODIMP OpAutomation::GetCursorPos(VARIANT *x, VARIANT *y, LONG *ret) {
     x->vt = y->vt = VT_I4;
@@ -528,136 +524,49 @@ STDMETHODIMP OpAutomation::SetMouseTrajectory(LONG mode, LONG min_duration, LONG
     return S_OK;
 }
 
-STDMETHODIMP OpAutomation::LeftClick(LONG *ret) {
-    obj.LeftClick(ret);
+OP_COM_FORWARD(LeftClick)
 
-    return S_OK;
-}
+OP_COM_FORWARD(LeftDoubleClick)
 
-STDMETHODIMP OpAutomation::LeftDoubleClick(LONG *ret) {
-    obj.LeftDoubleClick(ret);
+OP_COM_FORWARD(LeftDown)
 
-    return S_OK;
-}
+OP_COM_FORWARD(LeftUp)
 
-STDMETHODIMP OpAutomation::LeftDown(LONG *ret) {
-    obj.LeftDown(ret);
+OP_COM_FORWARD(MiddleClick)
 
-    return S_OK;
-}
+OP_COM_FORWARD(MiddleDoubleClick)
 
-STDMETHODIMP OpAutomation::LeftUp(LONG *ret) {
-    obj.LeftUp(ret);
+OP_COM_FORWARD(MiddleDown)
 
-    return S_OK;
-}
+OP_COM_FORWARD(MiddleUp)
 
-STDMETHODIMP OpAutomation::MiddleClick(LONG *ret) {
-    obj.MiddleClick(ret);
+OP_COM_FORWARD(RightClick)
 
-    return S_OK;
-}
+OP_COM_FORWARD(RightDoubleClick)
 
-STDMETHODIMP OpAutomation::MiddleDoubleClick(LONG *ret) {
-    obj.MiddleDoubleClick(ret);
+OP_COM_FORWARD(RightDown)
 
-    return S_OK;
-}
+OP_COM_FORWARD(RightUp)
 
-STDMETHODIMP OpAutomation::MiddleDown(LONG *ret) {
-    obj.MiddleDown(ret);
+OP_COM_FORWARD(XButton1Click)
 
-    return S_OK;
-}
+OP_COM_FORWARD(XButton1DoubleClick)
 
-STDMETHODIMP OpAutomation::MiddleUp(LONG *ret) {
-    obj.MiddleUp(ret);
+OP_COM_FORWARD(XButton1Down)
 
-    return S_OK;
-}
+OP_COM_FORWARD(XButton1Up)
 
-STDMETHODIMP OpAutomation::RightClick(LONG *ret) {
-    obj.RightClick(ret);
+OP_COM_FORWARD(XButton2Click)
 
-    return S_OK;
-}
+OP_COM_FORWARD(XButton2DoubleClick)
 
-STDMETHODIMP OpAutomation::RightDoubleClick(LONG *ret) {
-    obj.RightDoubleClick(ret);
+OP_COM_FORWARD(XButton2Down)
 
-    return S_OK;
-}
+OP_COM_FORWARD(XButton2Up)
 
-STDMETHODIMP OpAutomation::RightDown(LONG *ret) {
-    obj.RightDown(ret);
+OP_COM_FORWARD(WheelDown)
 
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::RightUp(LONG *ret) {
-    obj.RightUp(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton1Click(LONG *ret) {
-    obj.XButton1Click(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton1DoubleClick(LONG *ret) {
-    obj.XButton1DoubleClick(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton1Down(LONG *ret) {
-    obj.XButton1Down(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton1Up(LONG *ret) {
-    obj.XButton1Up(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton2Click(LONG *ret) {
-    obj.XButton2Click(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton2DoubleClick(LONG *ret) {
-    obj.XButton2DoubleClick(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton2Down(LONG *ret) {
-    obj.XButton2Down(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::XButton2Up(LONG *ret) {
-    obj.XButton2Up(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::WheelDown(LONG *ret) {
-    obj.WheelDown(ret);
-
-    return S_OK;
-}
-
-STDMETHODIMP OpAutomation::WheelUp(LONG *ret) {
-    obj.WheelUp(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(WheelUp)
 
 STDMETHODIMP OpAutomation::Wheel(LONG delta, LONG *ret) {
     obj.Wheel(delta, ret);
@@ -1006,10 +915,7 @@ STDMETHODIMP OpAutomation::GetDictCount(LONG idx, LONG *ret) {
 }
 
 // 获取当前使用的字库序号
-STDMETHODIMP OpAutomation::GetNowDict(LONG *ret) {
-    obj.GetNowDict(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(GetNowDict)
 
 // 根据指定的范围,以及指定的颜色描述，提取点阵信息，类似于大漠工具里的单独提取
 STDMETHODIMP OpAutomation::FetchWord(LONG x1, LONG y1, LONG x2, LONG y2, BSTR color, BSTR word, BSTR *ret_str) {
@@ -1363,20 +1269,14 @@ STDMETHODIMP OpAutomation::CvRemoveTemplate(BSTR name, LONG *ret) {
     return S_OK;
 }
 
-STDMETHODIMP OpAutomation::CvRemoveAllTemplates(LONG *ret) {
-    obj.CvRemoveAllTemplates(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(CvRemoveAllTemplates)
 
 STDMETHODIMP OpAutomation::CvHasTemplate(BSTR name, LONG *ret) {
     obj.CvHasTemplate(name, ret);
     return S_OK;
 }
 
-STDMETHODIMP OpAutomation::CvGetTemplateCount(LONG *ret) {
-    obj.CvGetTemplateCount(ret);
-    return S_OK;
-}
+OP_COM_FORWARD(CvGetTemplateCount)
 
 STDMETHODIMP OpAutomation::CvGetAllTemplateNames(BSTR *retstr) {
     wstring s;
