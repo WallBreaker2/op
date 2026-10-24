@@ -61,3 +61,40 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# 二进制资产显式标记：-diff -merge -text（即 binary）
+#
+# 背景：本仓库历史上提交过 BlackBone.lib / hekate.lib / *.chm / *.bmp 等
+# 数百 MB 预编译产物，使 .git 一度膨胀到 117 MB；2026-10-24 已用
+# git-filter-repo 从全部历史中剥离。预编译依赖统一由 build.py 拉取
+# （vcpkg + BlackBone），不要入库。
+#
+# 注意：本文件只能约束 diff / merge / 行尾转换，无法阻止 git add 大文件；
+# 体积防线依赖 .gitignore 与提交前检查（见 .pre-commit-config.yaml）。
+###############################################################################
+*.lib       binary
+*.a         binary
+*.dll       binary
+*.exe       binary
+*.pyd       binary
+*.obj       binary
+*.pdb       binary
+*.ilk       binary
+*.bmp       binary
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.chm       binary
+*.chm.bak   binary
+*.zip       binary
+*.rar       binary
+*.7z        binary
+*.pdf       binary
+*.doc       binary
+*.docx      binary
+*.xls       binary
+*.xlsx      binary
+*.nupkg     binary
