@@ -129,7 +129,7 @@ long op::Op::SetOcrEngine(const wchar_t *path_of_engine, const wchar_t *dll_name
     return op::ocr::HttpOcrService::getInstance()->init(engine, dll, vstr) == 0 ? 1 : 0;
 }
 void op::Op::SetDict(long idx, const wchar_t *file_name, long *ret) {
-    internal::set_result(ret, m_context->image_proc.SetDict(idx, file_name));
+    internal::set_result(ret, m_context->image_proc.SetDict(idx, internal::wstr(file_name)));
 }
 
 void op::Op::GetDict(long idx, long font_index, std::wstring &retstr) {
@@ -148,10 +148,10 @@ void op::Op::UseDict(long idx, long *ret) {
 
 // 给指定的字库中添加一条字库信息
 void op::Op::AddDict(long idx, const wchar_t *dict_info, long *ret) {
-    internal::set_result(ret, m_context->image_proc.AddDict(idx, dict_info));
+    internal::set_result(ret, m_context->image_proc.AddDict(idx, internal::wstr(dict_info)));
 }
 void op::Op::SaveDict(long idx, const wchar_t *file_name, long *ret) {
-    internal::set_result(ret, m_context->image_proc.SaveDict(idx, file_name));
+    internal::set_result(ret, m_context->image_proc.SaveDict(idx, internal::wstr(file_name)));
 }
 // 清空指定的字库
 void op::Op::ClearDict(long idx, long *ret) {

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <climits>
 #include <cstddef>
 #include <cstdlib>
 #include <cwctype>
@@ -12,6 +13,9 @@
 namespace op::capture {
 
 namespace {
+
+// 外部缓冲区的尺寸上限：位图/BMP 都要在这之内，避免用畸形参数去构造一个几十 GB 的 span。
+constexpr long long kMaxImagePixels = 1LL << 28;
 
 std::wstring trim_ws(const std::wstring &value) {
     size_t start = 0;
@@ -30,6 +34,11 @@ bool parse_ptr(const std::wstring &text, byte *&ptr) {
     if (input.empty()) {
         return false;
     }
+    // 不接受符号位：wcstoull(L"-1") 会回绕成 ULLONG_MAX 且不报错，
+    // 等于把一个野指针放进来，随后按 w*h*4 读取就会 AV。
+    if (input.front() == L'-' || input.front() == L'+') {
+        return false;
+    }
     errno = 0;
     wchar_t *end = nullptr;
     auto value = wcstoull(input.c_str(), &end, 0);
@@ -40,6 +49,10 @@ bool parse_ptr(const std::wstring &text, byte *&ptr) {
         ++end;
     }
     if (*end != L'\0' || errno == ERANGE || value == 0) {
+        return false;
+    }
+    // x86 构建里 uintptr_t 只有 32 位：超出宽度的地址会被静默截断成另一个地址，必须显式拒绝。
+    if (value > static_cast<unsigned long long>(UINTPTR_MAX)) {
         return false;
     }
     ptr = reinterpret_cast<byte *>(static_cast<uintptr_t>(value));
@@ -60,7 +73,9 @@ bool parse_positive_int(const std::wstring &text, int &value) {
     while (*end != L'\0' && iswspace(*end)) {
         ++end;
     }
-    if (*end != L'\0' || errno == ERANGE || parsed <= 0) {
+    // 原来只判了 <=0/ERANGE，然后 static_cast<int>：x64 上 "99999999999" 能通过 wcstol
+    // （long 是 64 位），截断成 int 后变成一个完全不同的尺寸。
+    if (*end != L'\0' || errno == ERANGE || parsed <= 0 || parsed > INT_MAX) {
         return false;
     }
     value = static_cast<int>(parsed);
@@ -119,6 +134,10 @@ bool read_bmp_image(const std::byte *ptr, Image &dst) {
     if (bfh.bfType != static_cast<WORD>(0x4d42) || bih.biWidth <= 0 || bih.biHeight == 0) {
         return false;
     }
+    // 只认 BITMAPINFOHEADER：BITMAPCOREHEADER(12 字节) 会被按 40 字节解释成垃圾宽高。
+    if (bih.biSize != sizeof(BITMAPINFOHEADER) || bih.biPlanes != 1) {
+        return false;
+    }
     if (bih.biBitCount != 24 && bih.biBitCount != 32) {
         return false;
     }
@@ -128,18 +147,31 @@ bool read_bmp_image(const std::byte *ptr, Image &dst) {
     if (bfh.bfOffBits < sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)) {
         return false;
     }
+    // biHeight == INT_MIN 时 -bih.biHeight 是 UB，先拒掉。
+    if (bih.biHeight == INT_MIN) {
+        return false;
+    }
 
-    int width = bih.biWidth;
-    int height = bih.biHeight < 0 ? -bih.biHeight : bih.biHeight;
-    int src_stride = ((width * bih.biBitCount + 31) / 32) * 4;
-    const auto pixelBytes = static_cast<size_t>(src_stride) * static_cast<size_t>(height);
+    // 全程用 64 位算：原来 width*biBitCount 是 int 乘法，超大宽度会溢出成负数，
+    // 随后再转 size_t 就变成一个巨大的跨度。
+    const long long width64 = bih.biWidth;
+    const long long height64 = bih.biHeight < 0 ? -static_cast<long long>(bih.biHeight) : bih.biHeight;
+    if (width64 <= 0 || height64 <= 0 || width64 * height64 > kMaxImagePixels) {
+        return false;
+    }
+
+    const int width = static_cast<int>(width64);
+    const int height = static_cast<int>(height64);
+    const long long src_stride64 = ((width64 * bih.biBitCount + 31) / 32) * 4;
+    const auto pixelBytes = static_cast<size_t>(src_stride64 * height64);
     std::span<const std::byte> pixels(ptr + bfh.bfOffBits, pixelBytes);
     bool top_down = bih.biHeight < 0;
 
     dst.create(width, height);
     for (int y = 0; y < height; ++y) {
-        const auto src_row = pixels.subspan(static_cast<size_t>(top_down ? y : (height - 1 - y)) * src_stride,
-                                            static_cast<size_t>(src_stride));
+        const auto src_row = pixels.subspan(static_cast<size_t>(top_down ? y : (height - 1 - y)) *
+                                                static_cast<size_t>(src_stride64),
+                                            static_cast<size_t>(src_stride64));
         auto dst_row = dst.ptr<uchar>(y);
         if (bih.biBitCount == 32) {
             memcpy(dst_row, src_row.data(), static_cast<size_t>(width) * 4);
@@ -173,6 +205,9 @@ bool ParseMemoryImageSource(const std::wstring &method, Image &output, std::wstr
         int width = 0;
         int height = 0;
         if (!parse_positive_int(parts[1], width) || !parse_positive_int(parts[2], height)) {
+            return false;
+        }
+        if (static_cast<long long>(width) * height > kMaxImagePixels) {
             return false;
         }
 

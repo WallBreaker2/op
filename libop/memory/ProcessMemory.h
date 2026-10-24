@@ -27,6 +27,18 @@ class ProcessMemory {
     int64_t ReadInt(HWND hwnd, const wstring &address, long type);
     long WriteInt(HWND hwnd, const wstring &address, long type, int64_t value);
 
+    // 批量形状：一次 prepare_process、一次遍历，把“每调用一次就要付的固定开销”
+    // （进程上下文准备、字符串转换、异常帧）摊到整批上。
+    // addresses/count 按顺序一一对应；values[i] 读失败时写 0，ok[i]（可空）标记成功与否。
+    // 返回成功的条数。
+    long ReadIntBatch(HWND hwnd, const wstring *addresses, long count, long type, int64_t *values,
+                      bool *ok = nullptr);
+    long WriteIntBatch(HWND hwnd, const wstring *addresses, long count, long type, const int64_t *values,
+                       bool *ok = nullptr);
+    // 每项读 item_size 字节，连续写进 buffer（第 i 项落在 buffer + i*item_size）。
+    long ReadRawBatch(HWND hwnd, const wstring *addresses, long count, size_t item_size, void *buffer,
+                      bool *ok = nullptr);
+
     // 浮点数按目标进程内存里的原始 float/double 读取。
     bool ReadFloat(HWND hwnd, const wstring &address, float *value);
     float ReadFloat(HWND hwnd, const wstring &address);
@@ -55,9 +67,23 @@ class ProcessMemory {
   private:
     // 每次读写前准备进程上下文，当前进程场景不用 attach。
     bool prepare_process(HWND hwnd);
+    // 目标变了或跨进程读写失败时丢掉缓存的 attach，下一次重新 Open。
+    void invalidate_attach();
+    // 地址表达式解析很贵（含 <module> 时还要查模块基址），按“目标 + 表达式原文”缓存。
+    size_t resolve_address(const wstring &address);
 
     blackbone::Process _proc;
-    HWND _hwnd;
+    HWND _hwnd = nullptr;
+    // 已 attach 的目标 pid，0 表示当前没有跨进程上下文。
+    // BlackBone 的 Attach() 是 Detach()+OpenProcess()，每次调用都做等于白付一次句柄 churn。
+    DWORD _attached_pid = 0;
+    // 小容量解析缓存：脚本里同一地址会被反复读写，命中就省掉整段解析。
+    struct AddressCacheEntry {
+        wstring address;
+        size_t resolved = 0;
+    };
+    vector<AddressCacheEntry> _addr_cache;
+    DWORD _addr_cache_pid = 0;
 };
 
 } // namespace op

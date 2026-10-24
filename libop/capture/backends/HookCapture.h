@@ -30,6 +30,13 @@ class HookCapture : public ICaptureBackend {
 
   private:
     bool ensureSharedFrameCapacity(int width, int height);
+    // 轮询等注入侧写出第一帧，true = 等到了。抽出来是因为 bind 后的 waitForBindReady
+    // 和 requestCapture 的首帧重试都要用同一套判定。
+    bool waitForFrameReady(DWORD timeout_ms);
+    // 注入式后端的像素帧要写进命名共享段，容量必须按窗口面积预留。
+    bool RequiresSharedPixelBuffer() const override {
+        return true;
+    }
     // blackbone::Process _process;
     std::wstring m_opPath;
 };

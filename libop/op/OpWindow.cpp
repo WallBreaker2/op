@@ -118,7 +118,14 @@ void op::Op::EnumWindowByProcess(const wchar_t *process_name, const wchar_t *tit
 }
 
 void op::Op::ClientToScreen(LONG_PTR hwnd, long *x, long *y, long *bret) {
-    internal::set_result(bret, m_context->window_service.ClientToScreen(reinterpret_cast<HWND>(hwnd), *x, *y));
+    // x/y 是可选出参：旧实现无条件解引用，调用方传 nullptr（C API 直接调用、或 COM 层裁剪参数）会崩。
+    // 与 ScreenToClient 保持同一套判空语义：缺省按 0 处理，算完再回写。
+    LONG client_x = x ? static_cast<LONG>(*x) : 0;
+    LONG client_y = y ? static_cast<LONG>(*y) : 0;
+    const bool ok = m_context->window_service.ClientToScreen(reinterpret_cast<HWND>(hwnd), client_x, client_y);
+    internal::set_result(x, static_cast<long>(client_x));
+    internal::set_result(y, static_cast<long>(client_y));
+    internal::set_result(bret, ok ? 1L : 0L);
 }
 
 void op::Op::FindWindow(const wchar_t *class_name, const wchar_t *title, LONG_PTR *rethwnd) {
@@ -168,6 +175,15 @@ void op::Op::GetClientSize(LONG_PTR hwnd, long *width, long *height, long *nret)
 }
 
 void op::Op::GetForegroundFocus(LONG_PTR *rethwnd) {
+    // ::GetFocus() 只返回"调用线程"消息队列里的焦点窗口。本插件常在工作线程里被调用，
+    // 那样它恒为 NULL，与本入口的契约（顶层活动窗口中具有输入焦点的窗口）不符。
+    // 先按前台线程查（0 = 前台线程），拿不到再退回本线程。
+    GUITHREADINFO gti = {};
+    gti.cbSize = sizeof(gti);
+    if (::GetGUIThreadInfo(0, &gti) && gti.hwndFocus) {
+        internal::set_result(rethwnd, hwnd_result(gti.hwndFocus));
+        return;
+    }
     internal::set_result(rethwnd, hwnd_result(::GetFocus()));
 }
 
@@ -176,7 +192,6 @@ void op::Op::GetForegroundWindow(LONG_PTR *rethwnd) {
 }
 
 void op::Op::GetMousePointWindow(LONG_PTR *rethwnd) {
-    //::Sleep(2000);
     HWND hwnd = nullptr;
     m_context->window_service.GetMousePointWindow(hwnd);
     internal::set_result(rethwnd, hwnd_result(hwnd));
@@ -226,12 +241,16 @@ void op::Op::GetWindowTitle(LONG_PTR hwnd, std::wstring &rettitle) {
 }
 
 void op::Op::MoveWindow(LONG_PTR hwnd, long x, long y, long *nret) {
-    RECT winrect;
+    // 旧实现让 winrect 未初始化就参与计算：hwnd 无效时 GetWindowRect 失败，
+    // width/height 会是栈上垃圾，接着用垃圾尺寸调 MoveWindow 去搬一个非法窗口。
+    internal::set_result(nret, 0L);
+    RECT winrect = {};
     HWND target = reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd));
-    ::GetWindowRect(target, &winrect);
-    int width = winrect.right - winrect.left;
-    int height = winrect.bottom - winrect.top;
-    internal::set_result(nret, ::MoveWindow(target, x, y, width, height, false));
+    if (!::GetWindowRect(target, &winrect))
+        return;
+    const int width = winrect.right - winrect.left;
+    const int height = winrect.bottom - winrect.top;
+    internal::set_result(nret, ::MoveWindow(target, static_cast<int>(x), static_cast<int>(y), width, height, false));
 }
 
 void op::Op::ScreenToClient(LONG_PTR hwnd, long *x, long *y, long *nret) {
@@ -297,10 +316,13 @@ void op::Op::SetWindowTransparent(LONG_PTR hwnd, long trans, long *nret) {
 }
 
 void op::Op::SendString(LONG_PTR hwnd, const wchar_t *str, long *ret) {
-    internal::set_result(ret, m_context->window_service.SendString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str));
+    internal::set_result(
+        ret, m_context->window_service.SendString(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)),
+                                                  internal::wstr(str)));
 }
 
 void op::Op::SendStringIme(LONG_PTR hwnd, const wchar_t *str, long *ret) {
-    internal::set_result(ret,
-                         m_context->window_service.SendStringIme(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)), str));
+    internal::set_result(
+        ret, m_context->window_service.SendStringIme(reinterpret_cast<HWND>(static_cast<LONG_PTR>(hwnd)),
+                                                     internal::wstr(str)));
 }

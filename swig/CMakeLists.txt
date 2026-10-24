@@ -39,20 +39,21 @@ else()
         message(FATAL_ERROR "Python home not found. Please configure PYTHON64_ROOT/PYTHON32_ROOT or install Python 3.")
     endif()
 
-    if(EXISTS "${PYTHON_HOME}/python313.dll")
-        set(PYTHON_LIBRARY_NAME "python313")
-    elseif(EXISTS "${PYTHON_HOME}/python312.dll")
-        set(PYTHON_LIBRARY_NAME "python312")
-    elseif(EXISTS "${PYTHON_HOME}/python311.dll")
-        set(PYTHON_LIBRARY_NAME "python311")
-    elseif(EXISTS "${PYTHON_HOME}/python310.dll")
-        set(PYTHON_LIBRARY_NAME "python310")
-    elseif(EXISTS "${PYTHON_HOME}/python39.dll")
-        set(PYTHON_LIBRARY_NAME "python39")
-    endif()
+    # 版本无关：取 python3X.dll 与 libs/python3X.lib 成对存在的那个版本。
+    # 原来这里是 3.9~3.13 的硬编码链，新版本 Python 会直接落到下面的 FATAL_ERROR。
+    file(GLOB _pyop_python_dlls RELATIVE "${PYTHON_HOME}" "${PYTHON_HOME}/python3*.dll")
+    foreach(_pyop_dll IN LISTS _pyop_python_dlls)
+        if(NOT _pyop_dll MATCHES "^python[0-9]+\\.dll$")
+            continue()
+        endif()
+        string(REGEX REPLACE "\\.dll$" "" _pyop_stem "${_pyop_dll}")
+        if(EXISTS "${PYTHON_HOME}/libs/${_pyop_stem}.lib")
+            set(PYTHON_LIBRARY_NAME "${_pyop_stem}")
+        endif()
+    endforeach()
 
     if(PYTHON_LIBRARY_NAME STREQUAL "")
-        message(FATAL_ERROR "Unable to determine Python import library under ${PYTHON_HOME}")
+        message(FATAL_ERROR "Unable to determine Python import library under ${PYTHON_HOME} (looked for python3X.dll + libs/python3X.lib)")
     endif()
 
     target_include_directories(pyop PUBLIC

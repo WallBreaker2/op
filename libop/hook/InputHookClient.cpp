@@ -53,7 +53,12 @@ long call_set_input_hook(HWND hwnd, int mode) {
         auto remote = blackbone::MakeRemoteFunction<set_input_hook_t>(proc, dll_name, "SetInputHook");
         if (remote) {
             auto call_ret = remote(hwnd, mode);
-            ret = call_ret.result();
+            // 远程调用本身失败时 result(0) 只能给出 0，看不出"没执行"和"目标侧拒绝"的区别。
+            // 走 setlog_persistent：测试侧 SetShowErrorMsg(3) 只写 stdout，会被下一次成功跑覆盖。
+            if (!call_ret.success())
+                setlog_persistent(L"input hook SetInputHook remote call failed status=0x%X pid=%u hwnd=%p",
+                                  call_ret.status, pid, hwnd);
+            ret = call_ret.result(0);
         } else {
             setlog(L"remote function 'SetInputHook' not found in %s.", dll_name.c_str());
         }
@@ -82,7 +87,10 @@ long call_release_input_hook(HWND hwnd) {
     auto remote = blackbone::MakeRemoteFunction<release_input_hook_t>(proc, dll_name, "ReleaseInputHook");
     if (remote) {
         auto call_ret = remote();
-        ret = call_ret.result();
+        if (!call_ret.success())
+            setlog_persistent(L"input hook ReleaseInputHook remote call failed status=0x%X pid=%u hwnd=%p",
+                              call_ret.status, pid, hwnd);
+        ret = call_ret.result(0);
     } else {
         setlog(L"remote function 'ReleaseInputHook' not found in %s.", dll_name.c_str());
     }
@@ -110,7 +118,10 @@ long call_set_input_lock(HWND hwnd, int lock) {
     auto remote = blackbone::MakeRemoteFunction<set_input_lock_t>(proc, dll_name, "SetInputLock");
     if (remote) {
         auto call_ret = remote(lock);
-        ret = call_ret.result();
+        if (!call_ret.success())
+            setlog_persistent(L"input hook SetInputLock remote call failed status=0x%X pid=%u hwnd=%p lock=%d",
+                              call_ret.status, pid, hwnd, lock);
+        ret = call_ret.result(0);
     } else {
         setlog(L"remote function 'SetInputLock' not found in %s.", dll_name.c_str());
     }
@@ -143,10 +154,23 @@ bool call_cursor_shape(HWND hwnd, unsigned long long &hash, unsigned long long &
         return false;
     }
 
-    hash = static_cast<unsigned long long>(hash_low().result()) |
-           (static_cast<unsigned long long>(hash_high().result()) << 32);
-    meta = static_cast<unsigned long long>(meta_low().result()) |
-           (static_cast<unsigned long long>(meta_high().result()) << 32);
+    auto hash_low_ret = hash_low();
+    auto hash_high_ret = hash_high();
+    auto meta_low_ret = meta_low();
+    auto meta_high_ret = meta_high();
+    // 四段拼一个 64 位值，任何一段失败拼出来的都是错的 —— 直接判失败，别把 0 当形状。
+    if (!hash_low_ret.success() || !hash_high_ret.success() || !meta_low_ret.success() || !meta_high_ret.success()) {
+        setlog_persistent(L"input hook cursor shape remote call failed. pid=%u hwnd=%p statuses=0x%X/0x%X/0x%X/0x%X",
+                          pid, hwnd, hash_low_ret.status, hash_high_ret.status, meta_low_ret.status,
+                          meta_high_ret.status);
+        proc.Detach();
+        return false;
+    }
+
+    hash = static_cast<unsigned long long>(hash_low_ret.result(0)) |
+           (static_cast<unsigned long long>(hash_high_ret.result(0)) << 32);
+    meta = static_cast<unsigned long long>(meta_low_ret.result(0)) |
+           (static_cast<unsigned long long>(meta_high_ret.result(0)) << 32);
     proc.Detach();
     return true;
 }

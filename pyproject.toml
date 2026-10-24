@@ -39,6 +39,13 @@ cmake.version = ">=3.24"
 cmake.build-type = "Release"
 wheel.packages = ["python/pyop"]
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+# §72.51（审计 R-11）：wheel 一直是被构建、被发布，但装好之后从来没被验过 ——
+# 没有 test-command，pip wheel / cibuildwheel 都不跑任何东西。历史上出过
+# _binding.py 与 op_wrap.cxx 不同步导致 import 直接炸的问题，全靠人肉发现。
+# 设了 test-command 之后，构建期会在装好的 wheel 里跑这条 smoke：
+# 能 import、能建对象、Ver() 非空 —— 正好覆盖"pyd 与 op_*.dll 能不能加载"
+# 这个最容易断的地方。TOML 字面量字符串（单引号）包住，里面可自由写双引号。
+test-command = 'python -c "from pyop import Op; print(Op().Ver())"'
 
 [tool.scikit-build.cmake.define]
 OP_BUILD_TESTS = "OFF"

@@ -399,6 +399,8 @@ class ATL_NO_VTABLE OpAutomation
     // 类型化读写，和内存地址表达式规则保持一致。
     STDMETHOD(ReadInt)(LONGLONG hwnd, BSTR address, LONG type, LONGLONG *ret);
     STDMETHOD(WriteInt)(LONGLONG hwnd, BSTR address, LONG type, LONGLONG value, LONG *ret);
+    STDMETHOD(ReadIntBatch)(LONGLONG hwnd, BSTR addresses, LONG type, BSTR *ret);
+    STDMETHOD(WriteIntBatch)(LONGLONG hwnd, BSTR addresses, LONG type, BSTR values, LONG *ret);
     STDMETHOD(ReadFloat)(LONGLONG hwnd, BSTR address, DOUBLE *ret);
     STDMETHOD(WriteFloat)(LONGLONG hwnd, BSTR address, DOUBLE value, LONG *ret);
     STDMETHOD(ReadDouble)(LONGLONG hwnd, BSTR address, DOUBLE *ret);

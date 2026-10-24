@@ -81,50 +81,42 @@ if(build_swig_py AND NOT OP_PYTHON_WHEEL)
 
     if(NOT _op_python_home STREQUAL "")
         file(TO_CMAKE_PATH "${_op_python_home}" _op_python_home)
-        if(_op_target_is_64bit)
-            if(NOT EXISTS "${_op_python_home}/python313.dll"
-               AND NOT EXISTS "${_op_python_home}/python312.dll"
-               AND NOT EXISTS "${_op_python_home}/python311.dll"
-               AND NOT EXISTS "${_op_python_home}/python310.dll"
-               AND NOT EXISTS "${_op_python_home}/python39.dll")
-                message(STATUS "Disable swig python build: no supported 64-bit Python runtime found under ${_op_python_home}")
-                set(build_swig_py OFF)
-            elseif(NOT EXISTS "${_op_python_home}/libs/python313.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python312.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
-                message(STATUS "Disable swig python build: no matching 64-bit Python import library found under ${_op_python_home}/libs")
-                set(build_swig_py OFF)
+        # 按"同一版本的 python3X.dll 与 libs/python3X.lib 同时存在"认定可用 Python，
+        # 不再维护 3.9~3.13 的白名单：白名单会让新版本（如 3.14）被静默跳过——
+        # 缓存里 build_swig_py 仍是 ON，但 swig 子目录从不构建，bin/ 里没有 _pyop.pyd，构建却报成功。
+        file(GLOB _op_python_dlls RELATIVE "${_op_python_home}" "${_op_python_home}/python3*.dll")
+        set(_op_python_runtime "")
+        set(_op_python_import_lib "")
+        foreach(_op_dll IN LISTS _op_python_dlls)
+            if(NOT _op_dll MATCHES "^python[0-9]+\\.dll$")
+                continue()
             endif()
+            string(REGEX REPLACE "\\.dll$" "" _op_stem "${_op_dll}")
+            if(EXISTS "${_op_python_home}/libs/${_op_stem}.lib")
+                set(_op_python_runtime "${_op_python_home}/${_op_dll}")
+                set(_op_python_import_lib "${_op_python_home}/libs/${_op_stem}.lib")
+            endif()
+        endforeach()
+
+        if(_op_target_is_64bit AND _op_python_bitness STREQUAL "32")
+            message(STATUS "Disable swig python build: detected Python interpreter is 32-bit but target is x64")
+            set(build_swig_py OFF)
+        elseif(NOT _op_target_is_64bit AND _op_python_bitness STREQUAL "64")
+            message(STATUS "Disable swig python build: detected Python interpreter is 64-bit but current target is x86")
+            set(build_swig_py OFF)
+        elseif(_op_python_runtime STREQUAL "")
+            message(WARNING
+                "Disable swig python build: no python3X.dll + libs/python3X.lib pair under ${_op_python_home}. "
+                "Point PYTHON64_ROOT/PYTHON32_ROOT at a Python install that ships an import library, "
+                "or pass -Dbuild_swig_py=OFF to silence this warning.")
+            set(build_swig_py OFF)
         else()
-            if(_op_python_bitness STREQUAL "64")
-                message(STATUS "Disable swig python build: detected Python interpreter is 64-bit but current target is x86")
-                set(build_swig_py OFF)
-            elseif(NOT EXISTS "${_op_python_home}/python313.dll"
-                   AND NOT EXISTS "${_op_python_home}/python312.dll"
-                   AND NOT EXISTS "${_op_python_home}/python311.dll"
-                   AND NOT EXISTS "${_op_python_home}/python310.dll"
-                   AND NOT EXISTS "${_op_python_home}/python39.dll")
-                message(STATUS "Disable swig python build: no supported 32-bit Python runtime found under ${_op_python_home}")
-                set(build_swig_py OFF)
-            elseif(EXISTS "${_op_python_home}/python313.dll"
-                   OR EXISTS "${_op_python_home}/python312.dll"
-                   OR EXISTS "${_op_python_home}/python311.dll"
-                   OR EXISTS "${_op_python_home}/python310.dll"
-                   OR EXISTS "${_op_python_home}/python39.dll")
-                if(NOT EXISTS "${_op_python_home}/libs/python313.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python312.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python311.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python310.lib"
-                   AND NOT EXISTS "${_op_python_home}/libs/python39.lib")
-                    message(STATUS "Disable swig python build: no matching 32-bit Python import library found under ${_op_python_home}/libs")
-                    set(build_swig_py OFF)
-                endif()
-            endif()
+            message(STATUS "swig python build enabled: ${_op_python_runtime} (import lib ${_op_python_import_lib})")
         endif()
     else()
-        message(STATUS "Disable swig python build: Python runtime not found")
+        message(WARNING
+            "Disable swig python build: Python runtime not found. "
+            "Set PYTHON64_ROOT/PYTHON32_ROOT, or pass -Dbuild_swig_py=OFF to silence this warning.")
         set(build_swig_py OFF)
     endif()
 endif()
@@ -166,12 +158,15 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     endif()
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
     add_compile_options(/FS)
-    set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa")
-    set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa")
+    # 这里直接覆盖了 CMake 的默认 Release 配置，会把默认带的 /DNDEBUG 一起丢掉；
+    # 丢掉之后 assert() 在出货 DLL 里仍然生效（与 MIDL 生成代码写死 /D NDEBUG 的行为不一致），
+    # 断言触发时会弹框/abort。显式补回 /DNDEBUG。
+    set(CMAKE_CXX_FLAGS_RELEASE "/MT /O2 /EHa /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "/MT  /O2 /EHa /DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG "/MT /Zi /EHa")
     set(CMAKE_C_FLAGS_DEBUG "/MT /Zi /EHa")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /O2  /EHa")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /O2 /EHa")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /O2  /EHa /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /O2 /EHa /DNDEBUG")
 endif()
 
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)

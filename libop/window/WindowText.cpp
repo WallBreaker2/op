@@ -9,7 +9,22 @@ namespace {
 
 class ClipboardGuard {
   public:
-    ClipboardGuard() : opened_(::OpenClipboard(nullptr) != 0) {
+    ClipboardGuard() {
+        // 剪贴板是全局独占资源：别的进程正在读写时 OpenClipboard 会失败，这是**常态**而不是异常
+        // （典型占用只有几毫秒到几十毫秒）。裸调一次会让 GetClipboard/SetClipboard 在并发场景下
+        // 随机返回 false —— ClipboardFacadeTest 整轮跑偶发红就是这么来的
+        // （doc/next_steps.md §4.9）。给几次短重试，成功路径零开销，最坏多等 30 ms。
+        constexpr int kMaxAttempts = 4;
+        constexpr DWORD kRetryDelayMs = 10;
+        for (int attempt = 0; attempt < kMaxAttempts; ++attempt) {
+            if (::OpenClipboard(nullptr)) {
+                opened_ = true;
+                return;
+            }
+            if (attempt + 1 < kMaxAttempts) {
+                ::Sleep(kRetryDelayMs);
+            }
+        }
     }
 
     ~ClipboardGuard() {
@@ -161,6 +176,12 @@ bool SendCharMessage(HWND hwnd, UINT msg, wchar_t ch) {
 } // namespace
 
 bool WindowService::SendPaste(HWND hwnd) {
+    // 无效窗口直接失败：旧实现会照样跑完并返回 true，
+    // 调用方拿到的 "成功" 与屏幕上发生的事情无关。
+    if (!::IsWindow(hwnd)) {
+        return false;
+    }
+
     bool bret = true;
     std::string clipboard_text;
     if (!read_clipboard_ansi(clipboard_text))

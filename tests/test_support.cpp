@@ -65,6 +65,10 @@ std::wstring GetEnvString(const wchar_t *name) {
     return TrimCopy(out);
 }
 
+bool RequireHookE2E() {
+    return !GetEnvString(L"OP_REQUIRE_HOOK_E2E").empty();
+}
+
 std::wstring GetConfiguredOcrEndpoint() {
     const std::wstring explicit_url = GetEnvString(L"OP_OCR_URL");
     if (!explicit_url.empty()) {
@@ -702,7 +706,7 @@ LRESULT CALLBACK ColorPulseWindow::WndProc(HWND hwnd, UINT msg, WPARAM wparam, L
     return DefWindowProcW(hwnd, msg, wparam, lparam);
 }
 
-bool ColorPulseWindow::Create(bool enable_animation, int width, int height) {
+bool ColorPulseWindow::Create(bool enable_animation, int width, int height, int x, int y) {
     static const wchar_t *kClassName = L"OpColorPulseTestWindow";
     static bool class_registered = false;
     HINSTANCE hinst = GetModuleHandleW(nullptr);
@@ -724,8 +728,7 @@ bool ColorPulseWindow::Create(bool enable_animation, int width, int height) {
     animate = enable_animation;
 
     hwnd = CreateWindowExW(0, kClassName, enable_animation ? L"op-wgc-animated" : L"op-wgc-static",
-                           WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, hinst,
-                           this);
+                           WS_OVERLAPPEDWINDOW, x, y, width, height, nullptr, nullptr, hinst, this);
     if (!hwnd)
         return false;
 
@@ -743,6 +746,14 @@ void ColorPulseWindow::SetColor(COLORREF color) {
         InvalidateRect(hwnd, nullptr, TRUE);
 }
 
+void ColorPulseWindow::Repaint() {
+    if (!hwnd) {
+        return;
+    }
+    InvalidateRect(hwnd, nullptr, TRUE);
+    UpdateWindow(hwnd);
+}
+
 std::wstring ColorPulseWindow::CurrentColorHex() const {
     wchar_t buffer[7] = {};
     wsprintfW(buffer, L"%02X%02X%02X", GetRValue(current_color), GetGValue(current_color), GetBValue(current_color));
@@ -758,7 +769,11 @@ void OcrTest::SetUp() {
     if (!GetEnvString(L"OP_SKIP_OCR_TESTS").empty())
         GTEST_SKIP() << "OCR tests are disabled by OP_SKIP_OCR_TESTS.";
 
-    if (!IsOcrServerHealthy()) {
+    // 每个用例在 SetUp 里各做一次 /health 探测，代价是 25 次 × ~2s ≈ 50s —— 占整套 op_test 的 3/4，
+    // 而且服务不在时这些用例本来就全跳过，等于纯浪费。这里只探一次（进程内缓存），
+    // 服务是否可用在整个进程生命周期里不会变。
+    static const bool kOcrServiceHealthy = IsOcrServerHealthy();
+    if (!kOcrServiceHealthy) {
         GTEST_SKIP() << "OCR service is not running. Configure OP_OCR_URL/OP_OCR_BACKEND and start the service to run OCR tests.";
     }
 }
@@ -768,6 +783,46 @@ void OcrTest::TearDown() {
     if (!endpoint.empty()) {
         op.SetOcrEngine(endpoint.c_str(), L"", L"--timeout=3000");
     }
+}
+
+std::wstring ReadDesktopPixelHex(int screen_x, int screen_y) {
+    HDC screen_dc = ::GetDC(nullptr);
+    if (!screen_dc) {
+        return std::wstring();
+    }
+
+    BITMAPINFO bmi = {};
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = 1;
+    bmi.bmiHeader.biHeight = -1;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    void *bits = nullptr;
+    HBITMAP bitmap = ::CreateDIBSection(screen_dc, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    HDC mem_dc = ::CreateCompatibleDC(screen_dc);
+    std::wstring hex;
+    if (bitmap && mem_dc && bits) {
+        HGDIOBJ old_bitmap = ::SelectObject(mem_dc, bitmap);
+        if (::BitBlt(mem_dc, 0, 0, 1, 1, screen_dc, screen_x, screen_y, SRCCOPY)) {
+            const auto *pixel = static_cast<const unsigned char *>(bits);
+            wchar_t buffer[7] = {};
+            // DIB 32bpp 是 BGRA
+            ::wsprintfW(buffer, L"%02X%02X%02X", pixel[2], pixel[1], pixel[0]);
+            hex = buffer;
+        }
+        ::SelectObject(mem_dc, old_bitmap);
+    }
+
+    if (bitmap) {
+        ::DeleteObject(bitmap);
+    }
+    if (mem_dc) {
+        ::DeleteDC(mem_dc);
+    }
+    ::ReleaseDC(nullptr, screen_dc);
+    return hex;
 }
 
 } // namespace test_support

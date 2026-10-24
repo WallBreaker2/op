@@ -66,6 +66,12 @@ class ICaptureBackend : public std::enable_shared_from_this<ICaptureBackend> {
     virtual bool DeferBindReleaseAfterUnBind() const {
         return false;
     }
+    // 注入式后端（hook）的像素写进命名共享段，必须按窗口面积分配；
+    // GDI/DXGI/WGC 只往共享段写 28 字节 FrameInfo（像素直接进 Image），
+    // 不需要按 w*h*4 预留——4K 窗口会白占 ~33MB 的文件映射。
+    virtual bool RequiresSharedPixelBuffer() const {
+        return false;
+    }
 
     HWND _hwnd;
 

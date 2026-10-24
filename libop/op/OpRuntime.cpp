@@ -13,7 +13,7 @@ std::wstring op::Op::Ver() {
 }
 
 void op::Op::SetPath(const wchar_t *path, long *ret) {
-    std::wstring fpath = path;
+    std::wstring fpath = internal::wstr(path);
     replacew(fpath, L"/", L"\\");
     if (fpath.find(L'\\') != std::wstring::npos && ::PathFileExistsW(fpath.data())) {
         m_context->curr_path = fpath;

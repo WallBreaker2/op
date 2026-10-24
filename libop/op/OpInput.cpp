@@ -69,23 +69,37 @@ bool resolve_text_key_combo(const std::map<std::wstring, long> &vkmap, const wch
 }
 
 long key_combo_down(KeyboardBackend *keypad, const key_combo_t &combo) {
+    // 旧实现失败时直接 return 0：已经按下的修饰键不会再抬起来，
+    // 它们会留在系统输入状态里，后续所有按键都被 Shift/Ctrl/Alt 污染。
+    size_t pressed = 0;
     for (long modifier : combo.modifiers) {
         if (keypad->KeyDown(modifier) != 1)
-            return 0;
+            break;
+        ++pressed;
     }
-    return keypad->KeyDown(combo.vk);
+
+    const bool modifiers_ok = pressed == combo.modifiers.size();
+    const bool key_ok = modifiers_ok && keypad->KeyDown(combo.vk) == 1;
+    if (key_ok)
+        return 1;
+
+    // 回滚：先抬主键（若已按下），再把已按下的修饰键逆序抬起，失败也继续尝试。
+    if (modifiers_ok)
+        keypad->KeyUp(combo.vk);
+    for (size_t i = pressed; i > 0; --i)
+        keypad->KeyUp(combo.modifiers[i - 1]);
+    return 0;
 }
 
 long key_combo_up(KeyboardBackend *keypad, const key_combo_t &combo) {
+    // 主键抬起失败时也要把修饰键放掉，否则同样会卡住 Shift/Ctrl/Alt。
     long ret = keypad->KeyUp(combo.vk);
-    if (ret != 1)
-        return ret;
 
     for (auto it = combo.modifiers.rbegin(); it != combo.modifiers.rend(); ++it) {
         if (keypad->KeyUp(*it) != 1)
-            return 0;
+            ret = 0;
     }
-    return 1;
+    return ret == 1 ? 1 : 0;
 }
 
 long key_combo_press(KeyboardBackend *keypad, const key_combo_t &combo) {
@@ -287,15 +301,21 @@ void op::Op::SetMouseDelay(const wchar_t *type, long delay, long *ret) {
     internal::set_result(ret, 0L);
     if (!type || delay < 0)
         return;
-    internal::set_result(ret, 1L);
-    if (wcscmp(type, L"normal") == 0)
+
+    // 模式名不区分大小写：同族的 KeyDownChar/KeyPressChar 收键名时会先转小写，
+    // 这里旧实现用 wcscmp，传 "Normal"/"DX" 会静默失败（返回 0 且什么都没设）。
+    std::wstring mode = type;
+    wstring2lower(mode);
+
+    if (mode == L"normal")
         MOUSE_NORMAL_DELAY = delay;
-    else if (wcscmp(type, L"windows") == 0)
+    else if (mode == L"windows")
         MOUSE_WINDOWS_DELAY = delay;
-    else if (wcscmp(type, L"dx") == 0)
+    else if (mode == L"dx")
         MOUSE_DX_DELAY = delay;
     else
-        internal::set_result(ret, 0L);
+        return;
+    internal::set_result(ret, 1L);
 }
 
 void op::Op::GetKeyState(long vk_code, long *ret) {
@@ -344,17 +364,21 @@ void op::Op::SetKeypadDelay(const wchar_t *type, long delay, long *ret) {
     internal::set_result(ret, 0L);
     if (!type || delay < 0)
         return;
-    internal::set_result(ret, 1L);
-    if (wcscmp(type, L"normal") == 0)
+
+    std::wstring mode = type; // 理由同 SetMouseDelay
+    wstring2lower(mode);
+
+    if (mode == L"normal")
         KEYPAD_NORMAL_DELAY = delay;
-    else if (wcscmp(type, L"normal.hd") == 0)
+    else if (mode == L"normal.hd")
         KEYPAD_NORMAL2_DELAY = delay;
-    else if (wcscmp(type, L"windows") == 0)
+    else if (mode == L"windows")
         KEYPAD_WINDOWS_DELAY = delay;
-    else if (wcscmp(type, L"dx") == 0)
+    else if (mode == L"dx")
         KEYPAD_DX_DELAY = delay;
     else
-        internal::set_result(ret, 0L);
+        return;
+    internal::set_result(ret, 1L);
 }
 
 void op::Op::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
@@ -362,6 +386,11 @@ void op::Op::KeyPressStr(const wchar_t *key_str, long delay, long *ret) {
     if (!key_str)
         return;
     auto nlen = wcslen(key_str);
+    if (nlen == 0) {
+        // 空串是"没有要按的键"，不是失败：旧实现循环一次都不进，ret 停在 0。
+        internal::set_result(ret, 1L);
+        return;
+    }
     for (size_t i = 0; i < nlen; ++i) {
         const long key_ret = m_context->bkproc._keyboard->InputChar(key_str[i]);
         internal::set_result(ret, key_ret);
