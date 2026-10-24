@@ -42,7 +42,8 @@ class GlobalMemory {
 
 class GlobalLockGuard {
   public:
-    explicit GlobalLockGuard(HGLOBAL handle) noexcept : handle_(handle), data_(handle ? ::GlobalLock(handle) : nullptr) {
+    explicit GlobalLockGuard(HGLOBAL handle) noexcept
+        : handle_(handle), data_(handle ? ::GlobalLock(handle) : nullptr) {
     }
 
     ~GlobalLockGuard() {
@@ -109,6 +110,18 @@ inline bool IsSupportedImageFormat(const ATL::CImage &img) {
     return img.GetWidth() > 0 && img.GetHeight() > 0 && (pix_size == 1 || pix_size == 3 || pix_size == 4);
 }
 
+// 仅测试用开关：设置环境变量 OP_TEST_FORCE_IMAGE_THROW=1 时，Image::create 会故意抛一次
+// 异常，用来验证 COM 层能把 C++ 异常兜成 HRESULT（否则这条路径没法造出稳定用例）。
+// 生产环境不设置该变量即完全无影响；进程内只读取一次（懒初始化）。
+inline bool ForceThrowForTest() {
+    static const bool forced = [] {
+        wchar_t value[8] = {};
+        const DWORD len = ::GetEnvironmentVariableW(L"OP_TEST_FORCE_IMAGE_THROW", value, 8);
+        return len > 0 && value[0] == L'1';
+    }();
+    return forced;
+}
+
 } // namespace image_detail
 
 namespace op {
@@ -136,6 +149,15 @@ struct Image {
     }
 
     void create(int w, int h) {
+        // 测试注入点：见 image_detail::ForceThrowForTest 的注释。
+        if (image_detail::ForceThrowForTest()) {
+            throw("forced image create failure (OP_TEST_FORCE_IMAGE_THROW)");
+        }
+        // 尺寸没变就复用已有缓冲：截图主路径每帧都会 create(_src, w, h)，
+        // 命中这里可以省掉一次 realloc 调用和潜在的整块搬移。
+        if (pdata && width == w && height == h) {
+            return;
+        }
         const size_t bytes = image_detail::CheckedImageBytes(w, h, 4);
         void *new_data = pdata ? realloc(pdata, bytes) : malloc(bytes);
         if (new_data == nullptr)
@@ -171,8 +193,82 @@ struct Image {
         }
         return *this;
     }
+    // BMP 直读快路径（§72.40）：GDI+ 解一张 3KB 的 BMP 要 ~1.8ms，比一次 HTTP OCR 往返还贵。
+    // 这里只处理最常见的 BI_RGB + 24/32 位 + 行对齐；调色板 / RLE / 16 位 / PNG / JPEG 一律
+    // 返回 false，交回 GDI+ 走原路，所以行为对“支持哪些格式”没有任何变化。
+    bool read_bmp(const unsigned char *data, size_t size) {
+        if (!data || size < sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER))
+            return false;
+        BITMAPFILEHEADER file_header = {};
+        memcpy(&file_header, data, sizeof(file_header));
+        if (file_header.bfType != 0x4D42) // 'BM'
+            return false;
+        BITMAPINFOHEADER info = {};
+        memcpy(&info, data + sizeof(file_header), sizeof(info));
+        if (info.biSize < sizeof(BITMAPINFOHEADER) || info.biPlanes != 1 || info.biCompression != BI_RGB)
+            return false;
+        if (info.biBitCount != 24 && info.biBitCount != 32)
+            return false;
+        if (info.biWidth <= 0 || info.biHeight == 0 || info.biHeight == (std::numeric_limits<int>::min)())
+            return false;
+
+        const int bmp_width = info.biWidth;
+        const int bmp_height = info.biHeight < 0 ? -info.biHeight : info.biHeight;
+        const size_t src_pitch =
+            ((static_cast<size_t>(bmp_width) * info.biBitCount + 31) / 32) * 4;
+        const size_t offset = static_cast<size_t>(file_header.bfOffBits);
+        // 行数 × 行跨度的乘法先按 size_t 算，再用“跨度 > size / 行数”判溢出。
+        if (bmp_height <= 0 || src_pitch == 0 || src_pitch > size / static_cast<size_t>(bmp_height))
+            return false;
+        if (offset < sizeof(file_header) + info.biSize || offset + src_pitch * bmp_height > size)
+            return false;
+
+        create(bmp_width, bmp_height);
+        const unsigned char *src = data + offset;
+        const bool top_down = info.biHeight < 0;
+        const size_t dst_pitch = static_cast<size_t>(bmp_width) * 4;
+        for (int i = 0; i < bmp_height; ++i) {
+            const unsigned char *row = src + (top_down ? i : bmp_height - 1 - i) * src_pitch;
+            unsigned char *dst = pdata + static_cast<size_t>(i) * dst_pitch;
+            if (info.biBitCount == 32) {
+                // 与 translate() 的 pixSize==4 分支保持一致：第 4 字节原样搬，不强行置 0xff。
+                memcpy(dst, row, dst_pitch);
+            } else {
+                for (int x = 0; x < bmp_width; ++x) {
+                    dst[x * 4 + 0] = row[x * 3 + 0];
+                    dst[x * 4 + 1] = row[x * 3 + 1];
+                    dst[x * 4 + 2] = row[x * 3 + 2];
+                    dst[x * 4 + 3] = 0xff;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool read_bmp_file(LPCTSTR file) {
+        HANDLE handle = ::CreateFileW(file, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+                                      FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (handle == INVALID_HANDLE_VALUE)
+            return false;
+        LARGE_INTEGER file_size = {};
+        std::vector<unsigned char> buffer;
+        bool loaded = false;
+        // 超过 64MB 的文件交给 GDI+：这里是一次性整读，不值得为超大图占内存。
+        if (::GetFileSizeEx(handle, &file_size) && file_size.QuadPart > 0 &&
+            file_size.QuadPart <= (64LL << 20)) {
+            buffer.resize(static_cast<size_t>(file_size.QuadPart));
+            DWORD read = 0;
+            loaded = ::ReadFile(handle, buffer.data(), static_cast<DWORD>(buffer.size()), &read, nullptr) != 0 &&
+                     static_cast<size_t>(read) == buffer.size();
+        }
+        ::CloseHandle(handle);
+        return loaded && read_bmp(buffer.data(), buffer.size());
+    }
+
     bool read(LPCTSTR file) {
         clear();
+        if (read_bmp_file(file))
+            return true;
         ATL::CImage img;
         HRESULT hr = img.Load(file);
         if (hr == S_OK) {
@@ -189,6 +285,8 @@ struct Image {
         clear();
         if (!pMemData || len <= 0)
             return false;
+        if (read_bmp(static_cast<const unsigned char *>(pMemData), static_cast<size_t>(len)))
+            return true;
 
         ATL::CImage img;
         const auto byte_len = static_cast<SIZE_T>(len);
@@ -238,13 +336,13 @@ struct Image {
         img.Create(width, height, 32);
         auto pdst = (unsigned char *)img.GetBits();
         auto psrc = pdata;
-        int pitch = img.GetPitch();
+        const int pitch = img.GetPitch();
+        const size_t row_bytes = static_cast<size_t>(width) * 4;
         for (int i = 0; i < height; ++i) {
-            for (int j = 0; j < width; ++j) {
-                ((int *)pdst)[j] = ((int *)psrc)[j];
-            }
+            // 逐像素拷贝改成整行 memcpy，保存整屏 BMP/PNG 时差异很明显。
+            memcpy(pdst, psrc, row_bytes);
             pdst += pitch;
-            psrc += width * 4;
+            psrc += row_bytes;
         }
         return img.Save(file) == S_OK;
     }

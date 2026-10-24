@@ -1061,6 +1061,7 @@ examples:
             ["cmake", "--build", str(build_dir), "--config", build_type, "--target", "install"],
             env=env,
         )
+        verify_install_artifacts(project_dir, build_dir, arch)
 
     print(f"\n{'=' * 60}")
     print(f"  Build completed: {build_type} | {generator} | {arch}")
@@ -1068,6 +1069,51 @@ examples:
     if build_type == "Release":
         print(f"  Install output:   {project_dir / 'bin' / arch}")
     print(f"{'=' * 60}")
+
+
+def _read_cmake_cache_value(build_dir: Path, key: str):
+    cache = build_dir / "CMakeCache.txt"
+    if not cache.exists():
+        return None
+    for line in cache.read_text(encoding="utf-8", errors="ignore").splitlines():
+        if line.startswith(key + ":"):
+            return line.split("=", 1)[1].strip()
+    return None
+
+
+def verify_install_artifacts(project_dir: Path, build_dir: Path, arch: str) -> None:
+    """Verify installed artifacts so a missing file can no longer end in "Build completed".
+
+    pyop used to hit this: CMake's Python probe only matched a hard-coded 3.9-3.13 list, so a
+    newer interpreter silently disabled the SWIG target (cache still said build_swig_py=ON)
+    and bin/<arch> ended up without _pyop.pyd while the build reported success.
+    """
+    out_dir = project_dir / "bin" / arch
+    required = [f"op_{arch}.dll", "tools.dll"]
+    missing = [name for name in required if not (out_dir / name).exists()]
+    if missing:
+        raise SystemExit(f"[ERROR] missing required artifact(s): {", ".join(missing)} (dir {out_dir})")
+
+    swig_on = (_read_cmake_cache_value(build_dir, "build_swig_py") or "OFF").upper() == "ON"
+    pyop_files = ["_pyop.pyd", "pyop.py"]
+    pyop_missing = [name for name in pyop_files if not (out_dir / name).exists()]
+
+    print("\n[INFO] installed artifacts:")
+    for name in sorted(p.name for p in out_dir.iterdir() if p.is_file()):
+        size = (out_dir / name).stat().st_size
+        print(f"    {name:<22} {size:>12,} bytes")
+
+    if swig_on and pyop_missing:
+        message = (
+            f"build_swig_py=ON in the CMake cache, but {out_dir} is missing {', '.join(pyop_missing)}. "
+            "Python detection needs python3X.dll and libs/python3X.lib of the same version in one directory; "
+            "set PYTHON64_ROOT/PYTHON32_ROOT, or pass -Dbuild_swig_py=OFF."
+        )
+        if os.environ.get("OP_PYTHON_WHEEL", "").upper() in ("1", "ON", "TRUE"):
+            raise SystemExit(f"[ERROR] {message}")
+        print(f"[WARN] {message}")
+    elif swig_on:
+        print("[INFO] pyop bindings installed (_pyop.pyd + pyop.py)")
 
 
 if __name__ == "__main__":

@@ -1,8 +1,9 @@
 #include "YoloDetector.h"
+
+#include "YoloResponseParser.h"
 #include "../network/HttpClient.h"
 #include "../base/Utils.h"
 #include <iostream>
-#include <regex>
 
 using std::cout;
 using std::endl;
@@ -82,13 +83,23 @@ int YoloDetector::detect(byte *data, int w, int h, int bpp, double conf, double 
     if (pixel_bytes_size_t > 64 * 1024 * 1024)
         return -2;
 
-    std::string image_b64;
-    if (!base64_encode(data, static_cast<int>(pixel_bytes_size_t), image_b64))
+    // 请求体一次成型：base64 直接编进 req 的尾部，省掉“临时串 + 再拼一遍”（§72.34）。
+    std::string req;
+    req.reserve(base64_encoded_size(pixel_bytes_size_t) + 128);
+    req += "{\"image\":\"";
+    if (!base64_encode_append(data, pixel_bytes_size_t, req))
         return -3;
-
-    std::string req = "{\"image\":\"" + image_b64 + "\",\"width\":" + std::to_string(w) +
-                      ",\"height\":" + std::to_string(h) + ",\"bpp\":" + std::to_string(bpp) +
-                      ",\"conf\":" + std::to_string(conf) + ",\"iou\":" + std::to_string(iou) + "}";
+    req += "\",\"width\":";
+    req += std::to_string(w);
+    req += ",\"height\":";
+    req += std::to_string(h);
+    req += ",\"bpp\":";
+    req += std::to_string(bpp);
+    req += ",\"conf\":";
+    req += std::to_string(conf);
+    req += ",\"iou\":";
+    req += std::to_string(iou);
+    req += "}";
 
     ParsedUrl parsed;
     if (!parse_url(m_endpoint, parsed))
@@ -101,46 +112,13 @@ int YoloDetector::detect(byte *data, int w, int h, int bpp, double conf, double 
     if (status_code != 200)
         return -6;
 
-    static const std::regex code_re("\\\"code\\\"\\s*:\\s*(-?\\d+)");
-    std::smatch code_match;
-    if (!std::regex_search(resp, code_match, code_re))
-        return -7;
-    if (atoi(code_match[1].str().c_str()) != 0)
-        return -8;
-
-    static const std::regex obj_re("\\{[^\\{\\}]*\\}");
-    static const std::regex label_re("\\\"(?:label|class_name|name)\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"\\\\])*)\\\"");
-    static const std::regex class_id_re("\\\"(?:class_id|cls)\\\"\\s*:\\s*(-?\\d+)");
-    static const std::regex bbox_re("\\\"bbox\\\"\\s*:\\s*\\[\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\]");
-    static const std::regex conf_re("\\\"(?:confidence|conf)\\\"\\s*:\\s*([-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?)");
-
-    int n = 0;
-    for (std::sregex_iterator it(resp.begin(), resp.end(), obj_re), end; it != end; ++it) {
-        const std::string obj = it->str();
-        std::smatch bbox_m;
-        std::smatch conf_m;
-        if (!std::regex_search(obj, bbox_m, bbox_re) || !std::regex_search(obj, conf_m, conf_re))
-            continue;
-        yolo_rec_t rec;
-        std::smatch label_m;
-        std::smatch class_id_m;
-        if (std::regex_search(obj, label_m, label_re))
-            rec.label = _s2wstring(utf8_to_ansi(json_unescape(label_m[1].str())));
-        if (std::regex_search(obj, class_id_m, class_id_re))
-            rec.class_id = atoi(class_id_m[1].str().c_str());
-        rec.left_top = point_t(atoi(bbox_m[1].str().c_str()), atoi(bbox_m[2].str().c_str()));
-        rec.right_bottom = point_t(atoi(bbox_m[3].str().c_str()), atoi(bbox_m[4].str().c_str()));
-        rec.confidence = static_cast<float>(atof(conf_m[1].str().c_str()));
-        result.push_back(rec);
-        ++n;
-    }
-
-    if (n == 0) {
-        static const std::regex empty_result_re("\\\"results\\\"\\s*:\\s*\\[\\s*\\]");
-        if (!std::regex_search(resp, empty_result_re))
-            return -9;
-    }
-    return n;
+    int server_code = 0;
+    const int parse_ret = parse_yolo_response(resp, result, &server_code);
+    if (parse_ret == -8)
+        cout << "yolo server code=" << server_code << ", body=" << resp << endl;
+    else if (parse_ret < 0)
+        cout << "yolo parse failed(" << parse_ret << "), body=" << resp << endl;
+    return parse_ret;
 }
 
 } // namespace op::yolo

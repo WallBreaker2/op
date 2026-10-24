@@ -2,6 +2,7 @@
 #include "ImageSearchAlgorithms.h"
 
 #include <assert.h>
+#include <fstream>
 #include <time.h>
 
 #include <algorithm>
@@ -298,9 +299,16 @@ void extractConnectivity(const ImageBin &src, int threshold, std::vector<ImageBi
     }
 }
 
-ImageSearchAlgorithms::ImageSearchAlgorithms() : m_threadPool(default_thread_count()) {
+ImageSearchAlgorithms::ImageSearchAlgorithms() {
     _x1 = _y1 = 0;
     _dx = _dy = 0;
+}
+
+ThreadPool &ImageSearchAlgorithms::SharedThreadPool() {
+    // 进程级单例：懒创建（只有 FindPicTh / FindPicExTh 会用到），
+    // 线程数 = hardware_concurrency，与原来"每个实例一份"等价，但不再随 Op 数量线性增长。
+    static ThreadPool pool(default_thread_count());
+    return pool;
 }
 
 ImageSearchAlgorithms::~ImageSearchAlgorithms() {
@@ -702,8 +710,6 @@ long ImageSearchAlgorithms::FindPic(std::vector<Image *> &pics, color_t dfcolor,
 long ImageSearchAlgorithms::FindPic(std::vector<PicMatchTemplate *> &pics, color_t dfcolor, double sim, long dir, long &x,
                                     long &y) {
     x = y = -1;
-    _gray.fromImage4(_src);
-    record_sum(_gray);
     // 模板预处理由缓存层完成，这里只做扫描和匹配。
     for (size_t pic_id = 0; pic_id < pics.size(); ++pic_id) {
         auto match = pics[pic_id];
@@ -760,12 +766,12 @@ long ImageSearchAlgorithms::FindPicTh(std::vector<PicMatchTemplate *> &pics, col
             continue;
         const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
         const bool split_by_y = matchRect.width() > matchRect.height();
-        const size_t block_count = scan_block_count(matchRect, split_by_y, m_threadPool.getThreadNum());
+        const size_t block_count = scan_block_count(matchRect, split_by_y, SharedThreadPool().getThreadNum());
         matchRect.divideBlock(static_cast<int>(block_count), split_by_y, blocks);
         std::vector<std::future<point_t>> results;
         results.reserve(blocks.size());
         for (size_t i = 0; i < blocks.size(); ++i) {
-            results.push_back(m_threadPool.enqueue(
+            results.push_back(SharedThreadPool().enqueue(
                 [this, dfcolor, dir, match, pgimg, matchRect, max_err_ct](rect_t block, Image *pic, int use_ts_match,
                                                                           double sim) {
                     point_t found(-1, -1);
@@ -875,12 +881,12 @@ long ImageSearchAlgorithms::FindPicExTh(std::vector<PicMatchTemplate *> &pics, c
             continue;
         const int max_err_ct = static_cast<int>((pic->height * pic->width - use_ts_match) * (1.0 - sim));
         const bool split_by_y = matchRect.width() > matchRect.height();
-        const size_t block_count = scan_block_count(matchRect, split_by_y, m_threadPool.getThreadNum());
+        const size_t block_count = scan_block_count(matchRect, split_by_y, SharedThreadPool().getThreadNum());
         matchRect.divideBlock(static_cast<int>(block_count), split_by_y, blocks);
         std::vector<std::future<vpoint_t>> results;
         results.reserve(blocks.size());
         for (size_t i = 0; i < blocks.size(); ++i) {
-            results.push_back(m_threadPool.enqueue(
+            results.push_back(SharedThreadPool().enqueue(
                 [this, dfcolor, match, pgimg, max_err_ct](rect_t block, Image *pic, int use_ts_match,
                                                           double sim) -> vpoint_t {
                     vpoint_t vp;
@@ -1168,21 +1174,31 @@ long ImageSearchAlgorithms::real_match(long x, long y, ImageBin *timg, int tnorm
 
 void ImageSearchAlgorithms::record_sum(const ImageBin &gray) {
     // 为了减少边界判断，这里多多加一行一列
-    _sum.create(gray.width + 1, gray.height + 1);
-    _sum.fill(0);
-    int m = _sum.height;
-    int n = _sum.width;
-    for (int i = 1; i < m; i++) {
-        for (int j = 1; j < n; j++) {
-            int s = 0;
+    const int w = gray.width;
+    const int h = gray.height;
+    _sum.create(w + 1, h + 1);
+    if (w <= 0 || h <= 0)
+        return;
 
-            s += _sum.at<int>(i - 1, j);
+    // 只清第 0 行和第 0 列（O(w+h)），其余元素在下面的循环里全部被覆盖。
+    // 旧实现用 _sum.fill(0) 清了 (w+1)*(h+1) 个 int，其中 h*w 个随即被覆盖。
+    int *const sum_data = _sum.ptr<int>(0);
+    const int stride = _sum.width;
+    memset(sum_data, 0, sizeof(int) * static_cast<size_t>(stride));
+    for (int i = 1; i <= h; ++i)
+        sum_data[static_cast<size_t>(i) * stride] = 0;
 
-            s += _sum.at<int>(i, j - 1);
-
-            s -= _sum.at<int>(i - 1, j - 1);
-            s += (int)gray.at(i - 1, j - 1);
-            _sum.at<int>(i, j) = s;
+    // 单遍积分图：row_acc 是当前行前缀和，cur[j] = prev[j] + row_acc。
+    // 等价于旧实现的 cur[j] = prev[j] + cur[j-1] - prev[j-1] + gray(i-1,j-1)，
+    // 但内层只剩两次加法和三次连续内存访问，没有 at<int>() 的每次行指针重算。
+    for (int i = 1; i <= h; ++i) {
+        const uchar *src = gray.ptr(i - 1);
+        const int *prev = sum_data + static_cast<size_t>(i - 1) * stride;
+        int *cur = sum_data + static_cast<size_t>(i) * stride;
+        int row_acc = 0;
+        for (int j = 1; j <= w; ++j) {
+            row_acc += src[j - 1];
+            cur[j] = prev[j] + row_acc;
         }
     }
 }
@@ -1646,7 +1662,9 @@ void ImageSearchAlgorithms::_bin_ocr(const Dictionary &dict, std::map<point_t, o
                 if (tidx == -1)
                     continue;
                 int tleft = tidx, tright = tidx;
-                while (tleft > 0 && vword[tleft - 1].info.bit_cnt == cnt_src)
+                // 下界必须夹在本尺寸组的起点 fidx：原来写的是 tleft > 0，会一路退到上一个尺寸组，
+                // 而 crc 用的是本组的 w/h，full_match 会按本组长度去读别组更小字模的 data → 越界读。
+                while (tleft > fidx && vword[tleft - 1].info.bit_cnt == cnt_src)
                     --tleft;
                 while (tright < eidx && vword[tright].info.bit_cnt == cnt_src)
                     ++tright;

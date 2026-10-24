@@ -1,6 +1,42 @@
 ## 主要内容
 本文主要介绍ocr算法的基本原理，主要流程以及具体实现和优化
 
+## HTTP OCR 服务（联调 / 可选）
+
+除本地点阵字库（本文下半部分）之外，OP 还支持把通用 OCR 交给独立的 HTTP 服务
+（`libop/ocr/OcrService.cpp`，`OcrEx`/`OcrAuto` 走这条路）。协议很简单：
+
+```
+GET  /health      -> {"status":"ok","backend":"<name>"}
+POST /api/v1/ocr  -> 请求 {"image":"<base64>","width":W,"height":H,"bpp":4}
+                     响应 {"code":0,"results":[{"text":"..","bbox":[l,t,r,b],"confidence":0.98}]}
+```
+`code != 0` 视为失败；`confidence` 低于调用方传的 `sim` 会被丢弃。
+
+仓库里带了一个**最小参考实现**：`scripts/op_ocr_server_min.py`
+
+```bat
+:: 零依赖模式（不需要任何 OCR 引擎，只验证协议/客户端联调）
+python scripts\op_ocr_server_min.py --backend echo --port 8082
+
+:: 真实识别：需要本机装 Tesseract 可执行文件 + pip install pytesseract pillow
+python scripts\op_ocr_server_min.py --backend tesseract --lang eng --port 8082
+
+:: 只验证脚本自身（不起服务）
+python scripts\op_ocr_server_min.py --selftest
+```
+
+客户端与服务端点通过 `SetOcrEngine(url, L"", L"--timeout=NNNN")` 指定，例如
+`http://127.0.0.1:8082/api/v1/ocr`。
+
+**两个实测注意点**：
+1. 本机存在**系统 HTTP 代理**：直接用 PowerShell 的 `Invoke-WebRequest` 访问
+   `http://127.0.0.1:...` 会被代理拦截并返回 `{"code":10010,"message":"bad sign"}`。
+   验证时请加 `-NoProxy`。产品侧不受影响 —— `http_post_json` 用的是
+   `WINHTTP_ACCESS_TYPE_NO_PROXY`。
+2. `tests/ocr_test.cpp` 里那 25 条识别用例需要**真实识别能力**（tesseract 后端），
+   用 `--backend echo` 只适合联调协议，跑那些用例会因为返回固定文本而断言失败。
+
 ## ocr流程
 1. 将给定的RGB图像转化为灰度图像
 2. 根据指定的灰度范围将灰度图像二值化

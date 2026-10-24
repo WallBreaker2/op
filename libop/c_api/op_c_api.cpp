@@ -7,6 +7,7 @@
 #include <Windows.h>
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <utility>
 
 #undef FindWindow
@@ -33,7 +34,21 @@ struct op_c_context {
     op_c_context &operator=(const op_c_context &) = delete;
 
     op::Op op;
-    std::wstring string_result;
+    // §72.58：返回值缓冲区是 4 槽环形池，理由是 SSO。
+    // 老实现用 string_result + string_result_prev 两个 std::wstring 想表达
+    // 「旧指针活过一次调用」，但 <=7 个 wchar 的短返回值（GetColor 的 "RRGGBB"、
+    // Ver 的 "0.4.8.3"）内容存在 wstring 对象自身的内部数组里 —— swap 只交换
+    // 对象状态，不改变 buffer 地址，指向 string_result 的指针照样被下一次调用
+    // 改写。也就是说这个约定对短字符串从来没成立过（长字符串走堆分配才碰巧成立）。
+    // 现在每次调用取一个独立槽位，指针地址天然不同，最近 kStringSlots 次返回值
+    // 都保持有效；槽位轮转回来时旧指针失效，这一点写进了 doc/api.md 的通用约定。
+    static constexpr size_t kStringSlots = 4;
+    std::wstring string_slots[kStringSlots];
+    size_t string_slot_next = 0;
+    // §72.38：内存接口以前每次调用都现造一个 ProcessMemory，attach 缓存（§72.29）
+    // 和地址解析缓存全被丢掉，跨进程读一条要 5.96us（其中约 4.2us 是重复 attach）。
+    // 这里在句柄里留一个实例，跨调用复用；ProcessMemory 自己按 pid 判断是否重开。
+    ProcessMemory memory;
 };
 
 namespace {
@@ -74,15 +89,39 @@ intptr_t call_intptr(op_handle handle, Func &&func) {
     }
 }
 
+// §72.58：缓冲区已改为 4 槽环形池（见 op_c_context 里 kStringSlots 的注释）。
+// 它同时解决了两件事，记事免得有人又改回单缓冲：
+//
+// 其一，§72.48 的入参自别名。原来先把 string_result 清空再调用，而很多入参
+// （OpGetWordResultStr 的 result、OpFetchWordsByRects 的 rects）正是上一次调用
+// 返回的 c_str()。clear() 一执行，入参就变成空串，于是
+// OpGetWordResultStr(h, OpFetchWords(...), 0) 恒返回 L""。
+// 槽位方案里入参指向别的槽，本次写入碰不到它。
+//
+// 其二，「旧指针活过一次调用」这个承诺对短字符串从来没成立。原先靠
+// string_result_prev.swap(string_result) 转存旧值，但 <=7 个 wchar 的返回值
+// （GetColor 的 "RRGGBB"、Ver 的 "0.4.8.3"）落在 std::wstring 的 SSO 里 ——
+// 内容存在对象自身内部数组，swap 只交换对象状态、不交换 buffer 地址，
+// 指向它的指针照样被下一次调用改写。只有长字符串走堆分配才碰巧有效。
+// 槽位是对不同对象取 c_str()，地址天然不同，长短一律成立。
+std::wstring &take_string_slot(op_c_context *handle) {
+    std::wstring &slot = handle->string_slots[handle->string_slot_next];
+    handle->string_slot_next = (handle->string_slot_next + 1) % op_c_context::kStringSlots;
+    slot.clear();
+    return slot;
+}
+
 template <typename Func>
 const wchar_t *call_string(op_handle handle, Func &&func) {
     if (!handle)
         return L"";
 
     try {
-        handle->string_result.clear();
-        std::forward<Func>(func)(handle->op, handle->string_result);
-        return handle->string_result.c_str();
+        // 槽位在调用 func 之前就取好：func 的入参可能是上一次返回值
+        // （指向另一个槽位），提前切走当前槽位保证它不被本次写入覆盖。
+        std::wstring &slot = take_string_slot(handle);
+        std::forward<Func>(func)(handle->op, slot);
+        return slot.c_str();
     } catch (...) {
         return L"";
     }
@@ -94,11 +133,11 @@ const wchar_t *call_json_string(op_handle handle, const wchar_t *fallback, Func 
         return fallback;
 
     try {
-        handle->string_result.clear();
-        std::forward<Func>(func)(handle->op, handle->string_result);
-        if (handle->string_result.empty())
-            handle->string_result = fallback;
-        return handle->string_result.c_str();
+        std::wstring &slot = take_string_slot(handle);
+        std::forward<Func>(func)(handle->op, slot);
+        if (slot.empty())
+            slot = fallback ? fallback : L"";
+        return slot.c_str();
     } catch (...) {
         return fallback;
     }
@@ -141,7 +180,7 @@ int call_memory(op_handle handle, intptr_t hwnd, Func &&func) {
         return 0;
 
     try {
-        ProcessMemory mem;
+        ProcessMemory &mem = handle->memory;
         const LONG_PTR target = resolve_memory_hwnd(handle, hwnd);
         return std::forward<Func>(func)(mem, reinterpret_cast<HWND>(target)) ? 1 : 0;
     } catch (...) {
@@ -1319,6 +1358,41 @@ int OP_CALL OpWriteInt(op_handle handle, intptr_t hwnd, const wchar_t *address, 
     return call_memory(handle, hwnd, [&](ProcessMemory &mem, HWND target) {
         return mem.WriteInt(target, safe_text(address), type, value) != 0;
     });
+}
+
+// 批量形状：call_memory 只把结果压成 0/1，这里要"成功条数"，所以自己走一遍。
+int OP_CALL OpReadIntBatch(op_handle handle, intptr_t hwnd, const wchar_t *const *addresses, int count, int type,
+                           int64_t *values) {
+    if (!handle || !addresses || !values || count <= 0)
+        return 0;
+    try {
+        ProcessMemory &mem = handle->memory;
+        const LONG_PTR target = resolve_memory_hwnd(handle, hwnd);
+        std::vector<std::wstring> list;
+        list.reserve(static_cast<size_t>(count));
+        for (int i = 0; i < count; ++i)
+            list.emplace_back(addresses[i] ? addresses[i] : L"");
+        return static_cast<int>(mem.ReadIntBatch(reinterpret_cast<HWND>(target), list.data(), count, type, values));
+    } catch (...) {
+        return 0;
+    }
+}
+
+int OP_CALL OpWriteIntBatch(op_handle handle, intptr_t hwnd, const wchar_t *const *addresses, int count, int type,
+                            const int64_t *values) {
+    if (!handle || !addresses || !values || count <= 0)
+        return 0;
+    try {
+        ProcessMemory &mem = handle->memory;
+        const LONG_PTR target = resolve_memory_hwnd(handle, hwnd);
+        std::vector<std::wstring> list;
+        list.reserve(static_cast<size_t>(count));
+        for (int i = 0; i < count; ++i)
+            list.emplace_back(addresses[i] ? addresses[i] : L"");
+        return static_cast<int>(mem.WriteIntBatch(reinterpret_cast<HWND>(target), list.data(), count, type, values));
+    } catch (...) {
+        return 0;
+    }
 }
 
 int OP_CALL OpReadFloat(op_handle handle, intptr_t hwnd, const wchar_t *address, float *value) {

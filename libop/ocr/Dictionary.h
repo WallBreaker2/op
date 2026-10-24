@@ -453,6 +453,13 @@ struct Dictionary {
                     file.close();
                     return false;
                 }
+                // v0 文件分支也要校验尺寸：width/height 为 0 会让 from_word 产出空 data，
+                // 之后 full_match/part_match 按 w*h 读这块空缓冲就是越界读（内存分支已有同等校验）。
+                if (tmp.info.width <= 0 || tmp.info.height <= 0 || tmp.info.width > 255 || tmp.info.height > 255) {
+                    clear();
+                    file.close();
+                    return false;
+                }
                 words[i].from_word(tmp);
             }
             info._check_code = info._this_ver ^ info._word_count;
@@ -463,6 +470,15 @@ struct Dictionary {
             word1_info head;
             for (size_t i = 0; i < words.size(); i++) {
                 if (!file.read((char *)&head, sizeof(head))) {
+                    clear();
+                    file.close();
+                    return false;
+                }
+
+                // 文件分支原来漏了这一步（内存分支 is_binary_dict_memory 有）：
+                // w/h = 0 或 bit_cnt > w*h 的畸形字模会让 data 长度与点阵不符，
+                // 精确匹配按 w*h 读 data 时越界。
+                if (!valid_word_info(head)) {
                     clear();
                     file.close();
                     return false;
@@ -648,18 +664,25 @@ struct Dictionary {
         }
     }
 
+    // 与 sort_dict 一致的严格弱序：h 从大到小、w 从大到小、bit_cnt 从小到大。
+    // 精确匹配器（ImageSearchAlgorithms::_bin_ocr）靠这个顺序按尺寸分组、再在组内二分 bit_cnt，
+    // 所以新增字模必须插到正确位置——原来 add_word 是 push_back，AddDict 之后顺序就乱了。
+    static bool dict_less(const word1_t &lhs, const word1_t &rhs) {
+        int dh = lhs.info.h - rhs.info.h;
+        int dw = lhs.info.w - rhs.info.w;
+        return dh > 0 || (dh == 0 && dw > 0) || (dh == 0 && dw == 0 && lhs.info.bit_cnt < rhs.info.bit_cnt);
+    }
     void sort_dict() {
         // sort dict(size: big --> small ,cnt: small -->big)
-        std::stable_sort(words.begin(), words.end(), [](const word1_t &lhs, const word1_t &rhs) {
-            int dh = lhs.info.h - rhs.info.h;
-            int dw = lhs.info.w - rhs.info.w;
-            return dh > 0 || (dh == 0 && dw > 0) || (dh == 0 && dw == 0 && lhs.info.bit_cnt < rhs.info.bit_cnt);
-        });
+        std::stable_sort(words.begin(), words.end(), dict_less);
     }
 
     void add_word(const word1_t &word) {
         auto it = find(word);
         if (words.empty() || it == words.end()) {
+            // 注意：这里必须保持"追加顺序"——GetDict(idx)/GetDictCount 的索引就是插入顺序，
+            // 是公开契约（tests/image_color_test.cpp 的 AddDictSupportsProvidedOpTextEntryFormats 在跑）。
+            // 因此不能改成有序插入；精确匹配器需要的排序要在匹配时自行处理（见 defect_fixes.md）。
             words.push_back(word);
         } else {
             it->set_chars(word.info.name);

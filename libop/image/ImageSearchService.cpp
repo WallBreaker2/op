@@ -8,8 +8,10 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <mutex>
 #include <shared_mutex>
 #include <sstream>
@@ -23,6 +25,12 @@ namespace {
 // 匹配时会复制 shared_ptr 快照；FreePic 只移除缓存入口，不会提前释放正在匹配的图片。
 std::map<wstring, std::shared_ptr<Image>> g_pic_cache;
 std::map<wstring, std::shared_ptr<PicMatchTemplate>> g_pic_match_cache;
+// 只对"FindPic 自动缓存"的条目做上限淘汰：这些条目在 files2mats 里缓存缺失时会从磁盘按需重读，
+// 淘汰对调用方透明。显式 LoadPic / LoadMemPic 的条目被钉住，不受上限影响
+// （GetPicSize 只查缓存不回读磁盘，淘汰显式条目会改变外部行为）。
+std::set<wstring> g_pic_cache_pinned;
+std::list<wstring> g_pic_cache_order;
+constexpr size_t kMaxAutoCachedPics = 32;
 std::shared_mutex g_pic_cache_mutex;
 
 // SetDict 加载的是文件字库，放在进程级槽位中，多个 Op 对象可以直接复用。
@@ -102,24 +110,50 @@ bool find_cached_pic(const wstring &key, std::shared_ptr<Image> &image, std::sha
     return image && match;
 }
 
-bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image, std::shared_ptr<PicMatchTemplate> match) {
+bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image, std::shared_ptr<PicMatchTemplate> match,
+                      bool pinned = false) {
     if (key.empty() || !image || image->empty() || !match)
         return false;
 
     std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
+    if (pinned) {
+        g_pic_cache_pinned.insert(key);
+    }
+    const bool existed = g_pic_cache.find(key) != g_pic_cache.end();
     g_pic_cache[key] = std::move(image);
     g_pic_match_cache[key] = std::move(match);
+
+    // 维护自动缓存条目的 FIFO 顺序；显式加载的条目不入队，也不参与淘汰。
+    g_pic_cache_order.remove(key);
+    if (g_pic_cache_pinned.find(key) == g_pic_cache_pinned.end()) {
+        g_pic_cache_order.push_back(key);
+    } else if (!existed) {
+        // 显式条目：不入队
+    }
+
+    // 只淘汰"非显式"的旧条目，被淘汰的图片在下次 FindPic 时会从磁盘重读。
+    while (g_pic_cache_order.size() > kMaxAutoCachedPics) {
+        const wstring oldest = g_pic_cache_order.front();
+        g_pic_cache_order.pop_front();
+        if (g_pic_cache_pinned.find(oldest) != g_pic_cache_pinned.end()) {
+            continue;
+        }
+        g_pic_cache.erase(oldest);
+        g_pic_match_cache.erase(oldest);
+    }
     return true;
 }
 
 bool store_cached_pic(const wstring &key, std::shared_ptr<Image> image) {
-    return store_cached_pic(key, image, make_pic_match(image));
+    return store_cached_pic(key, image, make_pic_match(image), /*pinned=*/true);
 }
 
 bool erase_cached_pic(const wstring &key) {
     std::unique_lock<std::shared_mutex> lock(g_pic_cache_mutex);
     const bool erased_image = g_pic_cache.erase(key) > 0;
     const bool erased_match = g_pic_match_cache.erase(key) > 0;
+    g_pic_cache_pinned.erase(key);
+    g_pic_cache_order.remove(key);
     return erased_image || erased_match;
 }
 
@@ -1010,9 +1044,9 @@ void ImageSearchService::files2mats(const wstring &files, std::vector<PicMatchTe
                 match = make_pic_match(image);
                 if (!match)
                     continue;
-                // 自动读取本地文件时，只有开启缓存才写入全局缓存。
+                // 自动读取本地文件时，只有开启缓存才写入全局缓存；这类条目可被上限淘汰（缺失时会重读磁盘）。
                 if (_enable_cache)
-                    store_cached_pic(tp, image, match);
+                    store_cached_pic(tp, image, match, /*pinned=*/false);
             }
         }
 

@@ -279,8 +279,16 @@ bool WindowService::SetWindowTransparent(HWND hwnd, LONG trans) {
     (mySetLayeredWindowAttributes)GetProcAddress(hlibrary,
     "SetLayeredWindowAttributes");*/
 
-    SetWindowLong(hwnd, GWL_EXSTYLE, 0x80001);
-    bret = SetLayeredWindowAttributes(hwnd, crKey, static_cast<BYTE>(trans), 2);
+    // 原来这里用 SetWindowLong(hwnd, GWL_EXSTYLE, 0x80001) 整体覆盖扩展样式：
+    // 0x80001 = WS_EX_LAYERED | WS_EX_DLGMODALFRAME，等于把窗口原有的
+    // WS_EX_TOOLWINDOW / NOACTIVATE / APPWINDOW 等位全部清掉（实测 TOOLWINDOW 会被抹掉；
+    // 注意 WS_EX_TOPMOST 不能当探针——置顶状态由窗口 band 维护，覆盖后系统会同步回来）。
+    // DLGMODALFRAME 位与"设置透明度"本身无关。这里改成只补 WS_EX_LAYERED，其余位保持不动。
+    const LONG ex_style = ::GetWindowLongW(hwnd, GWL_EXSTYLE);
+    if ((ex_style & WS_EX_LAYERED) == 0) {
+        ::SetWindowLongW(hwnd, GWL_EXSTYLE, ex_style | WS_EX_LAYERED);
+    }
+    bret = SetLayeredWindowAttributes(hwnd, crKey, static_cast<BYTE>(trans), LWA_ALPHA);
 
     return bret;
 }
@@ -292,6 +300,8 @@ HWND WindowService::GetTopWindowSp(HWND hwnd) {
         temp = GetParent(i);
         if (!temp)
             break;
+        // 原来这里漏了 i = temp，循环变量永不推进：只要进了循环就是死循环。
+        i = temp;
     }
     return i;
 }

@@ -1,4 +1,5 @@
 #include "OpContext.h"
+#include "OpResult.h"
 
 #include "algorithm/AStar.h"
 #include "base/Utils.h"
@@ -19,7 +20,9 @@ void op::Op::AStarFindPath(long mapWidth, long mapHeight, const wchar_t *disable
     std::vector<Vec2i> walls;
     std::vector<wstring> vstr;
     Vec2i tp;
-    split(disable_points, vstr, L"|");
+    // disable_points 可能是 nullptr（C++ 门面直调、或旧 COM 路径），
+    // split 的形参是 const std::wstring&，直接传会构造 std::wstring(nullptr) 崩溃。
+    split(internal::wstr(disable_points), vstr, L"|");
     for (auto &it : vstr) {
         if (swscanf(it.c_str(), L"%d,%d", &tp.x, &tp.y) != 2)
             break;
@@ -45,7 +48,7 @@ void op::Op::FindNearestPos(const wchar_t *all_pos, long type, long x, long y, s
     double old = 1e9;
     long rx = -1, ry = -1;
     std::wstring best_name;
-    std::wstring s = std::regex_replace(all_pos, std::wregex(L","), L" ");
+    std::wstring s = std::regex_replace(internal::wstr(all_pos), std::wregex(L","), L" ");
     std::vector<std::wstring> items;
     split(s, items, L"|");
     for (const auto &item : items) {

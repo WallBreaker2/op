@@ -6,6 +6,13 @@
 namespace op {
 
 namespace {
+// COM(BSTR)/C API 传进来的宽字符串可能是 NULL（脚本传 Null、或 C++ 直接给 nullptr），
+// 而下面若干入口会直接 [0] 解引用或 wcslen()。统一在入口归一成空串，
+// 语义与"传了空串"一致（空串在 FindWindow 家族里就表示不做该项过滤）。
+inline const wchar_t *or_empty(const wchar_t *s) noexcept {
+    return s ? s : L"";
+}
+
 class WindowTextValue {
   public:
     WindowTextValue() = default;
@@ -300,13 +307,17 @@ bool WindowService::ClientToScreen(HWND hwnd, LONG &x, LONG &y) {
 
     point.x = x;
     point.y = y;
-    ::ClientToScreen(hwnd, &point);
+    // 旧实现吞掉了 ::ClientToScreen 的返回值，无条件 return true：
+    // 窗口无效时调用方会拿到“成功”却坐标未变。这里把 Win32 结果透出去。
+    const BOOL ok = ::ClientToScreen(hwnd, &point);
     x = point.x;
     y = point.y;
 
-    return true;
+    return ok != FALSE;
 }
 HWND WindowService::FindWindow(const wchar_t *class_name, const wchar_t *title) {
+    class_name = or_empty(class_name);
+    title = or_empty(title);
     if (class_name[0] == L'\0')
         class_name = nullptr;
     if (title[0] == L'\0')
@@ -315,6 +326,8 @@ HWND WindowService::FindWindow(const wchar_t *class_name, const wchar_t *title) 
 }
 
 HWND WindowService::FindWindowEx(HWND parent, const wchar_t *class_name, const wchar_t *title) {
+    class_name = or_empty(class_name);
+    title = or_empty(title);
     if (class_name[0] == L'\0')
         class_name = nullptr;
     if (title[0] == L'\0')
@@ -326,6 +339,10 @@ bool WindowService::FindWindowByProcess(const wchar_t *class_name, const wchar_t
                                  const wchar_t *process_name, DWORD Pid) {
     bool bret = false;
     rethwnd = nullptr;
+    // 下面多处 wcslen(class_name)/wcslen(title)，BSTR 为 NULL 时直接崩，这里先归一成空串。
+    class_name = or_empty(class_name);
+    title = or_empty(title);
+    // 下面多处 wcslen(class_name)/wcslen(title)，BSTR 为 NULL 时直接崩，这里先归一成空串。
     if (process_name) {
         if (wcslen(process_name) < 1)
             return false;
@@ -365,7 +382,7 @@ bool WindowService::FindWindowByProcess(const wchar_t *class_name, const wchar_t
                             if (wcslen(class_name) > 0)
                                 classname = class_name;
                             if (wcslen(title) > 0)
-                                titles = titles;
+                                titles = title;
                             HWND dret = FindChildWnd(child_hwnd, titles, classname, NULL, false, false, process_name);
                             if (dret != nullptr) {
                                 rethwnd = dret;
@@ -409,7 +426,7 @@ bool WindowService::FindWindowByProcess(const wchar_t *class_name, const wchar_t
                             if (wcslen(class_name) > 0)
                                 classname = class_name;
                             if (wcslen(title) > 0)
-                                titles = titles;
+                                titles = title;
                             HWND dret = FindChildWnd(child_hwnd, titles, classname, NULL, false, false, process_name);
                             if (dret != nullptr) {
                                 rethwnd = dret;
