@@ -1,4 +1,4 @@
-﻿repos:
+repos:
 -   repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v16.0.6
     hooks:
@@ -6,3 +6,10 @@
         # 移除 types_or，改用 files 正则表达式
         types: [text]
         files: \.(c|h|cpp|hpp|cc|cxx)$
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    -   id: check-added-large-files
+        # 历史教训：BlackBone.lib / hekate.lib 等预编译产物曾让 .git 膨胀到 117 MB
+        # 阈值 2 MB：足以拦住静态库/抓屏位图，又不误伤 swig/op_wrap.cxx（当前 0.61 MB）
+        args: ['--maxkb=2048']

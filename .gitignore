@@ -286,7 +286,10 @@ __pycache__/
 /op_test
 /Tool
 /tool_ex
-!/doc/*.chm
+# 文档产物不入库（历史教训：doc/op接口说明.chm 曾以 16 个版本入库，约 21 MB）
+# 确需随版本分发时用 git add -f 手动加入
+*.chm
+*.chm.bak
 
 /doc2
 
