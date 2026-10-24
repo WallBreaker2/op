@@ -7,7 +7,7 @@ repos:
         types: [text]
         files: \.(c|h|cpp|hpp|cc|cxx)$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
     -   id: check-added-large-files
         # 历史教训：BlackBone.lib / hekate.lib 等预编译产物曾让 .git 膨胀到 117 MB
