@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <deque>
 #include <filesystem>
 #include <future>
 #include <iomanip>
@@ -46,7 +47,17 @@ struct TemplateEntry {
     cv::Mat feature_descriptors;
     bool has_feature_cache = false;
     std::unordered_map<std::wstring, ScaledTemplateEntry> scaled_templates;
+    // scaled_templates 的插入顺序，用于有界淘汰。只用来控内存：缩放模板完全由
+    // color/gray/mask 推导得出，丢掉之后下一次用到同一个比例会重新算，结果一致。
+    std::deque<std::wstring> scaled_order;
 };
+
+// 每个模板最多保留多少个不同缩放比例的缓存。
+// 多比例/自适应搜索会按候选比例逐个进缓存，而候选比例是"用一次就不再用"的临时值，
+// 之前没有任何淘汰，跑久了每个模板都会挂上几十上百份缩放后的 Mat（每份都是
+// 模板面积 × scale² × 4 字节 × 若干通道），是实打实的内存增长。
+// 16 足够覆盖一次搜索里会反复用到的比例（1.0 不走缓存，见 getScaledTemplateSnapshot）。
+constexpr size_t kMaxScaledTemplatesPerTemplate = 16;
 
 // 模板缓存，按名字保存已加载模板。
 std::unordered_map<std::wstring, TemplateEntry> gTemplateStore;
@@ -1540,6 +1551,16 @@ bool getScaledTemplateSnapshot(
             return false;
         }
         scaled_it = entry.scaled_templates.emplace(scale_key, std::move(scaled_entry)).first;
+        entry.scaled_order.push_back(scale_key);
+        // 超出上限就从最久没被插入的那个开始丢；丢掉只是让下次重新计算，结果不变。
+        while (entry.scaled_order.size() > kMaxScaledTemplatesPerTemplate) {
+            const std::wstring oldest = entry.scaled_order.front();
+            entry.scaled_order.pop_front();
+            if (oldest == scale_key) {
+                continue;
+            }
+            entry.scaled_templates.erase(oldest);
+        }
     }
 
     templ = color_mode == opcv::MatchColorMode::Gray ? scaled_it->second.gray : scaled_it->second.color;
@@ -2480,6 +2501,17 @@ int GetTemplateCount() {
     return static_cast<int>(gTemplateStore.size());
 }
 
+// 返回某个模板名下的缩放模板缓存条目数。
+// 只给测试用来钉住"缩放缓存有上限"这个性质，不在 include/libop.h、COM、SWIG 上暴露。
+size_t GetScaledTemplateCacheSize(const std::wstring &name) {
+    std::shared_lock<std::shared_mutex> lock(gTemplateStoreMutex);
+    const auto it = gTemplateStore.find(name);
+    if (it == gTemplateStore.end()) {
+        return 0;
+    }
+    return it->second.scaled_templates.size();
+}
+
 // 使用指定模板名在给定区域内执行匹配，并返回一个达到阈值的命中。
 bool MatchTemplate(
     const ImageHandle &source,
@@ -2976,4 +3008,5 @@ bool ShapeMatchTemplate(
 }
 
 } // namespace opcv
+
 

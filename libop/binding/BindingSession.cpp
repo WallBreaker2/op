@@ -40,9 +40,8 @@ using op::input::WinMouse;
 namespace {
 
 std::wstring to_lower_ascii(std::wstring value) {
-    std::transform(value.begin(), value.end(), value.begin(), [](wchar_t ch) {
-        return static_cast<wchar_t>(std::towlower(ch));
-    });
+    std::transform(value.begin(), value.end(), value.begin(),
+                   [](wchar_t ch) { return static_cast<wchar_t>(std::towlower(ch)); });
     return value;
 }
 
@@ -147,12 +146,12 @@ BindingSession::~BindingSession() {
 }
 
 long BindingSession::BindWindow(LONG_PTR hwnd, const wstring &sdisplay, const wstring &smouse, const wstring &skeypad,
-                              long mode) {
+                                long mode) {
     return BindWindowEx(hwnd, hwnd, sdisplay, smouse, skeypad, mode);
 }
 
 long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, const wstring &sdisplay,
-                                const wstring &smouse, const wstring &skeypad, long mode) {
+                                  const wstring &smouse, const wstring &skeypad, long mode) {
     // step 1.避免重复绑定
     reset_bind_state(false);
 
@@ -205,6 +204,7 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         display = RDT_GL_FI;
     else {
         setlog(L"error display mode: %s", sdisplay.c_str());
+        op_set_last_error(kOpErrBadArgument);
         return 0;
     }
     if (!auto_display)
@@ -218,6 +218,7 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         mouse = INPUT_TYPE::IN_DX;
     else {
         setlog(L"error mouse mode: %s", smouse.c_str());
+        op_set_last_error(kOpErrBadArgument);
         return 0;
     }
     // check keypad
@@ -231,11 +232,13 @@ long BindingSession::BindWindowEx(LONG_PTR display_hwnd, LONG_PTR input_hwnd, co
         keypad = INPUT_TYPE::IN_DX;
     else {
         setlog(L"error keypad mode: %s", skeypad.c_str());
+        op_set_last_error(kOpErrBadArgument);
         return 0;
     }
     // DXGI 只在 Windows 8 及以上开放。
     if (display == RDT_NORMAL_DXGI && !IsWindowsVersionAtLeast(6, 2, 0)) {
         setlog(L"normal.dxgi requires Windows 8 or later");
+        op_set_last_error(kOpErrBackendUnavailable);
         return 0;
     }
 
@@ -562,9 +565,19 @@ bool BindingSession::requestCapture(int x1, int y1, int w, int h, Image &img) {
     if (method == L"screen")
         return _capture && _capture->requestCapture(x1, y1, w, h, img);
     else if (method == L"pic" || method == L"mem") {
+        if (x1 < 0 || y1 < 0 || w <= 0 || h <= 0 || x1 + w > _pic.width || y1 + h > _pic.height)
+            return false;
         img.create(w, h);
+        const size_t row_bytes = static_cast<size_t>(w) * 4;
+        if (x1 == 0 && w == _pic.width) {
+            // 整行取块时源图行距与目标一致，一次 memcpy 代替逐行循环。
+            memcpy(img.pdata, _pic.pdata + static_cast<size_t>(y1) * row_bytes, row_bytes * static_cast<size_t>(h));
+            return true;
+        }
+        const size_t src_pitch = static_cast<size_t>(_pic.width) * 4;
         for (int i = 0; i < h; i++)
-            memcpy(img.ptr<uchar>(i), _pic.ptr<uchar>(i + y1) + x1 * 4, w * 4);
+            memcpy(img.ptr<uchar>(i),
+                   _pic.pdata + static_cast<size_t>(i + y1) * src_pitch + static_cast<size_t>(x1) * 4, row_bytes);
         return true;
     }
     return false;

@@ -327,7 +327,9 @@ class OP_API Op {
     // 根据指定的字符串序列，依次按顺序按下其中的字符
     void KeyPressStr(_In_ const wchar_t *key_str, _In_ long delay, _Out_ long *ret);
     //--------------------image and color-----------------------
-    // 抓取指定区域(x1, y1, x2, y2)的图像, 保存为file
+    // 抓取指定区域(x1, y1, x2, y2)的图像, 保存为file。
+    // x2/y2 是右下角开区间: 实际宽 = x2-x1、高 = y2-y1,
+    // 所以 Capture(0, 0, 319, 239) 存下来的是 319x239 的图。
     void Capture(_In_ long x1, _In_ long y1, _In_ long x2, _In_ long y2, _In_ const wchar_t *file_name, _Out_ long *ret);
     // 比较指定坐标点(x,y)的颜色
     void CmpColor(_In_ long x, _In_ long y, _In_ const wchar_t *color, _In_ double sim, _Out_ long *ret);
@@ -549,6 +551,13 @@ class OP_API Op {
     // 大漠兼容内存接口
     void ReadInt(_In_ LONG_PTR hwnd, _In_ const wchar_t *address, _In_ long type, _Out_ int64_t *ret);
     void WriteInt(_In_ LONG_PTR hwnd, _In_ const wchar_t *address, _In_ long type, _In_ int64_t value, _Out_ long *ret);
+    // 批量形状：一次调用读一整组地址，省掉每条地址都要付的固定开销（进程上下文、字符串转换、异常帧）。
+    // addresses 是 count 个以 0 结尾的地址表达式；values[i] 读失败写 0；ret 返回成功条数。
+    // ok（可空）逐项标记成功与否：COM 层要靠它把失败项输出成空字段，否则 0 和"读失败"分不开。
+    void ReadIntBatch(_In_ LONG_PTR hwnd, _In_ const wchar_t *const *addresses, _In_ long count, _In_ long type,
+                      _Out_ int64_t *values, _Out_ long *ret, _Out_opt_ bool *ok = nullptr);
+    void WriteIntBatch(_In_ LONG_PTR hwnd, _In_ const wchar_t *const *addresses, _In_ long count, _In_ long type,
+                       _In_ const int64_t *values, _Out_ long *ret, _Out_opt_ bool *ok = nullptr);
     void ReadFloat(_In_ LONG_PTR hwnd, _In_ const wchar_t *address, _Out_ float *ret);
     void WriteFloat(_In_ LONG_PTR hwnd, _In_ const wchar_t *address, _In_ float value, _Out_ long *ret);
     void ReadDouble(_In_ LONG_PTR hwnd, _In_ const wchar_t *address, _Out_ double *ret);

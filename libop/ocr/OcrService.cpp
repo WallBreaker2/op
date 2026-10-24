@@ -1,8 +1,8 @@
 #include "OcrService.h"
 #include "../network/HttpClient.h"
+#include "OcrResponseParser.h"
 #include "../base/Utils.h"
 #include <iostream>
-#include <regex>
 
 using std::cout;
 using std::endl;
@@ -102,14 +102,21 @@ int HttpOcrService::ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result) {
         return -2;
     }
 
-    std::string image_b64;
-    if (!base64_encode(data, static_cast<int>(pixel_bytes_size_t), image_b64)) {
+    // 请求体一次成型：base64 直接编进 req 的尾部，省掉“临时串 + 再拷一遍”（§72.34）。
+    std::string req;
+    req.reserve(base64_encoded_size(pixel_bytes_size_t) + 96);
+    req += "{\"image\":\"";
+    if (!base64_encode_append(data, pixel_bytes_size_t, req)) {
         cout << "ocr base64 encode failed" << endl;
         return -3;
     }
-
-    std::string req = "{\"image\":\"" + image_b64 + "\",\"width\":" + std::to_string(w) +
-                      ",\"height\":" + std::to_string(h) + ",\"bpp\":" + std::to_string(bpp) + "}";
+    req += "\",\"width\":";
+    req += std::to_string(w);
+    req += ",\"height\":";
+    req += std::to_string(h);
+    req += ",\"bpp\":";
+    req += std::to_string(bpp);
+    req += "}";
 
     ParsedUrl parsed;
     if (!parse_url(m_endpoint, parsed)) {
@@ -128,54 +135,14 @@ int HttpOcrService::ocr(byte *data, int w, int h, int bpp, vocr_rec_t &result) {
         return -6;
     }
 
-    static const std::regex code_re("\\\"code\\\"\\s*:\\s*(-?\\d+)");
-    std::smatch code_match;
-    if (!std::regex_search(resp, code_match, code_re)) {
-        cout << "ocr parse response code failed" << endl;
-        return -7;
+    int server_code = 0;
+    const int parse_ret = parse_ocr_response(resp, result, &server_code);
+    if (parse_ret == -8) {
+        cout << "ocr server code=" << server_code << ", body=" << resp << endl;
+    } else if (parse_ret < 0) {
+        cout << "ocr parse failed(" << parse_ret << "), body=" << resp << endl;
     }
-    const int code = atoi(code_match[1].str().c_str());
-    if (code != 0) {
-        cout << "ocr server code=" << code << ", body=" << resp << endl;
-        return -8;
-    }
-
-    static const std::regex obj_re("\\{[^\\{\\}]*\\}");
-    static const std::regex text_re("\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"\\\\])*)\\\"");
-    static const std::regex bbox_re(
-        "\\\"bbox\\\"\\s*:\\s*\\[\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\]");
-    static const std::regex conf_re("\\\"confidence\\\"\\s*:\\s*([-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?)");
-
-    int n = 0;
-    for (std::sregex_iterator it(resp.begin(), resp.end(), obj_re), end; it != end; ++it) {
-        const std::string obj = it->str();
-        std::smatch text_m;
-        std::smatch bbox_m;
-        std::smatch conf_m;
-        if (!std::regex_search(obj, text_m, text_re) || !std::regex_search(obj, bbox_m, bbox_re) ||
-            !std::regex_search(obj, conf_m, conf_re)) {
-            continue;
-        }
-
-        ocr_rec_t ts;
-        ts.left_top = point_t(atoi(bbox_m[1].str().c_str()), atoi(bbox_m[2].str().c_str()));
-        ts.right_bottom = point_t(atoi(bbox_m[3].str().c_str()), atoi(bbox_m[4].str().c_str()));
-        ts.confidence = static_cast<float>(atof(conf_m[1].str().c_str()));
-        const std::string text = json_unescape(text_m[1].str());
-        ts.text = _s2wstring(utf8_to_ansi(text));
-        result.push_back(ts);
-        ++n;
-    }
-
-    if (n == 0) {
-        static const std::regex empty_result_re("\\\"results\\\"\\s*:\\s*\\[\\s*\\]");
-        if (!std::regex_search(resp, empty_result_re)) {
-            cout << "ocr parse results failed, body=" << resp << endl;
-            return -9;
-        }
-    }
-
-    return n;
+    return parse_ret;
 }
 
 } // namespace op::ocr

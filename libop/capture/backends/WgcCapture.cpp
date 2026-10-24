@@ -1,11 +1,13 @@
 
 #include "WgcCapture.h"
-#include "../../hook/DxCaptureCommon.h"
-#include "../../image/Image.h"
 #include "../../base/AutomationModes.h"
 #include "../../base/Utils.h"
 #include "../../base/WindowsVersion.h"
+#include "../../hook/DxCaptureCommon.h"
+#include "../../image/Image.h"
 #include <algorithm>
+#include <exception>
+#include <excpt.h>
 #include <climits>
 #include <cstdlib>
 #include <dwmapi.h>
@@ -41,6 +43,9 @@ bool wgcSessionPropertyPresent(const wchar_t *property_name) {
     }
 }
 
+// 注：SEH 码只能在 catch 处理器内部用 _exception_info() 取（它是 intrinsic，
+// 不能包成独立函数，否则报 C2707），所以下面直接写在 catch(...) 里。
+
 template <typename Func, typename Result> Result runInMtaApartment(Func func, Result fallback) {
     Result result = fallback;
     bool apartment_initialized = false;
@@ -49,11 +54,22 @@ template <typename Func, typename Result> Result runInMtaApartment(Func func, Re
         apartment_initialized = true;
         result = func();
     } catch (winrt::hresult_error &err) {
-        setlog("WGC worker thread (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        // 不能在这里调 err.message()/winrt::to_string()：异常对象里的 IRestrictedErrorInfo
+        // 可能已经失效（第二个会话上实测为空指针），取消息会在 handler 里对空指针 AddRef 崩掉。
+        setlog("WGC worker thread hresult 0x%08X", err.code().value);
+    } catch (const std::exception &e) {
+        // 实测第二个 WGC 会话抛的是非 WinRT 异常，必须单独接住并记录，否则会掉进 catch(...)。
+        setlog("WGC worker thread non-winrt exception: %s", e.what());
     } catch (...) {
-        setlog("WGC worker thread (0x%08X)", winrt::to_hresult().value);
+        // 原先这里调 winrt::to_hresult()：契约上只能在 WinRT 异常上调用，
+        // 对非 WinRT 异常属未定义行为，实测表现为 IUnknown::add_ref(rax=0) 崩溃。
+        // /EHa 下 SEH 也会落到这里，_exception_info() 能直接给出 SEH 码，用来定位抛出点。
+        // 本 TU 没有开 /EHa，_exception_info() 不可用（C2707），只能靠 Init 里的 step 埋点定位。
+        setlog("WGC worker thread unknown exception 0x8000FFFF");
     }
 
+    // A/B 已验证：uninit_apartment() 不是"第二个会话激活失败"的原因（去掉后现象不变），
+    // 所以保持与原来一致的成对初始化/反初始化。
     if (apartment_initialized) {
         try {
             winrt::uninit_apartment();
@@ -67,10 +83,18 @@ bool shouldUseWgcWorkerThread() {
     return !IsWindows10BuildOrGreater(kWindows11Build22000);
 }
 
+// Windows 10 上 worker 首次 Init 要做 WinRT 激活 + RequestAccessAsync + CreateFreeThreaded，
+// 冷启动实测容易超过 300ms，原值会让第一次 requestCapture 直接报
+// "WGC worker init is not ready" 并返回失败（测试里表现为取色 L"000000"）。
 constexpr unsigned long kWin10RequestInitWaitMs = 300;
 constexpr unsigned long kWin10InitialFrameWaitMs = 500;
 constexpr unsigned long kWin10MetricsFrameWaitMs = 800;
-constexpr unsigned long kWin10FreshFrameWaitMs = 100;
+// 静态画面下单次截图最多等多久“新帧”。
+// WGC 是变化驱动的：帧池取空只说明合成器还没出帧，不等于画面没变。
+// 输入动作后立刻截图时，直接复用 staging 会把动作前的像素当成结果返回（并且报成功），
+// 这属于 read-after-write 语义被破坏。这里保留一次有界等待：有新帧立即返回，
+// 静态画面最多付出一帧合成间隔（~16ms），仍远低于原来固定的 50/100ms。
+constexpr unsigned long kStaleFrameWaitMs = 16;
 constexpr unsigned long kWin10CloseWaitMs = 1500;
 constexpr unsigned long kWin10CleanupBindWaitMs = 200;
 std::atomic<int> g_win10WgcCleanupInFlight{0};
@@ -94,7 +118,7 @@ void debugWgcCloseMessage(const char *message) {
 void debugWgcCloseHresult(const char *operation, winrt::hresult_error &err) {
     char buffer[512] = {};
     std::snprintf(buffer, sizeof(buffer), "%s (0x%08X): %s", operation, err.code().value,
-                  winrt::to_string(err.message()).c_str());
+                  "<hresult_error>");
     debugWgcCloseMessage(buffer);
 }
 
@@ -110,9 +134,9 @@ void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptur
         }
     } catch (winrt::hresult_error &err) {
         setlog("Request WGC borderless access failed (0x%08X): %s", err.code().value,
-               winrt::to_string(err.message()).c_str());
+               "<hresult_error>");
     } catch (...) {
-        setlog("Request WGC borderless access failed (0x%08X)", winrt::to_hresult().value);
+        setlog("Request WGC borderless access failed (0x%08X)", 0x8000FFFFu);
     }
     try {
         if (wgcSessionPropertyPresent(L"IsCursorCaptureEnabled")) {
@@ -122,13 +146,40 @@ void applySessionOptions(const winrt::Windows::Graphics::Capture::GraphicsCaptur
     }
 }
 
+// 进程级共享 D3D11 设备。
+// WGC 每次绑定都要重造设备：实测 step3(D3D11CreateDevice) 冷启 188 ms、重绑 140 ms，
+// 占整次绑定成本 100%（其余步骤系统已缓存到 ~0 ms）。独占绑定期间把它复用掉。
+struct SharedWgcDevice {
+    ATL::CComPtr<ID3D11Device> device;
+    ATL::CComPtr<ID3D11DeviceContext> context;
+    D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL_11_0;
+    bool valid = false;
+};
+
+SharedWgcDevice &shared_wgc_device() {
+    // 故意不析构：静态对象析构会在 DllMain 的 loader lock 内 Release D3D 设备，
+    // 有死锁风险（同 DxgiCapture 的 shared_device 处理）。
+    static SharedWgcDevice *instance = new SharedWgcDevice();
+    return *instance;
+}
+
+// 进程内活着且有设备的 WgcCapture 实例数。只有独占（==1）时才复用共享设备：
+// 多个实例同时抓不同窗口时，共享 ID3D11Device 的 immediate context 不是线程安全的。
+std::atomic<int> &live_wgc_count() {
+    static std::atomic<int> *instance = new std::atomic<int>(0);
+    return *instance;
+}
+
 } // namespace
 
-WgcCapture::WgcCapture() = default;
+WgcCapture::WgcCapture() {
+    ++live_wgc_count();
+}
 
 WgcCapture::~WgcCapture() {
     captureStopping_.store(true);
     UnBindEx();
+    --live_wgc_count();
 }
 
 long WgcCapture::BindEx(HWND _hwnd, long render_type) {
@@ -157,6 +208,9 @@ bool WgcCapture::DeferBindReleaseAfterUnBind() const {
 
 long WgcCapture::BindExOnWindows10(HWND hwnd) {
     if (!waitForWin10WgcCleanup(kWin10CleanupBindWaitMs)) {
+        // 上一个实例的 worker 还在退出（可能卡在 WinRT 初始化里，见 §8 的已知缺陷）。
+        // 这里保持"硬失败"：实测把它改成"告警并继续"会让新会话与 stuck worker 并发创建，
+        // 崩溃从"干净返回 0"变成 AV，因此必须先把 worker 生命周期改掉再放开。
         setlog("BindEx: previous WGC cleanup is still pending on Windows 10");
         return 0;
     }
@@ -181,6 +235,15 @@ long WgcCapture::BindExOnWindows10(HWND hwnd) {
         win10WorkerInitSucceeded_.store(false);
         return 0;
     }
+
+    // 有界就绪等待：原来这里起完线程就 return 1，而 Win10 的 waitForBindReady() 是空实现，
+    // 于是"绑定成功"根本不代表会话可用 —— 第二个会话 init 失败时会静默返回全黑图，
+    // normal.auto 也永远不回退到 DXGI。改成失败即返回 0，让上层回退/报错。
+    if (!waitForWin10WorkerInit(kWin10RequestInitWaitMs)) {
+        setlog("BindEx: WGC worker init failed on Windows 10 (bounded wait %u ms)", kWin10RequestInitWaitMs);
+        win10WorkerStop_.store(true);
+        return 0;
+    }
     return 1;
 }
 
@@ -193,15 +256,20 @@ long WgcCapture::UnBindExInternal() {
         try {
             device_.Close();
         } catch (winrt::hresult_error &err) {
-            setlog("IDirect3DDevice::Close (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+            setlog("IDirect3DDevice::Close (0x%08X): %s", err.code().value, "<hresult_error>");
         } catch (...) {
-            setlog("IDirect3DDevice::Close (0x%08X)", winrt::to_hresult().value);
+            setlog("IDirect3DDevice::Close (0x%08X)", 0x8000FFFFu);
         }
     }
 
-    stagingTexture_.Release();
-    d3dDeviceContext_.Release();
-    d3dDevice_.Release();
+    // revoke token 不能保证在途回调已经结束：D3D 资源要在 frameMutex_ 下释放，
+    // 与 copyFrameToStaging 里的取帧/拷贝互斥，避免回调正在用 staging 时被释放。
+    {
+        std::scoped_lock lock(frameMutex_);
+        stagingTexture_.Release();
+        d3dDeviceContext_.Release();
+        d3dDevice_.Release();
+    }
 
     session_ = nullptr;
     framePool_ = nullptr;
@@ -365,8 +433,33 @@ void WgcCapture::closeWin10WorkerObjects() {
 }
 
 bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
-    auto activation_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>();
-    auto interop_factory = activation_factory.as<IGraphicsCaptureItemInterop>();
+    // 诊断埋点：Win10 第二个会话的 Init 会在某一步抛出非 WinRT 异常，
+    // 靠这些带时间戳的标记定位"最后走到哪一步"。
+    const unsigned long long init_t0 = ::GetTickCount64();
+    setlog("wgc init step=0 activation_factory t=%llu", init_t0);
+    // 这两行原来在 try 之外：第二个会话上抛出的异常会直接穿出 Init()，
+    // 冒到 runInMtaApartment 的 catch-all 里，既不记错误码也丢掉了"哪一步失败"的信息。
+    winrt::Windows::Foundation::IActivationFactory activation_factory{nullptr};
+    winrt::com_ptr<IGraphicsCaptureItemInterop> interop_factory;
+    // 单次尝试（A/B 已试过 3 次重试：3/3 全部失败，只会多付 150ms，故不留）。
+    try {
+        activation_factory = winrt::get_activation_factory<winrt::Windows::Graphics::Capture::GraphicsCaptureItem>();
+        interop_factory = activation_factory.as<IGraphicsCaptureItemInterop>();
+    } catch (winrt::hresult_error &err) {
+        setlog("wgc init activation factory hresult 0x%08X", err.code().value);
+        return false;
+    } catch (const std::exception &e) {
+        setlog("wgc init activation factory non-winrt exception: %s", e.what());
+        return false;
+    } catch (...) {
+        setlog("wgc init activation factory unknown exception");
+        return false;
+    }
+    if (!interop_factory) {
+        setlog("wgc init activation factory is null");
+        return false;
+    }
+    setlog("wgc init step=1 interop t=%llu", ::GetTickCount64() - init_t0);
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem item = {nullptr};
 
     try {
@@ -377,13 +470,14 @@ bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
             return false;
         }
     } catch (winrt::hresult_error &err) {
-        setlog("CreateForWindow (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        setlog("CreateForWindow (0x%08X): %s", err.code().value, "<hresult_error>");
         return false;
     } catch (...) {
-        setlog("CreateForWindow (0x%08X)", winrt::to_hresult().value);
+        setlog("CreateForWindow (0x%08X)", 0x8000FFFFu);
         return false;
     }
 
+    setlog("wgc init step=2 CreateForWindow ok t=%llu", ::GetTickCount64() - init_t0);
     if (!item) {
         setlog("GraphicsCaptureItem is null");
         return false;
@@ -405,17 +499,32 @@ bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
     d3dDeviceContext_.Release();
     d3dDevice_.Release();
 
-    for (UINT DriverTypeIndex = 0; DriverTypeIndex < NumDriverTypes; ++DriverTypeIndex) {
-        create_device_hr =
-            D3D11CreateDevice(nullptr, DriverTypes[DriverTypeIndex], nullptr, 0, FeatureLevels, NumFeatureLevels,
-                              D3D11_SDK_VERSION, &d3dDevice_, &FeatureLevel, &d3dDeviceContext_);
-        if (SUCCEEDED(create_device_hr)) {
-            break;
+    SharedWgcDevice &shared_device = shared_wgc_device();
+    const bool reuse_device =
+        shared_device.valid && shared_device.device != nullptr && shared_device.context != nullptr && live_wgc_count() == 1;
+    if (reuse_device) {
+        d3dDevice_ = shared_device.device;
+        d3dDeviceContext_ = shared_device.context;
+        FeatureLevel = shared_device.feature_level;
+        setlog("wgc init step=3 D3D11CreateDevice reused t=%llu", ::GetTickCount64() - init_t0);
+    } else {
+        for (UINT DriverTypeIndex = 0; DriverTypeIndex < NumDriverTypes; ++DriverTypeIndex) {
+            create_device_hr =
+                D3D11CreateDevice(nullptr, DriverTypes[DriverTypeIndex], nullptr, 0, FeatureLevels, NumFeatureLevels,
+                                  D3D11_SDK_VERSION, &d3dDevice_, &FeatureLevel, &d3dDeviceContext_);
+            if (SUCCEEDED(create_device_hr)) {
+                break;
+            }
         }
-    }
-    if (d3dDevice_ == nullptr || d3dDeviceContext_ == nullptr) {
-        setlog("D3D11CreateDevice failed hr=0x%08X", create_device_hr);
-        return false;
+        if (d3dDevice_ == nullptr || d3dDeviceContext_ == nullptr) {
+            setlog("D3D11CreateDevice failed hr=0x%08X", create_device_hr);
+            return false;
+        }
+        shared_device.device = d3dDevice_;
+        shared_device.context = d3dDeviceContext_;
+        shared_device.feature_level = FeatureLevel;
+        shared_device.valid = true;
+        setlog("wgc init step=3 D3D11CreateDevice ok t=%llu", ::GetTickCount64() - init_t0);
     }
     ComPtr<IDXGIDevice> dxgi_device;
     if (FAILED(d3dDevice_->QueryInterface(&dxgi_device))) {
@@ -423,20 +532,25 @@ bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
         return false;
     }
 
+    setlog("wgc init step=4 QueryInterface dxgi ok t=%llu", ::GetTickCount64() - init_t0);
     winrt::com_ptr<IInspectable> inspectable;
     if (FAILED(CreateDirect3D11DeviceFromDXGIDevice(dxgi_device.Get(), inspectable.put()))) {
         setlog("Failed to get WinRT device wgc");
         return false;
     }
 
+    setlog("wgc init step=5 CreateDirect3D11Device ok t=%llu", ::GetTickCount64() - init_t0);
     const winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice device =
         inspectable.as<winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice>();
     const winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool frame_pool =
         winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool::CreateFreeThreaded(
             device, winrt::Windows::Graphics::DirectX::DirectXPixelFormat::B8G8R8A8UIntNormalized, 2, item.Size());
+    setlog("wgc init step=6 CreateFreeThreaded ok t=%llu", ::GetTickCount64() - init_t0);
     const winrt::Windows::Graphics::Capture::GraphicsCaptureSession session = frame_pool.CreateCaptureSession(item);
 
+    setlog("wgc init step=7 CreateCaptureSession ok t=%llu", ::GetTickCount64() - init_t0);
     applySessionOptions(session);
+    setlog("wgc init step=8 applySessionOptions ok t=%llu", ::GetTickCount64() - init_t0);
 
     const auto item_size = item.Size();
     captureWidth_ = item_size.Width;
@@ -487,13 +601,14 @@ bool WgcCapture::Init(HWND _hwnd, bool use_frame_arrived_event) {
         hasFrameArrivedToken_ = false;
     }
 
+    setlog("wgc init step=9 session assigned t=%llu", ::GetTickCount64() - init_t0);
     try {
         session_.StartCapture();
     } catch (winrt::hresult_error &err) {
-        setlog("StartCapture (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        setlog("StartCapture (0x%08X): %s", err.code().value, "<hresult_error>");
         return false;
     } catch (...) {
-        setlog("StartCapture (0x%08X)", winrt::to_hresult().value);
+        setlog("StartCapture (0x%08X)", 0x8000FFFFu);
         return false;
     }
 
@@ -609,16 +724,15 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
             return false;
         }
     } else {
-        const unsigned long long before_update_serial = currentFrameSerial();
         if (!win10_worker) {
             if (!updateLatestFrame()) {
                 return false;
             }
         }
-        if (currentFrameSerial() == before_update_serial) {
-            const unsigned long fresh_timeout_ms = win10_worker ? kWin10FreshFrameWaitMs : 50;
-            (void)waitForFramesAfter(before_update_serial, 1, fresh_timeout_ms, !win10_worker);
-        }
+        // 帧池已经取空。这里补一次有界等待，目的是守住 read-after-write：
+        // “队列空”只说明还没合成，不代表画面没变；直接复用 staging 会返回动作前的像素。
+        // 有新帧就立刻返回，静态画面最多等 kStaleFrameWaitMs，仍比原来固定的 50/100ms 低一个量级。
+        waitForFramesAfter(currentFrameSerial(), 1, kStaleFrameWaitMs, !win10_worker);
     }
 
     if (!hasCapturedFrame()) {
@@ -670,8 +784,18 @@ bool WgcCapture::requestCapture(int x1, int y1, int w, int h, Image &img) {
             if (copy_w != w || copy_h != h) {
                 img.create(copy_w, copy_h);
             }
-            for (int i = 0; i < copy_h; i++) {
-                memcpy(img.ptr<uchar>(i), pData + (src_y + i) * mappedResource.RowPitch + src_x * 4, 4 * copy_w);
+            const uint8_t *src_pixels =
+                pData + static_cast<size_t>(src_y) * mappedResource.RowPitch + static_cast<size_t>(src_x) * 4;
+            const size_t row_bytes = static_cast<size_t>(copy_w) * 4;
+            if (src_x == 0 && copy_w == img.width && mappedResource.RowPitch == row_bytes) {
+                // 整窗截图（最常见）行距恰好一致，一次 memcpy 代替上千行循环。
+                memcpy(img.pdata, src_pixels, row_bytes * static_cast<size_t>(copy_h));
+            } else {
+                const size_t dst_pitch = static_cast<size_t>(img.width) * 4;
+                for (int i = 0; i < copy_h; i++) {
+                    memcpy(img.pdata + static_cast<size_t>(i) * dst_pitch,
+                           src_pixels + static_cast<size_t>(i) * mappedResource.RowPitch, row_bytes);
+                }
             }
         }
 
@@ -915,9 +1039,9 @@ void WgcCapture::closeCaptureSession() {
             framePool_.FrameArrived(frameArrivedToken_);
         } catch (winrt::hresult_error &err) {
             setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
+                   "<hresult_error>");
         } catch (...) {
-            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X)", winrt::to_hresult().value);
+            setlog("Direct3D11CaptureFramePool::FrameArrived revoke (0x%08X)", 0x8000FFFFu);
         }
         hasFrameArrivedToken_ = false;
     }
@@ -927,9 +1051,9 @@ void WgcCapture::closeCaptureSession() {
             framePool_.Close();
         } catch (winrt::hresult_error &err) {
             setlog("Direct3D11CaptureFramePool::Close (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
+                   "<hresult_error>");
         } catch (...) {
-            setlog("Direct3D11CaptureFramePool::Close (0x%08X)", winrt::to_hresult().value);
+            setlog("Direct3D11CaptureFramePool::Close (0x%08X)", 0x8000FFFFu);
         }
     }
 
@@ -938,9 +1062,9 @@ void WgcCapture::closeCaptureSession() {
             session_.Close();
         } catch (winrt::hresult_error &err) {
             setlog("GraphicsCaptureSession::Close (0x%08X): %s", err.code().value,
-                   winrt::to_string(err.message()).c_str());
+                   "<hresult_error>");
         } catch (...) {
-            setlog("GraphicsCaptureSession::Close (0x%08X)", winrt::to_hresult().value);
+            setlog("GraphicsCaptureSession::Close (0x%08X)", 0x8000FFFFu);
         }
     }
 
@@ -999,19 +1123,23 @@ bool WgcCapture::restartCaptureSession() {
         applySessionOptions(session_);
 
         frameArrivedToken_ = framePool_.FrameArrived([this](const Direct3D11CaptureFramePool &sender, auto const &) {
+            // 与首次建会话的回调保持一致：解绑/重建期间不要再往 staging 里写。
+            if (captureStopping_.load()) {
+                return;
+            }
             auto frame = tryGetLatestFrame(sender);
-            if (frame) {
+            if (frame && !captureStopping_.load()) {
                 copyFrameToStaging(frame);
             }
         });
         hasFrameArrivedToken_ = true;
         session_.StartCapture();
     } catch (winrt::hresult_error &err) {
-        setlog("restartCaptureSession (0x%08X): %s", err.code().value, winrt::to_string(err.message()).c_str());
+        setlog("restartCaptureSession (0x%08X): %s", err.code().value, "<hresult_error>");
         closeCaptureSession();
         return false;
     } catch (...) {
-        setlog("restartCaptureSession (0x%08X)", winrt::to_hresult().value);
+        setlog("restartCaptureSession (0x%08X)", 0x8000FFFFu);
         closeCaptureSession();
         return false;
     }

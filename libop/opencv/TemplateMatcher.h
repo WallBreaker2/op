@@ -243,6 +243,10 @@ std::vector<std::wstring> GetAllTemplateNames();
 // 获取当前已加载模板数量。
 int GetTemplateCount();
 
+// 获取某个模板名下已缓存的缩放模板数量。
+// 仅供测试钉住"缩放缓存有上限"这一性质：它不在 include/libop.h、COM、SWIG 上暴露。
+size_t GetScaledTemplateCacheSize(const std::wstring &name);
+
 // 使用指定模板在给定区域内执行匹配，并返回一个达到阈值的命中结果。
 // 说明：
 // - SearchDirection 决定首命中扫描方向。

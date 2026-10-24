@@ -34,6 +34,11 @@ bool resolve_endpoint_candidate(const std::string &candidate, std::string &endpo
 
 // --- encoding & HTTP ---
 bool base64_encode(const unsigned char *data, int size, std::string &out);
+// base64 编码后的字符数（不含结尾 NUL）。用来一次性 reserve，避免大图编码时反复扩容。
+size_t base64_encoded_size(size_t size);
+// 把 data 的 base64 **追加**到 out 末尾，不再多分配一份中间字符串。
+// 1080p 4bpp 一张图编码后约 11 MB，旧写法“先编码到临时串再拼进请求体”要多拷一遍（§72.34）。
+bool base64_encode_append(const unsigned char *data, size_t size, std::string &out);
 bool http_post_json(const ParsedUrl &url, const std::string &body, int timeout_ms, std::string &response,
                     DWORD &status_code, const wchar_t *user_agent);
 std::string json_unescape(const std::string &s);

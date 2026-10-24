@@ -71,15 +71,21 @@ constexpr int IBF_R8G8B8 = 2;
 // const size_t MAX_IMAGE_WIDTH = 1<<11;
 // const size_t SHARED_MEMORY_SIZE = 1080 * 1928 * 4;
 
-constexpr auto SHARED_RES_NAME_FORMAT = L"op_mutex_%d";
-constexpr auto MUTEX_NAME_FORMAT = L"op_shared_mem_%d";
-
+// 这两个名字是主控 DLL 与注入的 hook DLL 之间的"线格式"：
+//   - 命名共享段（SharedMemory）叫 "op_shared_mem_<hwnd>"
+//   - 命名互斥体（ProcessMutex）叫 "op_mutex_<hwnd>"
+// 历史上这两个前缀是**反的**（段叫 op_mutex_*、互斥体叫 op_shared_mem_*），第 72 批按操作者
+// 要求改回正名（见 defect_fixes.md §72.20）。改名的代价是**旧版注入 DLL 会失联**：它按老名字
+// 找对象，两边永远等不到对方的帧（表现是后台截图超时，而不是报错）。所以主控端与注入端
+// 必须同一次发版；`waitForBindReady()` 超时时会打一行日志提示这种混装可能。
+// 这里原来还有 SHARED_RES_NAME_FORMAT / MUTEX_NAME_FORMAT 两个 "op_xxx_%d" 的宏：从未被使用，
+// 而且 %d 在 x64 上会把 HWND 截断成 32 位，已删除，避免有人拿它拼出"看起来对"的错误名字。
 inline std::wstring MakeOpSharedResourceName(HWND hwnd) {
-    return std::wstring(L"op_mutex_") + std::to_wstring(reinterpret_cast<std::uintptr_t>(hwnd));
+    return std::wstring(L"op_shared_mem_") + std::to_wstring(reinterpret_cast<std::uintptr_t>(hwnd));
 }
 
 inline std::wstring MakeOpMutexName(HWND hwnd) {
-    return std::wstring(L"op_shared_mem_") + std::to_wstring(reinterpret_cast<std::uintptr_t>(hwnd));
+    return std::wstring(L"op_mutex_") + std::to_wstring(reinterpret_cast<std::uintptr_t>(hwnd));
 }
 
 extern long KEYPAD_NORMAL_DELAY;

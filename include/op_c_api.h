@@ -333,6 +333,12 @@ OP_C_API int OP_CALL OpWriteData(op_handle handle, intptr_t hwnd, const wchar_t 
                                  int size);
 OP_C_API const wchar_t *OP_CALL OpReadData(op_handle handle, intptr_t hwnd, const wchar_t *address, int size);
 OP_C_API int OP_CALL OpReadInt(op_handle handle, intptr_t hwnd, const wchar_t *address, int type, int64_t *value);
+// Batch shape: one call reads/writes a whole array of address expressions.
+// values[i] is set to 0 when that item fails; the return value is the number of successes.
+OP_C_API int OP_CALL OpReadIntBatch(op_handle handle, intptr_t hwnd, const wchar_t *const *addresses, int count,
+                                    int type, int64_t *values);
+OP_C_API int OP_CALL OpWriteIntBatch(op_handle handle, intptr_t hwnd, const wchar_t *const *addresses, int count,
+                                     int type, const int64_t *values);
 OP_C_API int OP_CALL OpWriteInt(op_handle handle, intptr_t hwnd, const wchar_t *address, int type, int64_t value);
 OP_C_API int OP_CALL OpReadFloat(op_handle handle, intptr_t hwnd, const wchar_t *address, float *value);
 OP_C_API int OP_CALL OpWriteFloat(op_handle handle, intptr_t hwnd, const wchar_t *address, float value);

@@ -30,7 +30,7 @@ void op::Op::EnablePicCache(long enable, long *ret) {
 }
 
 void op::Op::CapturePre(const wchar_t *file, LONG *ret) {
-    internal::set_result(ret, m_context->image_proc.Capture(file));
+    internal::set_result(ret, m_context->image_proc.Capture(internal::wstr(file)));
 }
 
 void op::Op::SetScreenDataMode(long mode, long *ret) {
@@ -42,7 +42,7 @@ void op::Op::Capture(long x1, long y1, long x2, long y2, const wchar_t *file_nam
     internal::set_result(ret, 0L);
 
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        internal::set_result(ret, m_context->image_proc.Capture(file_name));
+        internal::set_result(ret, m_context->image_proc.Capture(internal::wstr(file_name)));
     });
 }
 // 比较指定坐标点(x,y)的颜色
@@ -51,7 +51,7 @@ void op::Op::CmpColor(long x, long y, const wchar_t *color, double sim, long *re
     long tx = x + small_block_size, ty = y + small_block_size;
     internal::set_result(ret, 0L);
     internal::with_captured_region(m_context.get(), x, y, tx, ty, small_block_size, small_block_size, [&]() {
-        internal::set_result(ret, m_context->image_proc.CmpColor(x, y, color, sim));
+        internal::set_result(ret, m_context->image_proc.CmpColor(x, y, internal::wstr(color), sim));
     });
 }
 // 查找指定区域内的颜色
@@ -65,7 +65,7 @@ void op::Op::FindColor(long x1, long y1, long x2, long y2, const wchar_t *color,
     internal::set_result(y, found_y);
 
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        internal::set_result(ret, m_context->image_proc.FindColor(color, sim, dir, found_x, found_y));
+        internal::set_result(ret, m_context->image_proc.FindColor(internal::wstr(color), sim, dir, found_x, found_y));
         internal::set_result(x, found_x);
         internal::set_result(y, found_y);
     });
@@ -76,7 +76,7 @@ void op::Op::FindColorEx(long x1, long y1, long x2, long y2, const wchar_t *colo
     // wstring str;
     retstr.clear();
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        m_context->image_proc.FindColorEx(color, sim, dir, retstr);
+        m_context->image_proc.FindColorEx(internal::wstr(color), sim, dir, retstr);
     });
 }
 // 根据指定的多点查找颜色坐标
@@ -91,7 +91,7 @@ void op::Op::FindMultiColor(long x1, long y1, long x2, long y2, const wchar_t *f
 
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         internal::set_result(ret,
-                             m_context->image_proc.FindMultiColor(first_color, offset_color, sim, dir, found_x,
+                             m_context->image_proc.FindMultiColor(internal::wstr(first_color), internal::wstr(offset_color), sim, dir, found_x,
                                                                   found_y));
         internal::set_result(x, found_x);
         internal::set_result(y, found_y);
@@ -108,7 +108,7 @@ void op::Op::FindMultiColorEx(long x1, long y1, long x2, long y2, const wchar_t 
                              const wchar_t *offset_color, double sim, long dir, std::wstring &retstr) {
     retstr.clear();
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        m_context->image_proc.FindMultiColorEx(first_color, offset_color, sim, dir, retstr);
+        m_context->image_proc.FindMultiColorEx(internal::wstr(first_color), internal::wstr(offset_color), sim, dir, retstr);
     });
     // retstr = str;
 }
@@ -123,7 +123,7 @@ void op::Op::FindPic(long x1, long y1, long x2, long y2, const wchar_t *files, c
     internal::set_result(y, found_y);
 
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        internal::set_result(ret, m_context->image_proc.FindPic(files, delta_color, sim, dir, found_x, found_y));
+        internal::set_result(ret, m_context->image_proc.FindPic(internal::wstr(files), internal::wstr(delta_color), sim, dir, found_x, found_y));
         internal::set_result(x, found_x);
         internal::set_result(y, found_y);
     });
@@ -140,7 +140,7 @@ void op::Op::FindPicEx(long x1, long y1, long x2, long y2, const wchar_t *files,
 
     retstr.clear();
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr);
+        m_context->image_proc.FindPicEx(internal::wstr(files), internal::wstr(delta_color), sim, dir, retstr);
     });
 }
 
@@ -148,7 +148,7 @@ void op::Op::FindPicExS(long x1, long y1, long x2, long y2, const wchar_t *files
                        long dir, std::wstring &retstr) {
     retstr.clear();
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        m_context->image_proc.FindPicEx(files, delta_color, sim, dir, retstr, false);
+        m_context->image_proc.FindPicEx(internal::wstr(files), internal::wstr(delta_color), sim, dir, retstr, false);
     });
 }
 
@@ -161,7 +161,7 @@ void op::Op::FindColorBlock(long x1, long y1, long x2, long y2, const wchar_t *c
     internal::set_result(y, found_y);
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
         internal::set_result(ret,
-                             m_context->image_proc.FindColorBlock(color, sim, count, height, width, found_x, found_y));
+                             m_context->image_proc.FindColorBlock(internal::wstr(color), sim, count, height, width, found_x, found_y));
         internal::set_result(x, found_x);
         internal::set_result(y, found_y);
     });
@@ -172,7 +172,7 @@ void op::Op::FindColorBlockEx(long x1, long y1, long x2, long y2, const wchar_t 
 
     retstr.clear();
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        m_context->image_proc.FindColorBlockEx(color, sim, count, height, width, retstr);
+        m_context->image_proc.FindColorBlockEx(internal::wstr(color), sim, count, height, width, retstr);
     });
 }
 
@@ -190,7 +190,7 @@ void op::Op::GetColor(long x, long y, std::wstring &ret) {
 void op::Op::GetColorNum(long x1, long y1, long x2, long y2, const wchar_t *color, double sim, long *ret) {
     internal::set_result(ret, 0L);
     internal::with_captured_region(m_context.get(), x1, y1, x2, y2, [&]() {
-        internal::set_result(ret, m_context->image_proc.GetColorNum(color, sim));
+        internal::set_result(ret, m_context->image_proc.GetColorNum(internal::wstr(color), sim));
     });
 }
 
@@ -199,21 +199,21 @@ void op::Op::SetDisplayInput(const wchar_t *mode, long *ret) {
 }
 
 void op::Op::LoadPic(const wchar_t *file_name, long *ret) {
-    internal::set_result(ret, m_context->image_proc.LoadPic(file_name));
+    internal::set_result(ret, m_context->image_proc.LoadPic(internal::wstr(file_name)));
 }
 
 void op::Op::FreePic(const wchar_t *file_name, long *ret) {
-    internal::set_result(ret, m_context->image_proc.FreePic(file_name));
+    internal::set_result(ret, m_context->image_proc.FreePic(internal::wstr(file_name)));
 }
 
 void op::Op::LoadMemPic(const wchar_t *file_name, void *data, long size, long *ret) {
-    internal::set_result(ret, m_context->image_proc.LoadMemPic(file_name, data, size));
+    internal::set_result(ret, m_context->image_proc.LoadMemPic(internal::wstr(file_name), data, size));
 }
 
 void op::Op::GetPicSize(const wchar_t *pic_name, long *width, long *height, long *ret) {
     internal::set_result(width, 0L);
     internal::set_result(height, 0L);
-    internal::set_result(ret, m_context->image_proc.GetPicSize(pic_name, width, height));
+    internal::set_result(ret, m_context->image_proc.GetPicSize(internal::wstr(pic_name), width, height));
 }
 
 void op::Op::GetScreenData(long x1, long y1, long x2, long y2, size_t *data, long *ret) {
@@ -301,40 +301,49 @@ void op::Op::GetScreenFrameInfo(long *frame_id, long *time) {
 
 void op::Op::MatchPicName(const wchar_t *pic_name, std::wstring &retstr) {
     retstr.clear();
-    std::wstring s(pic_name);
+    std::wstring s(internal::wstr(pic_name));
     if (s.find(L'/') != s.npos || s.find(L'\\') != s.npos) {
         setlog("invalid pic_name");
     }
 
-    s = std::regex_replace(s, std::wregex(L"(\\.|\\(|\\)|\\[|\\]|\\{|\\})"), L"\\$1");
-    /*s = std::regex_replace(s, std::wregex(L"\\("), L"\\(");
-    s = std::regex_replace(s, std::wregex(L"\\)"), L"\\)");
-    s = std::regex_replace(s, std::wregex(L"\\["), L"\\[");
-    s = std::regex_replace(s, std::wregex(L"\\]"), L"\\]");*/
-    s = std::regex_replace(s, std::wregex(L"\\*"), L".*?");
-    s = std::regex_replace(s, std::wregex(L"\\?"), L".?");
+    // 构造与匹配全部放进 try：pic_name 是用户输入，只转义了 .()[]{}，* 和 ? 还被当成通配，
+    // 于是"以反斜杠结尾""重复量词(a++)"这类输入会让 std::wregex 构造抛 std::regex_error。
+    // 原来构造在 try 之外、目录遍历也在 try 之外，异常会直接穿出 facade ——
+    // COM/C API 调用方拿到的是一次未捕获异常（进程崩溃），而不是"没有匹配到"。
+    try {
+        s = std::regex_replace(s, std::wregex(L"(\\.|\\(|\\)|\\[|\\]|\\{|\\})"), L"\\$1");
+        s = std::regex_replace(s, std::wregex(L"\\*"), L".*?");
+        s = std::regex_replace(s, std::wregex(L"\\?"), L".?");
 
-    // setlog(s.data());
-    namespace fs = std::filesystem;
-    fs::path path(m_context->curr_path);
-    if (fs::exists(path)) {
-        fs::directory_iterator iter(path);
+        namespace fs = std::filesystem;
+        const fs::path path(m_context->curr_path);
+        if (!fs::exists(path)) {
+            return;
+        }
+
+        const std::wregex pattern(s);
         std::wstring tmp;
-        std::wregex e(s);
-        for (auto &it : iter) {
-            if (it.status().type() == fs::file_type::regular) {
-                tmp = it.path().filename();
-                try {
-                    if (std::regex_match(tmp, e)) {
-                        retstr += tmp;
-                        retstr += L"|";
-                    }
-                } catch (...) {
-                    setlog("exception!");
-                }
+        for (const auto &it : fs::directory_iterator(path)) {
+            if (it.status().type() != fs::file_type::regular) {
+                continue;
+            }
+            tmp = it.path().filename();
+            if (std::regex_match(tmp, pattern)) {
+                retstr += tmp;
+                retstr += L"|";
             }
         }
-        if (!retstr.empty() && retstr.back() == L'|')
+        if (!retstr.empty() && retstr.back() == L'|') {
             retstr.pop_back();
+        }
+    } catch (const std::regex_error &e) {
+        setlog("MatchPicName invalid pattern: %s", e.what());
+        retstr.clear();
+    } catch (const std::exception &e) {
+        setlog("MatchPicName failed: %s", e.what());
+        retstr.clear();
+    } catch (...) {
+        setlog("MatchPicName failed: unknown exception");
+        retstr.clear();
     }
 }

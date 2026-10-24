@@ -124,7 +124,10 @@ int Pipe::close(DWORD process_wait_ms) {
     if (_pthread) {
         if (_pthread->joinable()) {
             ::CancelSynchronousIo(_pthread->native_handle());
-            SAFE_CLOSE(_hread);
+            // §72.51：_hread 不能在 join 之前关。CancelSynchronousIo 只是打断
+            // 当前那次 ReadFile，线程回到循环里还可能用这个句柄再发一次；
+            // 这时句柄已被关掉，句柄号会被系统复用（ABA），新的 ReadFile 就
+            // 落在别人的句柄上。join 等到线程真退出，再关才没有窗口。
             _pthread->join();
         }
     }

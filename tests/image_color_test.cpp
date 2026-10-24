@@ -1,12 +1,12 @@
 #include "test_support.h"
 
+#include "Image.h"
 #include "op_c_api.h"
 
 #include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <iterator>
 #include <utility>
 #include <vector>
@@ -814,6 +814,37 @@ TEST(ImageColorTest, FetchWordsExFiltersNoiseBeforeBuildingEntries) {
     EXPECT_TRUE(mismatch.empty()) << "Filtered rect count and word count must still match";
 }
 
+// §72.48：C API 的字符串返回值共用一份缓冲，而有一批接口的入参正是上一次调用
+// 返回的那个指针。修之前 helper 先把缓冲 clear() 掉，入参当场变成空串。
+// 这条用例走 OpExtractWordRectsEx → OpFetchWordsByRects 这条真实链：
+// rects 不拷贝，直接当下一句的入参用。
+// 注意：全程不把返回值拷贝成 wstring，否则就重演了原来那条"看起来绿"的写法。
+TEST(ImageColorTest, CApiReturnedPointerStaysValidAsNextArgument) {
+    const int width = 24;
+    const int height = 12;
+    auto pixels = MakePixels(width, height);
+    PaintScaledGlyphA(pixels, width, 0, 0, 2, 0x19, 0x19, 0x19);
+    PaintScaledGlyphA(pixels, width, 12, 0, 2, 0x19, 0x19, 0x19);
+    PaintPixel(pixels, width, 23, 0, 0x19, 0x19, 0x19);
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+
+    CApiHandle api;
+    ASSERT_NE(api.handle, nullptr);
+    const wstring mode = L"mem:" + PtrToWString(bmp.data());
+    ASSERT_EQ(OpSetDisplayInput(api.handle, mode.c_str()), 1);
+
+    // 故意不拷贝：rects 就是 handle 内部的那块缓冲，正是要验的契约。
+    const wchar_t *rects = OpExtractWordRectsEx(api.handle, 0, 0, width, height, L"000000", 0.9, 3, 4, 1);
+    ASSERT_NE(rects, nullptr);
+    ASSERT_EQ(wstring(rects), wstring(L"1,1,9,11|13,1,21,11")) << "前置条件不成立，后面的断言没有意义";
+
+    // 缺陷本体：修复前这一句收到的 rects 已经被清成空串，于是返回空。
+    const wchar_t *dict = OpFetchWordsByRects(api.handle, 0, 0, width, height, L"000000", 0.9, L"AB", rects);
+    ASSERT_NE(dict, nullptr);
+    EXPECT_GT(static_cast<int>(wcslen(dict)), 0) << "入参被出参缓冲清空（§72.48 R1）";
+    EXPECT_EQ(wstring(dict).find(L"A$"), 0u);
+}
+
 TEST(ImageColorTest, DotMatrixCApiEntrypointsWork) {
     CApiHandle api;
     ASSERT_NE(api.handle, nullptr);
@@ -1182,6 +1213,86 @@ TEST(ImageColorTest, SetDictDoesNotImportOpTextDictFiles) {
     long count = -1;
     op.GetDictCount(0, &count);
     EXPECT_EQ(count, 0);
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+}
+
+namespace {
+// 与 libop/ocr/Dictionary.h 的 dict_info_t / word1_info 逐字段对应，用于构造二进制字库。
+struct RawDictHeader {
+    int16_t ver;
+    int16_t count;
+    int32_t check;
+};
+struct RawWordHead {
+    uint8_t w;
+    uint8_t h;
+    uint16_t bits;
+    wchar_t name[8];
+};
+static_assert(sizeof(RawDictHeader) == 8, "binary dict header layout changed");
+static_assert(sizeof(RawWordHead) == 20, "binary dict word head layout changed");
+
+void write_raw_dict_file(const std::filesystem::path &path, int16_t ver, int16_t count,
+                         const std::vector<RawWordHead> &heads, const std::vector<std::vector<uint8_t>> &datas) {
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    const RawDictHeader header{ver, count, static_cast<int32_t>(ver ^ count)};
+    file.write(reinterpret_cast<const char *>(&header), sizeof(header));
+    for (size_t i = 0; i < heads.size(); ++i) {
+        file.write(reinterpret_cast<const char *>(&heads[i]), sizeof(RawWordHead));
+        if (i < datas.size() && !datas[i].empty()) {
+            file.write(reinterpret_cast<const char *>(datas[i].data()), static_cast<std::streamsize>(datas[i].size()));
+        }
+    }
+}
+} // namespace
+
+// 覆盖"文件分支漏掉 valid_word_info 校验"的修复：畸形字模必须在加载期被拒绝，
+// 否则 data 长度与 w*h 不符，精确匹配阶段按 w*h 读 data 就是越界读。
+TEST(ImageColorTest, SetDictRejectsMalformedBinaryWordHead) {
+    const auto path = std::filesystem::temp_directory_path() / L"op_setdict_malformed_binary_dict.dict";
+
+    op::Op op;
+    long ret = -1;
+
+    // 1) w = 0（data 长度会算成 0）
+    RawWordHead zero_size{};
+    zero_size.w = 0;
+    zero_size.h = 13;
+    zero_size.bits = 5;
+    zero_size.name[0] = L'A';
+    write_raw_dict_file(path, 1, 1, {zero_size}, {std::vector<uint8_t>{}});
+    op.SetDict(0, path.c_str(), &ret);
+    EXPECT_EQ(ret, 0) << "w=0 的二进制字库必须被拒绝";
+
+    long count = -1;
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 0);
+
+    // 2) bit_cnt > w*h
+    RawWordHead bad_bits{};
+    bad_bits.w = 4;
+    bad_bits.h = 4;
+    bad_bits.bits = 17; // 4*4=16 < 17
+    bad_bits.name[0] = L'B';
+    write_raw_dict_file(path, 1, 1, {bad_bits}, {std::vector<uint8_t>(2, 0xFF)});
+    ret = -1;
+    op.SetDict(0, path.c_str(), &ret);
+    EXPECT_EQ(ret, 0) << "bit_cnt 超过 w*h 的字模必须被拒绝";
+
+    // 3) 对照组：合法字模不能被新校验误拒
+    RawWordHead good{};
+    good.w = 4;
+    good.h = 4;
+    good.bits = 3;
+    good.name[0] = L'C';
+    write_raw_dict_file(path, 1, 1, {good}, {std::vector<uint8_t>(2, 0x0E)});
+    ret = -1;
+    op.SetDict(0, path.c_str(), &ret);
+    EXPECT_EQ(ret, 1) << "合法二进制字库不应被拒绝";
+    op.GetDictCount(0, &count);
+    EXPECT_EQ(count, 1);
 
     std::error_code ec;
     std::filesystem::remove(path, ec);
@@ -2209,4 +2320,242 @@ TEST(ImageColorTest, SetDisplayInputMemBareRawPointerFailsWithoutChangingCurrent
     wstring color;
     op.GetColor(1, 1, color);
     EXPECT_EQ(color, L"030201") << "Failed mem mode parsing should not clobber the previous display input";
+}
+
+// FindPic 自动读入的模板会进全局缓存，长跑脚本逐个换图就会无限增长。
+// 现在只对"自动缓存"的条目做上限淘汰（32 条）。这类条目在缓存缺失时 files2mats 会从磁盘重读，
+// 所以淘汰对调用方透明；显式 LoadPic/LoadMemPic 的条目被钉住不参与淘汰
+// （GetPicSize 只查缓存不回读磁盘，淘汰显式条目会改变外部行为）。
+TEST(ImageColorTest, AutoCachedPicsAreEvictedButStillLoadable) {
+    op::Op op;
+    long ret = 0;
+    const int width = 32;
+    const int height = 32;
+    vector<uchar> screen_pixels(static_cast<size_t>(width) * height * 4, 0xff);
+    auto screen_bmp = BuildBmp32TopDown(width, height, screen_pixels);
+    wstring mode = L"mem:" + PtrToWString(screen_bmp.data());
+    op.SetDisplayInput(mode.c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+
+    const auto dir = std::filesystem::temp_directory_path() / "op_pic_cache_limit_test";
+    std::filesystem::create_directories(dir);
+
+    constexpr int kPicCount = 40; // > kMaxAutoCachedPics(32)
+    vector<wstring> names;
+    names.reserve(kPicCount);
+    for (int i = 0; i < kPicCount; ++i) {
+        vector<uchar> tpl_pixels(static_cast<size_t>(8) * 8 * 4, 0xff);
+        auto tpl_bmp = BuildBmp32TopDown(8, 8, tpl_pixels);
+        wchar_t file_name[64] = {};
+        swprintf_s(file_name, L"cache_%02d.bmp", i);
+        const auto path = dir / file_name;
+        std::ofstream out(path, std::ios::binary);
+        out.write(reinterpret_cast<const char *>(tpl_bmp.data()), static_cast<std::streamsize>(tpl_bmp.size()));
+        out.close();
+        names.push_back(path.wstring());
+    }
+
+    long x = -1;
+    long y = -1;
+    long pic_w = 0;
+    long pic_h = 0;
+
+    // 1) 第一次 FindPic 会自动读盘并写入缓存
+    op.FindPic(0, 0, width, height, names[0].c_str(), L"", 0.9, 0, &x, &y, &ret);
+    op.GetPicSize(names[0].c_str(), &pic_w, &pic_h, &ret);
+    ASSERT_EQ(ret, 1) << "首次 FindPic 后该图应已进入缓存";
+
+    // 2) 再自动加载其余图片，超出上限后最早的自动条目会被淘汰
+    for (int i = 1; i < kPicCount; ++i) {
+        op.FindPic(0, 0, width, height, names[i].c_str(), L"", 0.9, 0, &x, &y, &ret);
+    }
+    pic_w = pic_h = 0;
+    op.GetPicSize(names[0].c_str(), &pic_w, &pic_h, &ret);
+    EXPECT_EQ(ret, 0) << "超出上限后最早的自动缓存条目应已被淘汰";
+
+    // 3) 淘汰是透明的：再找一次会重新读盘并重新进缓存
+    //    这里不断言 FindPic 的匹配结果（纯色模板是否算命中属于匹配语义，与本用例无关），
+    //    只断言"文件被重新读入并回到缓存"，这才是淘汰透明性的证据。
+    x = y = -1;
+    op.FindPic(0, 0, width, height, names[0].c_str(), L"", 0.9, 0, &x, &y, &ret);
+    pic_w = pic_h = 0;
+    op.GetPicSize(names[0].c_str(), &pic_w, &pic_h, &ret);
+    EXPECT_EQ(ret, 1) << "淘汰后 FindPic 应重新读盘并再次进入缓存";
+
+    // 4) 显式 LoadPic 的条目被钉住，不参与淘汰
+    op.LoadPic(names[1].c_str(), &ret);
+    ASSERT_EQ(ret, 1);
+    for (int i = 2; i < kPicCount; ++i) {
+        op.FindPic(0, 0, width, height, names[i].c_str(), L"", 0.9, 0, &x, &y, &ret);
+    }
+    pic_w = pic_h = 0;
+    op.GetPicSize(names[1].c_str(), &pic_w, &pic_h, &ret);
+    EXPECT_EQ(ret, 1) << "显式 LoadPic 的条目不该被自动淘汰";
+}
+
+namespace {
+void PutU16(std::vector<uchar> &out, size_t at, unsigned value) {
+    out[at + 0] = static_cast<uchar>(value & 0xff);
+    out[at + 1] = static_cast<uchar>((value >> 8) & 0xff);
+}
+void PutU32(std::vector<uchar> &out, size_t at, unsigned value) {
+    out[at + 0] = static_cast<uchar>(value & 0xff);
+    out[at + 1] = static_cast<uchar>((value >> 8) & 0xff);
+    out[at + 2] = static_cast<uchar>((value >> 16) & 0xff);
+    out[at + 3] = static_cast<uchar>((value >> 24) & 0xff);
+}
+
+// 24 位、自下而上（biHeight 为正）、行尾有对齐填充：宽度取 5 时每行 15 字节 + 1 字节填充。
+std::vector<uchar> BuildBmp24BottomUp(int width, int height) {
+    const int src_pitch = ((width * 3 + 3) / 4) * 4;
+    const int pixel_bytes = src_pitch * height;
+    const int offset = 14 + 40;
+    std::vector<uchar> out(static_cast<size_t>(offset) + pixel_bytes, 0);
+    out[0] = 'B';
+    out[1] = 'M';
+    PutU32(out, 2, static_cast<unsigned>(out.size()));
+    PutU32(out, 10, static_cast<unsigned>(offset));
+    PutU32(out, 14, 40);
+    PutU32(out, 18, static_cast<unsigned>(width));
+    PutU32(out, 22, static_cast<unsigned>(height)); // 正数 = 自下而上
+    PutU16(out, 26, 1);
+    PutU16(out, 28, 24);
+    PutU32(out, 34, static_cast<unsigned>(pixel_bytes));
+    for (int y = 0; y < height; ++y) {
+        uchar *row = &out[static_cast<size_t>(offset) + static_cast<size_t>(height - 1 - y) * src_pitch];
+        for (int x = 0; x < width; ++x) {
+            row[x * 3 + 0] = static_cast<uchar>(x * 10); // B
+            row[x * 3 + 1] = static_cast<uchar>(y * 20); // G
+            row[x * 3 + 2] = 0x7f;                       // R
+        }
+    }
+    return out;
+}
+
+// 8 位带调色板：直读快路径不支持，必须回落 GDI+ 且仍然读得出来。
+std::vector<uchar> BuildBmp8Palette(int width, int height) {
+    const int src_pitch = ((width + 3) / 4) * 4;
+    const int palette_bytes = 256 * 4;
+    const int offset = 14 + 40 + palette_bytes;
+    std::vector<uchar> out(static_cast<size_t>(offset) + static_cast<size_t>(src_pitch) * height, 0);
+    out[0] = 'B';
+    out[1] = 'M';
+    PutU32(out, 2, static_cast<unsigned>(out.size()));
+    PutU32(out, 10, static_cast<unsigned>(offset));
+    PutU32(out, 14, 40);
+    PutU32(out, 18, static_cast<unsigned>(width));
+    PutU32(out, 22, static_cast<unsigned>(height));
+    PutU16(out, 26, 1);
+    PutU16(out, 28, 8);
+    PutU32(out, 34, static_cast<unsigned>(src_pitch * height));
+    PutU32(out, 46, 256);
+    for (int i = 0; i < 256; ++i) {
+        const size_t at = 14 + 40 + static_cast<size_t>(i) * 4;
+        out[at + 0] = static_cast<uchar>(i);
+        out[at + 1] = static_cast<uchar>(i);
+        out[at + 2] = static_cast<uchar>(i);
+        out[at + 3] = 0;
+    }
+    for (int y = 0; y < height; ++y) {
+        uchar *row = &out[static_cast<size_t>(offset) + static_cast<size_t>(y) * src_pitch];
+        for (int x = 0; x < width; ++x)
+            row[x] = 200;
+    }
+    return out;
+}
+
+void WriteAll(const std::wstring &path, const std::vector<uchar> &bytes) {
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    file.write(reinterpret_cast<const char *>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
+}
+} // namespace
+
+TEST(ImageReadBmpTest, ReadsTopDown32BppFromMemory) {
+    const int width = 5;
+    const int height = 3;
+    std::vector<uchar> pixels(static_cast<size_t>(width) * height * 4);
+    for (int i = 0; i < width * height; ++i) {
+        pixels[i * 4 + 0] = static_cast<uchar>(i);
+        pixels[i * 4 + 1] = static_cast<uchar>(i + 1);
+        pixels[i * 4 + 2] = static_cast<uchar>(i + 2);
+        pixels[i * 4 + 3] = 0xff;
+    }
+    auto bmp = BuildBmp32TopDown(width, height, pixels);
+    op::Image img;
+    ASSERT_TRUE(img.read(bmp.data(), static_cast<long>(bmp.size()))) << "32 位自上而下 BMP 应走直读快路径";
+    EXPECT_EQ(img.width, width);
+    EXPECT_EQ(img.height, height);
+    for (int i = 0; i < width * height; ++i) {
+        EXPECT_EQ(img.pdata[i * 4 + 0], pixels[i * 4 + 0]) << "第 " << i << " 个像素的 B 通道";
+        EXPECT_EQ(img.pdata[i * 4 + 1], pixels[i * 4 + 1]) << "第 " << i << " 个像素的 G 通道";
+        EXPECT_EQ(img.pdata[i * 4 + 2], pixels[i * 4 + 2]) << "第 " << i << " 个像素的 R 通道";
+    }
+}
+
+TEST(ImageReadBmpTest, ReadsBottomUp24BppFromFileWithRowPadding) {
+    const int width = 5; // 15 字节/行 → 需要 1 字节对齐填充
+    const int height = 3;
+    const auto bmp = BuildBmp24BottomUp(width, height);
+    const auto path = test_support::GetTempBmpPath(L"op_bmp_fastpath_24_bottomup.bmp");
+    WriteAll(path, bmp);
+
+    op::Image img;
+    ASSERT_TRUE(img.read(path.c_str())) << "24 位自下而上 BMP 应读得出来";
+    EXPECT_EQ(img.width, width);
+    EXPECT_EQ(img.height, height);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const size_t at = (static_cast<size_t>(y) * width + x) * 4;
+            EXPECT_EQ(img.pdata[at + 0], static_cast<uchar>(x * 10)) << "y=" << y << " x=" << x << " B 通道";
+            EXPECT_EQ(img.pdata[at + 1], static_cast<uchar>(y * 20)) << "y=" << y << " x=" << x << " G 通道";
+            EXPECT_EQ(img.pdata[at + 2], 0x7f) << "y=" << y << " x=" << x << " R 通道";
+            EXPECT_EQ(img.pdata[at + 3], 0xff) << "24 位补出来的 alpha 应为 0xff";
+        }
+    }
+    ::DeleteFileW(path.c_str());
+}
+
+TEST(ImageReadBmpTest, FallsBackToGdiPlusForIndexedBitmap) {
+    const int width = 4;
+    const int height = 2;
+    const auto bmp = BuildBmp8Palette(width, height);
+    const auto path = test_support::GetTempBmpPath(L"op_bmp_fastpath_8_palette.bmp");
+    WriteAll(path, bmp);
+
+    op::Image img;
+    ASSERT_TRUE(img.read(path.c_str())) << "8 位调色板 BMP 不在快路径里，应回落 GDI+ 后仍然读得出来";
+    EXPECT_EQ(img.width, width);
+    EXPECT_EQ(img.height, height);
+    for (int i = 0; i < width * height; ++i) {
+        EXPECT_EQ(img.pdata[i * 4 + 0], 200) << "第 " << i << " 个像素应是调色板第 200 项的灰度";
+        EXPECT_EQ(img.pdata[i * 4 + 1], 200);
+        EXPECT_EQ(img.pdata[i * 4 + 2], 200);
+    }
+    ::DeleteFileW(path.c_str());
+}
+
+TEST(ImageReadBmpTest, WriteThenReadRoundTripKeepsPixels) {
+    const int width = 7;
+    const int height = 5;
+    op::Image src;
+    src.create(width, height);
+    for (int i = 0; i < width * height; ++i) {
+        src.pdata[i * 4 + 0] = static_cast<uchar>((i * 7) & 0xff);
+        src.pdata[i * 4 + 1] = static_cast<uchar>((i * 13) & 0xff);
+        src.pdata[i * 4 + 2] = static_cast<uchar>((i * 29) & 0xff);
+        src.pdata[i * 4 + 3] = 0xff;
+    }
+    const auto path = test_support::GetTempBmpPath(L"op_bmp_fastpath_roundtrip.bmp");
+    ASSERT_TRUE(src.write(path.c_str())) << "写 BMP 失败";
+
+    op::Image loaded;
+    ASSERT_TRUE(loaded.read(path.c_str()));
+    EXPECT_EQ(loaded.width, width);
+    EXPECT_EQ(loaded.height, height);
+    for (int i = 0; i < width * height; ++i) {
+        EXPECT_EQ(loaded.pdata[i * 4 + 0], src.pdata[i * 4 + 0]) << "第 " << i << " 个像素 B 通道";
+        EXPECT_EQ(loaded.pdata[i * 4 + 1], src.pdata[i * 4 + 1]) << "第 " << i << " 个像素 G 通道";
+        EXPECT_EQ(loaded.pdata[i * 4 + 2], src.pdata[i * 4 + 2]) << "第 " << i << " 个像素 R 通道";
+    }
+    ::DeleteFileW(path.c_str());
 }

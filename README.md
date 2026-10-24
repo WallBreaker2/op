@@ -19,8 +19,12 @@ YOLO 检测同样走外部 HTTP 服务模式。OP 负责截图、读图和请求
 
 - [GitHub Wiki](https://github.com/WallBreaker2/op/wiki)：安装、接口说明、OpenCV、OCR、免注册、多语言示例
 - [插件下载](https://github.com/WallBreaker2/op/releases)
+- [函数调用文档](doc/api.md)：214 个公开方法的签名与说明，由 `scripts/gen_api_doc.py` 从头文件生成
 - [本地 OCR 说明](doc/ocr.md)
 - [YOLO HTTP 检测](doc/yolo.md)
+- [截图性能数据](doc/capture_perf.md)：各后端的取帧路径与实测耗时
+- [缺陷与修复记录](doc/defect_fixes.md)：按批次记录的每个问题、改动、验证与回滚
+- [下一步待办清单](doc/next_steps.md)：已完成 / 待决策 / 明确不做
 - [测试工具 OPTestTool](https://github.com/flaot/OPTestTool)
 
 ## 主要能力
@@ -33,7 +37,8 @@ YOLO 检测同样走外部 HTTP 服务模式。OP 负责截图、读图和请求
 - 点阵字库 OCR，支持本地字库和内存字库
 - OCR / YOLO HTTP 服务接入
 - C API、COM、Python、Go 等调用方式
-- 进程内存读写、汇编调用和常用算法工具
+- 进程内存读写（含批量读写接口）、汇编调用和常用算法工具
+- 32 位宿主可绑定 64 位目标：由 `op_inject64.exe` 代注入 `op_x64.dll`
 
 ## 目录概览
 
@@ -61,11 +66,11 @@ op/
 ├─ bindings/         C API 的 Python、Go 包装
 ├─ swig/             SWIG 绑定生成文件
 ├─ python/           `pyop` Python 包源码
-├─ tools/            免注册加载工具和 YOLO 服务样例
-├─ examples/         本地示例和测试资源
-├─ tests/            C++ 单元测试和集成测试
+├─ tools/            免注册加载工具、64 位注入助手和 YOLO 服务样例
+├─ assets/           测试素材（OpenCV 真实图片场景等，由脚本生成）
+├─ tests/            C++ 单元测试、集成测试和跨进程注入端到端测试
 ├─ doc/              项目内补充文档和流程图
-├─ scripts/          wheel 构建脚本
+├─ scripts/          wheel 构建脚本、性能探针和素材生成脚本
 ├─ ci/               CI triplet 和辅助配置
 ├─ 3rd_party/        第三方源码或本地依赖
 ├─ build.py          推荐的一键构建入口
@@ -181,6 +186,39 @@ pip install scikit-build-core setuptools-scm
 python build.py -g vs2026 -t Release -a x64
 pip wheel . --no-deps -w wheelhouse
 ```
+
+## 测试
+
+测试用 GoogleTest，全部通过 CTest 驱动，`x64` 与 `x86` 各有一份构建目录：
+
+```powershell
+# 跑全量（16 个 ctest 项）
+cd build/vs2022-x64-Release
+ctest -C Release --output-on-failure
+
+# 只跑跨进程注入的端到端用例（起真实目标进程，验证注入 → 共享内存 → 读帧）
+ctest -C Release -R hook_e2e --output-on-failure
+
+# 只跑截图后端与 API 面用例
+ctest -C Release -R "capture_backend|op_test" --output-on-failure
+```
+
+注意几点：
+
+- `op_test` 主项默认跳过 WGC / 截图 / OCR 契约用例（`OP_SKIP_*` 环境变量），这些由独立的 ctest 项覆盖，
+  避免同一批用例被跑两遍。
+- 跨进程用例需要交互式桌面；锁屏或没有桌面会话时会明确失败而不是静默跳过。
+- OCR 契约用例需要本地 OCR 服务，端点用 `OP_OCR_URL` 或 `OP_OCR_BACKEND` 指定。
+
+接口覆盖率可以随时重算，脚本是 `scripts/api_coverage.py`：
+
+```powershell
+python scripts/api_coverage.py
+```
+
+它会从 `include/libop.h`、`libop/c_api/op_c_api.cpp`、`libop/com/op.idl` 里抽出三面接口的全部符号，
+再拿 `tests/` 当语料统计哪些被真正调用过，报告写到 `_backup/api_coverage_report.txt`。
+当前三面接口 —— C++ `op::Op` 214 个、C API 186 个、COM 214 个 —— 都有用例覆盖。
 
 ## 社区
 

@@ -55,21 +55,26 @@ std::wstring FindOpenCvSampleImage(const std::wstring &file_name) {
 }
 
 std::wstring FindDemoAsset(const std::wstring &file_name) {
-    const auto cwd = std::filesystem::current_path();
-    const std::vector<std::filesystem::path> candidates = {
-        cwd / L"assets" / file_name,
-        cwd.parent_path() / L"assets" / file_name,
-        cwd.parent_path().parent_path() / L"assets" / file_name,
-        cwd / L"doc" / L"op.wiki" / L"demo" / L"assets" / file_name,
-        cwd.parent_path() / L"doc" / L"op.wiki" / L"demo" / L"assets" / file_name,
-        cwd.parent_path().parent_path() / L"doc" / L"op.wiki" / L"demo" / L"assets" / file_name,
-    };
-
-    for (const auto &candidate : candidates) {
+    // §72.51（审计 R-05）：原来只往上看两级。测试的 cwd 是
+    // build/<gen>-<arch>-<cfg>/tests/Release，仓库根在三级以上，所以素材就算
+    // 放进仓库的 assets/ 也永远找不到 —— 5 条"真实图片"用例因此永久 skip。
+    // 改成从 cwd 一路往上找（最多 8 级），任何一级的 assets/<name> 都能命中。
+    std::filesystem::path dir = std::filesystem::current_path();
+    for (int depth = 0; depth < 8; ++depth) {
+        const std::filesystem::path candidate = dir / L"assets" / file_name;
         if (std::filesystem::exists(candidate)) {
             return candidate.wstring();
         }
+        const std::filesystem::path wiki_candidate = dir / L"doc" / L"op.wiki" / L"demo" / L"assets" / file_name;
+        if (std::filesystem::exists(wiki_candidate)) {
+            return wiki_candidate.wstring();
+        }
+        if (!dir.has_parent_path() || dir == dir.parent_path()) {
+            break;
+        }
+        dir = dir.parent_path();
     }
+    std::fprintf(stderr, "[ASSET-MISS] %ls (cwd=%ls)\n", file_name.c_str(), std::filesystem::current_path().c_str());
     return L"";
 }
 
@@ -192,6 +197,18 @@ bool HasDemoAssetPair(const RealImageCase &item) {
 }
 
 void ExpectNearRect(const opcv::MatchResult &match, const cv::Rect &expected, int tolerance) {
+    std::fprintf(
+        stderr,
+        "[RECT] got=(%d,%d %dx%d) want=(%d,%d %dx%d) tol=%d\n",
+        match.x,
+        match.y,
+        match.width,
+        match.height,
+        expected.x,
+        expected.y,
+        expected.width,
+        expected.height,
+        tolerance);
     EXPECT_NEAR(match.x, expected.x, tolerance);
     EXPECT_NEAR(match.y, expected.y, tolerance);
     EXPECT_NEAR(match.width, expected.width, tolerance);
@@ -1124,6 +1141,101 @@ TEST(OpenCvTest, MatchTemplateScaleFindsScaledTemplate) {
     ::DeleteFileW(template_path.c_str());
 }
 
+// 缩放模板缓存必须有上限，且淘汰之后不能影响匹配结果。
+// 之前 scaled_templates 是只进不出的：多比例/自适应搜索每试一个新比例就塞一份
+// 缩放后的 Mat，跑久了每个模板都会挂上几十上百份，内存一路涨。
+TEST(OpenCvTest, ScaledTemplateCacheStaysBoundedAndStillMatches) {
+    opcv::RemoveAllTemplates();
+
+    const int base_width = 4;
+    const int base_height = 4;
+    std::vector<uchar> templ_bgra(static_cast<size_t>(base_width * base_height * 4), 0);
+    for (int y = 0; y < base_height; ++y) {
+        for (int x = 0; x < base_width; ++x) {
+            const size_t index = static_cast<size_t>((y * base_width + x) * 4);
+            const uchar value = static_cast<uchar>((x * 37 + y * 53 + x * y * 19 + 41) % 255);
+            templ_bgra[index + 0] = value;
+            templ_bgra[index + 1] = static_cast<uchar>((value + 67) % 255);
+            templ_bgra[index + 2] = static_cast<uchar>((value + 131) % 255);
+            templ_bgra[index + 3] = 255;
+        }
+    }
+
+    const auto template_bmp = test_support::BuildBmp32TopDown(base_width, base_height, templ_bgra);
+    const std::wstring template_path = test_support::GetTempBmpPath(L"opencv_template_scale_bounded.bmp");
+    ASSERT_TRUE(WriteBytesToFile(template_path, template_bmp));
+    ASSERT_TRUE(opcv::LoadTemplate(L"scale_bounded", template_path));
+    EXPECT_EQ(opcv::GetScaledTemplateCacheSize(L"scale_bounded"), 0u) << "刚加载的模板不该带缩放缓存";
+
+    cv::Mat templ_mat(base_height, base_width, CV_8UC4, templ_bgra.data());
+    cv::Mat scaled_mat;
+    cv::resize(templ_mat, scaled_mat, cv::Size(6, 6), 0.0, 0.0, cv::INTER_LINEAR);
+
+    const int source_width = 18;
+    const int source_height = 18;
+    std::vector<uchar> source_bgra(static_cast<size_t>(source_width * source_height * 4), 0);
+    for (int y = 0; y < source_height; ++y) {
+        for (int x = 0; x < source_width; ++x) {
+            const size_t index = static_cast<size_t>((y * source_width + x) * 4);
+            source_bgra[index + 0] = static_cast<uchar>((x * 11 + y * 7 + 17) % 255);
+            source_bgra[index + 1] = static_cast<uchar>((x * 5 + y * 13 + 29) % 255);
+            source_bgra[index + 2] = static_cast<uchar>((x * 3 + y * 19 + 43) % 255);
+            source_bgra[index + 3] = 255;
+        }
+    }
+
+    const int target_x = 7;
+    const int target_y = 5;
+    for (int y = 0; y < scaled_mat.rows; ++y) {
+        for (int x = 0; x < scaled_mat.cols; ++x) {
+            const cv::Vec4b pixel = scaled_mat.at<cv::Vec4b>(y, x);
+            const size_t index = static_cast<size_t>(((target_y + y) * source_width + (target_x + x)) * 4);
+            source_bgra[index + 0] = pixel[0];
+            source_bgra[index + 1] = pixel[1];
+            source_bgra[index + 2] = pixel[2];
+            source_bgra[index + 3] = pixel[3];
+        }
+    }
+
+    opcv::ImageHandle source_image;
+    source_image.bytes = source_bgra;
+    source_image.width = source_width;
+    source_image.height = source_height;
+    source_image.channels = 4;
+
+    // 先用一次 1.5 把"正确的缩放比例"灌进缓存（它会在下面的循环里被淘汰）。
+    opcv::MatchResult baseline;
+    ASSERT_TRUE(opcv::MatchTemplateScale(
+        source_image, L"scale_bounded", {0, 0, source_width, source_height}, {1.5}, 0.95, baseline));
+    EXPECT_EQ(baseline.x, target_x);
+    EXPECT_EQ(baseline.width, 6);
+
+    // 40 个互不相同的临时比例，超过上限后必须开始淘汰。
+    opcv::MatchResult probe;
+    for (int i = 0; i < 40; ++i) {
+        const double scale = 0.70 + 0.005 * i;
+        (void)opcv::MatchTemplateScale(
+            source_image, L"scale_bounded", {0, 0, source_width, source_height}, {scale}, 0.99, probe);
+    }
+
+    const size_t cached = opcv::GetScaledTemplateCacheSize(L"scale_bounded");
+    EXPECT_GT(cached, 0u) << "缩放模板根本没进缓存，上限断言就没有意义";
+    EXPECT_LE(cached, 16u) << "缩放模板缓存没有上限，长跑会持续涨内存";
+
+    // 1.5 早已被淘汰：再匹配一次必须重新计算，并且结果和第一次完全一致。
+    opcv::MatchResult result;
+    ASSERT_TRUE(opcv::MatchTemplateScale(
+        source_image, L"scale_bounded", {0, 0, source_width, source_height}, {1.5}, 0.95, result));
+    EXPECT_EQ(result.x, baseline.x) << "淘汰后重算的结果和之前不一致，说明淘汰改坏了语义";
+    EXPECT_EQ(result.y, baseline.y);
+    EXPECT_EQ(result.width, baseline.width);
+    EXPECT_EQ(result.height, baseline.height);
+
+    opcv::RemoveAllTemplates();
+    EXPECT_EQ(opcv::GetScaledTemplateCacheSize(L"scale_bounded"), 0u) << "模板被移除后不该还留缩放缓存";
+    ::DeleteFileW(template_path.c_str());
+}
+
 TEST(OpenCvTest, MatchTemplateAutomaticallyUsesPyramidOnLargeRegion) {
     opcv::RemoveAllTemplates();
 
@@ -1826,7 +1938,9 @@ TEST(OpenCvTest, HardRealImageCasesExposeMatchingBoundaries) {
             return opcv::MatchTemplateScale(
                 scale_source,
                 L"hard_scale",
-                {0, 0, scale_source.width, scale_source.height},
+                // 窄 ROI：只框住 0.75x 实例（自动档位里 1.25 档在别的实例上
+                // 更容易拿高分，全图搜会先命中它 —— 那条路径由断言 3 覆盖）。
+                {60, 420, 150, 150},
                 {},
                 0.98,
                 scale_small,
@@ -1855,7 +1969,11 @@ TEST(OpenCvTest, HardRealImageCasesExposeMatchingBoundaries) {
         },
         scale_large_ok);
     ASSERT_TRUE(scale_large_ok);
-    ExpectNearRect(scale_large, cv::Rect(940, 390, 130, 130), 1);
+    // §72.51：这两条断言原本是 (940,390,130,130) 和 (947,396,120,120) —— 后者
+    // 完全被前者包含，同一块像素不可能既是 1.35 倍的图案又是 1.25 倍的图案，
+    // 素材再怎么写都满足不了。把 1.35x 挪到 ROI {820,300,360,260} 之外，
+    // 1.25x 留在 ROI 内，两个断言才各自独立成立（素材见 gen_demo_assets.py）。
+    ExpectNearRect(scale_large, cv::Rect(700, 180, 130, 130), 1);
     RecordProperty("hard_scale_135_elapsed_ms", scale_large_elapsed_ms);
     RecordProperty("hard_scale_135_score", scale_large.score);
 
@@ -1875,7 +1993,7 @@ TEST(OpenCvTest, HardRealImageCasesExposeMatchingBoundaries) {
         },
         scale_auto_large_ok);
     ASSERT_TRUE(scale_auto_large_ok);
-    ExpectNearRect(scale_auto_large, cv::Rect(947, 396, 120, 120), 2);
+    ExpectNearRect(scale_auto_large, cv::Rect(860, 320, 120, 120), 2);
     RecordProperty("hard_scale_auto_large_elapsed_ms", scale_auto_large_elapsed_ms);
     RecordProperty("hard_scale_auto_large_score", scale_auto_large.score);
 

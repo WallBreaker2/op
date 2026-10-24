@@ -188,7 +188,10 @@ class ImageSearchAlgorithms {
     int _dx, _dy;
 
   private:
-    ThreadPool m_threadPool;
+    // 线程池不再按实例持有：ThreadPool 每实例会开 hardware_concurrency 个线程，
+    // 而本类是 per-ImageSearchService（= per op::Op），实测每 new 一个 Op 就 +20 线程
+    // （10 个 Op → +200 线程）。FindPicTh/FindPicExTh 改用进程级共享池。
+    static ThreadPool &SharedThreadPool();
 };
 
 } // namespace op::image

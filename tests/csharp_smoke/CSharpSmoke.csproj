@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>CSharpSmoke</AssemblyName>
+    <RootNamespace>CSharpSmoke</RootNamespace>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <!-- 位宽决定加载哪个 C API 入口；C# 侧靠这个符号选 DLL 名。 -->
+  <PropertyGroup Condition="'$(Platform)' == 'x86'">
+    <DefineConstants>$(DefineConstants);OP_X86</DefineConstants>
+  </PropertyGroup>
+
+</Project>

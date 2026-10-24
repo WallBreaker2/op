@@ -221,6 +221,9 @@ interface IOpAutomation : IDispatch
 	[id(251)] HRESULT ReadData([in] hyper hwnd, [in] BSTR address, [in] LONG size, [out, retval] BSTR* retstr);
 	[id(252)] HRESULT ReadInt([in] hyper hwnd, [in] BSTR address, [in] LONG type, [out, retval] hyper* ret);
 	[id(253)] HRESULT WriteInt([in] hyper hwnd, [in] BSTR address, [in] LONG type, [in] hyper value, [out, retval] LONG* ret);
+	// Batch shape: addresses separated by '|'; return value is '|'-separated decimals, failed items are empty.
+	[id(348)] HRESULT ReadIntBatch([in] hyper hwnd, [in] BSTR addresses, [in] LONG type, [out, retval] BSTR* ret);
+	[id(349)] HRESULT WriteIntBatch([in] hyper hwnd, [in] BSTR addresses, [in] LONG type, [in] BSTR values, [out, retval] LONG* ret);
 	[id(254)] HRESULT ReadFloat([in] hyper hwnd, [in] BSTR address, [out, retval] DOUBLE* ret);
 	[id(255)] HRESULT WriteFloat([in] hyper hwnd, [in] BSTR address, [in] DOUBLE value, [out, retval] LONG* ret);
 	[id(256)] HRESULT ReadDouble([in] hyper hwnd, [in] BSTR address, [out, retval] DOUBLE* ret);

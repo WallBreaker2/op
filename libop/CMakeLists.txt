@@ -120,6 +120,7 @@ set(OP_HOOK_SOURCES
   "hook/D3D12Capture.cpp"
   "hook/DisplayHook.cpp"
   "hook/DxCaptureCommon.cpp"
+  "hook/SharedFrameChannel.cpp"
   "hook/InputHook.cpp"
   "hook/InputHookClient.cpp"
   "hook/HookExport.cpp"
@@ -177,6 +178,8 @@ set(OP_NETWORK_SOURCES
 
 set(OP_OCR_SOURCES
   "ocr/OcrService.cpp"
+  "ocr/OcrResponseParser.cpp"
+  "yolo/YoloResponseParser.cpp"
 )
 
 set(OP_YOLO_SOURCES

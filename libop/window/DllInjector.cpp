@@ -109,7 +109,14 @@ BOOL DllInjector::EnablePrivilege(BOOL enable) {
     tp.PrivilegeCount = 1;
     tp.Privileges[0].Luid = luid;
     tp.Privileges[0].Attributes = enable ? SE_PRIVILEGE_ENABLED : 0;
+    // §72.51：AdjustTokenPrivileges 在"一个特权都没改成功"时也返回 TRUE，
+    // 只把 LastError 设成 ERROR_NOT_ALL_ASSIGNED（令牌里没有 SE_DEBUG_NAME，
+    // 常见于非管理员运行）。不查这一步就是假成功，后面 OpenProcess 失败
+    // 会被误判成目标进程的问题。
+    ::SetLastError(ERROR_SUCCESS);
     if (!AdjustTokenPrivileges(token.get(), FALSE, &tp, sizeof(tp), NULL, NULL))
+        return FALSE;
+    if (::GetLastError() == ERROR_NOT_ALL_ASSIGNED)
         return FALSE;
 
     return TRUE;

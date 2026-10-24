@@ -18,6 +18,12 @@ std::atomic<int> g_display_ref_count{0};
 std::atomic<int> g_input_ref_count{0};
 
 void release_module_if_idle() {
+    // 还有没摘干净的显示钩子时绝不能卸载：trampoline 就在本模块里，卸载后
+    // 目标进程下一次进 detour 会跳进已释放的内存。
+    if (DisplayHook::has_pending_release()) {
+        setlog("skip module unload: display hook still pending release");
+        return;
+    }
     if (g_ref_count.load() == 0) {
         ::FreeLibraryAndExitThread(static_cast<HMODULE>(RuntimeEnvironment::getInstance()), 0);
     }
@@ -66,10 +72,15 @@ long __stdcall ReleaseDisplayHook() {
         ret = DisplayHook::release();
         if (g_ref_count.load() > 0)
             g_ref_count.fetch_sub(1);
+    } else if (!DisplayHook::is_hooked) {
+        // 上一次 release() 没等到 detour 静默时留下的残留，这里再收一次尾。
+        // 短超时即可：调用方随时可能重绑，阻塞太久没有意义。
+        DisplayHook::finish_pending_release(200);
     }
 
-    release_module_if_idle();
-
+    // 这里**不**调 release_module_if_idle()：显示钩子的解绑是在宿主发起的远端调用里
+    // 执行的，此时 FreeLibraryAndExitThread 会让远端线程直接消失、返回值写不回去，
+    // 宿主侧就卡在等结果上。模块卸载统一由输入侧（ReleaseInputHook）负责。
     return ret;
 }
 
